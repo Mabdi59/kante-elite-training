@@ -150,6 +150,12 @@ export default function BookPage() {
 
   const selectedProgramData = PROGRAMS.find((p) => p.id === program);
 
+  // When NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is set the booking flow goes through
+  // Stripe Checkout (select → pay → confirm). Without it the original direct
+  // booking flow is used (useful for local development).
+  const stripeEnabled = Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+
+  // Direct booking (no payment) — used when Stripe is not configured
   const handleSubmit = async () => {
     setSubmitting(true);
     setSubmitError("");
@@ -173,6 +179,31 @@ export default function BookPage() {
     } catch {
       setSubmitError("Network error. Please check your connection and try again.");
     } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Stripe Checkout — redirects to Stripe-hosted payment page
+  const handleCheckout = async () => {
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      const res  = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ program, date, time, playerName, parentName, phone, email, ageGroup, experience, notes }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSubmitError(data.error ?? "Something went wrong. Please try again.");
+        if (res.status === 409) fetchBookedSlots(date, program);
+        setSubmitting(false);
+      } else {
+        // Redirect to Stripe — keep submitting=true so button stays disabled during redirect
+        window.location.href = data.url;
+      }
+    } catch {
+      setSubmitError("Network error. Please check your connection and try again.");
       setSubmitting(false);
     }
   };
@@ -496,15 +527,19 @@ export default function BookPage() {
               )}
 
               <button
-                onClick={handleSubmit}
+                onClick={stripeEnabled ? handleCheckout : handleSubmit}
                 disabled={submitting}
                 className="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-60 disabled:cursor-not-allowed text-black font-black py-5 rounded-xl text-lg transition-all shadow-xl shadow-amber-500/20 mb-4"
               >
-                {submitting ? "Booking Your Spot…" : "Confirm Booking →"}
+                {submitting
+                  ? (stripeEnabled ? "Redirecting to payment…" : "Booking Your Spot…")
+                  : (stripeEnabled ? "Pay & Confirm →" : "Confirm Booking →")}
               </button>
 
               <p className="text-gray-500 text-xs text-center mb-6">
-                Coach Kante will confirm your session within 24 hours.
+                {stripeEnabled
+                  ? "You'll be taken to a secure Stripe checkout page to complete payment."
+                  : "Coach Kante will confirm your session within 24 hours."}
               </p>
 
               <button

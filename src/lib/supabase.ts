@@ -24,6 +24,7 @@ export interface BookingRow {
   age_group: string;
   experience: string;
   notes: string;
+  stripe_session_id: string | null;
   created_at: string;
 }
 
