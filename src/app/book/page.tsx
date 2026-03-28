@@ -1,56 +1,113 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import HeroSection from "@/components/HeroSection";
 import Link from "next/link";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface Program {
+  id: string;
+  label: string;
+  price: string;
+  description: string;
+}
+
+interface ConfirmedBooking {
+  id: string;
+  program: string;
+  date: string;
+  time: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
+  athleteName: string;
+  athleteAge: string;
+  experienceLevel: string;
+  notes: string;
+}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const PROGRAMS = [
-  { id: "private",   icon: "⚽", title: "Private Training",        price: "$75/session",  desc: "1-on-1 personalized coaching" },
-  { id: "group",     icon: "👥", title: "Small Group Training",     price: "$40/player",   desc: "2–4 players, team dynamics" },
-  { id: "speed",     icon: "⚡", title: "Speed & Agility",          price: "$50/session",  desc: "Athletic performance development" },
-  { id: "technical", icon: "🎯", title: "Technical Development",    price: "$45/session",  desc: "Ball mastery and technical skills" },
-  { id: "camp",      icon: "🏕️", title: "Training Camp",            price: "$200/week",    desc: "Intensive week-long programs" },
+const PROGRAMS: Program[] = [
+  {
+    id: "private",
+    label: "Private Training",
+    price: "$75/session",
+    description: "1-on-1 sessions with Coach Kante, personalized to your game.",
+  },
+  {
+    id: "group",
+    label: "Small Group Training",
+    price: "$40/player",
+    description: "2–4 players per session. Competitive energy, personal attention.",
+  },
+  {
+    id: "speed",
+    label: "Speed & Agility",
+    price: "$50/session",
+    description: "Sports-science-based speed, acceleration, and agility training.",
+  },
+  {
+    id: "technical",
+    label: "Technical Development",
+    price: "$45/session",
+    description: "Ball mastery, passing, finishing, and 1v1 skills.",
+  },
+  {
+    id: "camp",
+    label: "Training Camp",
+    price: "$200/week",
+    description: "Full-day immersive training camp (8am–4pm) for serious players.",
+  },
 ];
 
 const TIME_SLOTS = [
-  "9:00 AM", "10:00 AM", "11:00 AM",
-  "1:00 PM", "2:00 PM",  "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM",
-];
-
-const AGE_GROUPS = [
-  "U8 (Ages 7-8)", "U10 (Ages 9-10)", "U12 (Ages 11-12)",
-  "U14 (Ages 13-14)", "U16 (Ages 15-16)", "U18 (Ages 17-18)",
+  "9:00 AM",
+  "10:00 AM",
+  "11:00 AM",
+  "12:00 PM",
+  "1:00 PM",
+  "2:00 PM",
+  "3:00 PM",
+  "4:00 PM",
+  "5:00 PM",
+  "6:00 PM",
 ];
 
 const EXPERIENCE_LEVELS = ["Beginner", "Intermediate", "Advanced", "Elite"];
 
-const STEP_LABELS = ["Program", "Date & Time", "Your Details", "Confirm"];
+const STEP_LABELS = ["Program", "Date & Time", "Details", "Review", "Done"];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Next 14 Mon–Sat days starting tomorrow */
-function getAvailableDates() {
-  const dates: { value: string; label: string; day: string }[] = [];
+function getAvailableDates(): string[] {
+  const dates: string[] = [];
   const d = new Date();
-  d.setDate(d.getDate() + 1);
+  d.setDate(d.getDate() + 1); // start from tomorrow
   while (dates.length < 14) {
     if (d.getDay() !== 0) {
-      dates.push({
-        value: d.toISOString().slice(0, 10),
-        label: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-        day:   d.toLocaleDateString("en-US", { weekday: "short" }),
-      });
+      // exclude Sundays
+      dates.push(d.toISOString().split("T")[0]);
     }
     d.setDate(d.getDate() + 1);
   }
   return dates;
 }
 
-function formatDate(isoDate: string) {
-  return new Date(isoDate + "T12:00:00").toLocaleDateString("en-US", {
-    weekday: "long", month: "long", day: "numeric",
+function formatDateShort(iso: string): { day: string; num: number; month: string } {
+  const dt = new Date(iso + "T12:00:00");
+  return {
+    day: dt.toLocaleDateString("en-US", { weekday: "short" }),
+    num: dt.getDate(),
+    month: dt.toLocaleDateString("en-US", { month: "short" }),
+  };
+}
+
+function formatDateLong(iso: string): string {
+  return new Date(iso + "T12:00:00").toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
   });
 }
 
@@ -58,29 +115,39 @@ function formatDate(isoDate: string) {
 
 function StepIndicator({ step }: { step: number }) {
   return (
-    <div className="flex items-start justify-center mb-12">
+    <div className="flex items-center justify-center mb-10">
       {STEP_LABELS.map((label, i) => {
-        const num = i + 1;
-        const isActive = step === num;
-        const isDone   = step > num;
+        const n = i + 1;
+        const active = n === step;
+        const done = n < step;
         return (
-          <div key={label} className="flex items-start">
-            <div className="flex flex-col items-center gap-1.5">
+          <div key={label} className="flex items-center">
+            <div className="flex flex-col items-center gap-1">
               <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
-                  isDone   ? "bg-amber-500/20 text-amber-500 border border-amber-500"
-                  : isActive ? "bg-amber-500 text-black"
-                  : "bg-[#222222] text-gray-500"
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all ${
+                  done
+                    ? "bg-amber-500 text-black"
+                    : active
+                    ? "bg-amber-500 text-black ring-4 ring-amber-500/20"
+                    : "bg-[#1a1a1a] border border-[#333333] text-gray-600"
                 }`}
               >
-                {isDone ? "✓" : num}
+                {done ? "✓" : n}
               </div>
-              <span className={`text-xs font-medium hidden sm:block whitespace-nowrap ${step >= num ? "text-white" : "text-gray-600"}`}>
+              <span
+                className={`text-[10px] font-semibold hidden sm:block ${
+                  active ? "text-amber-500" : done ? "text-gray-500" : "text-gray-700"
+                }`}
+              >
                 {label}
               </span>
             </div>
             {i < STEP_LABELS.length - 1 && (
-              <div className={`h-px w-10 md:w-16 mt-[18px] mx-1 shrink-0 ${step > num ? "bg-amber-500" : "bg-[#333333]"}`} />
+              <div
+                className={`w-6 sm:w-10 h-px mx-1 mb-4 ${
+                  n < step ? "bg-amber-500" : "bg-[#222222]"
+                }`}
+              />
             )}
           </div>
         );
@@ -89,43 +156,117 @@ function StepIndicator({ step }: { step: number }) {
   );
 }
 
+// ─── Section Label ────────────────────────────────────────────────────────────
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-amber-500 font-black text-xs uppercase tracking-widest mb-4">
+      {children}
+    </p>
+  );
+}
+
+// ─── Input ────────────────────────────────────────────────────────────────────
+
+function Field({
+  label,
+  required,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className="block text-gray-400 text-xs font-semibold mb-2">
+        {label}
+        {required && <span className="text-amber-500 ml-1">*</span>}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+const inputClass =
+  "w-full bg-[#111111] border border-[#222222] text-white rounded-xl px-4 py-3 text-sm focus:border-amber-500 focus:outline-none transition-colors placeholder-gray-600";
+
+// ─── Primary / Secondary Buttons ─────────────────────────────────────────────
+
+function PrimaryBtn({
+  onClick,
+  disabled,
+  children,
+}: {
+  onClick?: () => void;
+  disabled?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="w-full bg-amber-500 hover:bg-amber-400 disabled:bg-[#1a1a1a] disabled:text-gray-600 text-black font-black py-4 rounded-xl text-base transition-all shadow-lg shadow-amber-500/20 disabled:shadow-none"
+    >
+      {children}
+    </button>
+  );
+}
+
+function SecondaryBtn({
+  onClick,
+  children,
+}: {
+  onClick?: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full border border-[#333333] text-white font-bold py-4 rounded-xl hover:bg-[#111111] transition-colors text-sm"
+    >
+      {children}
+    </button>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function BookPage() {
-  const AVAILABLE_DATES = getAvailableDates();
+  const [step, setStep] = useState(1);
+  const [availableDates] = useState(getAvailableDates);
 
-  const [step, setStep]           = useState(1);
-  const [confirmed, setConfirmed] = useState(false);
-
-  // Step 1 – Program
+  // Step 1 — Program
   const [program, setProgram] = useState("");
 
-  // Step 2 – Date & Time
-  const [date, setDate]               = useState("");
-  const [time, setTime]               = useState("");
+  // Step 2 — Date & Time
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
 
-  // Step 3 – Details
-  const [playerName, setPlayerName] = useState("");
-  const [parentName, setParentName] = useState("");
-  const [phone, setPhone]           = useState("");
-  const [email, setEmail]           = useState("");
-  const [ageGroup, setAgeGroup]     = useState("");
-  const [experience, setExperience] = useState("");
-  const [notes, setNotes]           = useState("");
+  // Step 3 — Details
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [iAmTheAthlete, setIAmTheAthlete] = useState(false);
+  const [athleteName, setAthleteName] = useState("");
+  const [athleteAge, setAthleteAge] = useState("");
+  const [experienceLevel, setExperienceLevel] = useState("");
+  const [notes, setNotes] = useState("");
 
-  // Submission
-  const [submitting, setSubmitting]   = useState(false);
+  // Submit
+  const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [bookingId, setBookingId]     = useState("");
+  const [confirmed, setConfirmed] = useState<ConfirmedBooking | null>(null);
 
   // Fetch booked slots when date or program changes
   const fetchBookedSlots = useCallback(async (d: string, p: string) => {
-    if (!d || !p) return;
     setLoadingSlots(true);
     try {
-      const res  = await fetch(`/api/bookings?date=${d}&program=${p}`);
+      const res = await fetch(
+        `/api/bookings?date=${encodeURIComponent(d)}&program=${encodeURIComponent(p)}`
+      );
       const data = await res.json();
       setBookedSlots(data.bookedSlots ?? []);
     } catch {
@@ -136,422 +277,505 @@ export default function BookPage() {
   }, []);
 
   useEffect(() => {
-    if (date && program) {
-      fetchBookedSlots(date, program);
-    }
+    if (date && program) fetchBookedSlots(date, program);
   }, [date, program, fetchBookedSlots]);
 
-  // Reset date/time if program changes (availability differs per program)
+  // "I am the athlete" — mirror contact name into athlete name
   useEffect(() => {
-    setDate("");
-    setTime("");
-    setBookedSlots([]);
-  }, [program]);
+    if (iAmTheAthlete) setAthleteName(contactName);
+  }, [iAmTheAthlete, contactName]);
 
-  const selectedProgramData = PROGRAMS.find((p) => p.id === program);
+  const selectedProgram = PROGRAMS.find((p) => p.id === program);
 
-  // When NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is set the booking flow goes through
-  // Stripe Checkout (select → pay → confirm). Without it the original direct
-  // booking flow is used (useful for local development).
-  const stripeEnabled = Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+  const step3Valid =
+    contactName.trim() !== "" &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail) &&
+    contactPhone.trim() !== "" &&
+    athleteName.trim() !== "" &&
+    athleteAge.trim() !== "" &&
+    experienceLevel !== "";
 
-  // Direct booking (no payment) — used when Stripe is not configured
-  const handleSubmit = async () => {
+  async function handleSubmit() {
     setSubmitting(true);
     setSubmitError("");
     try {
-      const res  = await fetch("/api/bookings", {
+      const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ program, date, time, playerName, parentName, phone, email, ageGroup, experience, notes }),
+        body: JSON.stringify({
+          program,
+          date,
+          time,
+          contactName,
+          contactEmail,
+          contactPhone,
+          athleteName,
+          athleteAge,
+          experienceLevel,
+          notes,
+        }),
       });
+
       const data = await res.json();
+
       if (!res.ok) {
-        setSubmitError(data.error ?? "Something went wrong. Please try again.");
         if (res.status === 409) {
-          // Slot was just taken; refresh availability
-          fetchBookedSlots(date, program);
+          setSubmitError(
+            "This slot was just taken by another booking. Please choose a different time."
+          );
+        } else {
+          setSubmitError(data.error ?? "Something went wrong. Please try again.");
         }
-      } else {
-        setBookingId("KE-" + data.booking.id.slice(0, 8).toUpperCase());
-        setConfirmed(true);
+        return;
       }
+
+      // Map API response back to display field names
+      const b = data.booking;
+      setConfirmed({
+        id: b.id,
+        program: b.program,
+        date: b.date,
+        time: b.time,
+        contactName: b.parentName ?? contactName,
+        contactEmail: b.email ?? contactEmail,
+        contactPhone: b.phone ?? contactPhone,
+        athleteName: b.playerName ?? athleteName,
+        athleteAge: b.ageGroup ?? athleteAge,
+        experienceLevel: b.experience ?? experienceLevel,
+        notes: b.notes ?? notes,
+      });
+      setStep(5);
     } catch {
       setSubmitError("Network error. Please check your connection and try again.");
     } finally {
       setSubmitting(false);
     }
-  };
+  }
 
-  // Stripe Checkout — redirects to Stripe-hosted payment page
-  const handleCheckout = async () => {
-    setSubmitting(true);
+  function resetForm() {
+    setStep(1);
+    setProgram("");
+    setDate("");
+    setTime("");
+    setBookedSlots([]);
+    setContactName("");
+    setContactEmail("");
+    setContactPhone("");
+    setIAmTheAthlete(false);
+    setAthleteName("");
+    setAthleteAge("");
+    setExperienceLevel("");
+    setNotes("");
     setSubmitError("");
-    try {
-      const res  = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ program, date, time, playerName, parentName, phone, email, ageGroup, experience, notes }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setSubmitError(data.error ?? "Something went wrong. Please try again.");
-        if (res.status === 409) fetchBookedSlots(date, program);
-        setSubmitting(false);
-      } else {
-        // Redirect to Stripe — keep submitting=true so button stays disabled during redirect
-        window.location.href = data.url;
-      }
-    } catch {
-      setSubmitError("Network error. Please check your connection and try again.");
-      setSubmitting(false);
-    }
-  };
+    setConfirmed(null);
+  }
 
-  // ── Confirmation Screen ───────────────────────────────────────────────────
-  if (confirmed) {
-    return (
-      <div className="pt-24">
-        <section className="min-h-screen bg-black flex items-center justify-center px-4 py-20">
-          <div className="max-w-lg w-full text-center">
-            <div className="w-20 h-20 bg-amber-500/20 border-2 border-amber-500/40 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="text-4xl text-amber-500">✓</span>
+  return (
+    <div className="pt-24 min-h-screen bg-black">
+      <div className="max-w-2xl mx-auto px-4 py-12">
+        {/* Header */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-3 text-amber-500 uppercase tracking-[0.2em] text-xs font-black mb-4">
+            <span className="w-8 h-px bg-amber-500/60" />
+            Book a Session
+            <span className="w-8 h-px bg-amber-500/60" />
+          </div>
+          <h1 className="text-white font-black text-3xl md:text-4xl">Reserve Your Spot</h1>
+          <p className="text-gray-500 text-sm mt-3">
+            Complete the steps below to book your training session.
+          </p>
+        </div>
+
+        {/* Step indicator (hidden on success) */}
+        {step < 5 && <StepIndicator step={step} />}
+
+        {/* ── Step 1: Program ─────────────────────────────────────────────── */}
+        {step === 1 && (
+          <div>
+            <SectionLabel>Choose a program</SectionLabel>
+            <div className="space-y-3 mb-6">
+              {PROGRAMS.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => setProgram(p.id)}
+                  className={`w-full text-left p-5 rounded-xl border transition-all ${
+                    program === p.id
+                      ? "border-amber-500 bg-amber-500/10"
+                      : "border-[#222222] bg-[#111111] hover:border-[#333333]"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-white font-bold text-base">{p.label}</span>
+                    <span className="text-amber-500 font-black text-sm">{p.price}</span>
+                  </div>
+                  <p className="text-gray-400 text-sm">{p.description}</p>
+                </button>
+              ))}
             </div>
-            <h1 className="text-white font-black text-3xl md:text-4xl mb-2">Booking Confirmed!</h1>
-            <p className="text-amber-500 font-bold text-lg mb-8">Reference #{bookingId}</p>
+            <PrimaryBtn onClick={() => program && setStep(2)} disabled={!program}>
+              Continue →
+            </PrimaryBtn>
+          </div>
+        )}
 
-            <div className="bg-[#111111] border border-[#222222] rounded-xl divide-y divide-[#222222] text-left mb-8">
+        {/* ── Step 2: Date & Time ─────────────────────────────────────────── */}
+        {step === 2 && (
+          <div>
+            <SectionLabel>Select a date</SectionLabel>
+            <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 mb-8">
+              {availableDates.map((d) => {
+                const { day, num, month } = formatDateShort(d);
+                const selected = date === d;
+                return (
+                  <button
+                    key={d}
+                    onClick={() => {
+                      setDate(d);
+                      setTime("");
+                    }}
+                    className={`flex flex-col items-center py-3 px-1 rounded-xl border transition-all ${
+                      selected
+                        ? "border-amber-500 bg-amber-500/10"
+                        : "border-[#222222] bg-[#111111] hover:border-[#333333]"
+                    }`}
+                  >
+                    <span className="text-gray-500 text-[10px] font-semibold">{day}</span>
+                    <span
+                      className={`font-black text-xl leading-tight ${
+                        selected ? "text-amber-500" : "text-white"
+                      }`}
+                    >
+                      {num}
+                    </span>
+                    <span className="text-gray-600 text-[10px]">{month}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {date ? (
+              <>
+                <SectionLabel>
+                  Available times — {formatDateLong(date)}
+                </SectionLabel>
+                {loadingSlots ? (
+                  <div className="flex items-center gap-3 py-8 text-gray-500 text-sm">
+                    <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+                    Checking availability…
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-6">
+                    {TIME_SLOTS.map((t) => {
+                      const booked = bookedSlots.includes(t);
+                      const selected = time === t;
+                      return (
+                        <button
+                          key={t}
+                          disabled={booked}
+                          onClick={() => !booked && setTime(t)}
+                          className={`py-3 px-2 rounded-xl border text-sm font-bold transition-all ${
+                            booked
+                              ? "border-[#1a1a1a] bg-[#0a0a0a] text-gray-700 cursor-not-allowed line-through"
+                              : selected
+                              ? "border-amber-500 bg-amber-500/10 text-amber-500"
+                              : "border-[#222222] bg-[#111111] text-white hover:border-[#333333]"
+                          }`}
+                        >
+                          {t}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-10 text-gray-600 text-sm border border-[#1a1a1a] rounded-xl mb-6">
+                ← Select a date above to see available times
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <SecondaryBtn onClick={() => setStep(1)}>← Back</SecondaryBtn>
+              <div className="flex-1">
+                <PrimaryBtn
+                  onClick={() => date && time && setStep(3)}
+                  disabled={!date || !time}
+                >
+                  Continue →
+                </PrimaryBtn>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Step 3: Details ─────────────────────────────────────────────── */}
+        {step === 3 && (
+          <div>
+            {/* Contact Info */}
+            <SectionLabel>Contact info</SectionLabel>
+            <div className="space-y-3 mb-8">
+              <Field label="Full Name" required>
+                <input
+                  type="text"
+                  value={contactName}
+                  onChange={(e) => setContactName(e.target.value)}
+                  placeholder="Your full name"
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="Email" required>
+                <input
+                  type="email"
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="Phone" required>
+                <input
+                  type="tel"
+                  value={contactPhone}
+                  onChange={(e) => setContactPhone(e.target.value)}
+                  placeholder="(614) 555-0123"
+                  className={inputClass}
+                />
+              </Field>
+            </div>
+
+            {/* Athlete Info */}
+            <div className="flex items-center justify-between mb-4">
+              <SectionLabel>Athlete info</SectionLabel>
+              {/* "I am the athlete" toggle */}
+              <button
+                onClick={() => setIAmTheAthlete(!iAmTheAthlete)}
+                className={`flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all mb-4 ${
+                  iAmTheAthlete
+                    ? "bg-amber-500/20 text-amber-400 border-amber-500/40"
+                    : "bg-[#1a1a1a] text-gray-400 border-[#333333] hover:border-[#444444]"
+                }`}
+              >
+                <div
+                  className={`w-3 h-3 rounded-sm border-2 flex items-center justify-center flex-shrink-0 ${
+                    iAmTheAthlete ? "border-amber-500 bg-amber-500" : "border-gray-600"
+                  }`}
+                >
+                  {iAmTheAthlete && (
+                    <span className="text-[8px] text-black font-black leading-none">✓</span>
+                  )}
+                </div>
+                I am the athlete
+              </button>
+            </div>
+
+            <div className="space-y-3 mb-8">
+              <Field label="Athlete Name" required>
+                <input
+                  type="text"
+                  value={athleteName}
+                  onChange={(e) => {
+                    setAthleteName(e.target.value);
+                    if (iAmTheAthlete) setIAmTheAthlete(false);
+                  }}
+                  placeholder="Athlete's full name"
+                  className={inputClass}
+                />
+              </Field>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Age" required>
+                  <input
+                    type="number"
+                    min="5"
+                    max="25"
+                    value={athleteAge}
+                    onChange={(e) => setAthleteAge(e.target.value)}
+                    placeholder="e.g. 14"
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="Experience Level" required>
+                  <select
+                    value={experienceLevel}
+                    onChange={(e) => setExperienceLevel(e.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="" disabled>
+                      Select level
+                    </option>
+                    {EXPERIENCE_LEVELS.map((l) => (
+                      <option key={l} value={l}>
+                        {l}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+              <Field label="Notes (optional)">
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Injuries, training goals, special requests…"
+                  rows={3}
+                  className={`${inputClass} resize-none`}
+                />
+              </Field>
+            </div>
+
+            <div className="flex gap-3">
+              <SecondaryBtn onClick={() => setStep(2)}>← Back</SecondaryBtn>
+              <div className="flex-1">
+                <PrimaryBtn
+                  onClick={() => step3Valid && setStep(4)}
+                  disabled={!step3Valid}
+                >
+                  Review Booking →
+                </PrimaryBtn>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Step 4: Review & Confirm ────────────────────────────────────── */}
+        {step === 4 && (
+          <div>
+            <SectionLabel>Booking summary</SectionLabel>
+            <div className="bg-[#111111] border border-[#222222] rounded-xl overflow-hidden divide-y divide-[#1a1a1a] mb-6">
               {[
-                { label: "Program",  value: selectedProgramData?.title },
-                { label: "Date",     value: formatDate(date) },
-                { label: "Time",     value: time },
-                { label: "Player",   value: playerName },
-                parentName ? { label: "Parent / Guardian", value: parentName } : null,
-                { label: "Phone",    value: phone },
-                { label: "Email",    value: email },
-              ].filter(Boolean).map((row) => (
-                <div key={row!.label} className="flex justify-between items-center px-5 py-3 text-sm">
-                  <span className="text-gray-400">{row!.label}</span>
-                  <span className="text-white font-semibold text-right max-w-[60%]">{row!.value}</span>
+                { label: "Program", value: selectedProgram?.label ?? program },
+                { label: "Date", value: formatDateLong(date) },
+                { label: "Time", value: time },
+                { label: "Contact", value: contactName },
+                { label: "Email", value: contactEmail },
+                { label: "Phone", value: contactPhone },
+                { label: "Athlete", value: athleteName },
+                { label: "Age", value: athleteAge },
+                { label: "Experience", value: experienceLevel },
+                ...(notes ? [{ label: "Notes", value: notes }] : []),
+              ].map((row) => (
+                <div
+                  key={row.label}
+                  className="flex items-start justify-between px-5 py-3 text-sm"
+                >
+                  <span className="text-gray-500 font-semibold flex-shrink-0 w-24">
+                    {row.label}
+                  </span>
+                  <span className="text-white text-right break-all">{row.value}</span>
                 </div>
               ))}
             </div>
 
-            <p className="text-gray-400 text-sm mb-8">
-              Coach Kante will reach out to confirm your session.{" "}
-              Check <span className="text-amber-500">{email}</span> for details.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/" className="bg-amber-500 hover:bg-amber-400 text-black font-black px-8 py-3 rounded transition-all">
-                Back to Home
-              </Link>
-              <Link href="/training" className="border border-[#333333] text-white hover:bg-[#111111] font-bold px-8 py-3 rounded transition-all">
-                View All Programs
-              </Link>
-            </div>
-          </div>
-        </section>
-      </div>
-    );
-  }
-
-  // ── Booking Form ─────────────────────────────────────────────────────────
-  return (
-    <div className="pt-24">
-      <HeroSection
-        title="Book Your Session"
-        subtitle="Reserve your spot in 4 easy steps — no account needed"
-        badge="Get Started"
-      />
-
-      <section className="bg-black py-16 px-4">
-        <div className="max-w-3xl mx-auto">
-          <StepIndicator step={step} />
-
-          {/* ── Step 1: Program ─────────────────────────────────────────── */}
-          {step === 1 && (
-            <div>
-              <h2 className="text-white font-black text-2xl mb-6 text-center">Select Training Type</h2>
-              <div className="grid grid-cols-1 gap-3">
-                {PROGRAMS.map((p) => (
-                  <label
-                    key={p.id}
-                    className={`flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-colors ${
-                      program === p.id
-                        ? "border-amber-500 bg-amber-500/10"
-                        : "border-[#222222] bg-[#111111] hover:border-[#444444]"
-                    }`}
-                  >
-                    <input type="radio" name="program" value={p.id} checked={program === p.id} onChange={() => setProgram(p.id)} className="sr-only" />
-                    <span className="text-3xl">{p.icon}</span>
-                    <div className="flex-1">
-                      <p className="text-white font-bold">{p.title}</p>
-                      <p className="text-gray-400 text-sm">{p.desc}</p>
-                    </div>
-                    <span className="text-amber-500 font-bold whitespace-nowrap">{p.price}</span>
-                  </label>
-                ))}
-              </div>
-              <button
-                onClick={() => program && setStep(2)}
-                disabled={!program}
-                className="mt-8 w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-black font-black py-4 rounded transition-all"
-              >
-                Next: Pick a Date →
-              </button>
-            </div>
-          )}
-
-          {/* ── Step 2: Date & Time ──────────────────────────────────────── */}
-          {step === 2 && (
-            <div>
-              <h2 className="text-white font-black text-2xl mb-6 text-center">Choose Date &amp; Time</h2>
-
-              {/* Date grid */}
-              <p className="text-gray-400 text-sm font-medium mb-3">Select a date</p>
-              <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 mb-8">
-                {AVAILABLE_DATES.map((d) => (
-                  <button
-                    key={d.value}
-                    onClick={() => { setDate(d.value); setTime(""); }}
-                    className={`flex flex-col items-center py-2.5 px-1 rounded-lg border text-center transition-colors ${
-                      date === d.value
-                        ? "border-amber-500 bg-amber-500/10"
-                        : "border-[#222222] bg-[#111111] hover:border-[#444444]"
-                    }`}
-                  >
-                    <span className={`text-xs font-semibold ${date === d.value ? "text-amber-500" : "text-gray-500"}`}>{d.day}</span>
-                    <span className={`text-sm font-bold mt-0.5 ${date === d.value ? "text-white" : "text-gray-300"}`}>{d.label}</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Time slots */}
-              {!date && (
-                <p className="text-gray-500 text-sm text-center py-6">← Select a date to see available times</p>
-              )}
-
-              {date && (
-                <>
-                  <p className="text-gray-400 text-sm font-medium mb-3">Select a time</p>
-                  {loadingSlots ? (
-                    <div className="text-center py-8 text-gray-400 text-sm">Checking availability…</div>
-                  ) : (
-                    <div className="grid grid-cols-3 gap-3 mb-8">
-                      {TIME_SLOTS.map((slot) => {
-                        const isBooked   = bookedSlots.includes(slot);
-                        const isSelected = time === slot;
-                        return (
-                          <button
-                            key={slot}
-                            onClick={() => !isBooked && setTime(slot)}
-                            disabled={isBooked}
-                            className={`flex flex-col items-center justify-center py-3 px-2 rounded-lg border text-sm font-bold transition-all ${
-                              isBooked
-                                ? "border-[#1a1a1a] bg-[#0d0d0d] text-gray-600 cursor-not-allowed"
-                                : isSelected
-                                ? "border-amber-500 bg-amber-500/10 text-amber-500"
-                                : "border-[#222222] bg-[#111111] text-gray-300 hover:border-[#444444]"
-                            }`}
-                          >
-                            <span className={isBooked ? "line-through decoration-gray-600" : ""}>{slot}</span>
-                            {isBooked && <span className="text-xs font-normal text-gray-600 mt-0.5">Booked</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </>
-              )}
-
-              <div className="flex gap-3 mt-2">
-                <button onClick={() => setStep(1)} className="flex-1 border border-[#333333] text-white font-bold py-4 rounded hover:bg-[#111111] transition-colors text-sm">
-                  ← Back
-                </button>
-                <button
-                  onClick={() => date && time && setStep(3)}
-                  disabled={!date || !time}
-                  className="flex-1 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-black font-black py-4 rounded transition-all"
-                >
-                  Next: Your Details →
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* ── Step 3: Details ──────────────────────────────────────────── */}
-          {step === 3 && (
-            <div>
-              <h2 className="text-white font-black text-2xl mb-6 text-center">Your Details</h2>
-              <div className="space-y-5">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-white font-semibold text-sm mb-2">Player Name *</label>
-                    <input
-                      type="text"
-                      value={playerName}
-                      onChange={(e) => setPlayerName(e.target.value)}
-                      placeholder="First & Last Name"
-                      className="w-full bg-[#111111] border border-[#222222] text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-500 placeholder-gray-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-white font-semibold text-sm mb-2">Parent / Guardian Name</label>
-                    <input
-                      type="text"
-                      value={parentName}
-                      onChange={(e) => setParentName(e.target.value)}
-                      placeholder="First & Last Name"
-                      className="w-full bg-[#111111] border border-[#222222] text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-500 placeholder-gray-600"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-white font-semibold text-sm mb-2">Phone Number *</label>
-                    <input
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="(614) 555-0000"
-                      className="w-full bg-[#111111] border border-[#222222] text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-500 placeholder-gray-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-white font-semibold text-sm mb-2">Email Address *</label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@example.com"
-                      className="w-full bg-[#111111] border border-[#222222] text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-500 placeholder-gray-600"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-white font-semibold text-sm mb-2">Age Group</label>
-                    <select
-                      value={ageGroup}
-                      onChange={(e) => setAgeGroup(e.target.value)}
-                      className="w-full bg-[#111111] border border-[#222222] text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-500"
-                    >
-                      <option value="">Select Age Group</option>
-                      {AGE_GROUPS.map((ag) => <option key={ag} value={ag}>{ag}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-white font-semibold text-sm mb-2">Experience Level</label>
-                    <select
-                      value={experience}
-                      onChange={(e) => setExperience(e.target.value)}
-                      className="w-full bg-[#111111] border border-[#222222] text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-500"
-                    >
-                      <option value="">Select Level</option>
-                      {EXPERIENCE_LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
-                    </select>
-                  </div>
-                </div>
-
+            {submitError && (
+              <div className="bg-red-900/20 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl mb-4 flex items-start gap-2">
+                <span className="mt-0.5 flex-shrink-0">⚠</span>
                 <div>
-                  <label className="block text-white font-semibold text-sm mb-2">Notes / Goals <span className="text-gray-500 font-normal">(optional)</span></label>
-                  <textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Tell Coach Kante what you want to work on…"
-                    rows={3}
-                    className="w-full bg-[#111111] border border-[#222222] text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-500 placeholder-gray-600 resize-none"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-3 mt-8">
-                <button onClick={() => setStep(2)} className="flex-1 border border-[#333333] text-white font-bold py-4 rounded hover:bg-[#111111] transition-colors text-sm">
-                  ← Back
-                </button>
-                <button
-                  onClick={() => playerName.trim() && phone.trim() && email.trim() && setStep(4)}
-                  disabled={!playerName.trim() || !phone.trim() || !email.trim()}
-                  className="flex-1 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-black font-black py-4 rounded transition-all"
-                >
-                  Review Booking →
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* ── Step 4: Review & Confirm ─────────────────────────────────── */}
-          {step === 4 && (
-            <div>
-              <h2 className="text-white font-black text-2xl mb-2 text-center">Review &amp; Confirm</h2>
-              <p className="text-gray-400 text-sm text-center mb-8">Double-check everything before confirming your spot.</p>
-
-              <div className="bg-[#111111] border border-[#222222] rounded-xl divide-y divide-[#222222] mb-6">
-                {([
-                  { label: "Program",  value: selectedProgramData?.title },
-                  { label: "Price",    value: selectedProgramData?.price },
-                  { label: "Date",     value: formatDate(date) },
-                  { label: "Time",     value: time },
-                  { label: "Player",   value: playerName },
-                  parentName ? { label: "Parent / Guardian", value: parentName } : null,
-                  { label: "Phone",    value: phone },
-                  { label: "Email",    value: email },
-                  ageGroup   ? { label: "Age Group",   value: ageGroup }   : null,
-                  experience ? { label: "Experience",  value: experience } : null,
-                  notes      ? { label: "Notes",       value: notes }      : null,
-                ] as Array<{ label: string; value: string } | null>)
-                  .filter(Boolean)
-                  .map((row) => (
-                    <div key={row!.label} className="flex justify-between items-start px-5 py-3 text-sm gap-4">
-                      <span className="text-gray-400 shrink-0">{row!.label}</span>
-                      <span className="text-white font-semibold text-right">{row!.value}</span>
-                    </div>
-                  ))}
-              </div>
-
-              {submitError && (
-                <div className="bg-red-900/20 border border-red-500/40 rounded-lg p-4 mb-6 text-red-400 text-sm">
-                  ⚠️ {submitError}
-                  {submitError.includes("already booked") && (
+                  {submitError}
+                  {submitError.includes("slot was just taken") && (
                     <button
-                      onClick={() => { setSubmitError(""); setStep(2); }}
-                      className="block mt-2 text-amber-500 font-bold underline text-xs"
+                      onClick={() => {
+                        setSubmitError("");
+                        setTime("");
+                        setStep(2);
+                      }}
+                      className="block mt-2 text-amber-400 underline text-xs"
                     >
-                      Pick a different time →
+                      ← Choose a different time
                     </button>
                   )}
                 </div>
+              </div>
+            )}
+
+            <PrimaryBtn onClick={handleSubmit} disabled={submitting}>
+              {submitting ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                  Confirming…
+                </span>
+              ) : (
+                "Confirm Booking →"
               )}
+            </PrimaryBtn>
+            <div className="mt-3">
+              <SecondaryBtn onClick={() => setStep(3)}>← Edit Details</SecondaryBtn>
+            </div>
+          </div>
+        )}
 
-              <button
-                onClick={stripeEnabled ? handleCheckout : handleSubmit}
-                disabled={submitting}
-                className="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-60 disabled:cursor-not-allowed text-black font-black py-5 rounded-xl text-lg transition-all shadow-xl shadow-amber-500/20 mb-4"
+        {/* ── Step 5: Success ─────────────────────────────────────────────── */}
+        {step === 5 && confirmed && (
+          <div className="text-center">
+            {/* Check icon */}
+            <div className="w-20 h-20 bg-amber-500/20 border-2 border-amber-500/40 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg
+                className="w-10 h-10 text-amber-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
               >
-                {submitting
-                  ? (stripeEnabled ? "Redirecting to payment…" : "Booking Your Spot…")
-                  : (stripeEnabled ? "Pay & Confirm →" : "Confirm Booking →")}
-              </button>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
 
-              <p className="text-gray-500 text-xs text-center mb-6">
-                {stripeEnabled
-                  ? "You'll be taken to a secure Stripe checkout page to complete payment."
-                  : "Coach Kante will confirm your session within 24 hours."}
-              </p>
+            <h2 className="text-white font-black text-3xl mb-2">Booking Confirmed!</h2>
+            <p className="text-gray-400 text-sm mb-4">Your session has been reserved.</p>
 
-              <button
-                onClick={() => setStep(3)}
-                className="w-full border border-[#333333] text-white font-bold py-3 rounded hover:bg-[#111111] transition-colors text-sm"
+            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-full px-5 py-2 mb-8">
+              <span className="text-gray-400 text-sm">Reference:</span>
+              <span className="text-amber-500 font-black text-sm tracking-wider">
+                KE-{confirmed.id.slice(0, 8).toUpperCase()}
+              </span>
+            </div>
+
+            <div className="bg-[#111111] border border-[#222222] rounded-xl overflow-hidden divide-y divide-[#1a1a1a] text-left mb-8">
+              {[
+                { label: "Program", value: selectedProgram?.label ?? confirmed.program },
+                { label: "Date", value: formatDateLong(confirmed.date) },
+                { label: "Time", value: confirmed.time },
+                { label: "Athlete", value: confirmed.athleteName },
+                { label: "Age", value: confirmed.athleteAge },
+                { label: "Experience", value: confirmed.experienceLevel },
+                { label: "Contact", value: confirmed.contactName },
+                { label: "Email", value: confirmed.contactEmail },
+                { label: "Phone", value: confirmed.contactPhone },
+              ].map((row) => (
+                <div
+                  key={row.label}
+                  className="flex justify-between items-center px-5 py-3 text-sm"
+                >
+                  <span className="text-gray-500">{row.label}</span>
+                  <span className="text-white font-semibold text-right max-w-[60%] break-all">
+                    {row.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-gray-500 text-sm mb-8">
+              Coach Kante will be in touch before your session. See you on the field! ⚽
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link
+                href="/"
+                className="flex-1 bg-amber-500 hover:bg-amber-400 text-black font-black px-6 py-4 rounded-xl transition-all text-center shadow-lg shadow-amber-500/20"
               >
-                ← Edit Details
+                Back to Home
+              </Link>
+              <button
+                onClick={resetForm}
+                className="flex-1 border border-[#333333] text-white font-bold px-6 py-4 rounded-xl hover:bg-[#111111] transition-colors"
+              >
+                Book Another Session
               </button>
             </div>
-          )}
-        </div>
-      </section>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

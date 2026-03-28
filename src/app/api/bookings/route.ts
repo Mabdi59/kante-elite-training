@@ -9,13 +9,13 @@
  *      Returns { bookedSlots: string[] } for the given date+program.
  *
  * POST /api/bookings
- *      Body: { program, date, time, playerName, parentName, phone, email, ageGroup, experience, notes }
+ *      Accepts new field names:
+ *        contactName, contactEmail, contactPhone,
+ *        athleteName, athleteAge, experienceLevel
+ *      Also accepts legacy field names for backward compatibility:
+ *        playerName, parentName, phone, email, ageGroup, experience
  *      Returns { success: true, booking: {...} } or { error: string }
  *      409 if the slot is already taken.
- *
- * Note: When Stripe is configured, bookings are created via the webhook handler
- * or /api/bookings/confirm after payment. This POST route is used for the
- * direct (no-payment) flow in local development.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -43,23 +43,36 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  let body: Partial<NewBookingData & { stripeSessionId?: string }>;
+  let body: Record<string, string | null | undefined>;
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const { program, date, time, playerName, phone, email } = body;
+  const { program, date, time } = body;
 
-  if (!program || !date || !time || !playerName || !phone || !email) {
+  // Accept new field names (preferred) with legacy fallbacks
+  const resolvedAthleteN  = (body.athleteName  ?? body.playerName  ?? "").trim();
+  const resolvedContactN  = (body.contactName  ?? body.parentName  ?? "").trim();
+  const resolvedEmail     = (body.contactEmail ?? body.email       ?? "").trim();
+  const resolvedPhone     = (body.contactPhone ?? body.phone       ?? "").trim();
+  const resolvedAge       = (body.athleteAge   ?? body.ageGroup    ?? "").trim();
+  const resolvedExp       = (body.experienceLevel ?? body.experience ?? "").trim();
+  const resolvedNotes     = (body.notes ?? "").trim();
+  const stripeSessionId   = body.stripeSessionId ?? null;
+
+  if (!program || !date || !time || !resolvedAthleteN || !resolvedPhone || !resolvedEmail) {
     return NextResponse.json(
-      { error: "Missing required fields: program, date, time, playerName, phone, email." },
+      {
+        error:
+          "Missing required fields: program, date, time, athlete name, phone, and email are required.",
+      },
       { status: 400 }
     );
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resolvedEmail)) {
     return NextResponse.json({ error: "Invalid email address." }, { status: 400 });
   }
 
@@ -67,14 +80,14 @@ export async function POST(req: NextRequest) {
     program,
     date,
     time,
-    playerName,
-    parentName:      body.parentName      ?? "",
-    phone,
-    email,
-    ageGroup:        body.ageGroup        ?? "",
-    experience:      body.experience      ?? "",
-    notes:           body.notes           ?? "",
-    stripeSessionId: body.stripeSessionId ?? null,
+    playerName:      resolvedAthleteN,
+    parentName:      resolvedContactN,
+    phone:           resolvedPhone,
+    email:           resolvedEmail,
+    ageGroup:        resolvedAge,
+    experience:      resolvedExp,
+    notes:           resolvedNotes,
+    stripeSessionId: stripeSessionId ?? null,
   };
 
   try {
