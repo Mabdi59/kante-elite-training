@@ -160,34 +160,96 @@ export default function BookPage() {
           {/* Step 3: Schedule */}
           {step === 3 && (
             <div>
-              <h2 className="text-white font-black text-2xl mb-6 text-center">Schedule Your Session</h2>
-              <div className="bg-[#111111] border border-[#222222] rounded-xl p-8 text-center">
-                <div className="text-6xl mb-4">📅</div>
-                <h3 className="text-white font-black text-2xl mb-2">Scheduling Calendar</h3>
-                <p className="text-amber-500 font-semibold mb-4">Powered by Calendly</p>
-                <p className="text-gray-400 text-sm mb-6">
-                  Our online scheduling system will be available here. In the meantime, please contact us directly to book your session.
-                </p>
-                <div className="bg-[#1a1a1a] rounded-lg p-4 mb-6 text-left">
-                  <p className="text-white font-semibold mb-1">Selected Program:</p>
-                  <p className="text-amber-500">{programTypes.find((p) => p.id === selectedProgram)?.title}</p>
-                  <p className="text-white font-semibold mt-3 mb-1">Age Group:</p>
-                  <p className="text-gray-300">{ageGroup}</p>
-                  <p className="text-white font-semibold mt-3 mb-1">Experience Level:</p>
-                  <p className="text-gray-300">{experience}</p>
+              <h2 className="text-white font-black text-2xl mb-2 text-center">Schedule Your Session</h2>
+              <p className="text-gray-400 text-center text-sm mb-8">Your selected program is ready — choose how to book.</p>
+
+              {/* Summary */}
+              <div className="bg-[#111111] border border-amber-500/30 rounded-xl p-5 mb-8">
+                <p className="text-amber-500 text-xs font-bold uppercase tracking-widest mb-3">Your Selection</p>
+                <div className="flex flex-wrap gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-400">Program: </span>
+                    <span className="text-white font-semibold">{programTypes.find((p) => p.id === selectedProgram)?.title}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Age: </span>
+                    <span className="text-white font-semibold">{ageGroup}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Level: </span>
+                    <span className="text-white font-semibold">{experience}</span>
+                  </div>
                 </div>
-                <Link
-                  href="/contact"
-                  className="block w-full bg-amber-500 hover:bg-amber-600 text-black font-bold py-4 rounded transition-colors"
-                >
-                  Contact Us Directly
-                </Link>
               </div>
+
+              {/* Booking options */}
+              <div className="space-y-4 mb-8">
+                {/* Option 1: Calendly */}
+                <div className="bg-[#111111] border border-[#222222] hover:border-amber-500 rounded-xl p-6 transition-colors">
+                  <div className="flex items-center gap-4 mb-3">
+                    <span className="text-3xl">📅</span>
+                    <div>
+                      <p className="text-white font-bold">Book Online — Calendly</p>
+                      <p className="text-gray-400 text-sm">Pick a date and time that works for you</p>
+                    </div>
+                  </div>
+                  <a
+                    href="https://calendly.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full bg-amber-500 hover:bg-amber-400 text-black font-black py-3 rounded text-center text-sm transition-all"
+                  >
+                    Open Scheduling Calendar →
+                  </a>
+                  <p className="text-gray-500 text-xs mt-2 text-center">Integration live soon — use phone/DM for now</p>
+                </div>
+
+                {/* Option 2: Phone / Text */}
+                <div className="bg-[#111111] border border-[#222222] hover:border-amber-500 rounded-xl p-6 transition-colors">
+                  <div className="flex items-center gap-4 mb-3">
+                    <span className="text-3xl">📞</span>
+                    <div>
+                      <p className="text-white font-bold">Call or Text Coach Kante</p>
+                      <p className="text-gray-400 text-sm">Fastest way to lock in your spot</p>
+                    </div>
+                  </div>
+                  <a
+                    href="tel:6145550123"
+                    className="block w-full border-2 border-amber-500 text-amber-500 hover:bg-amber-500 hover:text-black font-black py-3 rounded text-center text-sm transition-all"
+                  >
+                    (614) 555-0123 — Call or Text
+                  </a>
+                </div>
+
+                {/* Option 3: Instagram DM */}
+                <div className="bg-[#111111] border border-[#222222] hover:border-amber-500 rounded-xl p-6 transition-colors">
+                  <div className="flex items-center gap-4 mb-3">
+                    <span className="text-3xl">📸</span>
+                    <div>
+                      <p className="text-white font-bold">DM on Instagram</p>
+                      <p className="text-gray-400 text-sm">Message us and we&apos;ll get back to you fast</p>
+                    </div>
+                  </div>
+                  <a
+                    href="https://instagram.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full border-2 border-[#333333] text-white hover:border-amber-500 hover:text-amber-500 font-black py-3 rounded text-center text-sm transition-all"
+                  >
+                    @KanteEliteTraining →
+                  </a>
+                </div>
+              </div>
+
+              <p className="text-center text-amber-400 text-sm font-semibold mb-6">
+                ⚡ Sessions book up fast — don&apos;t wait
+              </p>
+
               <button
                 onClick={() => setStep(2)}
-                className="mt-4 w-full border border-[#333333] text-white font-bold py-4 rounded hover:bg-[#111111] transition-colors"
+                className="w-full border border-[#333333] text-white font-bold py-3 rounded hover:bg-[#111111] transition-colors text-sm"
               >
-                Previous
+                ← Back
               </button>
             </div>
           )}

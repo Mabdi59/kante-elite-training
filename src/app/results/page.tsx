@@ -1,5 +1,6 @@
 import HeroSection from "@/components/HeroSection";
 import TestimonialCard from "@/components/TestimonialCard";
+import Link from "next/link";
 
 const testimonials = [
   {
@@ -96,6 +97,62 @@ export default function ResultsPage() {
         </div>
       </section>
 
+      {/* What Players Are Working On */}
+      <section className="bg-[#111111] py-20 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-amber-500 uppercase tracking-widest text-sm font-semibold mb-3">In The Training</p>
+            <h2 className="text-white font-black text-4xl md:text-5xl">What Players Are Working On</h2>
+            <p className="text-gray-400 mt-4 max-w-xl mx-auto">
+              Every session targets real game situations. Here&apos;s what&apos;s on the training menu right now.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                emoji: "⚡",
+                title: "Game-Speed Training",
+                desc: "All reps are executed at match intensity. No slow drills — everything mirrors what happens on game day.",
+              },
+              {
+                emoji: "🎯",
+                title: "1v1 Attack & Defend",
+                desc: "Players battle in tight spaces to build confidence on the ball and improve defensive positioning.",
+              },
+              {
+                emoji: "🧠",
+                title: "Decision Making Under Pressure",
+                desc: "Small-sided games with constraints force players to read the game faster and make quicker choices.",
+              },
+              {
+                emoji: "💪",
+                title: "Confidence Development",
+                desc: "Progressive challenges build belief. Players are pushed just beyond their comfort zone — every session.",
+              },
+              {
+                emoji: "🏃",
+                title: "First Step Explosiveness",
+                desc: "Reaction time drills, starts from rest, and lateral shuffle work to gain those decisive extra yards.",
+              },
+              {
+                emoji: "⚽",
+                title: "Ball Mastery Circuits",
+                desc: "Hundreds of touches per session. Both feet. All surfaces. So the ball becomes an extension of the body.",
+              },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="bg-[#1a1a1a] border border-[#222222] rounded-xl p-6 hover:border-amber-500 transition-colors"
+              >
+                <div className="text-3xl mb-3">{item.emoji}</div>
+                <h3 className="text-white font-bold text-lg mb-2">{item.title}</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Training Highlights */}
       <section className="bg-[#111111] py-20 px-4">
         <div className="max-w-7xl mx-auto">
@@ -152,6 +209,34 @@ export default function ResultsPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Results CTA */}
+      <section className="bg-gradient-to-br from-[#111111] to-black py-20 px-4 text-center border-t border-[#222222]">
+        <div className="max-w-3xl mx-auto">
+          <p className="text-amber-500 uppercase tracking-widest text-sm font-semibold mb-4">Your Turn</p>
+          <h2 className="text-white font-black text-4xl md:text-5xl mb-6 leading-tight">
+            This Could Be Your Child&apos;s Story
+          </h2>
+          <p className="text-gray-400 text-xl mb-10">
+            Every player on this page started exactly where your child is right now. Book a session and let&apos;s build their story together.
+          </p>
+          <div className="flex flex-wrap gap-4 justify-center">
+            <Link
+              href="/book"
+              className="bg-amber-500 hover:bg-amber-400 text-black font-black px-10 py-4 rounded text-lg transition-all shadow-lg shadow-amber-500/20"
+            >
+              Book Your First Session →
+            </Link>
+            <Link
+              href="/contact"
+              className="border-2 border-white/30 text-white hover:border-white hover:bg-white/10 px-10 py-4 rounded text-lg transition-all font-bold"
+            >
+              Ask a Question
+            </Link>
+          </div>
+          <p className="mt-8 text-amber-400 text-sm font-semibold">⚡ Limited spots — sessions book up fast</p>
         </div>
       </section>
     </div>

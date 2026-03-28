@@ -9,55 +9,67 @@ const allEvents = [
     title: "Columbus Youth Cup 2025",
     date: "March 15, 2025",
     location: "Berliner Park, Columbus",
-    ageGroup: "U12-U14",
+    ageGroup: "U12–U14",
     price: "$150/team",
     spotsLeft: 3,
     type: "Tournament",
+    intensity: "High intensity competitive play",
+    venue: "Outdoor turf fields",
   },
   {
     title: "Spring Training Camp",
-    date: "April 7-11, 2025",
+    date: "April 7–11, 2025",
     location: "Kante Elite Training Facility",
-    ageGroup: "U8-U18",
+    ageGroup: "U8–U18",
     price: "$200",
     spotsLeft: 8,
     type: "Camp",
+    intensity: "Full-day high-volume reps",
+    venue: "Indoor facility · Columbus, OH",
   },
   {
     title: "Saturday Pickup Games",
     date: "Every Saturday",
     location: "Tuttle Park, Columbus",
-    ageGroup: "U14-U18",
+    ageGroup: "U14–U18",
     price: "Free",
     spotsLeft: "Open" as const,
     type: "Pickup",
+    intensity: "Competitive small-sided games",
+    venue: "Outdoor grass fields",
   },
   {
     title: "Ohio State Cup Qualifier",
-    date: "May 3-4, 2025",
+    date: "May 3–4, 2025",
     location: "OFC Stadium, Columbus",
-    ageGroup: "U16-U18",
+    ageGroup: "U16–U18",
     price: "$200/team",
     spotsLeft: 5,
     type: "Tournament",
+    intensity: "Elite-level competition",
+    venue: "Stadium turf · Columbus, OH",
   },
   {
     title: "Summer Intensive Camp",
-    date: "June 23-27, 2025",
+    date: "June 23–27, 2025",
     location: "Kante Elite Training Facility",
-    ageGroup: "U8-U18",
+    ageGroup: "U8–U18",
     price: "$200",
     spotsLeft: 12,
     type: "Camp",
+    intensity: "Full-day structured training",
+    venue: "Indoor facility · Columbus, OH",
   },
   {
     title: "Evening Pickup League",
     date: "Every Tuesday",
     location: "Wolfe Park, Columbus",
-    ageGroup: "U12-U16",
+    ageGroup: "U12–U16",
     price: "$10",
     spotsLeft: "Open" as const,
     type: "Pickup",
+    intensity: "Fast-paced league format",
+    venue: "Lit outdoor fields",
   },
 ];
 
@@ -75,9 +87,16 @@ export default function EventsPage() {
     <div className="pt-16">
       <HeroSection
         title="Upcoming Events"
-        subtitle="Register for tournaments, camps, and pickup games"
+        subtitle="Register for tournaments, camps, and pickup games in Columbus"
         badge="Events Calendar"
       />
+
+      {/* Urgency strip */}
+      <div className="bg-amber-500/10 border-y border-amber-500/20 py-3 px-4 text-center">
+        <p className="text-amber-400 text-sm font-semibold">
+          ⚡ Spots fill fast — several events have less than 5 spots remaining. Register now to secure your place.
+        </p>
+      </div>
 
       <section className="bg-black py-20 px-4">
         <div className="max-w-7xl mx-auto">
