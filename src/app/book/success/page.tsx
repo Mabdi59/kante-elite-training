@@ -59,16 +59,16 @@ function SuccessContent() {
   const searchParams = useSearchParams();
   const sessionId    = searchParams.get("session_id");
 
-  const [status,  setStatus]  = useState<"loading" | "success" | "error">("loading");
+  const [status,  setStatus]  = useState<"loading" | "success" | "error">(
+    sessionId ? "loading" : "error"
+  );
   const [booking, setBooking] = useState<Booking | null>(null);
-  const [error,   setError]   = useState("");
+  const [error,   setError]   = useState(
+    sessionId ? "" : "No payment session found."
+  );
 
   useEffect(() => {
-    if (!sessionId) {
-      setError("No payment session found.");
-      setStatus("error");
-      return;
-    }
+    if (!sessionId) return;
 
     let cancelled = false;
 
