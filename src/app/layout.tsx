@@ -15,7 +15,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-black text-white min-h-screen" style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}>
+      <body className="bg-black text-white min-h-screen">
         <Navbar />
         <main>{children}</main>
         <Footer />

@@ -22,7 +22,7 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="pt-16">
+    <div className="pt-24">
       <HeroSection
         title="Contact Us"
         subtitle="Get in touch to start your elite training journey"

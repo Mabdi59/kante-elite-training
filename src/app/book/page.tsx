@@ -211,7 +211,7 @@ export default function BookPage() {
   // ── Confirmation Screen ───────────────────────────────────────────────────
   if (confirmed) {
     return (
-      <div className="pt-16">
+      <div className="pt-24">
         <section className="min-h-screen bg-black flex items-center justify-center px-4 py-20">
           <div className="max-w-lg w-full text-center">
             <div className="w-20 h-20 bg-amber-500/20 border-2 border-amber-500/40 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -258,7 +258,7 @@ export default function BookPage() {
 
   // ── Booking Form ─────────────────────────────────────────────────────────
   return (
-    <div className="pt-16">
+    <div className="pt-24">
       <HeroSection
         title="Book Your Session"
         subtitle="Reserve your spot in 4 easy steps — no account needed"

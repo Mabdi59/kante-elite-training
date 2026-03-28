@@ -84,7 +84,7 @@ export default function EventsPage() {
       : allEvents.filter((e) => e.type === activeFilter);
 
   return (
-    <div className="pt-16">
+    <div className="pt-24">
       <HeroSection
         title="Upcoming Events"
         subtitle="Register for tournaments, camps, and pickup games in Columbus"

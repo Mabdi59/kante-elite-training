@@ -81,7 +81,7 @@ const programs = [
 
 export default function TrainingPage() {
   return (
-    <div className="pt-16">
+    <div className="pt-24">
       <HeroSection
         title="Training Programs"
         subtitle="Professional coaching tailored to every level"
@@ -118,7 +118,7 @@ export default function TrainingPage() {
                       </ul>
                       <Link
                         href="/book"
-                        className="bg-amber-500 hover:bg-amber-600 text-black font-bold px-8 py-3 rounded transition-colors"
+                        className="bg-amber-500 hover:bg-amber-400 text-black font-black px-8 py-3 rounded-lg transition-all shadow-lg shadow-amber-500/20"
                       >
                         Book This Program
                       </Link>
@@ -140,7 +140,7 @@ export default function TrainingPage() {
                       </ul>
                       <Link
                         href="/book"
-                        className="bg-amber-500 hover:bg-amber-600 text-black font-bold px-8 py-3 rounded transition-colors"
+                        className="bg-amber-500 hover:bg-amber-400 text-black font-black px-8 py-3 rounded-lg transition-all shadow-lg shadow-amber-500/20"
                       >
                         Book This Program
                       </Link>
@@ -158,17 +158,19 @@ export default function TrainingPage() {
       </div>
 
       {/* CTA */}
-      <section className="bg-gradient-to-r from-amber-600 to-amber-500 py-20 px-4 text-center">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-black font-black text-4xl mb-6">Start Training Today</h2>
-          <p className="text-black/80 text-xl mb-10">
+      <section className="relative bg-black py-24 px-4 text-center overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_#78350f_0%,_transparent_65%)] opacity-25" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent" />
+        <div className="relative max-w-4xl mx-auto">
+          <h2 className="text-white font-black text-4xl md:text-5xl mb-6">Start Training Today</h2>
+          <p className="text-gray-300 text-xl mb-10">
             Ready to take your game to the next level? Book your first session now.
           </p>
           <Link
             href="/book"
-            className="bg-black text-white hover:bg-[#222222] font-bold px-10 py-4 rounded text-lg transition-colors"
+            className="inline-block bg-amber-500 hover:bg-amber-400 text-black font-black px-10 py-4 rounded-lg text-lg transition-all shadow-xl shadow-amber-500/25"
           >
-            Book Your Session
+            Book Your Session →
           </Link>
         </div>
       </section>

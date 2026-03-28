@@ -58,7 +58,7 @@ const spotlights = [
 
 export default function ResultsPage() {
   return (
-    <div className="pt-16">
+    <div className="pt-24">
       <HeroSection
         title="Player Results"
         subtitle="Real transformations, real achievements"
