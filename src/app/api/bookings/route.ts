@@ -18,6 +18,7 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { getSupabaseClient, isSupabaseConfigured, type BookingRow } from "@/lib/supabase";
+import { sendBookingConfirmation } from "@/lib/email";
 
 // ─── Shared booking shape (camelCase, used throughout the app) ────────────────
 
@@ -190,6 +191,7 @@ export async function POST(req: NextRequest) {
           { status: 409 }
         );
       }
+      await sendBookingConfirmation(created);
       return NextResponse.json({ success: true, booking: created }, { status: 201 });
     }
 
@@ -214,6 +216,7 @@ export async function POST(req: NextRequest) {
     bookings.push(newBooking);
     fileWriteBookings(bookings);
 
+    await sendBookingConfirmation(newBooking);
     return NextResponse.json({ success: true, booking: newBooking }, { status: 201 });
   } catch (err) {
     console.error("[POST /api/bookings]", err);
