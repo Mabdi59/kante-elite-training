@@ -119,7 +119,7 @@ export default function HomePage() {
 
             {/* Trust micro-signals */}
             <div className="flex flex-wrap gap-3 mb-10">
-              {['✓ USSF & UEFA Licensed', '✓ All Skill Levels', '✓ Flexible Scheduling', '✓ Secure Stripe Checkout'].map((t) => (
+              {['✓ USSF & UEFA Licensed', '✓ All Skill Levels', '✓ Flexible Scheduling', '✓ Fast Booking Confirmation'].map((t) => (
                 <span key={t} className="text-gray-400 text-sm font-medium">{t}</span>
               ))}
             </div>
@@ -383,7 +383,7 @@ export default function HomePage() {
                 step: '01',
                 icon: '📋',
                 title: 'Book Your Session',
-                desc: 'Choose your program, pick a date and time, and complete your secure payment. Takes less than 3 minutes.',
+                desc: 'Choose your program, pick a date and time, and confirm your booking. Takes less than 3 minutes.',
               },
               {
                 step: '02',

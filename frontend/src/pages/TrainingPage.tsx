@@ -146,7 +146,7 @@ export default function TrainingPage() {
               { step: '01', title: 'Choose Program', desc: 'Pick the training type that matches your goals and schedule.', icon: '📋' },
               { step: '02', title: 'Pick Date & Time', desc: 'Browse live availability and choose when works for you.', icon: '📅' },
               { step: '03', title: 'Enter Details', desc: 'Quick player info form — takes less than two minutes.', icon: '✍️' },
-              { step: '04', title: 'Pay & Confirm', desc: 'Secure Stripe checkout. Spot confirmed immediately after payment.', icon: '✅' },
+              { step: '04', title: 'Confirm Spot', desc: 'Review your details and lock in your training time right away.', icon: '✅' },
             ].map((item) => (
               <div key={item.step} className="text-center relative">
                 <div className="w-16 h-16 rounded-2xl bg-[#111] border border-[#222] flex items-center justify-center mx-auto mb-4 relative z-10">

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams, Link } from 'react-router-dom'
-import { confirmBooking } from '../services/api'
-import type { Booking } from '../types'
+import { useLocation, useSearchParams, Link } from 'react-router-dom'
+import api, { confirmBooking } from '../services/api'
+import type { ApiResponse, Booking } from '../types'
 
 function formatDate(dateStr: string) {
   return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', {
@@ -13,18 +13,46 @@ function formatDate(dateStr: string) {
 }
 
 export default function BookingSuccessPage() {
+  const location = useLocation()
   const [searchParams] = useSearchParams()
   const sessionId = searchParams.get('session_id')
-  const [booking, setBooking] = useState<Booking | null>(null)
-  const [loading, setLoading] = useState(true)
+  const bookingId = Number(searchParams.get('booking_id'))
+  const locationBooking = (location.state as { booking?: Booking } | null)?.booking ?? null
+  const [booking, setBooking] = useState<Booking | null>(locationBooking)
+  const [loading, setLoading] = useState(locationBooking === null)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (!sessionId) {
-      setError('No booking session found.')
+    if (locationBooking) {
+      setBooking(locationBooking)
       setLoading(false)
       return
     }
+
+    if (Number.isFinite(bookingId) && bookingId > 0) {
+      api.get<ApiResponse<Booking>>(`/bookings/${bookingId}`)
+        .then((res) => {
+          const nextBooking = res.data.data ?? null
+          setBooking(nextBooking)
+          if (!nextBooking) {
+            setError('We could not find that booking confirmation.')
+          }
+        })
+        .catch(() =>
+          setError(
+            'We could not retrieve your booking details right now. Please check your email for confirmation or contact us directly.',
+          ),
+        )
+        .finally(() => setLoading(false))
+      return
+    }
+
+    if (!sessionId) {
+      setError('No booking confirmation was found.')
+      setLoading(false)
+      return
+    }
+
     confirmBooking(sessionId)
       .then(setBooking)
       .catch(() =>
@@ -33,7 +61,7 @@ export default function BookingSuccessPage() {
         ),
       )
       .finally(() => setLoading(false))
-  }, [sessionId])
+  }, [bookingId, locationBooking, sessionId])
 
   if (loading) {
     return (
@@ -59,7 +87,7 @@ export default function BookingSuccessPage() {
             {error}
           </p>
           <p className="text-gray-500 text-xs mb-8">
-            If your payment was processed, a confirmation email was sent to your inbox. If you don't see it within a few minutes, check your spam folder or contact us.
+            If your booking was submitted, a confirmation email was sent to your inbox. If you don't see it within a few minutes, check your spam folder or contact us.
           </p>
           <div className="flex flex-col gap-3">
             <Link to="/contact" className="btn-primary text-center">
@@ -96,7 +124,7 @@ export default function BookingSuccessPage() {
             </span>
           </h1>
           <p className="text-gray-300 text-lg max-w-md mx-auto leading-relaxed">
-            Payment confirmed. Your session is officially booked.
+            Your session is officially booked.
           </p>
           <p className="text-gray-400 text-sm mt-2">
             A confirmation email is on its way to{' '}

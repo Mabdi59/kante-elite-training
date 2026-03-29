@@ -24,6 +24,12 @@ public class BookingController {
                 .body(ApiResponse.success("Booking confirmed successfully.", booking));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<BookingResponse>> getBooking(@PathVariable Long id) {
+        BookingResponse booking = bookingService.getById(id);
+        return ResponseEntity.ok(ApiResponse.success(booking));
+    }
+
     @GetMapping("/confirm")
     public ResponseEntity<ApiResponse<BookingResponse>> confirmBooking(@RequestParam String sessionId) {
         BookingResponse booking = bookingService.getByStripeSessionId(sessionId);

@@ -6,6 +6,8 @@ import com.kanteelite.training.entity.Booking;
 import com.kanteelite.training.entity.Program;
 import com.kanteelite.training.enums.BookingStatus;
 import com.kanteelite.training.enums.PaymentStatus;
+import com.kanteelite.training.exception.PaymentConfigurationException;
+import com.kanteelite.training.exception.PaymentProviderException;
 import com.kanteelite.training.repository.BookingRepository;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
@@ -57,7 +59,13 @@ public class PaymentService {
     /**
      * Creates a Stripe Checkout Session for the given booking request.
      */
-    public String createCheckoutSession(CheckoutRequest request) throws StripeException {
+    public String createCheckoutSession(CheckoutRequest request) {
+        if (stripeSecretKey == null || stripeSecretKey.isBlank()) {
+            throw new PaymentConfigurationException(
+                    "Payments are not configured on the backend. Set STRIPE_SECRET_KEY and try again."
+            );
+        }
+
         Stripe.apiKey = stripeSecretKey;
 
         Program program = programService.getProgramEntityById(request.getProgramId());
@@ -97,8 +105,12 @@ public class PaymentService {
                 .setCustomerEmail(request.getEmail())
                 .build();
 
-        Session session = Session.create(params);
-        return session.getUrl();
+        try {
+            Session session = Session.create(params);
+            return session.getUrl();
+        } catch (StripeException e) {
+            throw new PaymentProviderException("Stripe could not create a checkout session.", e);
+        }
     }
 
     /**

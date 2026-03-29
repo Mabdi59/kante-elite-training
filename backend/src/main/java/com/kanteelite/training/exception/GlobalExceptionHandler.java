@@ -1,6 +1,7 @@
 package com.kanteelite.training.exception;
 
 import com.kanteelite.training.dto.response.ApiResponse;
+import com.stripe.exception.StripeException;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +50,20 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining(", "));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(errors));
+    }
+
+    @ExceptionHandler(PaymentConfigurationException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePaymentConfiguration(PaymentConfigurationException ex) {
+        log.error("Payment configuration error: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler({PaymentProviderException.class, StripeException.class})
+    public ResponseEntity<ApiResponse<Void>> handlePaymentProvider(Exception ex) {
+        log.error("Payment provider error: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body(ApiResponse.error("Stripe could not create a checkout session. Verify the Stripe server configuration and try again."));
     }
 
     @ExceptionHandler(Exception.class)

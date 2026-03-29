@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { getPrograms, getAvailability, createCheckoutSession } from '../services/api'
-import type { Program, AvailabilityData, BookingFormData } from '../types'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import api, { getPrograms, getAvailability } from '../services/api'
+import type { ApiResponse, Program, AvailabilityData, BookingFormData, Booking } from '../types'
 
 const experienceLevels = [
   { value: 'beginner', label: 'Beginner — Just starting out' },
@@ -152,8 +152,8 @@ function BookingSidebar({ program, date, time, playerName }: SidebarProps) {
         {/* Trust signals */}
         <div className="bg-[#111] border border-[#222] rounded-2xl p-5 space-y-3">
           {[
-            { icon: '🔒', text: 'Secure payment via Stripe' },
-            { icon: '📧', text: 'Instant confirmation email' },
+            { icon: '🔒', text: 'Instant booking confirmation' },
+            { icon: '📧', text: 'Confirmation email sent automatically' },
             { icon: '👋', text: 'Coach Kante will follow up before your session' },
             { icon: '🔄', text: 'You can reschedule if needed' },
             { icon: '📱', text: 'Text or call us anytime' },
@@ -216,6 +216,7 @@ const INITIAL_FORM: Omit<BookingFormData, 'programId'> = {
 }
 
 export default function BookPage() {
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const preselectedProgramId = searchParams.get('program')
 
@@ -230,7 +231,6 @@ export default function BookPage() {
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [cancelled, setCancelled] = useState(searchParams.get('cancelled') === 'true')
 
   // Load programs
   useEffect(() => {
@@ -305,14 +305,19 @@ export default function BookPage() {
     setSubmitting(true)
     setError('')
     try {
-      const url = await createCheckoutSession({ programId: selectedProgram.id, ...form })
-      window.location.href = url
+      const res = await api.post<ApiResponse<Booking>>('/bookings', {
+        programId: selectedProgram.id,
+        ...form,
+      })
+      const booking = res.data.data
+      if (!booking) throw new Error('No booking details returned')
+      navigate(`/book/success?booking_id=${booking.id}`, { state: { booking } })
     } catch (err: unknown) {
       const message =
         err && typeof err === 'object' && 'response' in err
           ? (err as { response?: { data?: { error?: string } } }).response?.data?.error
           : undefined
-      setError(message ?? 'Could not start checkout. Please try again or contact us.')
+      setError(message ?? 'Could not confirm your booking. Please try again or contact us.')
       setSubmitting(false)
     }
   }
@@ -334,7 +339,7 @@ export default function BookPage() {
           <span className="section-label">Booking</span>
           <h1 className="text-white font-black text-4xl md:text-5xl">Book a Session</h1>
           <p className="text-gray-400 mt-3 max-w-md mx-auto">
-            Select your program, pick a time, and secure your spot in minutes.
+            Select your program, pick a time, and confirm your spot in minutes.
           </p>
         </div>
 
@@ -342,12 +347,6 @@ export default function BookPage() {
         <div className={`mb-8 bg-[#111] border border-[#1e1e1e] rounded-2xl px-6 py-4 ${isTwoColumn ? 'max-w-5xl mx-auto' : 'max-w-3xl mx-auto'}`}>
           <StepIndicator steps={steps} current={step} />
         </div>
-
-        {cancelled && (
-          <div className={`bg-amber-900/20 border border-amber-500/30 text-amber-300 rounded-xl px-5 py-4 text-sm mb-6 ${isTwoColumn ? 'max-w-5xl mx-auto' : 'max-w-3xl mx-auto'}`}>
-            <strong>Payment cancelled.</strong> No charges were made. Your booking was not confirmed. Feel free to try again below.
-          </div>
-        )}
 
         {/* Main layout */}
         <div className={`${isTwoColumn ? 'max-w-5xl' : 'max-w-3xl'} mx-auto`}>
@@ -376,7 +375,6 @@ export default function BookPage() {
                           onClick={() => {
                             setSelectedProgram(program)
                             setStep(2)
-                            setCancelled(false)
                           }}
                           className="w-full flex items-center justify-between gap-4 bg-[#141414] border border-[#282828] hover:border-amber-500/50 hover:bg-[#1a1500] rounded-xl px-5 py-4 text-left transition-all duration-200 group"
                         >
@@ -615,8 +613,8 @@ export default function BookPage() {
                     Edit details
                   </button>
 
-                  <h2 className="text-white font-black text-2xl mb-2">Confirm & Pay</h2>
-                  <p className="text-gray-500 text-sm mb-7">Review your booking below, then complete your secure payment.</p>
+                  <h2 className="text-white font-black text-2xl mb-2">Confirm Booking</h2>
+                  <p className="text-gray-500 text-sm mb-7">Review your booking below, then lock in your session.</p>
 
                   {/* Summary card */}
                   <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-xl overflow-hidden mb-6">
@@ -654,7 +652,7 @@ export default function BookPage() {
 
                     {/* Total */}
                     <div className="px-6 py-4 border-t border-[#1e1e1e] bg-[#111] flex justify-between items-center">
-                      <span className="text-gray-400 font-semibold">Total Due</span>
+                      <span className="text-gray-400 font-semibold">Session Rate</span>
                       <span className="text-amber-500 font-black text-xl">{selectedProgram.priceLabel}</span>
                     </div>
                   </div>
@@ -678,10 +676,10 @@ export default function BookPage() {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
-                        Redirecting to Stripe...
+                        Confirming your booking...
                       </>
                     ) : (
-                      `Pay ${selectedProgram.priceLabel} Securely →`
+                      'Confirm Booking'
                     )}
                   </button>
 
@@ -689,7 +687,7 @@ export default function BookPage() {
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-gray-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                     </svg>
-                    <p className="text-gray-600 text-xs">Powered by Stripe · 256-bit SSL encryption · We never store your card details</p>
+                    <p className="text-gray-600 text-xs">We will email your confirmation details right away and follow up with anything you need before the session.</p>
                   </div>
                 </div>
               )}

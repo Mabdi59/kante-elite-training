@@ -58,7 +58,7 @@ export default function CTASection({
 
         {/* Trust micro-signals */}
         <div className="flex flex-wrap items-center justify-center gap-6 mt-10 text-gray-600 text-xs">
-          {['No commitment required', 'Secure Stripe checkout', 'Instant confirmation'].map((t) => (
+          {['No commitment required', 'Instant booking confirmation', 'Confirmation email sent fast'].map((t) => (
             <span key={t} className="flex items-center gap-1.5">
               <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-amber-500/60" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />

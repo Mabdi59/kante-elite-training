@@ -48,7 +48,7 @@ public class BookingService {
                 .phone(request.getPhone())
                 .experienceLevel(request.getExperienceLevel())
                 .notes(request.getNotes())
-                .paymentStatus(PaymentStatus.PAID)
+                .paymentStatus(PaymentStatus.PENDING)
                 .bookingStatus(BookingStatus.CONFIRMED)
                 .build();
 
@@ -91,6 +91,16 @@ public class BookingService {
         BookingResponse response = toResponse(saved);
         emailService.sendBookingConfirmation(response);
         return response;
+    }
+
+    /**
+     * Retrieves a confirmed booking by database ID.
+     */
+    @Transactional(readOnly = true)
+    public BookingResponse getById(Long id) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", id));
+        return toResponse(booking);
     }
 
     /**

@@ -27,14 +27,8 @@ public class PaymentController {
     public ResponseEntity<ApiResponse<Map<String, String>>> createCheckout(
             @Valid @RequestBody CheckoutRequest request
     ) {
-        try {
-            String url = paymentService.createCheckoutSession(request);
-            return ResponseEntity.ok(ApiResponse.success(Map.of("url", url)));
-        } catch (Exception e) {
-            log.error("Checkout creation failed: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("Payment session could not be created. Please try again."));
-        }
+        String url = paymentService.createCheckoutSession(request);
+        return ResponseEntity.ok(ApiResponse.success(Map.of("url", url)));
     }
 
     /**

@@ -5,6 +5,7 @@ import com.kanteelite.training.dto.response.BookingResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -30,14 +31,18 @@ public class EmailService {
     @Value("${app.email.enabled:false}")
     private boolean emailEnabled;
 
-    public EmailService(JavaMailSender mailSender, TemplateEngine templateEngine) {
-        this.mailSender = mailSender;
+    public EmailService(ObjectProvider<JavaMailSender> mailSenderProvider, TemplateEngine templateEngine) {
+        this.mailSender = mailSenderProvider.getIfAvailable();
         this.templateEngine = templateEngine;
     }
 
     public void sendBookingConfirmation(BookingResponse booking) {
         if (!emailEnabled) {
             log.info("Email disabled — skipping booking confirmation for {}", booking.getEmail());
+            return;
+        }
+        if (mailSender == null) {
+            log.warn("Email enabled but JavaMailSender is not configured; skipping booking confirmation for {}", booking.getEmail());
             return;
         }
         try {
@@ -63,6 +68,10 @@ public class EmailService {
     public void sendContactNotification(ContactRequest request) {
         if (!emailEnabled) {
             log.info("Email disabled — skipping contact notification from {}", request.getEmail());
+            return;
+        }
+        if (mailSender == null) {
+            log.warn("Email enabled but JavaMailSender is not configured; skipping contact notification from {}", request.getEmail());
             return;
         }
         try {
