@@ -7,6 +7,8 @@ interface AuthContextValue {
   refreshToken: string | null
   isAuthenticated: boolean
   isAdmin: boolean
+  isCoach: boolean
+  isStaff: boolean
   loginUser: (token: string, refreshToken: string, user: AuthUser) => void
   logoutUser: () => void
   updateTokens: (token: string, refreshToken: string) => void
@@ -57,6 +59,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         refreshToken,
         isAuthenticated: !!token,
         isAdmin: user?.role === 'ADMIN',
+        isCoach: user?.role === 'COACH' || user?.role === 'ADMIN',
+        isStaff: user?.role === 'STAFF' || user?.role === 'ADMIN',
         loginUser,
         logoutUser,
         updateTokens,

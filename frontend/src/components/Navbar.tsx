@@ -14,7 +14,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
-  const { user, isAuthenticated, isAdmin, logoutUser } = useAuth()
+  const { user, isAuthenticated, isAdmin, isCoach, logoutUser } = useAuth()
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -70,6 +70,11 @@ export default function Navbar() {
               {isAdmin && (
                 <Link to="/admin" className="text-sm text-green-400 hover:text-green-300 font-semibold">
                   Admin
+                </Link>
+              )}
+              {isCoach && !isAdmin && (
+                <Link to="/coach" className="text-sm text-blue-400 hover:text-blue-300 font-semibold">
+                  Coach
                 </Link>
               )}
               <Link to="/account" className="text-sm text-gray-300 hover:text-white font-semibold">
@@ -140,6 +145,11 @@ export default function Navbar() {
               {isAdmin && (
                 <Link to="/admin" className="text-lg font-bold text-green-400">
                   Admin Panel
+                </Link>
+              )}
+              {isCoach && !isAdmin && (
+                <Link to="/coach" className="text-lg font-bold text-blue-400">
+                  Coach Panel
                 </Link>
               )}
               <button

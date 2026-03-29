@@ -18,6 +18,10 @@ import type {
   AuditLog,
   AvailabilityRule,
   BlockedSlot,
+  CoachProfile,
+  CoachProfileFormData,
+  PlayerProfile,
+  PlayerProfileFormData,
 } from '../types'
 
 const api = axios.create({
@@ -367,6 +371,11 @@ export const getAdminUsers = async (): Promise<AdminUser[]> => {
   return res.data.data ?? []
 }
 
+export const updateUserRole = async (id: number, role: string): Promise<AdminUser> => {
+  const res = await api.patch<ApiResponse<AdminUser>>(`/admin/users/${id}/role`, { role })
+  return res.data.data!
+}
+
 export const getAuditLogs = async (): Promise<AuditLog[]> => {
   const res = await api.get<ApiResponse<AuditLog[]>>('/admin/audit-logs')
   return res.data.data ?? []
@@ -410,6 +419,81 @@ export const createBlockedSlot = async (data: Partial<BlockedSlot>): Promise<Blo
 
 export const deleteBlockedSlot = async (id: number): Promise<void> => {
   await api.delete(`/admin/availability/blocked/${id}`)
+}
+
+// ─── Admin Coaches ────────────────────────────────────────────────────────────
+
+export const getAdminCoaches = async (): Promise<CoachProfile[]> => {
+  const res = await api.get<ApiResponse<CoachProfile[]>>('/admin/coaches')
+  return res.data.data ?? []
+}
+
+export const createCoachProfile = async (
+  userId: number,
+  data: CoachProfileFormData,
+): Promise<CoachProfile> => {
+  const res = await api.post<ApiResponse<CoachProfile>>(`/admin/coaches/${userId}`, data)
+  return res.data.data!
+}
+
+export const updateCoachProfile = async (
+  id: number,
+  data: CoachProfileFormData,
+): Promise<CoachProfile> => {
+  const res = await api.put<ApiResponse<CoachProfile>>(`/admin/coaches/${id}`, data)
+  return res.data.data!
+}
+
+export const deleteCoachProfile = async (id: number): Promise<void> => {
+  await api.delete(`/admin/coaches/${id}`)
+}
+
+// ─── Admin Players ────────────────────────────────────────────────────────────
+
+export const getAdminPlayers = async (): Promise<PlayerProfile[]> => {
+  const res = await api.get<ApiResponse<PlayerProfile[]>>('/admin/players')
+  return res.data.data ?? []
+}
+
+// ─── Coach Dashboard ──────────────────────────────────────────────────────────
+
+export const getMyCoachProfile = async (): Promise<CoachProfile> => {
+  const res = await api.get<ApiResponse<CoachProfile>>('/coach/profile')
+  return res.data.data!
+}
+
+export const updateMyCoachProfile = async (data: CoachProfileFormData): Promise<CoachProfile> => {
+  const res = await api.put<ApiResponse<CoachProfile>>('/coach/profile', data)
+  return res.data.data!
+}
+
+export const getMyCoachSessions = async (): Promise<Booking[]> => {
+  const res = await api.get<ApiResponse<Booking[]>>('/coach/sessions')
+  return res.data.data ?? []
+}
+
+// ─── Account Player Profiles ──────────────────────────────────────────────────
+
+export const getMyPlayers = async (): Promise<PlayerProfile[]> => {
+  const res = await api.get<ApiResponse<PlayerProfile[]>>('/account/players')
+  return res.data.data ?? []
+}
+
+export const addPlayerProfile = async (data: PlayerProfileFormData): Promise<PlayerProfile> => {
+  const res = await api.post<ApiResponse<PlayerProfile>>('/account/players', data)
+  return res.data.data!
+}
+
+export const updatePlayerProfile = async (
+  id: number,
+  data: PlayerProfileFormData,
+): Promise<PlayerProfile> => {
+  const res = await api.put<ApiResponse<PlayerProfile>>(`/account/players/${id}`, data)
+  return res.data.data!
+}
+
+export const removePlayerProfile = async (id: number): Promise<void> => {
+  await api.delete(`/account/players/${id}`)
 }
 
 export default api

@@ -3,6 +3,7 @@ package com.kanteelite.training.dto.request;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
@@ -27,4 +28,14 @@ public class TournamentRequest {
     private String description;
 
     private String status;
+
+    private String ageGroup;
+
+    private LocalDate registrationDeadline;
+
+    private String division;
+
+    private BigDecimal entryFee;
+
+    private String notes;
 }

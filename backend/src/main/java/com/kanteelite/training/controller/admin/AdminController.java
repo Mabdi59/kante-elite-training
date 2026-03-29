@@ -6,10 +6,15 @@ import com.kanteelite.training.dto.response.AuditLogResponse;
 import com.kanteelite.training.dto.response.UserResponse;
 import com.kanteelite.training.entity.User;
 import com.kanteelite.training.enums.BookingStatus;
+import com.kanteelite.training.enums.TeamRegistrationStatus;
+import com.kanteelite.training.enums.UserRole;
 import com.kanteelite.training.repository.BookingRepository;
+import com.kanteelite.training.repository.CoachProfileRepository;
 import com.kanteelite.training.repository.ContactMessageRepository;
 import com.kanteelite.training.repository.EventRepository;
+import com.kanteelite.training.repository.PlayerProfileRepository;
 import com.kanteelite.training.repository.ProgramRepository;
+import com.kanteelite.training.repository.TeamRegistrationRepository;
 import com.kanteelite.training.repository.TournamentRepository;
 import com.kanteelite.training.repository.UserRepository;
 import com.kanteelite.training.service.AuditLogService;
@@ -18,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -31,6 +37,9 @@ public class AdminController {
     private final UserRepository userRepository;
     private final ContactMessageRepository contactMessageRepository;
     private final AuditLogService auditLogService;
+    private final CoachProfileRepository coachProfileRepository;
+    private final PlayerProfileRepository playerProfileRepository;
+    private final TeamRegistrationRepository teamRegistrationRepository;
 
     @GetMapping("/dashboard")
     public ResponseEntity<ApiResponse<AdminDashboardResponse>> getDashboard() {
@@ -45,6 +54,12 @@ public class AdminController {
                 .totalTournaments(tournamentRepository.count())
                 .totalUsers(userRepository.count())
                 .unreadMessages(contactMessageRepository.countByReadStatusFalse())
+                .totalCoaches(coachProfileRepository.countByActiveTrue())
+                .totalPlayers(playerProfileRepository.countByActiveTrue())
+                .pendingRegistrations(teamRegistrationRepository.countByStatus(TeamRegistrationStatus.PENDING))
+                .usersWithRoleAdmin(userRepository.countByRole(UserRole.ADMIN))
+                .usersWithRoleCoach(userRepository.countByRole(UserRole.COACH))
+                .usersWithRoleUser(userRepository.countByRole(UserRole.USER))
                 .build();
         return ResponseEntity.ok(ApiResponse.success(stats));
     }
@@ -54,6 +69,15 @@ public class AdminController {
         List<UserResponse> users = userRepository.findAll()
                 .stream().map(this::toUserResponse).toList();
         return ResponseEntity.ok(ApiResponse.success(users));
+    }
+
+    @PatchMapping("/users/{id}/role")
+    public ResponseEntity<ApiResponse<UserResponse>> updateUserRole(
+            @PathVariable Long id, @RequestBody Map<String, String> body) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
+        user.setRole(UserRole.valueOf(body.get("role")));
+        return ResponseEntity.ok(ApiResponse.success("Role updated.", toUserResponse(userRepository.save(user))));
     }
 
     @GetMapping("/audit-logs")

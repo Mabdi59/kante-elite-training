@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { getMyBookings, cancelMyBooking } from '../services/api'
-import type { Booking } from '../types'
+import {
+  getMyBookings,
+  cancelMyBooking,
+  getMyPlayers,
+  addPlayerProfile,
+  removePlayerProfile,
+} from '../services/api'
+import type { Booking, PlayerProfile, PlayerProfileFormData } from '../types'
 
 const statusColor: Record<string, string> = {
   CONFIRMED: 'text-green-400 bg-green-500/10 border-green-500/30',
@@ -11,18 +17,34 @@ const statusColor: Record<string, string> = {
   COMPLETED: 'text-blue-400 bg-blue-500/10 border-blue-500/30',
 }
 
+const emptyPlayerForm: PlayerProfileFormData = {
+  name: '',
+  age: undefined,
+  skillLevel: '',
+  preferredPosition: '',
+  notes: '',
+}
+
 export default function AccountPage() {
   const { user } = useAuth()
+  const [tab, setTab] = useState<'bookings' | 'players'>('bookings')
   const [bookings, setBookings] = useState<Booking[]>([])
+  const [players, setPlayers] = useState<PlayerProfile[]>([])
   const [loading, setLoading] = useState(true)
   const [cancelling, setCancelling] = useState<number | null>(null)
   const [error, setError] = useState('')
+  const [showAddPlayer, setShowAddPlayer] = useState(false)
+  const [playerForm, setPlayerForm] = useState<PlayerProfileFormData>(emptyPlayerForm)
+  const [savingPlayer, setSavingPlayer] = useState(false)
 
   useEffect(() => {
-    getMyBookings()
-      .then(setBookings)
-      .catch(() => setError('Failed to load bookings.'))
-      .finally(() => setLoading(false))
+    Promise.all([
+      getMyBookings().catch(() => []),
+      getMyPlayers().catch(() => []),
+    ]).then(([b, p]) => {
+      setBookings(b)
+      setPlayers(p)
+    }).catch(() => setError('Failed to load data.')).finally(() => setLoading(false))
   }, [])
 
   const handleCancel = async (id: number) => {
@@ -35,6 +57,31 @@ export default function AccountPage() {
       alert('Failed to cancel booking. Please try again.')
     } finally {
       setCancelling(null)
+    }
+  }
+
+  const handleAddPlayer = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSavingPlayer(true)
+    try {
+      const created = await addPlayerProfile(playerForm)
+      setPlayers((prev) => [...prev, created])
+      setPlayerForm(emptyPlayerForm)
+      setShowAddPlayer(false)
+    } catch {
+      alert('Failed to add player profile.')
+    } finally {
+      setSavingPlayer(false)
+    }
+  }
+
+  const handleRemovePlayer = async (id: number) => {
+    if (!window.confirm('Remove this player profile?')) return
+    try {
+      await removePlayerProfile(id)
+      setPlayers((prev) => prev.filter((p) => p.id !== id))
+    } catch {
+      alert('Failed to remove player profile.')
     }
   }
 
@@ -67,7 +114,7 @@ export default function AccountPage() {
           <p className="text-gray-400">
             Welcome back, <span className="text-green-400 font-semibold">{user?.name}</span>
           </p>
-          <p className="text-gray-600 text-sm">{user?.email}</p>
+          <p className="text-gray-600 text-sm">{user?.email} · {user?.role}</p>
         </div>
 
         {error && (
@@ -76,9 +123,26 @@ export default function AccountPage() {
           </div>
         )}
 
+        {/* Tabs */}
+        <div className="flex gap-2 mb-8 border-b border-gray-800 pb-0">
+          {(['bookings', 'players'] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-5 py-2.5 text-sm font-medium -mb-px border-b-2 transition-colors capitalize ${
+                tab === t
+                  ? 'text-green-400 border-green-400'
+                  : 'text-gray-500 border-transparent hover:text-gray-300'
+              }`}
+            >
+              {t === 'bookings' ? `📅 Bookings (${bookings.length})` : `👦 Players (${players.length})`}
+            </button>
+          ))}
+        </div>
+
         {loading ? (
-          <div className="text-gray-400">Loading your bookings…</div>
-        ) : (
+          <div className="text-gray-400">Loading…</div>
+        ) : tab === 'bookings' ? (
           <>
             {/* Upcoming sessions */}
             <section className="mb-10">
@@ -126,6 +190,142 @@ export default function AccountPage() {
               </section>
             )}
           </>
+        ) : (
+          /* Players Tab */
+          <section>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-white text-xl font-bold">Player Profiles</h2>
+              <button
+                onClick={() => setShowAddPlayer(true)}
+                className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-colors"
+              >
+                + Add Player
+              </button>
+            </div>
+
+            {showAddPlayer && (
+              <form
+                onSubmit={handleAddPlayer}
+                className="bg-gray-900 border border-gray-700 rounded-xl p-6 mb-6 space-y-4"
+              >
+                <h3 className="text-white font-bold">New Player Profile</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1">Player Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={playerForm.name}
+                      onChange={(e) => setPlayerForm({ ...playerForm, name: e.target.value })}
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1">Age</label>
+                    <input
+                      type="number"
+                      min={3}
+                      max={25}
+                      value={playerForm.age ?? ''}
+                      onChange={(e) =>
+                        setPlayerForm({ ...playerForm, age: e.target.value ? Number(e.target.value) : undefined })
+                      }
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1">Skill Level</label>
+                    <select
+                      value={playerForm.skillLevel ?? ''}
+                      onChange={(e) => setPlayerForm({ ...playerForm, skillLevel: e.target.value })}
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                    >
+                      <option value="">— select —</option>
+                      <option>BEGINNER</option>
+                      <option>INTERMEDIATE</option>
+                      <option>ADVANCED</option>
+                      <option>ELITE</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1">Preferred Position</label>
+                    <input
+                      type="text"
+                      value={playerForm.preferredPosition ?? ''}
+                      onChange={(e) =>
+                        setPlayerForm({ ...playerForm, preferredPosition: e.target.value })
+                      }
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                      placeholder="e.g. Midfielder"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-gray-400 text-sm mb-1">Notes</label>
+                    <textarea
+                      rows={2}
+                      value={playerForm.notes ?? ''}
+                      onChange={(e) => setPlayerForm({ ...playerForm, notes: e.target.value })}
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm resize-none"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    type="submit"
+                    disabled={savingPlayer}
+                    className="bg-green-500 hover:bg-green-600 text-white font-semibold px-5 py-2 rounded-lg text-sm disabled:opacity-50"
+                  >
+                    {savingPlayer ? 'Saving…' : 'Add Player'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddPlayer(false)}
+                    className="bg-gray-700 text-white px-5 py-2 rounded-lg text-sm hover:bg-gray-600"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {players.length === 0 ? (
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center">
+                <p className="text-gray-500">No player profiles yet. Add your first player!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {players.map((p) => (
+                  <div key={p.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+                    <div className="flex items-start justify-between mb-3">
+                      <p className="text-white font-semibold text-lg">{p.name}</p>
+                      <button
+                        onClick={() => handleRemovePlayer(p.id)}
+                        className="text-red-400 text-xs hover:text-red-300"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <div className="space-y-1 text-sm text-gray-400">
+                      {p.age && <p>Age: {p.age}</p>}
+                      {p.skillLevel && (
+                        <p>
+                          Level:{' '}
+                          <span className="text-white">{p.skillLevel}</span>
+                        </p>
+                      )}
+                      {p.preferredPosition && (
+                        <p>
+                          Position:{' '}
+                          <span className="text-white">{p.preferredPosition}</span>
+                        </p>
+                      )}
+                      {p.notes && <p className="italic text-gray-500 text-xs mt-2">{p.notes}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
         )}
       </div>
     </div>

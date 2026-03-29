@@ -9,18 +9,27 @@ export interface ApiResponse<T> {
 
 // ─── Auth Types ───────────────────────────────────────────────────────────────
 
+export type UserRole =
+  | 'ADMIN'
+  | 'STAFF'
+  | 'COACH'
+  | 'PARENT'
+  | 'PLAYER'
+  | 'TEAM_CAPTAIN'
+  | 'USER'
+
 export interface AuthResponse {
   token: string
   refreshToken: string
   email: string
   name: string
-  role: 'ADMIN' | 'COACH' | 'USER'
+  role: UserRole
 }
 
 export interface AuthUser {
   email: string
   name: string
-  role: 'ADMIN' | 'COACH' | 'USER'
+  role: UserRole
 }
 
 // ─── Domain Types ─────────────────────────────────────────────────────────────
@@ -103,6 +112,11 @@ export interface Tournament {
   description?: string
   status: string
   registeredTeams: number
+  ageGroup?: string
+  registrationDeadline?: string
+  division?: string
+  entryFee?: number
+  notes?: string
   createdAt: string
 }
 
@@ -140,6 +154,12 @@ export interface AdminDashboard {
   totalTournaments: number
   totalUsers: number
   unreadMessages: number
+  totalCoaches: number
+  totalPlayers: number
+  pendingRegistrations: number
+  usersWithRoleAdmin: number
+  usersWithRoleCoach: number
+  usersWithRoleUser: number
 }
 
 export interface AdminUser {
@@ -177,6 +197,44 @@ export interface BlockedSlot {
   createdAt: string
 }
 
+export interface CoachProfile {
+  id: number
+  userId: number
+  userName: string
+  userEmail: string
+  bio?: string
+  specialties?: string
+  certifications?: string
+  active: boolean
+  createdAt: string
+}
+
+export interface PlayerProfile {
+  id: number
+  parentUserId: number
+  parentUserEmail: string
+  name: string
+  dateOfBirth?: string
+  age?: number
+  skillLevel?: string
+  preferredPosition?: string
+  notes?: string
+  active: boolean
+  createdAt: string
+}
+
+export interface Notification {
+  id: number
+  userEmail?: string
+  type: string
+  title: string
+  body?: string
+  readStatus: boolean
+  entity?: string
+  entityId?: number
+  createdAt: string
+}
+
 // ─── Request Types ────────────────────────────────────────────────────────────
 
 export interface BookingFormData {
@@ -205,4 +263,20 @@ export interface TeamRegistrationFormData {
   captainName: string
   contactEmail: string
   tournamentId: number
+}
+
+export interface PlayerProfileFormData {
+  name: string
+  dateOfBirth?: string
+  age?: number
+  skillLevel?: string
+  preferredPosition?: string
+  notes?: string
+}
+
+export interface CoachProfileFormData {
+  bio?: string
+  specialties?: string
+  certifications?: string
+  active?: boolean
 }

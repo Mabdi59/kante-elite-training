@@ -60,6 +60,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/tournaments/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/tournaments/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                // Coach public endpoint
+                .requestMatchers(HttpMethod.GET, "/api/coach/public").permitAll()
+                // Coach authenticated endpoints
+                .requestMatchers("/api/coach/**").hasAnyRole("ADMIN", "COACH")
                 // Stripe webhook (public)
                 .requestMatchers("/api/payments/**").permitAll()
                 // All other requests require authentication

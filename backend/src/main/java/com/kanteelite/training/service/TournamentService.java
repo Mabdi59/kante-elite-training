@@ -49,6 +49,11 @@ public class TournamentService {
                 .maxTeams(req.getMaxTeams())
                 .description(req.getDescription())
                 .status(req.getStatus() != null ? req.getStatus() : "UPCOMING")
+                .ageGroup(req.getAgeGroup())
+                .registrationDeadline(req.getRegistrationDeadline())
+                .division(req.getDivision())
+                .entryFee(req.getEntryFee())
+                .notes(req.getNotes())
                 .build();
         return toResponse(tournamentRepository.save(t));
     }
@@ -64,6 +69,11 @@ public class TournamentService {
         t.setMaxTeams(req.getMaxTeams());
         t.setDescription(req.getDescription());
         if (req.getStatus() != null) t.setStatus(req.getStatus());
+        t.setAgeGroup(req.getAgeGroup());
+        t.setRegistrationDeadline(req.getRegistrationDeadline());
+        t.setDivision(req.getDivision());
+        t.setEntryFee(req.getEntryFee());
+        t.setNotes(req.getNotes());
         return toResponse(tournamentRepository.save(t));
     }
 
@@ -126,6 +136,11 @@ public class TournamentService {
                 .description(t.getDescription())
                 .status(t.getStatus())
                 .registeredTeams(registered)
+                .ageGroup(t.getAgeGroup())
+                .registrationDeadline(t.getRegistrationDeadline())
+                .division(t.getDivision())
+                .entryFee(t.getEntryFee())
+                .notes(t.getNotes())
                 .createdAt(t.getCreatedAt())
                 .build();
     }

@@ -16,4 +16,11 @@ public class AdminDashboardResponse {
     private long totalTournaments;
     private long totalUsers;
     private long unreadMessages;
+    // Phase 4 additions
+    private long totalCoaches;
+    private long totalPlayers;
+    private long pendingRegistrations;
+    private long usersWithRoleAdmin;
+    private long usersWithRoleCoach;
+    private long usersWithRoleUser;
 }

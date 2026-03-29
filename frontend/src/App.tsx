@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import MainLayout from './layouts/MainLayout'
 import AdminLayout from './layouts/AdminLayout'
+import CoachLayout from './layouts/CoachLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import HomePage from './pages/HomePage'
 import TrainingPage from './pages/TrainingPage'
@@ -28,6 +29,11 @@ import AdminMessagesPage from './pages/admin/AdminMessagesPage'
 import AdminUsersPage from './pages/admin/AdminUsersPage'
 import AdminAvailabilityPage from './pages/admin/AdminAvailabilityPage'
 import AdminAuditLogsPage from './pages/admin/AdminAuditLogsPage'
+import AdminCoachesPage from './pages/admin/AdminCoachesPage'
+import AdminPlayersPage from './pages/admin/AdminPlayersPage'
+import CoachDashboardPage from './pages/coach/CoachDashboardPage'
+import CoachSessionsPage from './pages/coach/CoachSessionsPage'
+import CoachProfilePage from './pages/coach/CoachProfilePage'
 
 function NotFoundPage() {
   return (
@@ -126,6 +132,38 @@ export default function App() {
             }
           />
 
+          {/* Coach routes */}
+          <Route
+            path="/coach"
+            element={
+              <ProtectedRoute requireRole="COACH">
+                <CoachLayout>
+                  <CoachDashboardPage />
+                </CoachLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/coach/sessions"
+            element={
+              <ProtectedRoute requireRole="COACH">
+                <CoachLayout>
+                  <CoachSessionsPage />
+                </CoachLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/coach/profile"
+            element={
+              <ProtectedRoute requireRole="COACH">
+                <CoachLayout>
+                  <CoachProfilePage />
+                </CoachLayout>
+              </ProtectedRoute>
+            }
+          />
+
           {/* Admin routes */}
           <Route
             path="/admin"
@@ -173,6 +211,26 @@ export default function App() {
               <ProtectedRoute requireAdmin>
                 <AdminLayout>
                   <AdminTournamentsPage />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/coaches"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminLayout>
+                  <AdminCoachesPage />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/players"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminLayout>
+                  <AdminPlayersPage />
                 </AdminLayout>
               </ProtectedRoute>
             }
@@ -234,3 +292,4 @@ export default function App() {
     </AuthProvider>
   )
 }
+

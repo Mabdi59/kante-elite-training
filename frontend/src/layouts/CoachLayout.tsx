@@ -3,21 +3,12 @@ import { useAuth } from '../context/AuthContext'
 import type { ReactNode } from 'react'
 
 const navItems = [
-  { path: '/admin', label: 'Dashboard', icon: '📊' },
-  { path: '/admin/bookings', label: 'Bookings', icon: '📅' },
-  { path: '/admin/programs', label: 'Programs', icon: '⚽' },
-  { path: '/admin/events', label: 'Events', icon: '🏆' },
-  { path: '/admin/tournaments', label: 'Tournaments', icon: '🥇' },
-  { path: '/admin/coaches', label: 'Coaches', icon: '🎽' },
-  { path: '/admin/players', label: 'Players', icon: '👦' },
-  { path: '/admin/availability', label: 'Availability', icon: '🗓️' },
-  { path: '/admin/testimonials', label: 'Testimonials', icon: '💬' },
-  { path: '/admin/messages', label: 'Messages', icon: '✉️' },
-  { path: '/admin/users', label: 'Users', icon: '👥' },
-  { path: '/admin/audit-logs', label: 'Audit Logs', icon: '📋' },
+  { path: '/coach', label: 'Dashboard', icon: '📊' },
+  { path: '/coach/sessions', label: 'My Sessions', icon: '📅' },
+  { path: '/coach/profile', label: 'My Profile', icon: '👤' },
 ]
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default function CoachLayout({ children }: { children: ReactNode }) {
   const { user, logoutUser } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
@@ -35,16 +26,16 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <Link to="/" className="text-xl font-black text-white">
             KANTÉ ELITE
           </Link>
-          <p className="text-green-400 text-xs mt-1 font-semibold uppercase tracking-widest">
-            Admin Panel
+          <p className="text-blue-400 text-xs mt-1 font-semibold uppercase tracking-widest">
+            Coach Panel
           </p>
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map((item) => {
             const isActive =
-              item.path === '/admin'
-                ? location.pathname === '/admin'
+              item.path === '/coach'
+                ? location.pathname === '/coach'
                 : location.pathname.startsWith(item.path)
             return (
               <Link
@@ -52,7 +43,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 to={item.path}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
                   isActive
-                    ? 'bg-green-500/10 text-green-400 font-medium'
+                    ? 'bg-blue-500/10 text-blue-400 font-medium'
                     : 'text-gray-400 hover:text-white hover:bg-gray-800'
                 }`}
               >
@@ -67,7 +58,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <div className="text-sm text-gray-400 mb-3">
             <span className="text-white font-medium">{user?.name}</span>
             <br />
-            <span className="text-green-400 text-xs">{user?.role}</span>
+            <span className="text-blue-400 text-xs">{user?.role}</span>
           </div>
           <button
             onClick={handleLogout}

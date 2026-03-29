@@ -1,13 +1,16 @@
 package com.kanteelite.training.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TournamentResponse {
     private Long id;
     private String name;
@@ -18,5 +21,10 @@ public class TournamentResponse {
     private String description;
     private String status;
     private long registeredTeams;
+    private String ageGroup;
+    private LocalDate registrationDeadline;
+    private String division;
+    private BigDecimal entryFee;
+    private String notes;
     private LocalDateTime createdAt;
 }
