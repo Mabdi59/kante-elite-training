@@ -10,10 +10,12 @@ com/kanteelite/training/dto/response/TestimonialResponse$TestimonialResponseBuil
 com/kanteelite/training/dto/response/ProgramResponse$ProgramResponseBuilder.class
 com/kanteelite/training/enums/PaymentStatus.class
 com/kanteelite/training/dto/response/BookingResponse$BookingResponseBuilder.class
+com/kanteelite/training/exception/PaymentProviderException.class
 com/kanteelite/training/entity/Event.class
 com/kanteelite/training/entity/Booking$BookingBuilder.class
 com/kanteelite/training/dto/request/CheckoutRequest.class
 com/kanteelite/training/service/TestimonialService.class
+com/kanteelite/training/service/payment/stripe/StripePaymentService.class
 com/kanteelite/training/repository/ContactMessageRepository.class
 com/kanteelite/training/service/ContactService.class
 com/kanteelite/training/controller/EventController.class
@@ -24,8 +26,8 @@ com/kanteelite/training/entity/ContactMessage$ContactMessageBuilder.class
 com/kanteelite/training/exception/SlotUnavailableException.class
 com/kanteelite/training/service/EmailService.class
 com/kanteelite/training/controller/BookingController.class
+com/kanteelite/training/controller/payment/stripe/StripePaymentController.class
 com/kanteelite/training/controller/TestimonialController.class
-com/kanteelite/training/service/PaymentService.class
 com/kanteelite/training/entity/Testimonial$TestimonialBuilder.class
 com/kanteelite/training/dto/response/ApiResponse$ApiResponseBuilder.class
 com/kanteelite/training/service/BookingService.class
@@ -37,8 +39,8 @@ com/kanteelite/training/controller/ContactController.class
 com/kanteelite/training/dto/response/AvailabilityResponse.class
 com/kanteelite/training/entity/Testimonial.class
 com/kanteelite/training/enums/BookingStatus.class
+com/kanteelite/training/exception/PaymentConfigurationException.class
 com/kanteelite/training/dto/request/ContactRequest.class
-com/kanteelite/training/controller/PaymentController.class
 com/kanteelite/training/entity/Program$ProgramBuilder.class
 com/kanteelite/training/dto/response/BookingResponse.class
 com/kanteelite/training/dto/response/TestimonialResponse.class

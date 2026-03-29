@@ -2,6 +2,21 @@
 
 Kante Elite Training is a booking platform for youth soccer training in Columbus, Ohio.
 
+## Payments Status
+
+Payments are currently **disabled**.
+
+Bookings are created directly via `POST /api/bookings` with `paymentStatus=PENDING`.
+Payment collection happens offline (e.g. in person or by invoice).
+
+Stripe integration is present in the codebase but **not active**:
+
+- `StripePaymentService` and `StripePaymentController` live under
+  `service/payment/stripe/` and `controller/payment/stripe/` respectively.
+- They are only loaded when `app.payments.enabled=true` (see `application.properties`).
+- To re-enable Stripe, set `app.payments.enabled=true` and provide
+  `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` environment variables.
+
 ## Architecture
 
 ```text
@@ -157,17 +172,17 @@ GET  /api/availability?programId=&date=
 ```text
 POST /api/bookings
 GET  /api/bookings/{id}
-GET  /api/bookings/confirm?sessionId=
 ```
 
-### Payments
+### Payments (inactive)
 
 ```text
 POST /api/payments/checkout
 POST /api/payments/webhook
 ```
 
-These endpoints are kept for future Stripe work and are not part of the active booking flow today.
+These endpoints are only registered when `app.payments.enabled=true`.
+See the [Payments Status](#payments-status) section above.
 
 ### Testimonials
 

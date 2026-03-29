@@ -13,8 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class BookingService {
@@ -24,7 +22,12 @@ public class BookingService {
     private final EmailService emailService;
 
     /**
-     * Creates a booking directly (no payment). Used for free/test flows.
+     * Creates a booking directly without payment.
+     * <p>
+     * {@code paymentStatus} is set to {@link PaymentStatus#PENDING} intentionally — bookings
+     * are confirmed at the point of submission and payment collection is handled separately
+     * (e.g. in person or invoiced). When Stripe payments are re-enabled this method is
+     * superseded by the webhook flow in {@code StripePaymentService}.
      */
     @Transactional
     public BookingResponse createBooking(BookingRequest request) {
@@ -59,57 +62,12 @@ public class BookingService {
     }
 
     /**
-     * Creates or retrieves a confirmed booking by Stripe session ID.
-     * Idempotent — safe to call multiple times for the same session.
-     */
-    @Transactional
-    public BookingResponse confirmByStripeSession(String sessionId, BookingRequest request) {
-        Optional<Booking> existing = bookingRepository.findByStripeSessionId(sessionId);
-        if (existing.isPresent()) {
-            return toResponse(existing.get());
-        }
-
-        Program program = programService.getProgramEntityById(request.getProgramId());
-
-        Booking booking = Booking.builder()
-                .program(program)
-                .bookingDate(request.getBookingDate())
-                .bookingTime(request.getBookingTime())
-                .playerName(request.getPlayerName())
-                .playerAge(request.getPlayerAge())
-                .parentName(request.getParentName())
-                .email(request.getEmail())
-                .phone(request.getPhone())
-                .experienceLevel(request.getExperienceLevel())
-                .notes(request.getNotes())
-                .paymentStatus(PaymentStatus.PAID)
-                .bookingStatus(BookingStatus.CONFIRMED)
-                .stripeSessionId(sessionId)
-                .build();
-
-        Booking saved = bookingRepository.save(booking);
-        BookingResponse response = toResponse(saved);
-        emailService.sendBookingConfirmation(response);
-        return response;
-    }
-
-    /**
-     * Retrieves a confirmed booking by database ID.
+     * Retrieves a booking by database ID.
      */
     @Transactional(readOnly = true)
     public BookingResponse getById(Long id) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", id));
-        return toResponse(booking);
-    }
-
-    /**
-     * Retrieves a confirmed booking by Stripe session ID (for the success page).
-     */
-    @Transactional(readOnly = true)
-    public BookingResponse getByStripeSessionId(String sessionId) {
-        Booking booking = bookingRepository.findByStripeSessionId(sessionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Booking not found for session: " + sessionId));
         return toResponse(booking);
     }
 

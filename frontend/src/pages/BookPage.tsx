@@ -600,7 +600,7 @@ export default function BookPage() {
                 </div>
               )}
 
-              {/* ── STEP 4: Confirm & pay ── */}
+              {/* ── STEP 4: Confirm ── */}
               {step === 4 && selectedProgram && (
                 <div className="card p-8">
                   <button
