@@ -1,15 +1,12 @@
 import { useEffect, useState } from 'react'
 import { getAdminBookings, updateBookingStatus } from '../../services/api'
 import type { Booking } from '../../types'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import EmptyState from '../../components/EmptyState'
+import StatusBadge from '../../components/StatusBadge'
+import ErrorBanner from '../../components/ErrorBanner'
 
 const STATUS_OPTIONS = ['RESERVED', 'CONFIRMED', 'CANCELLED', 'COMPLETED']
-
-const statusColor: Record<string, string> = {
-  CONFIRMED: 'text-green-400',
-  RESERVED: 'text-yellow-400',
-  CANCELLED: 'text-red-400',
-  COMPLETED: 'text-blue-400',
-}
 
 function exportCsv(bookings: Booking[]) {
   const header = 'ID,Player,Program,Date,Time,Email,Status'
@@ -30,6 +27,7 @@ function exportCsv(bookings: Booking[]) {
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [updating, setUpdating] = useState<number | null>(null)
 
   // Filters
@@ -40,7 +38,7 @@ export default function AdminBookingsPage() {
   useEffect(() => {
     getAdminBookings()
       .then(setBookings)
-      .catch(console.error)
+      .catch(() => setError('Failed to load bookings.'))
       .finally(() => setLoading(false))
   }, [])
 
@@ -49,8 +47,8 @@ export default function AdminBookingsPage() {
     try {
       const updated = await updateBookingStatus(id, status)
       setBookings((prev) => prev.map((b) => (b.id === id ? updated : b)))
-    } catch (err) {
-      console.error(err)
+    } catch {
+      setError('Failed to update booking status.')
     } finally {
       setUpdating(null)
     }
@@ -71,7 +69,7 @@ export default function AdminBookingsPage() {
     return true
   })
 
-  if (loading) return <div className="text-gray-400">Loading bookings…</div>
+  if (loading) return <LoadingSpinner label="Loading bookings…" />
 
   return (
     <div>
@@ -81,12 +79,14 @@ export default function AdminBookingsPage() {
           onClick={() => exportCsv(filtered)}
           className="text-sm bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 rounded-lg px-4 py-2 transition-colors"
         >
-          ⬇ Export CSV
+          ⬇ Export CSV ({filtered.length})
         </button>
       </div>
 
+      {error && <div className="mb-6"><ErrorBanner message={error} onDismiss={() => setError('')} /></div>}
+
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-6">
+      <div className="flex flex-wrap gap-3 mb-4">
         <input
           type="text"
           placeholder="Search player / email / program…"
@@ -115,7 +115,7 @@ export default function AdminBookingsPage() {
             onClick={() => { setFilterStatus(''); setFilterDate(''); setFilterSearch('') }}
             className="text-sm text-gray-500 hover:text-gray-300 px-2"
           >
-            Clear filters
+            ✕ Clear
           </button>
         )}
       </div>
@@ -125,7 +125,7 @@ export default function AdminBookingsPage() {
       </p>
 
       {filtered.length === 0 ? (
-        <p className="text-gray-400">No bookings match your filters.</p>
+        <EmptyState icon="📅" title="No bookings match your filters" description="Try adjusting the search or filter criteria." />
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -150,15 +150,15 @@ export default function AdminBookingsPage() {
                   <td className="py-3 pr-4">{b.bookingDate}</td>
                   <td className="py-3 pr-4">{b.bookingTime}</td>
                   <td className="py-3 pr-4 text-gray-400">{b.email}</td>
-                  <td className={`py-3 pr-4 font-semibold ${statusColor[b.bookingStatus] ?? 'text-gray-400'}`}>
-                    {b.bookingStatus}
+                  <td className="py-3 pr-4">
+                    <StatusBadge status={b.bookingStatus} />
                   </td>
                   <td className="py-3">
                     <select
                       value={b.bookingStatus}
                       disabled={updating === b.id}
                       onChange={(e) => handleStatusChange(b.id, e.target.value)}
-                      className="bg-gray-800 border border-gray-700 text-gray-300 rounded px-2 py-1 text-xs"
+                      className="bg-gray-800 border border-gray-700 text-gray-300 rounded px-2 py-1 text-xs focus:outline-none"
                     >
                       {STATUS_OPTIONS.map((s) => (
                         <option key={s} value={s}>{s}</option>

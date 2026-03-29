@@ -23,9 +23,11 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
         Long programId, LocalDate date, String time, com.kanteelite.training.enums.BookingStatus status
     );
 
+    @Query("SELECT b FROM Booking b JOIN FETCH b.program ORDER BY b.createdAt DESC")
     List<Booking> findAllByOrderByCreatedAtDesc();
 
-    List<Booking> findByEmailOrderByCreatedAtDesc(String email);
+    @Query("SELECT b FROM Booking b JOIN FETCH b.program WHERE b.email = :email ORDER BY b.createdAt DESC")
+    List<Booking> findByEmailOrderByCreatedAtDesc(@Param("email") String email);
 
     long countByBookingStatus(BookingStatus status);
 }

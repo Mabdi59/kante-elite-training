@@ -22,8 +22,10 @@ export default function LoginPage() {
       loginUser(res.token, res.refreshToken, user)
       if (res.role === 'ADMIN') {
         navigate('/admin')
+      } else if (res.role === 'COACH') {
+        navigate('/coach')
       } else {
-        navigate('/')
+        navigate('/account')
       }
     } catch (err: unknown) {
       const msg =
