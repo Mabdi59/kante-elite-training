@@ -12,7 +12,7 @@ export default function EventsPage() {
   useEffect(() => {
     getEvents()
       .then(setEvents)
-      .catch(console.error)
+      .catch(() => { /* silently fail — empty state handles it */ })
       .finally(() => setLoading(false))
   }, [])
 

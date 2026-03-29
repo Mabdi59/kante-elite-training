@@ -1,0 +1,20 @@
+package com.kanteelite.training.repository;
+
+import com.kanteelite.training.entity.PlayerProfile;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface PlayerProfileRepository extends JpaRepository<PlayerProfile, Long> {
+    List<PlayerProfile> findByParentUserIdAndActiveTrueOrderByNameAsc(Long parentUserId);
+
+    @Query("SELECT p FROM PlayerProfile p WHERE p.parentUser.email = :email ORDER BY p.name ASC")
+    List<PlayerProfile> findByParentUserEmailOrderByNameAsc(@Param("email") String email);
+
+    List<PlayerProfile> findAllByOrderByCreatedAtDesc();
+    long countByActiveTrue();
+}
