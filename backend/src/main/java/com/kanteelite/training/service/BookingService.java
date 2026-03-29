@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class BookingService {
@@ -69,6 +71,26 @@ public class BookingService {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", id));
         return toResponse(booking);
+    }
+
+    /**
+     * Returns all bookings, newest first (admin use).
+     */
+    @Transactional(readOnly = true)
+    public List<BookingResponse> getAllBookings() {
+        return bookingRepository.findAllByOrderByCreatedAtDesc()
+                .stream().map(this::toResponse).toList();
+    }
+
+    /**
+     * Updates the status of a booking (admin use).
+     */
+    @Transactional
+    public BookingResponse updateStatus(Long id, String bookingStatus) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", id));
+        booking.setBookingStatus(BookingStatus.valueOf(bookingStatus));
+        return toResponse(bookingRepository.save(booking));
     }
 
     public BookingResponse toResponse(Booking b) {

@@ -1,6 +1,7 @@
 package com.kanteelite.training.repository;
 
 import com.kanteelite.training.entity.Booking;
+import com.kanteelite.training.enums.BookingStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,4 +22,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     boolean existsByProgramIdAndBookingDateAndBookingTimeAndBookingStatusNot(
         Long programId, LocalDate date, String time, com.kanteelite.training.enums.BookingStatus status
     );
+
+    List<Booking> findAllByOrderByCreatedAtDesc();
+
+    long countByBookingStatus(BookingStatus status);
 }

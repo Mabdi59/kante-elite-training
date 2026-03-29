@@ -7,6 +7,21 @@ export interface ApiResponse<T> {
   error?: string
 }
 
+// ─── Auth Types ───────────────────────────────────────────────────────────────
+
+export interface AuthResponse {
+  token: string
+  email: string
+  name: string
+  role: 'ADMIN' | 'COACH' | 'USER'
+}
+
+export interface AuthUser {
+  email: string
+  name: string
+  role: 'ADMIN' | 'COACH' | 'USER'
+}
+
 // ─── Domain Types ─────────────────────────────────────────────────────────────
 
 export interface Program {
@@ -77,6 +92,63 @@ export interface AvailabilityData {
   availableSlots: string[]
 }
 
+export interface Tournament {
+  id: number
+  name: string
+  location: string
+  startDate: string
+  endDate?: string
+  maxTeams: number
+  description?: string
+  status: string
+  registeredTeams: number
+  createdAt: string
+}
+
+export interface TeamRegistration {
+  id: number
+  tournamentId: number
+  tournamentName: string
+  teamId: number
+  teamName: string
+  captainName: string
+  contactEmail: string
+  status: string
+  createdAt: string
+}
+
+export interface ContactMessage {
+  id: number
+  name: string
+  email: string
+  phone?: string
+  subject?: string
+  message: string
+  readStatus: boolean
+  createdAt: string
+}
+
+export interface AdminDashboard {
+  totalBookings: number
+  confirmedBookings: number
+  pendingBookings: number
+  cancelledBookings: number
+  totalPrograms: number
+  activePrograms: number
+  totalEvents: number
+  totalTournaments: number
+  totalUsers: number
+  unreadMessages: number
+}
+
+export interface AdminUser {
+  id: number
+  name: string
+  email: string
+  role: string
+  createdAt: string
+}
+
 // ─── Request Types ────────────────────────────────────────────────────────────
 
 export interface BookingFormData {
@@ -98,4 +170,11 @@ export interface ContactFormData {
   phone: string
   subject: string
   message: string
+}
+
+export interface TeamRegistrationFormData {
+  teamName: string
+  captainName: string
+  contactEmail: string
+  tournamentId: number
 }
