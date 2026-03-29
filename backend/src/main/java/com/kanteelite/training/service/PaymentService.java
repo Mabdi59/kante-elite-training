@@ -16,7 +16,6 @@ import com.stripe.model.StripeObject;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import com.stripe.param.checkout.SessionCreateParams;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 public class PaymentService {
 
     private static final Logger log = LoggerFactory.getLogger(PaymentService.class);
@@ -34,6 +32,7 @@ public class PaymentService {
     private final BookingRepository bookingRepository;
     private final ProgramService programService;
     private final EmailService emailService;
+    private final BookingService bookingService;
 
     @Value("${stripe.secret-key:}")
     private String stripeSecretKey;
@@ -43,6 +42,17 @@ public class PaymentService {
 
     @Value("${app.frontend-url:http://localhost:5173}")
     private String frontendUrl;
+
+    public PaymentService(
+            BookingRepository bookingRepository,
+            ProgramService programService,
+            EmailService emailService,
+            BookingService bookingService) {
+        this.bookingRepository = bookingRepository;
+        this.programService = programService;
+        this.emailService = emailService;
+        this.bookingService = bookingService;
+    }
 
     /**
      * Creates a Stripe Checkout Session for the given booking request.
@@ -143,9 +153,7 @@ public class PaymentService {
                     .build();
 
             Booking saved = bookingRepository.save(booking);
-            emailService.sendBookingConfirmation(
-                    new BookingService(bookingRepository, programService, emailService).toResponse(saved)
-            );
+            emailService.sendBookingConfirmation(bookingService.toResponse(saved));
             log.info("Booking confirmed for Stripe session {}", sessionId);
         } catch (Exception e) {
             log.error("Failed to create booking from webhook for session {}: {}", sessionId, e.getMessage(), e);
