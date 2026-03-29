@@ -19,19 +19,27 @@ export default function ProgramCard({ program, featured = false, variant = 'defa
       >
         {featured && (
           <div className="bg-amber-500 text-black text-xs font-black uppercase tracking-widest px-4 py-1.5 text-center">
-            Most Popular
+            ⚡ Most Popular
           </div>
         )}
         <div className="p-6 flex flex-col flex-1">
           <div className="text-4xl mb-4">{program.icon}</div>
           <p className="text-amber-500 font-black text-xl mb-1">{program.priceLabel}</p>
-          <h3 className="text-white font-black text-lg mb-3 leading-tight">{program.name}</h3>
+          <h3 className="text-white font-black text-lg mb-2 leading-tight">{program.name}</h3>
+          {program.whoItsFor && (
+            <p className="text-xs text-amber-500/70 font-semibold mb-3 flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+              </svg>
+              Best for: {program.whoItsFor}
+            </p>
+          )}
           <p className="text-gray-400 text-sm leading-relaxed flex-1">{program.shortDescription}</p>
           <Link
             to={bookHref}
             className="btn-primary text-sm text-center mt-5"
           >
-            Book Now
+            Book Your Session
           </Link>
         </div>
       </div>
@@ -46,7 +54,7 @@ export default function ProgramCard({ program, featured = false, variant = 'defa
     >
       {featured && (
         <div className="bg-amber-500 text-black text-xs font-black uppercase tracking-widest px-4 py-1.5 text-center">
-          Most Popular
+          ⚡ Most Popular
         </div>
       )}
 
@@ -57,10 +65,19 @@ export default function ProgramCard({ program, featured = false, variant = 'defa
       </div>
 
       <div className="p-6 flex flex-col flex-1">
-        <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="flex items-start justify-between gap-3 mb-2">
           <h3 className="text-white font-black text-xl leading-tight">{program.name}</h3>
           <span className="text-amber-500 font-black text-lg whitespace-nowrap">{program.priceLabel}</span>
         </div>
+
+        {program.whoItsFor && (
+          <p className="text-xs text-amber-500/70 font-semibold mb-4 flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            </svg>
+            Best for: {program.whoItsFor}
+          </p>
+        )}
 
         <p className="text-gray-400 text-sm leading-relaxed mb-5">{program.description}</p>
 
@@ -77,14 +94,8 @@ export default function ProgramCard({ program, featured = false, variant = 'defa
           </ul>
         )}
 
-        {program.whoItsFor && (
-          <p className="text-xs text-gray-500 border-t border-[#1e1e1e] pt-4 mb-5 italic">
-            {program.whoItsFor}
-          </p>
-        )}
-
-        <Link to={bookHref} className="btn-primary text-center text-sm">
-          Book {program.name}
+        <Link to={bookHref} className="btn-primary text-center text-sm mt-auto">
+          Book Your Session
         </Link>
       </div>
     </div>

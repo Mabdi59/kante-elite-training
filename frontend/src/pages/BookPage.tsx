@@ -102,6 +102,7 @@ function BookingSidebar({ program, date, time, playerName }: SidebarProps) {
         <div className="bg-[#111] border border-[#222] rounded-2xl overflow-hidden">
           <div className="px-5 py-4 border-b border-[#222] bg-[#161616]">
             <p className="text-amber-500 text-xs font-bold uppercase tracking-widest">Your Booking</p>
+            <p className="text-gray-600 text-xs mt-0.5">Takes less than 60 seconds to complete</p>
           </div>
           <div className="p-5">
             {program ? (
@@ -152,10 +153,10 @@ function BookingSidebar({ program, date, time, playerName }: SidebarProps) {
         <div className="bg-[#111] border border-[#222] rounded-2xl p-5 space-y-3">
           {[
             { icon: '🔒', text: 'Secure payment via Stripe' },
-            { icon: '✅', text: 'Instant booking confirmation' },
-            { icon: '📧', text: 'Confirmation email sent immediately' },
-            { icon: '🔄', text: 'Cancel up to 24h before session' },
-            { icon: '📱', text: 'Text or call Coach Kante anytime' },
+            { icon: '📧', text: 'Instant confirmation email' },
+            { icon: '👋', text: 'Coach Kante will follow up before your session' },
+            { icon: '🔄', text: 'You can reschedule if needed' },
+            { icon: '📱', text: 'Text or call us anytime' },
           ].map((item) => (
             <div key={item.text} className="flex items-center gap-3">
               <span className="text-base flex-shrink-0">{item.icon}</span>
@@ -358,7 +359,9 @@ export default function BookPage() {
               {step === 1 && (
                 <div className="card p-8">
                   <h2 className="text-white font-black text-2xl mb-2">Choose Your Program</h2>
-                  <p className="text-gray-500 text-sm mb-7">Select the training type that matches your goals.</p>
+                  <p className="text-gray-500 text-sm mb-7">
+                    Not sure which to pick? Look for the <span className="text-amber-500/80 font-semibold">Best for:</span> label — it tells you exactly who each program is designed for.
+                  </p>
                   {loadingPrograms ? (
                     <div className="space-y-3">
                       {[...Array(5)].map((_, i) => (
@@ -382,6 +385,9 @@ export default function BookPage() {
                             <div>
                               <p className="text-white font-bold text-sm">{program.name}</p>
                               <p className="text-gray-500 text-xs mt-0.5">{program.shortDescription}</p>
+                              {program.whoItsFor && (
+                                <p className="text-amber-500/60 text-xs mt-1 font-medium">Best for: {program.whoItsFor}</p>
+                              )}
                             </div>
                           </div>
                           <div className="flex items-center gap-3 flex-shrink-0">
@@ -411,7 +417,10 @@ export default function BookPage() {
                   </button>
 
                   <h2 className="text-white font-black text-2xl mb-2">Pick a Date & Time</h2>
-                  <p className="text-gray-500 text-sm mb-7">Choose when you'd like to train. Spots are first-come, first-served.</p>
+                  <p className="text-gray-500 text-sm mb-7">
+                    Spots are first-come, first-served.{' '}
+                    <span className="text-amber-500/70">Evening sessions fill quickly.</span>
+                  </p>
 
                   <Field label="Select Date" required>
                     <input

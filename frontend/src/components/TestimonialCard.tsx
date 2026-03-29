@@ -57,7 +57,7 @@ export default function TestimonialCard({ testimonial }: TestimonialCardProps) {
         <div>
           <p className="text-white font-bold text-sm leading-tight">{testimonial.name}</p>
           {testimonial.roleOrContext && (
-            <p className="text-gray-500 text-xs mt-0.5">{testimonial.roleOrContext}</p>
+            <p className="text-amber-500/70 text-xs mt-0.5 font-medium">{testimonial.roleOrContext}</p>
           )}
         </div>
       </div>

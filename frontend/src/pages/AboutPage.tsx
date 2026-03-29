@@ -37,7 +37,7 @@ export default function AboutPage() {
       <HeroSection
         badge="Our Story"
         title="About Coach Kante"
-        subtitle="A commitment to developing the next generation of soccer excellence — right here in Columbus."
+        subtitle="A commitment to developing the next generation of soccer excellence — right here in Columbus, Ohio."
       />
 
       {/* Coach profile */}
@@ -52,9 +52,10 @@ export default function AboutPage() {
               </div>
             </div>
             <div>
-              <p className="section-label">The Coach</p>
+              <span className="section-label">The Coach</span>
               <h2 className="text-white font-black text-4xl mb-6">
-                Coach Mamadou <span className="text-amber-500">Kante</span>
+                Coach Mamadou{' '}
+                <span className="gradient-text">Kante</span>
               </h2>
               <div className="space-y-4 text-gray-400 leading-relaxed text-sm">
                 <p>
@@ -82,7 +83,7 @@ export default function AboutPage() {
                 {credentials.map((c) => (
                   <div
                     key={c.label}
-                    className="flex items-center gap-3 bg-[#111111] border border-[#222222] rounded-lg p-3"
+                    className="flex items-center gap-3 bg-[#111111] border border-[#1e1e1e] rounded-xl p-3 hover:border-amber-500/20 transition-colors"
                   >
                     <span className="text-xl">{c.icon}</span>
                     <span className="text-white text-xs font-semibold">{c.label}</span>
@@ -98,17 +99,21 @@ export default function AboutPage() {
       <section className="bg-[#111111] py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <p className="section-label">Philosophy</p>
-            <h2 className="text-white font-black text-4xl md:text-5xl">The Three Pillars</h2>
+            <span className="section-label">Philosophy</span>
+            <h2 className="text-white font-black text-4xl md:text-5xl">
+              The Three <span className="gradient-text">Pillars</span>
+            </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {pillars.map((pillar) => (
               <div
                 key={pillar.title}
-                className="bg-[#1a1a1a] rounded-xl p-8 border border-[#222222] hover:border-amber-500/30 transition-colors"
+                className="bg-[#1a1a1a] rounded-2xl p-8 border border-[#1e1e1e] hover:border-amber-500/30 transition-colors"
               >
-                <div className="text-5xl mb-6">{pillar.icon}</div>
-                <h3 className="text-white font-black text-2xl mb-4">{pillar.title}</h3>
+                <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-2xl mb-6">
+                  {pillar.icon}
+                </div>
+                <h3 className="text-white font-black text-xl mb-4">{pillar.title}</h3>
                 <p className="text-gray-400 leading-relaxed text-sm">{pillar.description}</p>
               </div>
             ))}
@@ -133,8 +138,9 @@ export default function AboutPage() {
       </section>
 
       <CTASection
-        title="Start Your Journey"
-        subtitle="Ready to train with Columbus's most dedicated youth soccer coach?"
+        title="Ready to Start Your Journey?"
+        subtitle="Join 200+ Columbus players who've trained with Coach Kante and saw real results. Book your first session today."
+        urgencyLine="Limited spots available each week"
       />
     </div>
   )
