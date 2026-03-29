@@ -16,4 +16,4 @@ ALTER TABLE teams
 
 CREATE INDEX idx_teams_owner ON teams (owner_user_id);
 CREATE INDEX idx_tournaments_status ON tournaments (status);
-CREATE INDEX idx_tournaments_start_date ON tournaments (start_date);
+-- Note: idx_tournaments_start_date already exists from V8
