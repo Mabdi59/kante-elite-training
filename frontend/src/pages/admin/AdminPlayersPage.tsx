@@ -1,16 +1,21 @@
 import { useEffect, useState } from 'react'
 import { getAdminPlayers } from '../../services/api'
 import type { PlayerProfile } from '../../types'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import EmptyState from '../../components/EmptyState'
+import StatusBadge from '../../components/StatusBadge'
+import ErrorBanner from '../../components/ErrorBanner'
 
 export default function AdminPlayersPage() {
   const [players, setPlayers] = useState<PlayerProfile[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [search, setSearch] = useState('')
 
   useEffect(() => {
     getAdminPlayers()
       .then(setPlayers)
-      .catch(console.error)
+      .catch(() => setError('Could not load players. Please refresh.'))
       .finally(() => setLoading(false))
   }, [])
 
@@ -20,23 +25,17 @@ export default function AdminPlayersPage() {
       p.parentUserEmail.toLowerCase().includes(search.toLowerCase()),
   )
 
-  if (loading) return <div className="text-gray-400">Loading…</div>
-
-  const skillColors: Record<string, string> = {
-    BEGINNER: 'bg-blue-500/10 text-blue-400',
-    INTERMEDIATE: 'bg-yellow-500/10 text-yellow-400',
-    ADVANCED: 'bg-green-500/10 text-green-400',
-    ELITE: 'bg-purple-500/10 text-purple-400',
-  }
+  if (loading) return <LoadingSpinner label="Loading players…" />
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-white text-3xl font-black">Players</h1>
-        <p className="text-gray-400 text-sm">{filtered.length} player(s)</p>
+        <p className="text-gray-400 text-sm">{filtered.length} {filtered.length === 1 ? 'player' : 'players'}</p>
       </div>
 
-      {/* Search */}
+      {error && <div className="mb-6"><ErrorBanner message={error} onDismiss={() => setError('')} /></div>}
+
       <div className="mb-6">
         <input
           type="text"
@@ -48,7 +47,7 @@ export default function AdminPlayersPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="text-gray-500 text-center py-12">No player profiles found.</div>
+        <EmptyState icon="👦" title="No players found" description="Try a different name or email." />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((p) => (
@@ -58,13 +57,7 @@ export default function AdminPlayersPage() {
                   <p className="text-white font-semibold">{p.name}</p>
                   <p className="text-gray-400 text-xs mt-0.5">{p.parentUserEmail}</p>
                 </div>
-                {p.skillLevel && (
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${skillColors[p.skillLevel.toUpperCase()] ?? 'bg-gray-700 text-gray-300'}`}
-                  >
-                    {p.skillLevel}
-                  </span>
-                )}
+                {p.skillLevel && <StatusBadge status={p.skillLevel} />}
               </div>
 
               <div className="space-y-1 text-sm">
@@ -84,9 +77,7 @@ export default function AdminPlayersPage() {
               </div>
 
               <div className="mt-3 pt-3 border-t border-gray-800">
-                <span
-                  className={`text-xs ${p.active ? 'text-green-400' : 'text-red-400'}`}
-                >
+                <span className={`text-xs ${p.active ? 'text-green-400' : 'text-red-400'}`}>
                   {p.active ? '● Active' : '● Inactive'}
                 </span>
               </div>

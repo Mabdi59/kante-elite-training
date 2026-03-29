@@ -43,7 +43,7 @@ export default function ResultsPage() {
   useEffect(() => {
     getTestimonials()
       .then(setTestimonials)
-      .catch(console.error)
+      .catch(() => { /* silently fail — page still renders without testimonials */ })
       .finally(() => setLoading(false))
   }, [])
 

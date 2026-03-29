@@ -1,16 +1,21 @@
 import { useEffect, useState } from 'react'
 import { getMyCoachSessions } from '../../services/api'
 import type { Booking } from '../../types'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import EmptyState from '../../components/EmptyState'
+import StatusBadge from '../../components/StatusBadge'
+import ErrorBanner from '../../components/ErrorBanner'
 
 export default function CoachSessionsPage() {
   const [sessions, setSessions] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [filter, setFilter] = useState<'upcoming' | 'past' | 'all'>('upcoming')
 
   useEffect(() => {
     getMyCoachSessions()
       .then(setSessions)
-      .catch(console.error)
+      .catch(() => setError('Could not load sessions. Please refresh.'))
       .finally(() => setLoading(false))
   }, [])
 
@@ -22,7 +27,7 @@ export default function CoachSessionsPage() {
     return true
   })
 
-  if (loading) return <div className="text-gray-400">Loading…</div>
+  if (loading) return <LoadingSpinner label="Loading sessions…" />
 
   return (
     <div>
@@ -45,8 +50,10 @@ export default function CoachSessionsPage() {
         </div>
       </div>
 
+      {error && <div className="mb-6"><ErrorBanner message={error} onDismiss={() => setError('')} /></div>}
+
       {filtered.length === 0 ? (
-        <div className="text-gray-500 text-center py-12">No sessions found.</div>
+        <EmptyState icon="📅" title="Nothing here yet" description={filter === 'upcoming' ? 'No upcoming sessions.' : 'No sessions found.'} />
       ) : (
         <div className="space-y-3">
           {filtered.map((s) => (
@@ -55,7 +62,7 @@ export default function CoachSessionsPage() {
               className="bg-gray-900 border border-gray-800 rounded-xl p-5 flex items-start justify-between gap-4"
             >
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
+                <div className="flex items-center gap-3 mb-2 flex-wrap">
                   <p className="text-white font-semibold">{s.playerName}</p>
                   {s.playerAge && (
                     <span className="text-gray-500 text-xs bg-gray-800 px-2 py-0.5 rounded-full">
@@ -72,18 +79,8 @@ export default function CoachSessionsPage() {
                 )}
               </div>
               <div className="text-right">
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    s.bookingStatus === 'CONFIRMED'
-                      ? 'bg-green-500/10 text-green-400'
-                      : s.bookingStatus === 'CANCELLED'
-                        ? 'bg-red-500/10 text-red-400'
-                        : 'bg-yellow-500/10 text-yellow-400'
-                  }`}
-                >
-                  {s.bookingStatus}
-                </span>
-                <p className="text-gray-600 text-xs mt-2">{s.phone}</p>
+                <StatusBadge status={s.bookingStatus} />
+                {s.phone && <p className="text-gray-600 text-xs mt-2">{s.phone}</p>}
               </div>
             </div>
           ))}

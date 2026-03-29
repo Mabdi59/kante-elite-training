@@ -9,13 +9,8 @@ import {
   removePlayerProfile,
 } from '../services/api'
 import type { Booking, PlayerProfile, PlayerProfileFormData } from '../types'
-
-const statusColor: Record<string, string> = {
-  CONFIRMED: 'text-green-400 bg-green-500/10 border-green-500/30',
-  RESERVED: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30',
-  CANCELLED: 'text-red-400 bg-red-500/10 border-red-500/30',
-  COMPLETED: 'text-blue-400 bg-blue-500/10 border-blue-500/30',
-}
+import LoadingSpinner from '../components/LoadingSpinner'
+import StatusBadge from '../components/StatusBadge'
 
 const emptyPlayerForm: PlayerProfileFormData = {
   name: '',
@@ -44,7 +39,7 @@ export default function AccountPage() {
     ]).then(([b, p]) => {
       setBookings(b)
       setPlayers(p)
-    }).catch(() => setError('Failed to load data.')).finally(() => setLoading(false))
+    }).catch(() => setError('Could not load your account data.')).finally(() => setLoading(false))
   }, [])
 
   const handleCancel = async (id: number) => {
@@ -54,7 +49,7 @@ export default function AccountPage() {
       const updated = await cancelMyBooking(id)
       setBookings((prev) => prev.map((b) => (b.id === id ? updated : b)))
     } catch {
-      alert('Failed to cancel booking. Please try again.')
+      setError('Could not cancel that booking. Please try again or contact us.')
     } finally {
       setCancelling(null)
     }
@@ -69,7 +64,7 @@ export default function AccountPage() {
       setPlayerForm(emptyPlayerForm)
       setShowAddPlayer(false)
     } catch {
-      alert('Failed to add player profile.')
+      setError('Could not add player profile. Please try again.')
     } finally {
       setSavingPlayer(false)
     }
@@ -81,7 +76,7 @@ export default function AccountPage() {
       await removePlayerProfile(id)
       setPlayers((prev) => prev.filter((p) => p.id !== id))
     } catch {
-      alert('Failed to remove player profile.')
+      setError('Could not remove that player profile.')
     }
   }
 
@@ -141,7 +136,9 @@ export default function AccountPage() {
         </div>
 
         {loading ? (
-          <div className="text-gray-400">Loading…</div>
+          <div className="py-6">
+            <LoadingSpinner label="Loading your account…" />
+          </div>
         ) : tab === 'bookings' ? (
           <>
             {/* Upcoming sessions */}
@@ -344,7 +341,6 @@ function BookingCard({
   muted?: boolean
 }) {
   const canCancel = b.bookingStatus !== 'CANCELLED' && b.bookingStatus !== 'COMPLETED'
-  const statusCls = statusColor[b.bookingStatus] ?? 'text-gray-400 bg-gray-800 border-gray-700'
 
   return (
     <div
@@ -353,9 +349,7 @@ function BookingCard({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-3 mb-1 flex-wrap">
           <span className="text-white font-bold">{b.programName}</span>
-          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${statusCls}`}>
-            {b.bookingStatus}
-          </span>
+          <StatusBadge status={b.bookingStatus} />
         </div>
         <p className="text-gray-400 text-sm">
           {b.bookingDate} · {b.bookingTime}

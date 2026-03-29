@@ -42,7 +42,7 @@ export default function ResetPasswordPage() {
             KANTÉ ELITE
           </Link>
           <h1 className="text-white text-3xl font-black mt-6 mb-2">Reset Password</h1>
-          <p className="text-gray-400">Enter your reset token and new password.</p>
+          <p className="text-gray-400">Enter your reset code and choose a new password.</p>
         </div>
 
         <form
@@ -56,14 +56,14 @@ export default function ResetPasswordPage() {
           )}
 
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">Reset Token</label>
+            <label className="block text-gray-300 text-sm font-medium mb-2">Reset Code</label>
             <input
               type="text"
               value={token}
               onChange={(e) => setToken(e.target.value)}
               required
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-green-500 font-mono text-sm"
-              placeholder="Paste token from email"
+              placeholder="Paste the code from your email"
             />
           </div>
 
@@ -104,7 +104,7 @@ export default function ResetPasswordPage() {
 
           <p className="text-center text-gray-500 text-sm">
             <Link to="/forgot-password" className="text-green-400 hover:text-green-300">
-              Request a new token
+              Get a new code
             </Link>
             {' · '}
             <Link to="/login" className="text-green-400 hover:text-green-300">

@@ -1,29 +1,24 @@
 import { useEffect, useState } from 'react'
 import { getAdminUsers, updateUserRole } from '../../services/api'
 import type { AdminUser } from '../../types'
-
-const roleColor: Record<string, string> = {
-  ADMIN: 'text-red-400',
-  STAFF: 'text-orange-400',
-  COACH: 'text-blue-400',
-  PARENT: 'text-purple-400',
-  PLAYER: 'text-green-400',
-  TEAM_CAPTAIN: 'text-cyan-400',
-  USER: 'text-gray-400',
-}
+import LoadingSpinner from '../../components/LoadingSpinner'
+import EmptyState from '../../components/EmptyState'
+import StatusBadge from '../../components/StatusBadge'
+import ErrorBanner from '../../components/ErrorBanner'
 
 const ALL_ROLES = ['ADMIN', 'STAFF', 'COACH', 'PARENT', 'PLAYER', 'TEAM_CAPTAIN', 'USER']
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [updatingId, setUpdatingId] = useState<number | null>(null)
   const [search, setSearch] = useState('')
 
   useEffect(() => {
     getAdminUsers()
       .then(setUsers)
-      .catch(console.error)
+      .catch(() => setError('Could not load users. Please refresh.'))
       .finally(() => setLoading(false))
   }, [])
 
@@ -33,7 +28,7 @@ export default function AdminUsersPage() {
       const updated = await updateUserRole(id, role)
       setUsers((prev) => prev.map((u) => (u.id === id ? updated : u)))
     } catch {
-      alert('Failed to update role.')
+      setError('Failed to update role. Please try again.')
     } finally {
       setUpdatingId(null)
     }
@@ -45,14 +40,16 @@ export default function AdminUsersPage() {
       u.email.toLowerCase().includes(search.toLowerCase()),
   )
 
-  if (loading) return <div className="text-gray-400">Loading users…</div>
+  if (loading) return <LoadingSpinner label="Loading users…" />
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-white text-3xl font-black">Users</h1>
-        <p className="text-gray-400 text-sm">{filtered.length} user(s)</p>
+        <p className="text-gray-400 text-sm">{filtered.length} {filtered.length === 1 ? 'user' : 'users'}</p>
       </div>
+
+      {error && <div className="mb-6"><ErrorBanner message={error} onDismiss={() => setError('')} /></div>}
 
       <div className="mb-6">
         <input
@@ -65,7 +62,7 @@ export default function AdminUsersPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <p className="text-gray-400">No users found.</p>
+        <EmptyState icon="👥" title="No users found" description="Try a different name or email." />
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -85,18 +82,21 @@ export default function AdminUsersPage() {
                   <td className="py-3 pr-4 font-medium text-white">{u.name}</td>
                   <td className="py-3 pr-4 text-gray-400">{u.email}</td>
                   <td className="py-3 pr-4">
-                    <select
-                      value={u.role}
-                      onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                      disabled={updatingId === u.id}
-                      className={`bg-transparent border border-gray-700 rounded px-2 py-1 text-xs font-semibold cursor-pointer focus:outline-none ${roleColor[u.role] ?? 'text-gray-400'}`}
-                    >
-                      {ALL_ROLES.map((r) => (
-                        <option key={r} value={r} className="bg-gray-900 text-white">
-                          {r}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex items-center gap-2">
+                      <StatusBadge status={u.role} />
+                      <select
+                        value={u.role}
+                        onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                        disabled={updatingId === u.id}
+                        className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-xs text-gray-300 cursor-pointer focus:outline-none"
+                      >
+                        {ALL_ROLES.map((r) => (
+                          <option key={r} value={r} className="bg-gray-900 text-white">
+                            {r}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </td>
                   <td className="py-3 text-gray-500 text-xs">
                     {new Date(u.createdAt).toLocaleDateString()}

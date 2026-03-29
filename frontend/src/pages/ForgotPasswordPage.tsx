@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
             KANTÉ ELITE
           </Link>
           <h1 className="text-white text-3xl font-black mt-6 mb-2">Forgot Password</h1>
-          <p className="text-gray-400">Enter your email and we'll send a reset token.</p>
+          <p className="text-gray-400">Enter your email and we'll send a reset link.</p>
         </div>
 
         {submitted ? (
@@ -44,7 +44,7 @@ export default function ForgotPasswordPage() {
               to="/reset-password"
               className="inline-block mt-4 text-green-400 underline text-sm"
             >
-              Enter reset token →
+              Enter your reset code
             </Link>
           </div>
         ) : (
@@ -75,7 +75,7 @@ export default function ForgotPasswordPage() {
               disabled={loading}
               className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Sending…' : 'Send Reset Token'}
+              {loading ? 'Sending…' : 'Send reset link'}
             </button>
 
             <p className="text-center text-gray-500 text-sm">

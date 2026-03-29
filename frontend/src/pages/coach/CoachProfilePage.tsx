@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { getMyCoachProfile, updateMyCoachProfile } from '../../services/api'
 import type { CoachProfile, CoachProfileFormData } from '../../types'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import ErrorBanner from '../../components/ErrorBanner'
 
 export default function CoachProfilePage() {
   const [profile, setProfile] = useState<CoachProfile | null>(null)
@@ -16,7 +18,7 @@ export default function CoachProfilePage() {
         setProfile(p)
         setForm({ bio: p.bio ?? '', specialties: p.specialties ?? '', certifications: p.certifications ?? '' })
       })
-      .catch(() => setError('No coach profile found. Contact an admin.'))
+      .catch(() => setError('No coach profile found. Contact an admin to get set up.'))
       .finally(() => setLoading(false))
   }, [])
 
@@ -30,23 +32,19 @@ export default function CoachProfilePage() {
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     } catch {
-      setError('Failed to save profile.')
+      setError('Could not save your profile. Please try again.')
     } finally {
       setSaving(false)
     }
   }
 
-  if (loading) return <div className="text-gray-400">Loading…</div>
+  if (loading) return <LoadingSpinner label="Loading your profile…" />
 
   return (
     <div>
-      <h1 className="text-white text-3xl font-black mb-8">My Coach Profile</h1>
+      <h1 className="text-white text-3xl font-black mb-8">My Profile</h1>
 
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg mb-6">
-          {error}
-        </div>
-      )}
+      {error && <div className="mb-6"><ErrorBanner message={error} onDismiss={() => setError('')} /></div>}
 
       {profile && (
         <form onSubmit={handleSave} className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-6 max-w-2xl">
@@ -91,7 +89,7 @@ export default function CoachProfilePage() {
             >
               {saving ? 'Saving…' : 'Save Profile'}
             </button>
-            {saved && <span className="text-green-400 text-sm">✓ Saved!</span>}
+            {saved && <span className="text-green-400 text-sm">Saved!</span>}
           </div>
         </form>
       )}
