@@ -1,145 +1,227 @@
 # Kante Elite Training
 
-**Columbus, Ohio's premier youth soccer development and booking platform.**
-
----
+Kante Elite Training is a booking platform for youth soccer training in Columbus, Ohio.
 
 ## Architecture
 
-```
+```text
 /
-├── frontend/     React + Vite + Tailwind CSS + TypeScript
-└── backend/      Java 17 + Spring Boot 3 + PostgreSQL + Flyway + Stripe
+|- frontend/  React + Vite + Tailwind CSS + TypeScript
+|- backend/   Java 17 + Spring Boot 3 + PostgreSQL + Flyway
 ```
 
----
+## Current Booking Mode
+
+The app is currently set up for direct bookings without Stripe checkout.
+
+- The frontend creates bookings with `POST /api/bookings`
+- The success page loads confirmations with `GET /api/bookings/{id}`
+- Stripe endpoints still exist for future use, but they are not required for the active booking flow
 
 ## Tech Stack
 
-**Frontend:** React 18 · Vite 5 · TypeScript · Tailwind CSS 3 · React Router 6 · Axios
+Frontend:
+- React 18
+- Vite 5
+- TypeScript
+- Tailwind CSS 3
+- React Router 6
+- Axios
 
-**Backend:** Java 17 · Spring Boot 3.2 · Spring Data JPA · PostgreSQL · Flyway · Stripe Java SDK · Spring Mail · Thymeleaf · Lombok
-
----
+Backend:
+- Java 17
+- Spring Boot 3.2
+- Spring Data JPA
+- PostgreSQL
+- Flyway
+- Spring Mail
+- Thymeleaf
+- Stripe Java SDK for future payment work
+- Lombok
 
 ## Local Development
 
 ### Prerequisites
-Java 17+, Maven 3.8+, Node.js 18+, PostgreSQL 14+
 
-### 1. Database
+- Java 17+
+- Maven 3.8+
+- Node.js 18+
+- PostgreSQL 14+
+
+### 1. Create the database
+
 ```bash
 psql -U postgres -c "CREATE DATABASE kante_elite;"
 ```
 
-### 2. Backend
-```bash
+### 2. Run the backend
+
+PowerShell example:
+
+```powershell
 cd backend
-export DB_URL=jdbc:postgresql://localhost:5432/kante_elite
-export DB_USERNAME=postgres
-export DB_PASSWORD=postgres
-export STRIPE_SECRET_KEY=sk_test_...
-export STRIPE_WEBHOOK_SECRET=whsec_...
-export EMAIL_ENABLED=false
+$env:DB_URL="jdbc:postgresql://localhost:5432/kante_elite"
+$env:DB_USERNAME="postgres"
+$env:DB_PASSWORD="postgres"
+$env:APP_EMAIL_ENABLED="false"
 mvn spring-boot:run
-# → http://localhost:8080
 ```
 
-### 3. Frontend
-```bash
+Backend default URL:
+
+```text
+http://localhost:8080
+```
+
+### 3. Run the frontend
+
+```powershell
 cd frontend
 npm install
 npm run dev
-# → http://localhost:5173
 ```
 
-The Vite dev server proxies `/api` → `http://localhost:8080` automatically.
+Frontend default URL:
 
----
+```text
+http://localhost:5173
+```
+
+The Vite dev server proxies `/api` to `http://localhost:8080`.
 
 ## Environment Variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DB_URL` | ✅ | PostgreSQL JDBC URL |
-| `DB_USERNAME` | ✅ | DB username |
-| `DB_PASSWORD` | ✅ | DB password |
-| `STRIPE_SECRET_KEY` | For payments | Stripe secret key |
-| `STRIPE_WEBHOOK_SECRET` | For payments | Webhook signing secret |
-| `EMAIL_ENABLED` | No | `true` to enable emails |
-| `MAIL_HOST` / `MAIL_PORT` / `MAIL_USERNAME` / `MAIL_PASSWORD` | If email enabled | SMTP config |
-| `EMAIL_FROM` | If email enabled | Sender address |
-| `CORS_ALLOWED_ORIGINS` | No | Prod frontend origin |
-| `FRONTEND_URL` | No | For Stripe success/cancel redirects |
+### Required
 
----
+| Variable | Description |
+|----------|-------------|
+| `DB_URL` | PostgreSQL JDBC URL |
+| `DB_USERNAME` | PostgreSQL username |
+| `DB_PASSWORD` | PostgreSQL password |
+
+### Optional app settings
+
+| Variable | Description |
+|----------|-------------|
+| `CORS_ALLOWED_ORIGINS` | Allowed frontend origin. Defaults to `http://localhost:5173` |
+| `FRONTEND_URL` | Frontend base URL for redirects and links |
+| `APP_EMAIL_ENABLED` | Set to `true` to send emails |
+| `APP_EMAIL_FROM` | Sender email address |
+| `APP_EMAIL_ADMIN` | Admin inbox for contact notifications |
+
+### Optional email settings
+
+These are only needed when `APP_EMAIL_ENABLED=true`.
+
+| Variable | Description |
+|----------|-------------|
+| `SPRING_MAIL_HOST` | SMTP host |
+| `SPRING_MAIL_PORT` | SMTP port |
+| `SPRING_MAIL_USERNAME` | SMTP username |
+| `SPRING_MAIL_PASSWORD` | SMTP password |
+
+### Optional Stripe settings
+
+These are only needed when you intentionally turn payment work back on.
+
+| Variable | Description |
+|----------|-------------|
+| `STRIPE_SECRET_KEY` | Stripe secret key |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
 
 ## API Reference
 
-```
-GET  /api/programs                           All active programs
-GET  /api/programs/{id}                      By ID
-GET  /api/programs/slug/{slug}               By slug
+### Programs
 
-GET  /api/events                             Upcoming events
-GET  /api/events/{id}                        By ID
-
-GET  /api/availability?programId=&date=      Available time slots
-
-POST /api/bookings                           Create booking (no-payment path)
-GET  /api/bookings/confirm?sessionId=        Retrieve booking by Stripe session
-
-POST /api/payments/checkout                  Create Stripe Checkout Session → returns URL
-POST /api/payments/webhook                   Stripe webhook handler
-
-GET  /api/testimonials                       All testimonials
-GET  /api/testimonials/featured              Featured only
-
-POST /api/contact                            Contact form submission
+```text
+GET  /api/programs
+GET  /api/programs/{id}
+GET  /api/programs/slug/{slug}
 ```
 
----
+### Events
+
+```text
+GET  /api/events
+GET  /api/events/{id}
+```
+
+### Availability
+
+```text
+GET  /api/availability?programId=&date=
+```
+
+### Bookings
+
+```text
+POST /api/bookings
+GET  /api/bookings/{id}
+GET  /api/bookings/confirm?sessionId=
+```
+
+### Payments
+
+```text
+POST /api/payments/checkout
+POST /api/payments/webhook
+```
+
+These endpoints are kept for future Stripe work and are not part of the active booking flow today.
+
+### Testimonials
+
+```text
+GET  /api/testimonials
+GET  /api/testimonials/featured
+```
+
+### Contact
+
+```text
+POST /api/contact
+```
 
 ## Booking Flow
 
-```
-1. User: picks program → date → time → fills player details
-2. Frontend: POST /api/payments/checkout
-3. Backend: creates Stripe Checkout Session, returns URL
-4. User: redirected to Stripe-hosted checkout
-5. Stripe: fires checkout.session.completed webhook → POST /api/payments/webhook
-6. Backend: verifies signature → creates CONFIRMED booking in PostgreSQL → sends email
-7. Stripe: redirects user to /book/success?session_id=...
-8. Frontend: GET /api/bookings/confirm?sessionId=... → shows confirmation
+### Current flow
+
+```text
+1. User selects a program, date, time, and player details
+2. Frontend posts to /api/bookings
+3. Backend stores a confirmed booking with paymentStatus=PENDING
+4. Frontend navigates to /book/success?booking_id=...
+5. Backend sends a confirmation email if email is enabled
 ```
 
-**Double-booking prevention:** DB-level unique constraint on `(program_id, booking_date, booking_time)` + idempotency check via `stripe_session_id`.
+### Future payment flow
 
----
+Stripe endpoints are still present if you want to restore hosted checkout later.
 
 ## Deployment
 
 ### Frontend
+
 ```bash
-cd frontend && npm run build
-# Serve dist/ via nginx / Vercel / Netlify
+cd frontend
+npm run build
 ```
 
 ### Backend
+
 ```bash
-cd backend && mvn package -DskipTests
+cd backend
+mvn package -DskipTests
 java -jar target/kante-elite-training-1.0.0.jar
 ```
 
----
-
-## Database Migrations (Flyway)
+## Database Migrations
 
 | Migration | Content |
 |-----------|---------|
-| V1 | programs table |
-| V2 | events table |
-| V3 | bookings table (unique constraint) |
-| V4 | testimonials table |
-| V5 | contact_messages table |
-| V6 | Seed data: 5 programs, 4 events, 6 testimonials |
+| `V1` | Create programs table |
+| `V2` | Create events table |
+| `V3` | Create bookings table and indexes |
+| `V4` | Create testimonials table |
+| `V5` | Create contact messages table |
+| `V6` | Seed programs, events, and testimonials |
