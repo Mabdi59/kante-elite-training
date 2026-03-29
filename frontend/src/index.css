@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-black text-white;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 900;
+    line-height: 1.15;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-block bg-amber-500 hover:bg-amber-400 text-black font-black px-8 py-3 rounded-lg transition-all duration-200 shadow-amber hover:shadow-amber-lg hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .btn-secondary {
+    @apply inline-block border-2 border-amber-500 text-amber-500 hover:bg-amber-500 hover:text-black font-black px-8 py-3 rounded-lg transition-all duration-200;
+  }
+
+  .card {
+    @apply bg-surface-raised border border-surface-border rounded-xl overflow-hidden;
+  }
+
+  .section-label {
+    @apply text-amber-500 uppercase tracking-widest text-xs font-bold mb-3;
+  }
+
+  .input-field {
+    @apply w-full bg-[#1a1a1a] border border-[#333] text-white placeholder-gray-500 rounded-lg px-4 py-3 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors;
+  }
+
+  .select-field {
+    @apply w-full bg-[#1a1a1a] border border-[#333] text-white rounded-lg px-4 py-3 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors appearance-none cursor-pointer;
+  }
+
+  .textarea-field {
+    @apply w-full bg-[#1a1a1a] border border-[#333] text-white placeholder-gray-500 rounded-lg px-4 py-3 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors resize-none;
+  }
+}

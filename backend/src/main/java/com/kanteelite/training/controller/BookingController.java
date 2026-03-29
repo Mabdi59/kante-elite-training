@@ -1,0 +1,32 @@
+package com.kanteelite.training.controller;
+
+import com.kanteelite.training.dto.request.BookingRequest;
+import com.kanteelite.training.dto.response.ApiResponse;
+import com.kanteelite.training.dto.response.BookingResponse;
+import com.kanteelite.training.service.BookingService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/bookings")
+@RequiredArgsConstructor
+public class BookingController {
+
+    private final BookingService bookingService;
+
+    @PostMapping
+    public ResponseEntity<ApiResponse<BookingResponse>> createBooking(@Valid @RequestBody BookingRequest request) {
+        BookingResponse booking = bookingService.createBooking(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Booking confirmed successfully.", booking));
+    }
+
+    @GetMapping("/confirm")
+    public ResponseEntity<ApiResponse<BookingResponse>> confirmBooking(@RequestParam String sessionId) {
+        BookingResponse booking = bookingService.getByStripeSessionId(sessionId);
+        return ResponseEntity.ok(ApiResponse.success(booking));
+    }
+}
