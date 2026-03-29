@@ -70,7 +70,7 @@ export default function EventsPage() {
                 <>
                   <div className="mb-8">
                     <p className="section-label text-gray-500">Sold Out</p>
-                    <h2 className="text-white font-bold text-3xl text-gray-400">
+                    <h2 className="text-gray-400 font-bold text-3xl">
                       Past & Sold Out Events
                     </h2>
                   </div>

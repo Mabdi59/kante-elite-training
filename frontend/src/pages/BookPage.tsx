@@ -26,28 +26,178 @@ function getMaxDate() {
   return d.toISOString().split('T')[0]
 }
 
-interface StepProps {
-  number: number
-  title: string
-  active: boolean
-  completed: boolean
+function formatDisplayDate(dateStr: string) {
+  if (!dateStr) return ''
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric',
+  })
 }
 
-function Step({ number, title, active, completed }: StepProps) {
+function validateField(name: string, value: string): string {
+  switch (name) {
+    case 'playerName':
+      return value.trim().length < 2 ? 'Player name is required' : ''
+    case 'email':
+      return !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? 'Please enter a valid email address' : ''
+    case 'phone':
+      return value.replace(/\D/g, '').length < 10 ? 'Please enter a valid phone number' : ''
+    default:
+      return ''
+  }
+}
+
+interface StepIndicatorProps {
+  steps: { number: number; title: string }[]
+  current: number
+}
+
+function StepIndicator({ steps, current }: StepIndicatorProps) {
   return (
-    <div className={`flex items-center gap-2 ${active ? 'text-white' : completed ? 'text-amber-500' : 'text-gray-600'}`}>
-      <div
-        className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 ${
-          completed
-            ? 'bg-amber-500 text-black'
-            : active
-            ? 'bg-white text-black'
-            : 'bg-[#222] text-gray-500'
-        }`}
-      >
-        {completed ? '✓' : number}
+    <div className="flex items-center gap-0 w-full">
+      {steps.map((s, i) => {
+        const done = current > s.number
+        const active = current === s.number
+        return (
+          <div key={s.number} className="flex items-center flex-1 last:flex-none">
+            <div className={`flex items-center gap-2.5 ${active ? 'text-white' : done ? 'text-amber-500' : 'text-gray-600'}`}>
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 transition-all duration-300 ${
+                  done ? 'bg-amber-500 text-black'
+                    : active ? 'bg-white text-black ring-4 ring-white/20'
+                    : 'bg-[#222] text-gray-600'
+                }`}
+              >
+                {done ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                ) : s.number}
+              </div>
+              <span className="text-xs font-semibold hidden sm:block leading-tight">{s.title}</span>
+            </div>
+            {i < steps.length - 1 && (
+              <div className={`flex-1 h-px mx-3 transition-colors duration-300 ${current > s.number ? 'bg-amber-500' : 'bg-[#2a2a2a]'}`} />
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ── Booking Summary Sidebar ───────────────────────────────────────────────
+interface SidebarProps {
+  program: Program | null
+  date: string
+  time: string
+  playerName: string
+}
+
+function BookingSidebar({ program, date, time, playerName }: SidebarProps) {
+  const hasAnyDetail = date || time || playerName
+  return (
+    <aside className="lg:w-72 xl:w-80 flex-shrink-0">
+      <div className="sticky top-24 space-y-4">
+        {/* Your booking card */}
+        <div className="bg-[#111] border border-[#222] rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-[#222] bg-[#161616]">
+            <p className="text-amber-500 text-xs font-bold uppercase tracking-widest">Your Booking</p>
+          </div>
+          <div className="p-5">
+            {program ? (
+              <div className="space-y-4">
+                {/* Program */}
+                <div className="flex items-center gap-3 pb-4 border-b border-[#1e1e1e]">
+                  <span className="text-2xl">{program.icon}</span>
+                  <div>
+                    <p className="text-white font-bold text-sm leading-tight">{program.name}</p>
+                    <p className="text-amber-500 font-black text-sm">{program.priceLabel}</p>
+                  </div>
+                </div>
+
+                {hasAnyDetail && (
+                  <div className="space-y-2.5 text-sm">
+                    {date && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500 text-xs">📅</span>
+                        <span className="text-gray-200 text-xs">{formatDisplayDate(date)}</span>
+                      </div>
+                    )}
+                    {time && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500 text-xs">⏰</span>
+                        <span className="text-gray-200 text-xs">{time}</span>
+                      </div>
+                    )}
+                    {playerName && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500 text-xs">👤</span>
+                        <span className="text-gray-200 text-xs">{playerName}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {!hasAnyDetail && (
+                  <p className="text-gray-600 text-xs">Complete the steps to finalize your booking.</p>
+                )}
+              </div>
+            ) : (
+              <p className="text-gray-600 text-sm">Select a program to get started.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Trust signals */}
+        <div className="bg-[#111] border border-[#222] rounded-2xl p-5 space-y-3">
+          {[
+            { icon: '🔒', text: 'Secure payment via Stripe' },
+            { icon: '✅', text: 'Instant booking confirmation' },
+            { icon: '📧', text: 'Confirmation email sent immediately' },
+            { icon: '🔄', text: 'Cancel up to 24h before session' },
+            { icon: '📱', text: 'Text or call Coach Kante anytime' },
+          ].map((item) => (
+            <div key={item.text} className="flex items-center gap-3">
+              <span className="text-base flex-shrink-0">{item.icon}</span>
+              <span className="text-gray-400 text-xs leading-relaxed">{item.text}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Spots warning */}
+        <div className="bg-amber-500/8 border border-amber-500/20 rounded-xl p-4">
+          <p className="text-amber-400 text-xs font-semibold flex items-center gap-2">
+            <span>⚡</span>
+            Spots fill quickly — especially weekends. Book early to secure your preferred time.
+          </p>
+        </div>
       </div>
-      <span className="text-xs font-semibold hidden sm:block">{title}</span>
+    </aside>
+  )
+}
+
+// ── Field wrapper ─────────────────────────────────────────────────────────
+interface FieldProps {
+  label: string
+  required?: boolean
+  error?: string
+  children: React.ReactNode
+}
+function Field({ label, required, error, children }: FieldProps) {
+  return (
+    <div>
+      <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
+        {label}{required && <span className="text-amber-500 ml-1">*</span>}
+      </label>
+      {children}
+      {error && (
+        <p className="field-error">
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+          </svg>
+          {error}
+        </p>
+      )}
     </div>
   )
 }
@@ -72,6 +222,8 @@ export default function BookPage() {
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null)
   const [availability, setAvailability] = useState<AvailabilityData | null>(null)
   const [form, setForm] = useState(INITIAL_FORM)
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [step, setStep] = useState(1)
   const [loadingPrograms, setLoadingPrograms] = useState(true)
   const [loadingSlots, setLoadingSlots] = useState(false)
@@ -85,7 +237,10 @@ export default function BookPage() {
       .then((p) => {
         setPrograms(p)
         if (preselectedProgramId) {
-          const found = p.find((prog) => prog.slug === preselectedProgramId || prog.id === Number(preselectedProgramId))
+          const found = p.find(
+            (prog) =>
+              prog.slug === preselectedProgramId || prog.id === Number(preselectedProgramId),
+          )
           if (found) {
             setSelectedProgram(found)
             setStep(2)
@@ -107,336 +262,441 @@ export default function BookPage() {
       .finally(() => setLoadingSlots(false))
   }, [selectedProgram, form.bookingDate])
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
-    setError('')
-    if (e.target.name === 'bookingDate') {
-      setForm((prev) => ({ ...prev, bookingDate: e.target.value, bookingTime: '' }))
+  function handleChange(
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) {
+    const { name, value } = e.target
+    if (name === 'bookingDate') {
+      setForm((prev) => ({ ...prev, bookingDate: value, bookingTime: '' }))
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }))
     }
+    setError('')
+    // Re-validate if field was touched
+    if (touched[name]) {
+      setFieldErrors((prev) => ({ ...prev, [name]: validateField(name, value) }))
+    }
+  }
+
+  function handleBlur(
+    e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) {
+    const { name, value } = e.target
+    setTouched((prev) => ({ ...prev, [name]: true }))
+    setFieldErrors((prev) => ({ ...prev, [name]: validateField(name, value) }))
+  }
+
+  function validateStep3(): boolean {
+    const fields = ['playerName', 'email', 'phone'] as const
+    const errors: Record<string, string> = {}
+    let ok = true
+    fields.forEach((f) => {
+      const err = validateField(f, form[f])
+      if (err) { errors[f] = err; ok = false }
+    })
+    setFieldErrors((prev) => ({ ...prev, ...errors }))
+    setTouched((prev) => ({ ...prev, ...Object.fromEntries(fields.map((f) => [f, true])) }))
+    return ok
   }
 
   async function handleCheckout() {
     if (!selectedProgram) return
-    if (!form.bookingDate || !form.bookingTime) {
-      setError('Please select a date and time.')
-      return
-    }
-    if (!form.playerName || !form.email || !form.phone) {
-      setError('Please fill in all required fields.')
-      return
-    }
-
     setSubmitting(true)
     setError('')
     try {
-      const url = await createCheckoutSession({
-        programId: selectedProgram.id,
-        ...form,
-      })
+      const url = await createCheckoutSession({ programId: selectedProgram.id, ...form })
       window.location.href = url
     } catch (err: unknown) {
       const message =
         err && typeof err === 'object' && 'response' in err
           ? (err as { response?: { data?: { error?: string } } }).response?.data?.error
           : undefined
-      setError(message ?? 'Could not start checkout. Please try again.')
+      setError(message ?? 'Could not start checkout. Please try again or contact us.')
       setSubmitting(false)
     }
   }
 
   const steps = [
-    { number: 1, title: 'Choose Program' },
-    { number: 2, title: 'Pick Date & Time' },
-    { number: 3, title: 'Your Details' },
-    { number: 4, title: 'Confirm & Pay' },
+    { number: 1, title: 'Program' },
+    { number: 2, title: 'Date & Time' },
+    { number: 3, title: 'Details' },
+    { number: 4, title: 'Confirm' },
   ]
+
+  const isTwoColumn = step >= 2 && selectedProgram !== null
 
   return (
     <div className="min-h-screen bg-black pt-20 pb-20 px-4">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center pt-10 mb-10">
-          <p className="section-label">Booking</p>
-          <h1 className="text-white font-black text-4xl">Book a Session</h1>
-          <p className="text-gray-400 mt-3">Select your program, pick a time, and secure your spot.</p>
+          <span className="section-label">Booking</span>
+          <h1 className="text-white font-black text-4xl md:text-5xl">Book a Session</h1>
+          <p className="text-gray-400 mt-3 max-w-md mx-auto">
+            Select your program, pick a time, and secure your spot in minutes.
+          </p>
         </div>
 
         {/* Step indicator */}
-        <div className="flex items-center justify-between mb-10 bg-[#111] border border-[#222] rounded-xl px-6 py-4">
-          {steps.map((s, i) => (
-            <div key={s.number} className="flex items-center">
-              <Step
-                number={s.number}
-                title={s.title}
-                active={step === s.number}
-                completed={step > s.number}
-              />
-              {i < steps.length - 1 && (
-                <div className={`w-8 sm:w-16 h-px mx-3 ${step > s.number ? 'bg-amber-500' : 'bg-[#333]'}`} />
-              )}
-            </div>
-          ))}
+        <div className={`mb-8 bg-[#111] border border-[#1e1e1e] rounded-2xl px-6 py-4 ${isTwoColumn ? 'max-w-5xl mx-auto' : 'max-w-3xl mx-auto'}`}>
+          <StepIndicator steps={steps} current={step} />
         </div>
 
         {cancelled && (
-          <div className="bg-amber-900/20 border border-amber-500/30 text-amber-400 rounded-xl px-5 py-4 text-sm mb-6">
-            Your payment was cancelled. No charges were made. You can try again below.
+          <div className={`bg-amber-900/20 border border-amber-500/30 text-amber-300 rounded-xl px-5 py-4 text-sm mb-6 ${isTwoColumn ? 'max-w-5xl mx-auto' : 'max-w-3xl mx-auto'}`}>
+            <strong>Payment cancelled.</strong> No charges were made. Your booking was not confirmed. Feel free to try again below.
           </div>
         )}
 
-        {/* STEP 1: Choose program */}
-        {step === 1 && (
-          <div className="card p-8">
-            <h2 className="text-white font-black text-2xl mb-6">Choose Your Program</h2>
-            {loadingPrograms ? (
-              <div className="space-y-3">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-16 bg-[#1a1a1a] rounded-xl animate-pulse" />
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {programs.map((program) => (
+        {/* Main layout */}
+        <div className={`${isTwoColumn ? 'max-w-5xl' : 'max-w-3xl'} mx-auto`}>
+          <div className={`${isTwoColumn ? 'flex gap-8 items-start' : ''}`}>
+            {/* Main form column */}
+            <div className="flex-1 min-w-0">
+
+              {/* ── STEP 1: Choose program ── */}
+              {step === 1 && (
+                <div className="card p-8">
+                  <h2 className="text-white font-black text-2xl mb-2">Choose Your Program</h2>
+                  <p className="text-gray-500 text-sm mb-7">Select the training type that matches your goals.</p>
+                  {loadingPrograms ? (
+                    <div className="space-y-3">
+                      {[...Array(5)].map((_, i) => (
+                        <div key={i} className="skeleton h-[72px] rounded-xl" />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {programs.map((program) => (
+                        <button
+                          key={program.id}
+                          onClick={() => {
+                            setSelectedProgram(program)
+                            setStep(2)
+                            setCancelled(false)
+                          }}
+                          className="w-full flex items-center justify-between gap-4 bg-[#141414] border border-[#282828] hover:border-amber-500/50 hover:bg-[#1a1500] rounded-xl px-5 py-4 text-left transition-all duration-200 group"
+                        >
+                          <div className="flex items-center gap-4">
+                            <span className="text-3xl flex-shrink-0">{program.icon}</span>
+                            <div>
+                              <p className="text-white font-bold text-sm">{program.name}</p>
+                              <p className="text-gray-500 text-xs mt-0.5">{program.shortDescription}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 flex-shrink-0">
+                            <span className="text-amber-500 font-black">{program.priceLabel}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-600 group-hover:text-amber-500 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                            </svg>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── STEP 2: Date & time ── */}
+              {step === 2 && selectedProgram && (
+                <div className="card p-8">
                   <button
-                    key={program.id}
-                    onClick={() => {
-                      setSelectedProgram(program)
-                      setStep(2)
-                      setCancelled(false)
-                    }}
-                    className="w-full flex items-center justify-between gap-4 bg-[#1a1a1a] border border-[#333] hover:border-amber-500/50 rounded-xl px-5 py-4 text-left transition-all group"
+                    onClick={() => setStep(1)}
+                    className="flex items-center gap-1.5 text-gray-500 hover:text-white text-sm mb-6 transition-colors"
                   >
-                    <div className="flex items-center gap-4">
-                      <span className="text-3xl">{program.icon}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                    </svg>
+                    Change program
+                  </button>
+
+                  <h2 className="text-white font-black text-2xl mb-2">Pick a Date & Time</h2>
+                  <p className="text-gray-500 text-sm mb-7">Choose when you'd like to train. Spots are first-come, first-served.</p>
+
+                  <Field label="Select Date" required>
+                    <input
+                      type="date"
+                      name="bookingDate"
+                      className="input-field-default"
+                      value={form.bookingDate}
+                      onChange={handleChange}
+                      min={getTomorrowDate()}
+                      max={getMaxDate()}
+                    />
+                  </Field>
+
+                  {form.bookingDate && (
+                    <div className="mt-7">
+                      <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-3">
+                        Available Time Slots <span className="text-amber-500">*</span>
+                      </label>
+                      {loadingSlots ? (
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                          {[...Array(8)].map((_, i) => (
+                            <div key={i} className="skeleton h-10 rounded-lg" />
+                          ))}
+                        </div>
+                      ) : !availability || availability.availableSlots.length === 0 ? (
+                        <div className="bg-[#141414] border border-[#222] rounded-xl p-6 text-center">
+                          <p className="text-3xl mb-3">📅</p>
+                          <p className="text-white font-bold text-sm mb-1">No slots available</p>
+                          <p className="text-gray-400 text-xs">
+                            All spots are taken for this day. Please choose a different date.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                          {availability.availableSlots.map((slot) => (
+                            <button
+                              key={slot}
+                              onClick={() => setForm((prev) => ({ ...prev, bookingTime: slot }))}
+                              className={`py-2.5 rounded-lg text-sm font-semibold transition-all duration-150 ${
+                                form.bookingTime === slot
+                                  ? 'bg-amber-500 text-black shadow-amber'
+                                  : 'bg-[#141414] border border-[#282828] text-gray-300 hover:border-amber-500/40 hover:text-white'
+                              }`}
+                            >
+                              {slot}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <button
+                    className="btn-primary w-full justify-center mt-8 py-4 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none"
+                    onClick={() => setStep(3)}
+                    disabled={!form.bookingDate || !form.bookingTime}
+                  >
+                    Continue to Your Details →
+                  </button>
+                </div>
+              )}
+
+              {/* ── STEP 3: Player details ── */}
+              {step === 3 && selectedProgram && (
+                <div className="card p-8">
+                  <button
+                    onClick={() => setStep(2)}
+                    className="flex items-center gap-1.5 text-gray-500 hover:text-white text-sm mb-6 transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                    </svg>
+                    Change date / time
+                  </button>
+
+                  <h2 className="text-white font-black text-2xl mb-2">Player & Contact Details</h2>
+                  <p className="text-gray-500 text-sm mb-7">Tell us about the player. This helps Coach Kante prepare for your session.</p>
+
+                  <div className="space-y-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <Field label="Player Name" required error={touched.playerName ? fieldErrors.playerName : ''}>
+                        <input
+                          className={touched.playerName && fieldErrors.playerName ? 'input-field-error' : 'input-field-default'}
+                          name="playerName"
+                          value={form.playerName}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          placeholder="Player's full name"
+                          autoComplete="name"
+                        />
+                      </Field>
+                      <Field label="Age Group" required>
+                        <select
+                          className="select-field"
+                          name="playerAge"
+                          value={form.playerAge}
+                          onChange={handleChange}
+                        >
+                          <option value="">Select age group...</option>
+                          {ageGroups.map((a) => <option key={a} value={a}>{a}</option>)}
+                        </select>
+                      </Field>
+                    </div>
+
+                    <Field label="Parent / Guardian Name">
+                      <input
+                        className="input-field-default"
+                        name="parentName"
+                        value={form.parentName}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        placeholder="Parent or guardian name"
+                        autoComplete="name"
+                      />
+                    </Field>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <Field label="Email Address" required error={touched.email ? fieldErrors.email : ''}>
+                        <input
+                          className={touched.email && fieldErrors.email ? 'input-field-error' : 'input-field-default'}
+                          type="email"
+                          name="email"
+                          value={form.email}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          placeholder="you@example.com"
+                          autoComplete="email"
+                        />
+                      </Field>
+                      <Field label="Phone Number" required error={touched.phone ? fieldErrors.phone : ''}>
+                        <input
+                          className={touched.phone && fieldErrors.phone ? 'input-field-error' : 'input-field-default'}
+                          type="tel"
+                          name="phone"
+                          value={form.phone}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          placeholder="(614) 000-0000"
+                          autoComplete="tel"
+                        />
+                      </Field>
+                    </div>
+
+                    <Field label="Experience Level">
+                      <select
+                        className="select-field"
+                        name="experienceLevel"
+                        value={form.experienceLevel}
+                        onChange={handleChange}
+                      >
+                        <option value="">Select experience level (optional)...</option>
+                        {experienceLevels.map((l) => (
+                          <option key={l.value} value={l.value}>{l.label}</option>
+                        ))}
+                      </select>
+                    </Field>
+
+                    <Field label="Goals / Notes (optional)">
+                      <textarea
+                        className="textarea-field"
+                        rows={3}
+                        name="notes"
+                        value={form.notes}
+                        onChange={handleChange}
+                        placeholder="Specific goals, areas to focus on, or anything Coach Kante should know beforehand..."
+                      />
+                    </Field>
+                  </div>
+
+                  <button
+                    className="btn-primary w-full justify-center mt-8 py-4 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none"
+                    onClick={() => {
+                      if (validateStep3()) setStep(4)
+                    }}
+                    disabled={!form.playerName || !form.email || !form.phone}
+                  >
+                    Review Your Booking →
+                  </button>
+                </div>
+              )}
+
+              {/* ── STEP 4: Confirm & pay ── */}
+              {step === 4 && selectedProgram && (
+                <div className="card p-8">
+                  <button
+                    onClick={() => setStep(3)}
+                    className="flex items-center gap-1.5 text-gray-500 hover:text-white text-sm mb-6 transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                    </svg>
+                    Edit details
+                  </button>
+
+                  <h2 className="text-white font-black text-2xl mb-2">Confirm & Pay</h2>
+                  <p className="text-gray-500 text-sm mb-7">Review your booking below, then complete your secure payment.</p>
+
+                  {/* Summary card */}
+                  <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-xl overflow-hidden mb-6">
+                    {/* Program header */}
+                    <div className="flex items-center gap-3 px-6 py-5 border-b border-[#1e1e1e] bg-[#111]">
+                      <span className="text-3xl">{selectedProgram.icon}</span>
                       <div>
-                        <p className="text-white font-bold">{program.name}</p>
-                        <p className="text-gray-500 text-xs">{program.shortDescription}</p>
+                        <p className="text-white font-black text-base">{selectedProgram.name}</p>
+                        <p className="text-amber-500 font-bold text-sm">{selectedProgram.priceLabel}</p>
                       </div>
                     </div>
-                    <span className="text-amber-500 font-black whitespace-nowrap">{program.priceLabel}</span>
+
+                    {/* Details */}
+                    <div className="px-6 py-5 space-y-3 text-sm">
+                      {([
+                        ['Date', formatDisplayDate(form.bookingDate)],
+                        ['Time', form.bookingTime],
+                        ['Player', form.playerName],
+                        form.playerAge ? ['Age Group', form.playerAge] : null,
+                        form.parentName ? ['Parent / Guardian', form.parentName] : null,
+                        ['Email', form.email],
+                        ['Phone', form.phone],
+                        form.experienceLevel
+                          ? ['Experience', experienceLevels.find((l) => l.value === form.experienceLevel)?.label ?? form.experienceLevel]
+                          : null,
+                      ] as (string[] | null)[])
+                        .filter((row): row is string[] => row !== null)
+                        .map(([label, value]) => (
+                          <div key={label} className="flex justify-between items-start gap-4">
+                            <span className="text-gray-500 flex-shrink-0">{label}</span>
+                            <span className="text-white font-semibold text-right">{value}</span>
+                          </div>
+                        ))}
+                    </div>
+
+                    {/* Total */}
+                    <div className="px-6 py-4 border-t border-[#1e1e1e] bg-[#111] flex justify-between items-center">
+                      <span className="text-gray-400 font-semibold">Total Due</span>
+                      <span className="text-amber-500 font-black text-xl">{selectedProgram.priceLabel}</span>
+                    </div>
+                  </div>
+
+                  {/* Error */}
+                  {error && (
+                    <div className="bg-red-900/20 border border-red-500/30 text-red-400 rounded-xl px-5 py-4 text-sm mb-5 flex items-start gap-3">
+                      <span className="flex-shrink-0 mt-0.5">⚠️</span>
+                      <span>{error}</span>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleCheckout}
+                    disabled={submitting}
+                    className="btn-primary w-full justify-center text-base py-4 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none"
+                  >
+                    {submitting ? (
+                      <>
+                        <svg className="w-5 h-5 animate-spin -ml-1 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        Redirecting to Stripe...
+                      </>
+                    ) : (
+                      `Pay ${selectedProgram.priceLabel} Securely →`
+                    )}
                   </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
 
-        {/* STEP 2: Date & time */}
-        {step === 2 && selectedProgram && (
-          <div className="card p-8">
-            <button onClick={() => setStep(1)} className="text-gray-500 hover:text-white text-sm mb-6 flex items-center gap-1">
-              ← Back
-            </button>
-            <div className="flex items-center gap-3 mb-6">
-              <span className="text-3xl">{selectedProgram.icon}</span>
-              <div>
-                <h2 className="text-white font-black text-xl">{selectedProgram.name}</h2>
-                <p className="text-amber-500 font-bold">{selectedProgram.priceLabel}</p>
-              </div>
+                  <div className="flex items-center justify-center gap-2 mt-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-gray-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                    </svg>
+                    <p className="text-gray-600 text-xs">Powered by Stripe · 256-bit SSL encryption · We never store your card details</p>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="mb-6">
-              <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
-                Select Date *
-              </label>
-              <input
-                type="date"
-                name="bookingDate"
-                className="input-field"
-                value={form.bookingDate}
-                onChange={handleChange}
-                min={getTomorrowDate()}
-                max={getMaxDate()}
+            {/* Sidebar (steps 2-4) */}
+            {isTwoColumn && (
+              <BookingSidebar
+                program={selectedProgram}
+                date={form.bookingDate}
+                time={form.bookingTime}
+                playerName={form.playerName}
               />
-            </div>
-
-            {form.bookingDate && (
-              <div>
-                <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-3">
-                  Available Time Slots *
-                </label>
-                {loadingSlots ? (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                    {[...Array(8)].map((_, i) => (
-                      <div key={i} className="h-10 bg-[#1a1a1a] rounded-lg animate-pulse" />
-                    ))}
-                  </div>
-                ) : availability && availability.availableSlots.length === 0 ? (
-                  <p className="text-gray-400 text-sm">
-                    No available slots for this date. Please choose a different day.
-                  </p>
-                ) : (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                    {availability?.availableSlots.map((slot) => (
-                      <button
-                        key={slot}
-                        onClick={() => setForm((prev) => ({ ...prev, bookingTime: slot }))}
-                        className={`py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                          form.bookingTime === slot
-                            ? 'bg-amber-500 text-black'
-                            : 'bg-[#1a1a1a] border border-[#333] text-gray-300 hover:border-amber-500/50 hover:text-white'
-                        }`}
-                      >
-                        {slot}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
             )}
-
-            <button
-              className="btn-primary w-full text-center mt-8 disabled:opacity-40 disabled:cursor-not-allowed"
-              onClick={() => setStep(3)}
-              disabled={!form.bookingDate || !form.bookingTime}
-            >
-              Continue →
-            </button>
           </div>
-        )}
-
-        {/* STEP 3: Player details */}
-        {step === 3 && selectedProgram && (
-          <div className="card p-8">
-            <button onClick={() => setStep(2)} className="text-gray-500 hover:text-white text-sm mb-6 flex items-center gap-1">
-              ← Back
-            </button>
-            <h2 className="text-white font-black text-2xl mb-6">Player & Contact Details</h2>
-
-            <div className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
-                    Player Name *
-                  </label>
-                  <input className="input-field" name="playerName" value={form.playerName} onChange={handleChange} placeholder="Player's full name" required />
-                </div>
-                <div>
-                  <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
-                    Age Group *
-                  </label>
-                  <select className="select-field" name="playerAge" value={form.playerAge} onChange={handleChange}>
-                    <option value="">Select age group...</option>
-                    {ageGroups.map((a) => <option key={a} value={a}>{a}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
-                  Parent / Guardian Name
-                </label>
-                <input className="input-field" name="parentName" value={form.parentName} onChange={handleChange} placeholder="Parent or guardian name" />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
-                    Email Address *
-                  </label>
-                  <input className="input-field" type="email" name="email" value={form.email} onChange={handleChange} placeholder="your@email.com" required />
-                </div>
-                <div>
-                  <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
-                    Phone Number *
-                  </label>
-                  <input className="input-field" name="phone" value={form.phone} onChange={handleChange} placeholder="(614) 000-0000" required />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
-                  Experience Level
-                </label>
-                <select className="select-field" name="experienceLevel" value={form.experienceLevel} onChange={handleChange}>
-                  <option value="">Select experience level...</option>
-                  {experienceLevels.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
-                  Notes / Goals (optional)
-                </label>
-                <textarea
-                  className="textarea-field"
-                  rows={3}
-                  name="notes"
-                  value={form.notes}
-                  onChange={handleChange}
-                  placeholder="Any specific goals, areas to focus on, or other notes for Coach Kante..."
-                />
-              </div>
-            </div>
-
-            <button
-              className="btn-primary w-full text-center mt-8 disabled:opacity-40 disabled:cursor-not-allowed"
-              onClick={() => setStep(4)}
-              disabled={!form.playerName || !form.email || !form.phone}
-            >
-              Review Booking →
-            </button>
-          </div>
-        )}
-
-        {/* STEP 4: Confirm */}
-        {step === 4 && selectedProgram && (
-          <div className="card p-8">
-            <button onClick={() => setStep(3)} className="text-gray-500 hover:text-white text-sm mb-6 flex items-center gap-1">
-              ← Back
-            </button>
-            <h2 className="text-white font-black text-2xl mb-6">Confirm Your Booking</h2>
-
-            <div className="bg-[#111] border border-[#222] rounded-xl p-6 mb-6">
-              <div className="flex items-center gap-3 mb-5 pb-5 border-b border-[#222]">
-                <span className="text-4xl">{selectedProgram.icon}</span>
-                <div>
-                  <p className="text-white font-black text-lg">{selectedProgram.name}</p>
-                  <p className="text-amber-500 font-bold">{selectedProgram.priceLabel}</p>
-                </div>
-              </div>
-              <div className="space-y-3 text-sm">
-                {[
-                  ['Date', new Date(form.bookingDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })],
-                  ['Time', form.bookingTime],
-                  ['Player', form.playerName],
-                  form.playerAge ? ['Age Group', form.playerAge] : null,
-                  form.parentName ? ['Parent / Guardian', form.parentName] : null,
-                  ['Email', form.email],
-                  ['Phone', form.phone],
-                  form.experienceLevel ? ['Experience', experienceLevels.find(l => l.value === form.experienceLevel)?.label ?? form.experienceLevel] : null,
-                ].filter((row): row is string[] => row !== null).map(([label, value]) => (
-                  <div key={label} className="flex justify-between">
-                    <span className="text-gray-400">{label}</span>
-                    <span className="text-white font-semibold text-right max-w-[60%]">{value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-5 py-4 text-sm text-amber-300 mb-6">
-              🔒 You'll be taken to a secure Stripe checkout page. We never store your card details.
-            </div>
-
-            {error && (
-              <div className="bg-red-900/30 border border-red-500/40 text-red-400 rounded-lg px-4 py-3 text-sm mb-5">
-                {error}
-              </div>
-            )}
-
-            <button
-              onClick={handleCheckout}
-              disabled={submitting}
-              className="btn-primary w-full text-center text-base py-4 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {submitting ? 'Redirecting to payment...' : `Pay ${selectedProgram.priceLabel} Securely →`}
-            </button>
-
-            <p className="text-gray-600 text-xs text-center mt-4">
-              Powered by Stripe. Your session is confirmed immediately after payment.
-            </p>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   )

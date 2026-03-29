@@ -106,11 +106,14 @@ export default function ContactPage() {
           <div className="lg:col-span-3">
             {success ? (
               <div className="card p-10 text-center">
-                <div className="text-6xl mb-6">✅</div>
+                <div className="w-20 h-20 rounded-full bg-amber-500/10 border-2 border-amber-500 flex items-center justify-center mx-auto mb-6">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-9 h-9 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                </div>
                 <h3 className="text-white font-black text-2xl mb-3">Message Sent!</h3>
-                <p className="text-gray-400 leading-relaxed mb-8">
-                  Thank you for reaching out. Coach Kante will respond to your inquiry within 24
-                  hours.
+                <p className="text-gray-400 leading-relaxed mb-8 max-w-sm mx-auto">
+                  Thanks for reaching out. Coach Kante will respond within 24 hours — usually same day.
                 </p>
                 <button
                   onClick={() => setSuccess(false)}
@@ -121,33 +124,36 @@ export default function ContactPage() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="card p-8">
-                <h3 className="text-white font-black text-xl mb-7">Send a Message</h3>
+                <h3 className="text-white font-black text-xl mb-2">Send a Message</h3>
+                <p className="text-gray-500 text-sm mb-7">We typically respond within 24 hours — usually much faster.</p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
                   <div>
                     <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
-                      Full Name *
+                      Full Name <span className="text-amber-500">*</span>
                     </label>
                     <input
-                      className="input-field"
+                      className="input-field-default"
                       name="name"
                       value={form.name}
                       onChange={handleChange}
                       placeholder="Your name"
+                      autoComplete="name"
                       required
                     />
                   </div>
                   <div>
                     <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
-                      Email Address *
+                      Email Address <span className="text-amber-500">*</span>
                     </label>
                     <input
-                      className="input-field"
+                      className="input-field-default"
                       type="email"
                       name="email"
                       value={form.email}
                       onChange={handleChange}
                       placeholder="you@email.com"
+                      autoComplete="email"
                       required
                     />
                   </div>
@@ -159,11 +165,13 @@ export default function ContactPage() {
                       Phone Number
                     </label>
                     <input
-                      className="input-field"
+                      className="input-field-default"
+                      type="tel"
                       name="phone"
                       value={form.phone}
                       onChange={handleChange}
                       placeholder="(614) 000-0000"
+                      autoComplete="tel"
                     />
                   </div>
                   <div>
@@ -188,7 +196,7 @@ export default function ContactPage() {
 
                 <div className="mb-6">
                   <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
-                    Message *
+                    Message <span className="text-amber-500">*</span>
                   </label>
                   <textarea
                     className="textarea-field"
@@ -203,17 +211,26 @@ export default function ContactPage() {
                 </div>
 
                 {error && (
-                  <div className="bg-red-900/30 border border-red-500/40 text-red-400 rounded-lg px-4 py-3 text-sm mb-5">
-                    {error}
+                  <div className="bg-red-900/20 border border-red-500/30 text-red-400 rounded-xl px-5 py-4 text-sm mb-5 flex items-start gap-3">
+                    <span className="flex-shrink-0">⚠️</span>
+                    <span>{error}</span>
                   </div>
                 )}
 
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="btn-primary w-full text-center disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="btn-primary w-full justify-center disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none"
                 >
-                  {submitting ? 'Sending...' : 'Send Message'}
+                  {submitting ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin -ml-1 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      Sending...
+                    </>
+                  ) : 'Send Message →'}
                 </button>
 
                 <p className="text-gray-600 text-xs text-center mt-4">
