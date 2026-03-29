@@ -20,7 +20,7 @@ export default function RegisterPage() {
     try {
       const res = await register(name, email, password)
       const user: AuthUser = { email: res.email, name: res.name, role: res.role }
-      loginUser(res.token, user)
+      loginUser(res.token, res.refreshToken, user)
       navigate('/')
     } catch (err: unknown) {
       const msg =

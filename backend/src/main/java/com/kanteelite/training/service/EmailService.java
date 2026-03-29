@@ -65,6 +65,36 @@ public class EmailService {
         }
     }
 
+    public void sendPasswordResetEmail(String toEmail, String name, String resetToken) {
+        if (!emailEnabled) {
+            log.info("Email disabled — skipping password reset email for {}", toEmail);
+            return;
+        }
+        if (mailSender == null) {
+            log.warn("Email enabled but JavaMailSender not configured; skipping password reset for {}", toEmail);
+            return;
+        }
+        try {
+            Context ctx = new Context();
+            ctx.setVariable("name", name);
+            ctx.setVariable("resetToken", resetToken);
+
+            String htmlBody = templateEngine.process("email/password-reset", ctx);
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromAddress);
+            helper.setTo(toEmail);
+            helper.setSubject("Reset Your Password — Kante Elite Training");
+            helper.setText(htmlBody, true);
+
+            mailSender.send(message);
+            log.info("Password reset email sent to {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send password reset email to {}: {}", toEmail, e.getMessage());
+        }
+    }
+
     public void sendContactNotification(ContactRequest request) {
         if (!emailEnabled) {
             log.info("Email disabled — skipping contact notification from {}", request.getEmail());

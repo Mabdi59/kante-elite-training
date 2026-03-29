@@ -13,6 +13,9 @@ import BookPage from './pages/BookPage'
 import BookingSuccessPage from './pages/BookingSuccessPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
+import AccountPage from './pages/AccountPage'
 import TournamentsPage from './pages/TournamentsPage'
 import TeamRegisterPage from './pages/TeamRegisterPage'
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
@@ -23,6 +26,8 @@ import AdminTournamentsPage from './pages/admin/AdminTournamentsPage'
 import AdminTestimonialsPage from './pages/admin/AdminTestimonialsPage'
 import AdminMessagesPage from './pages/admin/AdminMessagesPage'
 import AdminUsersPage from './pages/admin/AdminUsersPage'
+import AdminAvailabilityPage from './pages/admin/AdminAvailabilityPage'
+import AdminAuditLogsPage from './pages/admin/AdminAuditLogsPage'
 
 function NotFoundPage() {
   return (
@@ -108,6 +113,18 @@ export default function App() {
           {/* Auth routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+          {/* Authenticated user account */}
+          <Route
+            path="/account"
+            element={
+              <ProtectedRoute>
+                <AccountPage />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Admin routes */}
           <Route
@@ -161,6 +178,16 @@ export default function App() {
             }
           />
           <Route
+            path="/admin/availability"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminLayout>
+                  <AdminAvailabilityPage />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/admin/testimonials"
             element={
               <ProtectedRoute requireAdmin>
@@ -186,6 +213,16 @@ export default function App() {
               <ProtectedRoute requireAdmin>
                 <AdminLayout>
                   <AdminUsersPage />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/audit-logs"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminLayout>
+                  <AdminAuditLogsPage />
                 </AdminLayout>
               </ProtectedRoute>
             }

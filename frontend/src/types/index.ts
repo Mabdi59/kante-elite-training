@@ -11,6 +11,7 @@ export interface ApiResponse<T> {
 
 export interface AuthResponse {
   token: string
+  refreshToken: string
   email: string
   name: string
   role: 'ADMIN' | 'COACH' | 'USER'
@@ -146,6 +147,33 @@ export interface AdminUser {
   name: string
   email: string
   role: string
+  createdAt: string
+}
+
+export interface AuditLog {
+  id: number
+  userEmail?: string
+  action: string
+  entity: string
+  entityId?: number
+  details?: string
+  createdAt: string
+}
+
+export interface AvailabilityRule {
+  id: number
+  dayOfWeek: number
+  startTime: string
+  endTime: string
+  active: boolean
+  createdAt: string
+}
+
+export interface BlockedSlot {
+  id: number
+  slotDate: string
+  slotTime?: string
+  reason?: string
   createdAt: string
 }
 

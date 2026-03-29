@@ -19,7 +19,7 @@ export default function LoginPage() {
     try {
       const res = await login(email, password)
       const user: AuthUser = { email: res.email, name: res.name, role: res.role }
-      loginUser(res.token, user)
+      loginUser(res.token, res.refreshToken, user)
       if (res.role === 'ADMIN') {
         navigate('/admin')
       } else {
@@ -88,6 +88,12 @@ export default function LoginPage() {
           >
             {loading ? 'Signing in…' : 'Sign In'}
           </button>
+
+          <p className="text-gray-500 text-sm text-center">
+            <Link to="/forgot-password" className="text-gray-400 hover:text-gray-300">
+              Forgot password?
+            </Link>
+          </p>
 
           <p className="text-gray-500 text-sm text-center">
             Don't have an account?{' '}

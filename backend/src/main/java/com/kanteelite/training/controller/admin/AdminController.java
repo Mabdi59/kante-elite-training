@@ -2,6 +2,7 @@ package com.kanteelite.training.controller.admin;
 
 import com.kanteelite.training.dto.response.AdminDashboardResponse;
 import com.kanteelite.training.dto.response.ApiResponse;
+import com.kanteelite.training.dto.response.AuditLogResponse;
 import com.kanteelite.training.dto.response.UserResponse;
 import com.kanteelite.training.entity.User;
 import com.kanteelite.training.enums.BookingStatus;
@@ -11,6 +12,7 @@ import com.kanteelite.training.repository.EventRepository;
 import com.kanteelite.training.repository.ProgramRepository;
 import com.kanteelite.training.repository.TournamentRepository;
 import com.kanteelite.training.repository.UserRepository;
+import com.kanteelite.training.service.AuditLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +30,7 @@ public class AdminController {
     private final TournamentRepository tournamentRepository;
     private final UserRepository userRepository;
     private final ContactMessageRepository contactMessageRepository;
+    private final AuditLogService auditLogService;
 
     @GetMapping("/dashboard")
     public ResponseEntity<ApiResponse<AdminDashboardResponse>> getDashboard() {
@@ -51,6 +54,22 @@ public class AdminController {
         List<UserResponse> users = userRepository.findAll()
                 .stream().map(this::toUserResponse).toList();
         return ResponseEntity.ok(ApiResponse.success(users));
+    }
+
+    @GetMapping("/audit-logs")
+    public ResponseEntity<ApiResponse<List<AuditLogResponse>>> getAuditLogs() {
+        List<AuditLogResponse> logs = auditLogService.getRecent()
+                .stream().map(l -> AuditLogResponse.builder()
+                        .id(l.getId())
+                        .userEmail(l.getUserEmail())
+                        .action(l.getAction())
+                        .entity(l.getEntity())
+                        .entityId(l.getEntityId())
+                        .details(l.getDetails())
+                        .createdAt(l.getCreatedAt())
+                        .build())
+                .toList();
+        return ResponseEntity.ok(ApiResponse.success(logs));
     }
 
     private UserResponse toUserResponse(User u) {

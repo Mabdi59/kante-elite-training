@@ -1,25 +1,40 @@
 package com.kanteelite.training.service;
 
+import com.kanteelite.training.dto.request.ForgotPasswordRequest;
 import com.kanteelite.training.dto.request.LoginRequest;
 import com.kanteelite.training.dto.request.RegisterRequest;
+import com.kanteelite.training.dto.request.ResetPasswordRequest;
 import com.kanteelite.training.dto.response.AuthResponse;
+import com.kanteelite.training.entity.PasswordResetToken;
+import com.kanteelite.training.entity.RefreshToken;
 import com.kanteelite.training.entity.User;
 import com.kanteelite.training.enums.UserRole;
 import com.kanteelite.training.exception.ResourceNotFoundException;
+import com.kanteelite.training.repository.PasswordResetTokenRepository;
 import com.kanteelite.training.repository.UserRepository;
 import com.kanteelite.training.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final RefreshTokenService refreshTokenService;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final EmailService emailService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -33,19 +48,82 @@ public class UserService {
                 .role(UserRole.USER)
                 .build();
         user = userRepository.save(user);
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
-        return buildResponse(user, token);
+        String accessToken = jwtUtil.generateAccessToken(user.getEmail(), user.getRole().name());
+        String refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
+        return buildResponse(user, accessToken, refreshToken);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid email or password."));
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Invalid email or password.");
         }
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
-        return buildResponse(user, token);
+        String accessToken = jwtUtil.generateAccessToken(user.getEmail(), user.getRole().name());
+        String refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
+        return buildResponse(user, accessToken, refreshToken);
+    }
+
+    @Transactional
+    public AuthResponse refreshTokens(String rawRefreshToken) {
+        RefreshToken rt = refreshTokenService.validate(rawRefreshToken);
+        User user = userRepository.findByEmail(rt.getUserEmail())
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+        // rotate: revoke old, issue new pair
+        refreshTokenService.revoke(rawRefreshToken);
+        String newAccessToken = jwtUtil.generateAccessToken(user.getEmail(), user.getRole().name());
+        String newRefreshToken = refreshTokenService.createRefreshToken(user.getEmail());
+        return buildResponse(user, newAccessToken, newRefreshToken);
+    }
+
+    @Transactional
+    public void logout(String rawRefreshToken) {
+        refreshTokenService.revoke(rawRefreshToken);
+    }
+
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequest request) {
+        // Always return 200 to avoid user enumeration
+        userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
+            // Invalidate old tokens
+            passwordResetTokenRepository.invalidateAllByUserEmail(user.getEmail());
+
+            String tokenValue = UUID.randomUUID().toString();
+            PasswordResetToken token = PasswordResetToken.builder()
+                    .token(tokenValue)
+                    .userEmail(user.getEmail())
+                    .expiry(LocalDateTime.now().plusHours(1))
+                    .build();
+            passwordResetTokenRepository.save(token);
+
+            try {
+                emailService.sendPasswordResetEmail(user.getEmail(), user.getName(), tokenValue);
+            } catch (Exception e) {
+                log.warn("Failed to send password reset email to {}: {}", user.getEmail(), e.getMessage());
+            }
+        });
+    }
+
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        PasswordResetToken prt = passwordResetTokenRepository.findByToken(request.getToken())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid or expired reset token."));
+        if (prt.isUsed()) {
+            throw new IllegalArgumentException("Reset token has already been used.");
+        }
+        if (prt.getExpiry().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Reset token has expired.");
+        }
+        User user = userRepository.findByEmail(prt.getUserEmail())
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        prt.setUsed(true);
+        passwordResetTokenRepository.save(prt);
+        // Revoke all refresh tokens so old sessions are invalidated
+        refreshTokenService.revokeAll(user.getEmail());
     }
 
     @Transactional(readOnly = true)
@@ -54,9 +132,10 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
     }
 
-    private AuthResponse buildResponse(User user, String token) {
+    private AuthResponse buildResponse(User user, String accessToken, String refreshToken) {
         return AuthResponse.builder()
-                .token(token)
+                .token(accessToken)
+                .refreshToken(refreshToken)
                 .email(user.getEmail())
                 .name(user.getName())
                 .role(user.getRole().name())

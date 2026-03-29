@@ -15,6 +15,9 @@ import type {
   ContactMessage,
   AdminDashboard,
   AdminUser,
+  AuditLog,
+  AvailabilityRule,
+  BlockedSlot,
 } from '../types'
 
 const api = axios.create({
@@ -22,7 +25,7 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
-// ─── Auth Interceptor ──────────────────────────────────────────────────────────
+// ─── Auth Request Interceptor ─────────────────────────────────────────────────
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
@@ -31,6 +34,71 @@ api.interceptors.request.use((config) => {
   }
   return config
 })
+
+// ─── 401 Response Interceptor (auto-refresh) ─────────────────────────────────
+
+let isRefreshing = false
+let refreshQueue: Array<(token: string) => void> = []
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const original = error.config
+    if (
+      error.response?.status === 401 &&
+      !original._retry &&
+      !original.url?.includes('/auth/')
+    ) {
+      const storedRefresh = localStorage.getItem('refreshToken')
+      if (!storedRefresh) {
+        // No refresh token — clear session
+        localStorage.removeItem('token')
+        localStorage.removeItem('refreshToken')
+        localStorage.removeItem('user')
+        window.location.href = '/login'
+        return Promise.reject(error)
+      }
+
+      if (isRefreshing) {
+        // Queue the request until refresh completes
+        return new Promise((resolve) => {
+          refreshQueue.push((newToken) => {
+            original.headers.Authorization = `Bearer ${newToken}`
+            resolve(api(original))
+          })
+        })
+      }
+
+      original._retry = true
+      isRefreshing = true
+
+      try {
+        const res = await axios.post<ApiResponse<AuthResponse>>('/api/auth/refresh', {
+          refreshToken: storedRefresh,
+        })
+        const data = res.data.data!
+        localStorage.setItem('token', data.token)
+        localStorage.setItem('refreshToken', data.refreshToken)
+
+        // Flush queued requests
+        refreshQueue.forEach((cb) => cb(data.token))
+        refreshQueue = []
+
+        original.headers.Authorization = `Bearer ${data.token}`
+        return api(original)
+      } catch {
+        localStorage.removeItem('token')
+        localStorage.removeItem('refreshToken')
+        localStorage.removeItem('user')
+        window.location.href = '/login'
+        return Promise.reject(error)
+      } finally {
+        isRefreshing = false
+      }
+    }
+    return Promise.reject(error)
+  },
+)
 
 // ─── Programs ─────────────────────────────────────────────────────────────────
 
@@ -106,6 +174,37 @@ export const register = async (
   return res.data.data!
 }
 
+export const refreshTokens = async (refreshToken: string): Promise<AuthResponse> => {
+  const res = await api.post<ApiResponse<AuthResponse>>('/auth/refresh', { refreshToken })
+  return res.data.data!
+}
+
+export const logoutApi = async (refreshToken: string): Promise<void> => {
+  await api.post('/auth/logout', { refreshToken })
+}
+
+export const forgotPassword = async (email: string): Promise<string> => {
+  const res = await api.post<ApiResponse<null>>('/auth/forgot-password', { email })
+  return res.data.message ?? 'If that email is registered, a reset link has been sent.'
+}
+
+export const resetPassword = async (token: string, newPassword: string): Promise<string> => {
+  const res = await api.post<ApiResponse<null>>('/auth/reset-password', { token, newPassword })
+  return res.data.message ?? 'Password reset successful.'
+}
+
+// ─── User Account ─────────────────────────────────────────────────────────────
+
+export const getMyBookings = async (): Promise<Booking[]> => {
+  const res = await api.get<ApiResponse<Booking[]>>('/account/bookings')
+  return res.data.data ?? []
+}
+
+export const cancelMyBooking = async (id: number): Promise<Booking> => {
+  const res = await api.patch<ApiResponse<Booking>>(`/account/bookings/${id}/cancel`, {})
+  return res.data.data!
+}
+
 // ─── Tournaments ──────────────────────────────────────────────────────────────
 
 export const getTournaments = async (): Promise<Tournament[]> => {
@@ -130,13 +229,28 @@ export const getAdminDashboard = async (): Promise<AdminDashboard> => {
   return res.data.data!
 }
 
-export const getAdminBookings = async (): Promise<Booking[]> => {
-  const res = await api.get<ApiResponse<Booking[]>>('/admin/bookings')
+export const getAdminBookings = async (params?: {
+  status?: string
+  date?: string
+}): Promise<Booking[]> => {
+  const res = await api.get<ApiResponse<Booking[]>>('/admin/bookings', { params })
   return res.data.data ?? []
 }
 
 export const updateBookingStatus = async (id: number, status: string): Promise<Booking> => {
   const res = await api.patch<ApiResponse<Booking>>(`/admin/bookings/${id}/status`, { status })
+  return res.data.data!
+}
+
+export const rescheduleBooking = async (
+  id: number,
+  newDate: string,
+  newTime: string,
+): Promise<Booking> => {
+  const res = await api.patch<ApiResponse<Booking>>(`/admin/bookings/${id}/reschedule`, {
+    newDate,
+    newTime,
+  })
   return res.data.data!
 }
 
@@ -188,7 +302,10 @@ export const createTestimonial = async (data: Partial<Testimonial>): Promise<Tes
   return res.data.data!
 }
 
-export const updateTestimonial = async (id: number, data: Partial<Testimonial>): Promise<Testimonial> => {
+export const updateTestimonial = async (
+  id: number,
+  data: Partial<Testimonial>,
+): Promise<Testimonial> => {
   const res = await api.put<ApiResponse<Testimonial>>(`/admin/testimonials/${id}`, data)
   return res.data.data!
 }
@@ -217,7 +334,10 @@ export const createTournament = async (data: Partial<Tournament>): Promise<Tourn
   return res.data.data!
 }
 
-export const updateTournament = async (id: number, data: Partial<Tournament>): Promise<Tournament> => {
+export const updateTournament = async (
+  id: number,
+  data: Partial<Tournament>,
+): Promise<Tournament> => {
   const res = await api.put<ApiResponse<Tournament>>(`/tournaments/${id}`, data)
   return res.data.data!
 }
@@ -231,10 +351,13 @@ export const getTournamentRegistrations = async (id: number): Promise<TeamRegist
   return res.data.data ?? []
 }
 
-export const updateRegistrationStatus = async (regId: number, status: string): Promise<TeamRegistration> => {
+export const updateRegistrationStatus = async (
+  regId: number,
+  status: string,
+): Promise<TeamRegistration> => {
   const res = await api.patch<ApiResponse<TeamRegistration>>(
     `/admin/tournaments/registrations/${regId}/status`,
-    { status }
+    { status },
   )
   return res.data.data!
 }
@@ -242,6 +365,51 @@ export const updateRegistrationStatus = async (regId: number, status: string): P
 export const getAdminUsers = async (): Promise<AdminUser[]> => {
   const res = await api.get<ApiResponse<AdminUser[]>>('/admin/users')
   return res.data.data ?? []
+}
+
+export const getAuditLogs = async (): Promise<AuditLog[]> => {
+  const res = await api.get<ApiResponse<AuditLog[]>>('/admin/audit-logs')
+  return res.data.data ?? []
+}
+
+// ─── Admin Availability ───────────────────────────────────────────────────────
+
+export const getAvailabilityRules = async (): Promise<AvailabilityRule[]> => {
+  const res = await api.get<ApiResponse<AvailabilityRule[]>>('/admin/availability/rules')
+  return res.data.data ?? []
+}
+
+export const createAvailabilityRule = async (
+  data: Partial<AvailabilityRule>,
+): Promise<AvailabilityRule> => {
+  const res = await api.post<ApiResponse<AvailabilityRule>>('/admin/availability/rules', data)
+  return res.data.data!
+}
+
+export const updateAvailabilityRule = async (
+  id: number,
+  data: Partial<AvailabilityRule>,
+): Promise<AvailabilityRule> => {
+  const res = await api.put<ApiResponse<AvailabilityRule>>(`/admin/availability/rules/${id}`, data)
+  return res.data.data!
+}
+
+export const deleteAvailabilityRule = async (id: number): Promise<void> => {
+  await api.delete(`/admin/availability/rules/${id}`)
+}
+
+export const getBlockedSlots = async (): Promise<BlockedSlot[]> => {
+  const res = await api.get<ApiResponse<BlockedSlot[]>>('/admin/availability/blocked')
+  return res.data.data ?? []
+}
+
+export const createBlockedSlot = async (data: Partial<BlockedSlot>): Promise<BlockedSlot> => {
+  const res = await api.post<ApiResponse<BlockedSlot>>('/admin/availability/blocked', data)
+  return res.data.data!
+}
+
+export const deleteBlockedSlot = async (id: number): Promise<void> => {
+  await api.delete(`/admin/availability/blocked/${id}`)
 }
 
 export default api

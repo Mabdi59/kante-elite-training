@@ -8,9 +8,11 @@ const navItems = [
   { path: '/admin/programs', label: 'Programs', icon: '⚽' },
   { path: '/admin/events', label: 'Events', icon: '🏆' },
   { path: '/admin/tournaments', label: 'Tournaments', icon: '🥇' },
+  { path: '/admin/availability', label: 'Availability', icon: '🗓️' },
   { path: '/admin/testimonials', label: 'Testimonials', icon: '💬' },
   { path: '/admin/messages', label: 'Messages', icon: '✉️' },
   { path: '/admin/users', label: 'Users', icon: '👥' },
+  { path: '/admin/audit-logs', label: 'Audit Logs', icon: '📋' },
 ]
 
 export default function AdminLayout({ children }: { children: ReactNode }) {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 const navLinks = [
   { href: '/training', label: 'Programs' },
@@ -13,6 +14,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
+  const { user, isAuthenticated, isAdmin, logoutUser } = useAuth()
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -61,8 +63,30 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* CTA */}
-        <div className="hidden md:block">
+        {/* CTA + auth */}
+        <div className="hidden md:flex items-center gap-3">
+          {isAuthenticated ? (
+            <>
+              {isAdmin && (
+                <Link to="/admin" className="text-sm text-green-400 hover:text-green-300 font-semibold">
+                  Admin
+                </Link>
+              )}
+              <Link to="/account" className="text-sm text-gray-300 hover:text-white font-semibold">
+                {user?.name?.split(' ')[0]}
+              </Link>
+              <button
+                onClick={logoutUser}
+                className="text-sm text-gray-500 hover:text-gray-300 font-semibold transition-colors"
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <Link to="/login" className="text-sm text-gray-300 hover:text-white font-semibold">
+              Login
+            </Link>
+          )}
           <Link to="/book" className="btn-primary text-sm px-6 py-2.5">
             Book Now
           </Link>
@@ -108,6 +132,28 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+          {isAuthenticated ? (
+            <>
+              <Link to="/account" className="text-lg font-bold text-white">
+                My Account
+              </Link>
+              {isAdmin && (
+                <Link to="/admin" className="text-lg font-bold text-green-400">
+                  Admin Panel
+                </Link>
+              )}
+              <button
+                onClick={logoutUser}
+                className="text-left text-lg font-bold text-red-400"
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <Link to="/login" className="text-lg font-bold text-gray-300">
+              Login
+            </Link>
+          )}
           <Link to="/book" className="btn-primary text-center mt-2">
             Book a Session
           </Link>
