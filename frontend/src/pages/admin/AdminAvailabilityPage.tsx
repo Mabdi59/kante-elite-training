@@ -57,7 +57,7 @@ export default function AdminAvailabilityPage() {
   }
 
   const handleDeleteRule = async (id: number) => {
-    if (!confirm('Delete this rule?')) return
+    if (!window.confirm('Delete this rule?')) return
     try {
       await deleteAvailabilityRule(id)
       setRules((prev) => prev.filter((r) => r.id !== id))

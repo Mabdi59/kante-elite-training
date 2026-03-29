@@ -26,7 +26,7 @@ export default function AccountPage() {
   }, [])
 
   const handleCancel = async (id: number) => {
-    if (!confirm('Cancel this booking?')) return
+    if (!window.confirm('Cancel this booking?')) return
     setCancelling(id)
     try {
       const updated = await cancelMyBooking(id)
