@@ -60,21 +60,10 @@ export const getAvailability = async (
 
 // ─── Bookings ─────────────────────────────────────────────────────────────────
 
-export const confirmBooking = async (sessionId: string): Promise<Booking> => {
-  const res = await api.get<ApiResponse<Booking>>('/bookings/confirm', {
-    params: { sessionId },
-  })
-  return res.data.data!
-}
-
-// ─── Payments ─────────────────────────────────────────────────────────────────
-
-export const createCheckoutSession = async (
-  formData: BookingFormData,
-): Promise<string> => {
-  const res = await api.post<ApiResponse<{ url: string }>>('/payments/checkout', formData)
-  if (!res.data.data?.url) throw new Error('No checkout URL returned')
-  return res.data.data.url
+export const createBooking = async (formData: BookingFormData): Promise<Booking> => {
+  const res = await api.post<ApiResponse<Booking>>('/bookings', formData)
+  if (!res.data.data) throw new Error('No booking data returned')
+  return res.data.data
 }
 
 // ─── Contact ──────────────────────────────────────────────────────────────────

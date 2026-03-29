@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useSearchParams, Link } from 'react-router-dom'
-import api, { confirmBooking } from '../services/api'
+import api from '../services/api'
 import type { ApiResponse, Booking } from '../types'
 
 function formatDate(dateStr: string) {
@@ -15,7 +15,6 @@ function formatDate(dateStr: string) {
 export default function BookingSuccessPage() {
   const location = useLocation()
   const [searchParams] = useSearchParams()
-  const sessionId = searchParams.get('session_id')
   const bookingId = Number(searchParams.get('booking_id'))
   const locationBooking = (location.state as { booking?: Booking } | null)?.booking ?? null
   const [booking, setBooking] = useState<Booking | null>(locationBooking)
@@ -47,21 +46,9 @@ export default function BookingSuccessPage() {
       return
     }
 
-    if (!sessionId) {
-      setError('No booking confirmation was found.')
-      setLoading(false)
-      return
-    }
-
-    confirmBooking(sessionId)
-      .then(setBooking)
-      .catch(() =>
-        setError(
-          'We could not retrieve your booking details right now. Please check your email for confirmation or contact us directly.',
-        ),
-      )
-      .finally(() => setLoading(false))
-  }, [bookingId, locationBooking, sessionId])
+    setError('No booking confirmation was found.')
+    setLoading(false)
+  }, [bookingId, locationBooking])
 
   if (loading) {
     return (

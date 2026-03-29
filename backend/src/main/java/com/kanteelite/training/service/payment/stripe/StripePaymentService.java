@@ -1,7 +1,6 @@
-package com.kanteelite.training.service;
+package com.kanteelite.training.service.payment.stripe;
 
 import com.kanteelite.training.dto.request.CheckoutRequest;
-import com.kanteelite.training.dto.response.BookingResponse;
 import com.kanteelite.training.entity.Booking;
 import com.kanteelite.training.entity.Program;
 import com.kanteelite.training.enums.BookingStatus;
@@ -9,6 +8,9 @@ import com.kanteelite.training.enums.PaymentStatus;
 import com.kanteelite.training.exception.PaymentConfigurationException;
 import com.kanteelite.training.exception.PaymentProviderException;
 import com.kanteelite.training.repository.BookingRepository;
+import com.kanteelite.training.service.BookingService;
+import com.kanteelite.training.service.EmailService;
+import com.kanteelite.training.service.ProgramService;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
@@ -21,15 +23,24 @@ import com.stripe.param.checkout.SessionCreateParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+/**
+ * Stripe-specific payment service.
+ * <p>
+ * Only activated when {@code app.payments.enabled=true}. Set that flag and provide
+ * {@code STRIPE_SECRET_KEY} / {@code STRIPE_WEBHOOK_SECRET} environment variables
+ * before enabling.
+ */
 @Service
-public class PaymentService {
+@ConditionalOnProperty(name = "app.payments.enabled", havingValue = "true")
+public class StripePaymentService {
 
-    private static final Logger log = LoggerFactory.getLogger(PaymentService.class);
+    private static final Logger log = LoggerFactory.getLogger(StripePaymentService.class);
 
     private final BookingRepository bookingRepository;
     private final ProgramService programService;
@@ -45,7 +56,7 @@ public class PaymentService {
     @Value("${app.frontend-url:http://localhost:5173}")
     private String frontendUrl;
 
-    public PaymentService(
+    public StripePaymentService(
             BookingRepository bookingRepository,
             ProgramService programService,
             EmailService emailService,
@@ -115,7 +126,7 @@ public class PaymentService {
 
     /**
      * Handles incoming Stripe webhook events.
-     * Primary path for confirming bookings in production.
+     * Primary path for confirming bookings when Stripe payments are active.
      */
     @Transactional
     public void handleWebhook(String payload, String sigHeader) throws SignatureVerificationException {
@@ -171,15 +182,6 @@ public class PaymentService {
             log.error("Failed to create booking from webhook for session {}: {}", sessionId, e.getMessage(), e);
             throw new RuntimeException("Failed to process booking from webhook", e);
         }
-    }
-
-    /**
-     * Verifies a Stripe session is paid and returns its details.
-     * Used by the success page as a safety-net confirmation.
-     */
-    public Session retrieveSession(String sessionId) throws StripeException {
-        Stripe.apiKey = stripeSecretKey;
-        return Session.retrieve(sessionId);
     }
 
     private String orEmpty(String value) {

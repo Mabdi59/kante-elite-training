@@ -29,10 +29,4 @@ public class BookingController {
         BookingResponse booking = bookingService.getById(id);
         return ResponseEntity.ok(ApiResponse.success(booking));
     }
-
-    @GetMapping("/confirm")
-    public ResponseEntity<ApiResponse<BookingResponse>> confirmBooking(@RequestParam String sessionId) {
-        BookingResponse booking = bookingService.getByStripeSessionId(sessionId);
-        return ResponseEntity.ok(ApiResponse.success(booking));
-    }
 }
