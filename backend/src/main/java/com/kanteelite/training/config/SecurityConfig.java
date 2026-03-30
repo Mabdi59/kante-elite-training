@@ -59,13 +59,14 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/testimonials/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/availability/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/tournaments/*/registrations").hasAnyRole("ADMIN", "STAFF")
-                .requestMatchers(HttpMethod.GET, "/api/tournaments/registrations/access/**").permitAll()
+                // Legacy token-based registration access requires authentication
+                .requestMatchers("/api/tournaments/registrations/access/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/tournaments/**").permitAll()
                 // Public write endpoints
                 .requestMatchers(HttpMethod.POST, "/api/bookings").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/contact").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/teams/register").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/tournaments/registrations/access/**").permitAll()
+                // Team registration requires authentication
+                .requestMatchers(HttpMethod.POST, "/api/teams/register").authenticated()
                 // Admin-only: tournament mutations and admin panel
                 .requestMatchers(HttpMethod.POST, "/api/tournaments/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/tournaments/**").hasRole("ADMIN")

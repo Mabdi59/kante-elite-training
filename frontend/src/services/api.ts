@@ -36,6 +36,7 @@ import type {
   AdminPlayerFormData,
   PlayerProfile,
   PlayerProfileFormData,
+  StandingEntry,
 } from '../types'
 
 const api = axios.create({
@@ -259,6 +260,11 @@ export const getTournaments = async (): Promise<Tournament[]> => {
 
 export const getTournamentById = async (id: number): Promise<Tournament> => {
   const res = await api.get<ApiResponse<Tournament>>(`/tournaments/${id}`)
+  return res.data.data!
+}
+
+export const getPublicTournamentView = async (id: number): Promise<TournamentWorkflow> => {
+  const res = await api.get<ApiResponse<TournamentWorkflow>>(`/tournaments/${id}/public`)
   return res.data.data!
 }
 
@@ -620,6 +626,23 @@ export const generateTournamentSchedule = async (
     `/admin/tournaments/${tournamentId}/matches/generate`,
     undefined,
     { params: { overwrite } },
+  )
+  return res.data.data ?? []
+}
+
+export const getAdminTournamentStandings = async (tournamentId: number): Promise<StandingEntry[]> => {
+  const res = await api.get<ApiResponse<StandingEntry[]>>(`/admin/tournaments/${tournamentId}/standings`)
+  return res.data.data ?? []
+}
+
+export const bulkCreateTournamentTeamPlayers = async (
+  tournamentId: number,
+  teamId: number,
+  lines: string[],
+): Promise<TeamPlayer[]> => {
+  const res = await api.post<ApiResponse<TeamPlayer[]>>(
+    `/admin/tournaments/${tournamentId}/teams/${teamId}/players/bulk`,
+    lines,
   )
   return res.data.data ?? []
 }

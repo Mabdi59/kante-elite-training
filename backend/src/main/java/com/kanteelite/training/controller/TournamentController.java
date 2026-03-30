@@ -4,6 +4,7 @@ import com.kanteelite.training.dto.request.TeamRegistrationRequest;
 import com.kanteelite.training.dto.response.ApiResponse;
 import com.kanteelite.training.dto.response.TeamRegistrationResponse;
 import com.kanteelite.training.dto.response.TournamentResponse;
+import com.kanteelite.training.dto.response.TournamentWorkflowResponse;
 import com.kanteelite.training.dto.request.TournamentRequest;
 import com.kanteelite.training.service.TournamentService;
 import jakarta.validation.Valid;
@@ -29,6 +30,11 @@ public class TournamentController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<TournamentResponse>> getById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(tournamentService.getById(id)));
+    }
+
+    @GetMapping("/{id}/public")
+    public ResponseEntity<ApiResponse<TournamentWorkflowResponse>> getPublicView(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(tournamentService.getAdminWorkflow(id)));
     }
 
     @GetMapping("/{id}/registrations")

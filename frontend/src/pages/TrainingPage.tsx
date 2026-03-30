@@ -88,7 +88,7 @@ export default function TrainingPage() {
   useEffect(() => {
     getPrograms()
       .then(setPrograms)
-      .catch(console.error)
+      .catch(() => { /* silenced */ })
       .finally(() => setLoading(false))
   }, [])
 
