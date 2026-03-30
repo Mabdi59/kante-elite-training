@@ -24,6 +24,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import AccountPage from './pages/AccountPage'
 import TournamentsPage from './pages/TournamentsPage'
+import TournamentDetailPage from './pages/TournamentDetailPage'
 import PublicTeamRegisterPage from './pages/PublicTeamRegisterPage'
 import TournamentRegistrationDashboardPage from './pages/TournamentRegistrationDashboardPage'
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
@@ -136,6 +137,14 @@ export default function App() {
             element={
               <MainLayout>
                 <TournamentsPage />
+              </MainLayout>
+            }
+          />
+          <Route
+            path="/tournaments/:id"
+            element={
+              <MainLayout>
+                <TournamentDetailPage />
               </MainLayout>
             }
           />

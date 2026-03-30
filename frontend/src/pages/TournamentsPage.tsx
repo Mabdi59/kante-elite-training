@@ -12,11 +12,14 @@ function TournamentCard({ tournament: t }: { tournament: Tournament }) {
     spotsLeft > 0 && t.status !== 'COMPLETED' && t.status !== 'CANCELLED' && !isDeadlinePassed
 
   return (
-    <div className="bg-gray-900 border border-gray-800 hover:border-gray-700 rounded-2xl p-6 flex flex-col transition-colors">
+    <Link
+      to={`/tournaments/${t.id}`}
+      className="block bg-gray-900 border border-gray-800 hover:border-cyan-800 rounded-2xl p-6 flex flex-col transition-colors group"
+    >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div>
-          <h3 className="text-white text-xl font-black leading-tight">{t.name}</h3>
+          <h3 className="text-white text-xl font-black leading-tight group-hover:text-cyan-300 transition-colors">{t.name}</h3>
           <p className="text-gray-400 text-sm mt-0.5">{t.location}</p>
         </div>
         <StatusBadge status={t.status} className="ml-2 shrink-0 mt-0.5" />
@@ -79,24 +82,21 @@ function TournamentCard({ tournament: t }: { tournament: Tournament }) {
       )}
 
       {canRegister ? (
-        <Link
-          to={`/tournaments/${t.id}/register`}
-          className="block w-full text-center bg-green-500 hover:bg-green-400 text-black font-bold py-2.5 rounded-xl transition-colors text-sm"
-        >
-          Register Team
-        </Link>
+        <div className="block w-full text-center bg-green-500 group-hover:bg-green-400 text-black font-bold py-2.5 rounded-xl transition-colors text-sm">
+          View & Register
+        </div>
       ) : (
-        <div className="w-full text-center bg-gray-800 text-gray-500 font-semibold py-2.5 rounded-xl text-sm">
+        <div className="w-full text-center bg-gray-800 text-gray-400 font-semibold py-2.5 rounded-xl text-sm group-hover:bg-gray-700 transition-colors">
           {t.status === 'COMPLETED'
-            ? 'Tournament Ended'
+            ? 'View Results'
             : t.status === 'CANCELLED'
             ? 'Cancelled'
             : isDeadlinePassed
-            ? 'Registration Closed'
+            ? 'View Tournament'
             : 'Team Spots Full'}
         </div>
       )}
-    </div>
+    </Link>
   )
 }
 

@@ -263,6 +263,11 @@ export const getTournamentById = async (id: number): Promise<Tournament> => {
   return res.data.data!
 }
 
+export const getPublicTournamentView = async (id: number): Promise<TournamentWorkflow> => {
+  const res = await api.get<ApiResponse<TournamentWorkflow>>(`/tournaments/${id}/public`)
+  return res.data.data!
+}
+
 export const registerTeam = async (data: TeamRegistrationFormData): Promise<TeamRegistration> => {
   const res = await api.post<ApiResponse<TeamRegistration>>('/teams/register', data)
   return res.data.data!
