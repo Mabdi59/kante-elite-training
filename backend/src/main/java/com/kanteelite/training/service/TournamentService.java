@@ -46,9 +46,11 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -1302,6 +1304,143 @@ public class TournamentService {
                 .venue(tournament.getLocation())
                 .status(MATCH_STATUS_SCHEDULED)
                 .build();
+    }
+
+    @Transactional
+    public List<TournamentMatchResponse> seedKnockoutBracket(Long tournamentId, String actorEmail) {
+        Tournament tournament = getTournamentEntity(tournamentId);
+
+        if (!"GROUP_STAGE".equals(normalizeFormatType(tournament.getFormatType()))) {
+            throw new IllegalArgumentException("Bracket seeding is only available for GROUP_STAGE tournaments.");
+        }
+
+        List<TournamentMatch> allMatches = tournamentMatchRepository
+                .findByTournamentIdOrderByMatchDateAscKickoffTimeAscIdAsc(tournamentId);
+
+        List<TournamentMatch> groupMatches = allMatches.stream()
+                .filter(m -> m.getStageName() != null && m.getStageName().startsWith("Group "))
+                .toList();
+
+        List<TournamentMatch> knockoutMatches = allMatches.stream()
+                .filter(m -> "Knockout".equals(m.getStageName()))
+                .sorted(Comparator.comparing(TournamentMatch::getId))
+                .toList();
+
+        if (knockoutMatches.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "No knockout bracket found. Run 'Auto Build Schedule' first to generate the bracket.");
+        }
+
+        long unfinishedGroupMatches = groupMatches.stream()
+                .filter(m -> !MATCH_STATUS_FINAL.equalsIgnoreCase(m.getStatus()))
+                .count();
+        if (unfinishedGroupMatches > 0) {
+            throw new IllegalArgumentException(
+                    unfinishedGroupMatches + " group stage match(es) are not yet marked FINAL. "
+                    + "Complete all group matches before seeding the knockout bracket.");
+        }
+
+        // Compute standings and group by group name
+        List<StandingEntryResponse> standings = computeStandings(tournamentId);
+        LinkedHashMap<String, List<StandingEntryResponse>> byGroup = new LinkedHashMap<>();
+        for (StandingEntryResponse s : standings) {
+            if (s.getGroupName() != null && s.getGroupName().startsWith("Group ")) {
+                byGroup.computeIfAbsent(s.getGroupName(), k -> new ArrayList<>()).add(s);
+            }
+        }
+
+        if (byGroup.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "No group standings found. Mark group matches as FINAL first.");
+        }
+
+        int advancePerGroup = normalizePositiveInteger(tournament.getAdvancePerGroup(), 2);
+
+        // For each group, collect the top advancePerGroup team IDs (standings are already sorted)
+        List<List<Long>> groupAdvancerIds = new ArrayList<>();
+        for (List<StandingEntryResponse> groupRows : byGroup.values()) {
+            List<Long> ids = groupRows.stream()
+                    .limit(advancePerGroup)
+                    .map(StandingEntryResponse::getTeamId)
+                    .toList();
+            groupAdvancerIds.add(ids);
+        }
+
+        // Build cross-seeded pairs: A1 vs B2, B1 vs A2 etc.
+        List<long[]> seedPairs = buildGroupSeedPairs(groupAdvancerIds, advancePerGroup);
+
+        if (seedPairs.isEmpty()) {
+            throw new IllegalArgumentException("Could not build seeding pairs from the current group standings.");
+        }
+        if (seedPairs.size() > knockoutMatches.size()) {
+            throw new IllegalArgumentException(
+                    "Not enough knockout bracket slots (" + knockoutMatches.size()
+                    + ") for " + seedPairs.size() + " seeded pairs.");
+        }
+
+        // Load Team entities for all advancing team IDs
+        Set<Long> allTeamIds = new LinkedHashSet<>();
+        for (long[] pair : seedPairs) {
+            allTeamIds.add(pair[0]);
+            allTeamIds.add(pair[1]);
+        }
+        Map<Long, Team> teamById = new LinkedHashMap<>();
+        for (Long tid : allTeamIds) {
+            teamById.put(tid, teamRepository.findById(tid)
+                    .orElseThrow(() -> new ResourceNotFoundException("Team", tid)));
+        }
+
+        // Seed the first-round knockout matches (first N matches in ID order)
+        List<TournamentMatch> updated = new ArrayList<>();
+        for (int i = 0; i < seedPairs.size(); i++) {
+            TournamentMatch match = knockoutMatches.get(i);
+            match.setHomeTeam(teamById.get(seedPairs.get(i)[0]));
+            match.setAwayTeam(teamById.get(seedPairs.get(i)[1]));
+            updated.add(tournamentMatchRepository.save(match));
+        }
+
+        auditLogService.log(actorEmail, "SEED", "KnockoutBracket", tournamentId,
+                "Seeded knockout bracket for " + tournament.getName()
+                + " with " + seedPairs.size() + " first-round match(es).");
+
+        return updated.stream().map(this::toMatchResponse).toList();
+    }
+
+    /**
+     * Builds cross-seeded pairs from a list of per-group advancer ID lists.
+     * For two groups [A1,A2] and [B1,B2] with advancePerGroup=2 this produces:
+     *   (A1, B2), (B1, A2)
+     * For four groups with advancePerGroup=2 this produces:
+     *   (A1, B2), (B1, A2), (C1, D2), (D1, C2)
+     */
+    private List<long[]> buildGroupSeedPairs(List<List<Long>> groups, int advancePerGroup) {
+        List<long[]> pairs = new ArrayList<>();
+
+        // Process groups in pairs for cross-seeding
+        for (int gi = 0; gi + 1 < groups.size(); gi += 2) {
+            List<Long> g1 = groups.get(gi);
+            List<Long> g2 = groups.get(gi + 1);
+            int n = Math.min(advancePerGroup, Math.min(g1.size(), g2.size()));
+
+            // Interleave: (g1[0] vs g2[n-1]), (g2[0] vs g1[n-1]), (g1[1] vs g2[n-2]), (g2[1] vs g1[n-2]), ...
+            for (int pos = 0; pos < n; pos++) {
+                if (pos % 2 == 0) {
+                    pairs.add(new long[]{g1.get(pos / 2), g2.get(n - 1 - pos / 2)});
+                } else {
+                    pairs.add(new long[]{g2.get(pos / 2), g1.get(n - 1 - pos / 2)});
+                }
+            }
+        }
+
+        // Handle an odd unpaired group — seed within itself
+        if (groups.size() % 2 != 0) {
+            List<Long> lastGroup = groups.get(groups.size() - 1);
+            for (int i = 0; i + 1 < lastGroup.size(); i += 2) {
+                pairs.add(new long[]{lastGroup.get(i), lastGroup.get(i + 1)});
+            }
+        }
+
+        return pairs;
     }
 
     private List<TournamentMatch> generateKnockoutMatches(Tournament tournament, List<Team> teams) {

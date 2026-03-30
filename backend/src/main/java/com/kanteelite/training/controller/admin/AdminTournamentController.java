@@ -231,6 +231,17 @@ public class AdminTournamentController {
                         principal != null ? principal.getUsername() : null)));
     }
 
+    @PostMapping("/{id}/bracket/seed")
+    public ResponseEntity<ApiResponse<List<TournamentMatchResponse>>> seedBracket(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails principal) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Knockout bracket seeded from group standings.",
+                tournamentService.seedKnockoutBracket(
+                        id,
+                        principal != null ? principal.getUsername() : null)));
+    }
+
     @GetMapping("/{id}/standings")
     public ResponseEntity<ApiResponse<List<StandingEntryResponse>>> getStandings(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(tournamentService.computeStandings(id)));

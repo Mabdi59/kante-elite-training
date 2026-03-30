@@ -12,6 +12,7 @@ import {
   deleteTournamentTeamPlayer,
   generateTournamentSchedule,
   getAdminTournamentWorkflow,
+  seedTournamentKnockoutBracket,
   updateAdminTournamentRegistration,
   updateTournament,
   updateTournamentMatch,
@@ -805,13 +806,37 @@ export default function AdminTournamentWorkflowPage() {
                     if (!tournamentId) return
                     const overwrite = workflow.matches.length > 0 && window.confirm('Overwrite the current schedule?')
                     if (workflow.matches.length > 0 && !overwrite) return
-                    await generateTournamentSchedule(tournamentId, overwrite)
+                    setError('')
+                    try {
+                      await generateTournamentSchedule(tournamentId, overwrite)
+                    } catch (err: unknown) {
+                      setError((err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Could not generate schedule.')
+                      return
+                    }
                     await loadWorkflow(tournamentId)
                   }}
                   className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-4 py-2 rounded-lg text-sm"
                 >
                   Auto Build Schedule
                 </button>
+                {workflow.tournament.formatType === 'GROUP_STAGE' && workflow.matches.some((m) => m.stageName === 'Knockout' && !m.homeTeamId && !m.awayTeamId) && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!tournamentId) return
+                      setError('')
+                      try {
+                        await seedTournamentKnockoutBracket(tournamentId)
+                        await loadWorkflow(tournamentId)
+                      } catch (err: unknown) {
+                        setError((err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Could not seed the knockout bracket.')
+                      }
+                    }}
+                    className="bg-amber-500 hover:bg-amber-400 text-black font-bold px-4 py-2 rounded-lg text-sm"
+                  >
+                    Seed Knockout Bracket
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => {
@@ -846,9 +871,15 @@ export default function AdminTournamentWorkflowPage() {
             ) : null}
 
             {workflow.matches.length === 0 ? <EmptyState title="No matches yet" description="Build the schedule once teams and format are ready." /> : (() => {
+              const hasUnseededKnockout = workflow.tournament.formatType === 'GROUP_STAGE' && workflow.matches.some((m) => m.stageName === 'Knockout' && !m.homeTeamId && !m.awayTeamId)
               const stageOrder = Array.from(new Set(workflow.matches.map((m) => m.stageName || 'Unassigned')))
               return (
                 <div className="space-y-6">
+                  {hasUnseededKnockout && (
+                    <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3 text-amber-300 text-sm">
+                      Knockout bracket slots are waiting to be seeded. Once all group matches are <span className="font-bold text-white">FINAL</span>, click <span className="font-bold text-white">Seed Knockout Bracket</span> to fill them with the group stage winners.
+                    </div>
+                  )}
                   {stageOrder.map((stage) => {
                     const stageMatches = workflow.matches.filter((m) => (m.stageName || 'Unassigned') === stage)
                     return (
@@ -858,7 +889,15 @@ export default function AdminTournamentWorkflowPage() {
                           {stageMatches.map((match) => (
                             <div key={match.id} className="bg-gray-950 border border-gray-800 rounded-xl p-4 flex items-start justify-between gap-4">
                               <div>
-                                <div className="text-white font-semibold">{match.homeTeamName ?? 'TBD'} vs {match.awayTeamName ?? 'TBD'}</div>
+                                <div className="text-white font-semibold">
+                                  {match.homeTeamName
+                                    ? match.homeTeamName
+                                    : <span className="text-gray-500 italic">TBD</span>}
+                                  {' vs '}
+                                  {match.awayTeamName
+                                    ? match.awayTeamName
+                                    : <span className="text-gray-500 italic">TBD</span>}
+                                </div>
                                 <div className="text-gray-400 text-sm mt-1">{match.stageName || 'Stage not set'}{match.roundName ? `, ${match.roundName}` : ''}</div>
                                 <div className="text-gray-500 text-xs mt-1">{match.matchDate || 'Date TBD'}{match.kickoffTime ? ` at ${match.kickoffTime.slice(0, 5)}` : ''}{match.venue ? `, ${match.venue}` : ''}</div>
                               </div>
