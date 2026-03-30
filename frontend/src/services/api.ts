@@ -9,17 +9,31 @@ import type {
   BookingFormData,
   ContactFormData,
   AuthResponse,
+  UserRole,
   Tournament,
+  TournamentMatch,
+  TournamentMatchFormData,
+  TournamentWorkflow,
   TeamRegistration,
+  TeamPlayer,
+  TeamPlayerFormData,
   TeamRegistrationFormData,
+  AdminTeamRegistrationFormData,
+  TournamentRegistrationDashboard,
+  TournamentPaymentCheckout,
+  ManualTournamentPaymentFormData,
   ContactMessage,
   AdminDashboard,
+  StaffDashboard,
+  CaptainDashboard,
   AdminUser,
+  AdminUserFormData,
   AuditLog,
   AvailabilityRule,
   BlockedSlot,
   CoachProfile,
   CoachProfileFormData,
+  AdminPlayerFormData,
   PlayerProfile,
   PlayerProfileFormData,
 } from '../types'
@@ -48,17 +62,19 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const original = error.config
+    const status = error.response?.status
     if (
-      error.response?.status === 401 &&
+      (status === 401 || status === 403) &&
       !original._retry &&
       !original.url?.includes('/auth/')
     ) {
       const storedRefresh = localStorage.getItem('refreshToken')
       if (!storedRefresh) {
-        // No refresh token — clear session
+        // No refresh token, clear session
         localStorage.removeItem('token')
         localStorage.removeItem('refreshToken')
         localStorage.removeItem('user')
+        window.dispatchEvent(new Event('auth-state-changed'))
         window.location.href = '/login'
         return Promise.reject(error)
       }
@@ -83,6 +99,11 @@ api.interceptors.response.use(
         const data = res.data.data!
         localStorage.setItem('token', data.token)
         localStorage.setItem('refreshToken', data.refreshToken)
+        localStorage.setItem(
+          'user',
+          JSON.stringify({ email: data.email, name: data.name, role: data.role }),
+        )
+        window.dispatchEvent(new Event('auth-state-changed'))
 
         // Flush queued requests
         refreshQueue.forEach((cb) => cb(data.token))
@@ -94,6 +115,7 @@ api.interceptors.response.use(
         localStorage.removeItem('token')
         localStorage.removeItem('refreshToken')
         localStorage.removeItem('user')
+        window.dispatchEvent(new Event('auth-state-changed'))
         window.location.href = '/login'
         return Promise.reject(error)
       } finally {
@@ -164,8 +186,16 @@ export const submitContact = async (data: ContactFormData): Promise<string> => {
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
-export const login = async (email: string, password: string): Promise<AuthResponse> => {
-  const res = await api.post<ApiResponse<AuthResponse>>('/auth/login', { email, password })
+export const login = async (
+  email: string,
+  password: string,
+  requestedRole?: UserRole,
+): Promise<AuthResponse> => {
+  const res = await api.post<ApiResponse<AuthResponse>>('/auth/login', {
+    email,
+    password,
+    requestedRole,
+  })
   return res.data.data!
 }
 
@@ -173,8 +203,19 @@ export const register = async (
   name: string,
   email: string,
   password: string,
+  requestedRole?: UserRole,
 ): Promise<AuthResponse> => {
-  const res = await api.post<ApiResponse<AuthResponse>>('/auth/register', { name, email, password })
+  const res = await api.post<ApiResponse<AuthResponse>>('/auth/register', {
+    name,
+    email,
+    password,
+    requestedRole,
+  })
+  return res.data.data!
+}
+
+export const claimTeamCaptainAccess = async (): Promise<AuthResponse> => {
+  const res = await api.post<ApiResponse<AuthResponse>>('/auth/claim-team-captain', {})
   return res.data.data!
 }
 
@@ -224,6 +265,87 @@ export const getTournamentById = async (id: number): Promise<Tournament> => {
 export const registerTeam = async (data: TeamRegistrationFormData): Promise<TeamRegistration> => {
   const res = await api.post<ApiResponse<TeamRegistration>>('/teams/register', data)
   return res.data.data!
+}
+
+export const getPublicTournamentRegistration = async (
+  token: string,
+): Promise<TournamentRegistrationDashboard> => {
+  const res = await api.get<ApiResponse<TournamentRegistrationDashboard>>(
+    `/tournaments/registrations/access/${token}`,
+  )
+  return res.data.data!
+}
+
+export const submitTournamentRoster = async (
+  token: string,
+  payload: { rosterText?: string; rosterFile?: File | null },
+): Promise<TournamentRegistrationDashboard> => {
+  const formData = new FormData()
+  if (payload.rosterText?.trim()) {
+    formData.append('rosterText', payload.rosterText.trim())
+  }
+  if (payload.rosterFile) {
+    formData.append('rosterFile', payload.rosterFile)
+  }
+
+  const res = await api.post<ApiResponse<TournamentRegistrationDashboard>>(
+    `/tournaments/registrations/access/${token}/roster`,
+    formData,
+    {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    },
+  )
+  return res.data.data!
+}
+
+export const submitTournamentManualPayment = async (
+  token: string,
+  data: ManualTournamentPaymentFormData,
+): Promise<TournamentRegistrationDashboard> => {
+  const res = await api.post<ApiResponse<TournamentRegistrationDashboard>>(
+    `/tournaments/registrations/access/${token}/payment/manual`,
+    data,
+  )
+  return res.data.data!
+}
+
+export const createTournamentPaymentCheckout = async (
+  token: string,
+): Promise<TournamentPaymentCheckout> => {
+  const res = await api.post<ApiResponse<TournamentPaymentCheckout>>(
+    `/tournaments/registrations/access/${token}/payment/checkout`,
+    {},
+  )
+  return res.data.data!
+}
+
+export const getCaptainDashboard = async (): Promise<CaptainDashboard> => {
+  const res = await api.get<ApiResponse<CaptainDashboard>>('/captain/dashboard')
+  return res.data.data!
+}
+
+export const getCaptainRegistrations = async (): Promise<TeamRegistration[]> => {
+  const res = await api.get<ApiResponse<TeamRegistration[]>>('/captain/registrations')
+  return res.data.data ?? []
+}
+
+export const createCaptainRegistration = async (
+  data: TeamRegistrationFormData,
+): Promise<TeamRegistration> => {
+  const res = await api.post<ApiResponse<TeamRegistration>>('/captain/registrations', data)
+  return res.data.data!
+}
+
+export const updateCaptainRegistration = async (
+  id: number,
+  data: TeamRegistrationFormData,
+): Promise<TeamRegistration> => {
+  const res = await api.put<ApiResponse<TeamRegistration>>(`/captain/registrations/${id}`, data)
+  return res.data.data!
+}
+
+export const deleteCaptainRegistration = async (id: number): Promise<void> => {
+  await api.delete(`/captain/registrations/${id}`)
 }
 
 // ─── Admin ────────────────────────────────────────────────────────────────────
@@ -328,13 +450,22 @@ export const markMessageAsRead = async (id: number): Promise<ContactMessage> => 
   return res.data.data!
 }
 
+export const deleteAdminMessage = async (id: number): Promise<void> => {
+  await api.delete(`/admin/messages/${id}`)
+}
+
 export const getAdminTournaments = async (): Promise<Tournament[]> => {
-  const res = await api.get<ApiResponse<Tournament[]>>('/tournaments')
+  const res = await api.get<ApiResponse<Tournament[]>>('/admin/tournaments')
   return res.data.data ?? []
 }
 
+export const getAdminTournamentWorkflow = async (id: number): Promise<TournamentWorkflow> => {
+  const res = await api.get<ApiResponse<TournamentWorkflow>>(`/admin/tournaments/${id}/workflow`)
+  return res.data.data!
+}
+
 export const createTournament = async (data: Partial<Tournament>): Promise<Tournament> => {
-  const res = await api.post<ApiResponse<Tournament>>('/tournaments', data)
+  const res = await api.post<ApiResponse<Tournament>>('/admin/tournaments', data)
   return res.data.data!
 }
 
@@ -342,17 +473,51 @@ export const updateTournament = async (
   id: number,
   data: Partial<Tournament>,
 ): Promise<Tournament> => {
-  const res = await api.put<ApiResponse<Tournament>>(`/tournaments/${id}`, data)
+  const res = await api.put<ApiResponse<Tournament>>(`/admin/tournaments/${id}`, data)
+  return res.data.data!
+}
+
+export const duplicateTournament = async (
+  id: number,
+  includeData: boolean,
+): Promise<Tournament> => {
+  const res = await api.post<ApiResponse<Tournament>>(
+    `/admin/tournaments/${id}/duplicate`,
+    undefined,
+    { params: { includeData } },
+  )
   return res.data.data!
 }
 
 export const deleteTournament = async (id: number): Promise<void> => {
-  await api.delete(`/tournaments/${id}`)
+  await api.delete(`/admin/tournaments/${id}`)
 }
 
 export const getTournamentRegistrations = async (id: number): Promise<TeamRegistration[]> => {
   const res = await api.get<ApiResponse<TeamRegistration[]>>(`/tournaments/${id}/registrations`)
   return res.data.data ?? []
+}
+
+export const createAdminTournamentRegistration = async (
+  data: AdminTeamRegistrationFormData,
+): Promise<TeamRegistration> => {
+  const res = await api.post<ApiResponse<TeamRegistration>>('/admin/tournaments/registrations', data)
+  return res.data.data!
+}
+
+export const updateAdminTournamentRegistration = async (
+  regId: number,
+  data: AdminTeamRegistrationFormData,
+): Promise<TeamRegistration> => {
+  const res = await api.put<ApiResponse<TeamRegistration>>(
+    `/admin/tournaments/registrations/${regId}`,
+    data,
+  )
+  return res.data.data!
+}
+
+export const deleteAdminTournamentRegistration = async (regId: number): Promise<void> => {
+  await api.delete(`/admin/tournaments/registrations/${regId}`)
 }
 
 export const updateRegistrationStatus = async (
@@ -366,14 +531,124 @@ export const updateRegistrationStatus = async (
   return res.data.data!
 }
 
+export const updateRegistrationPaymentStatus = async (
+  regId: number,
+  paymentStatus: string,
+): Promise<TeamRegistration> => {
+  const res = await api.patch<ApiResponse<TeamRegistration>>(
+    `/admin/tournaments/registrations/${regId}/payment`,
+    { paymentStatus },
+  )
+  return res.data.data!
+}
+
+export const createTournamentTeamPlayer = async (
+  tournamentId: number,
+  teamId: number,
+  data: TeamPlayerFormData,
+): Promise<TeamPlayer> => {
+  const res = await api.post<ApiResponse<TeamPlayer>>(
+    `/admin/tournaments/${tournamentId}/teams/${teamId}/players`,
+    data,
+  )
+  return res.data.data!
+}
+
+export const updateTournamentTeamPlayer = async (
+  tournamentId: number,
+  teamId: number,
+  playerId: number,
+  data: TeamPlayerFormData,
+): Promise<TeamPlayer> => {
+  const res = await api.put<ApiResponse<TeamPlayer>>(
+    `/admin/tournaments/${tournamentId}/teams/${teamId}/players/${playerId}`,
+    data,
+  )
+  return res.data.data!
+}
+
+export const deleteTournamentTeamPlayer = async (
+  tournamentId: number,
+  teamId: number,
+  playerId: number,
+): Promise<void> => {
+  await api.delete(`/admin/tournaments/${tournamentId}/teams/${teamId}/players/${playerId}`)
+}
+
+export const createTournamentMatch = async (
+  tournamentId: number,
+  data: TournamentMatchFormData,
+): Promise<TournamentMatch> => {
+  const payload = {
+    ...data,
+    homeScore: data.homeScore === '' ? undefined : data.homeScore,
+    awayScore: data.awayScore === '' ? undefined : data.awayScore,
+  }
+  const res = await api.post<ApiResponse<TournamentMatch>>(
+    `/admin/tournaments/${tournamentId}/matches`,
+    payload,
+  )
+  return res.data.data!
+}
+
+export const updateTournamentMatch = async (
+  tournamentId: number,
+  matchId: number,
+  data: TournamentMatchFormData,
+): Promise<TournamentMatch> => {
+  const payload = {
+    ...data,
+    homeScore: data.homeScore === '' ? undefined : data.homeScore,
+    awayScore: data.awayScore === '' ? undefined : data.awayScore,
+  }
+  const res = await api.put<ApiResponse<TournamentMatch>>(
+    `/admin/tournaments/${tournamentId}/matches/${matchId}`,
+    payload,
+  )
+  return res.data.data!
+}
+
+export const deleteTournamentMatch = async (tournamentId: number, matchId: number): Promise<void> => {
+  await api.delete(`/admin/tournaments/${tournamentId}/matches/${matchId}`)
+}
+
+export const generateTournamentSchedule = async (
+  tournamentId: number,
+  overwrite = false,
+): Promise<TournamentMatch[]> => {
+  const res = await api.post<ApiResponse<TournamentMatch[]>>(
+    `/admin/tournaments/${tournamentId}/matches/generate`,
+    undefined,
+    { params: { overwrite } },
+  )
+  return res.data.data ?? []
+}
+
 export const getAdminUsers = async (): Promise<AdminUser[]> => {
   const res = await api.get<ApiResponse<AdminUser[]>>('/admin/users')
   return res.data.data ?? []
 }
 
+export const createAdminUser = async (data: AdminUserFormData): Promise<AdminUser> => {
+  const res = await api.post<ApiResponse<AdminUser>>('/admin/users', data)
+  return res.data.data!
+}
+
+export const updateAdminUser = async (
+  id: number,
+  data: AdminUserFormData,
+): Promise<AdminUser> => {
+  const res = await api.put<ApiResponse<AdminUser>>(`/admin/users/${id}`, data)
+  return res.data.data!
+}
+
 export const updateUserRole = async (id: number, role: string): Promise<AdminUser> => {
   const res = await api.patch<ApiResponse<AdminUser>>(`/admin/users/${id}/role`, { role })
   return res.data.data!
+}
+
+export const deleteAdminUser = async (id: number): Promise<void> => {
+  await api.delete(`/admin/users/${id}`)
 }
 
 export const getAuditLogs = async (): Promise<AuditLog[]> => {
@@ -417,6 +692,14 @@ export const createBlockedSlot = async (data: Partial<BlockedSlot>): Promise<Blo
   return res.data.data!
 }
 
+export const updateBlockedSlot = async (
+  id: number,
+  data: Partial<BlockedSlot>,
+): Promise<BlockedSlot> => {
+  const res = await api.put<ApiResponse<BlockedSlot>>(`/admin/availability/blocked/${id}`, data)
+  return res.data.data!
+}
+
 export const deleteBlockedSlot = async (id: number): Promise<void> => {
   await api.delete(`/admin/availability/blocked/${id}`)
 }
@@ -455,11 +738,30 @@ export const getAdminPlayers = async (): Promise<PlayerProfile[]> => {
   return res.data.data ?? []
 }
 
+export const createAdminPlayer = async (
+  data: AdminPlayerFormData,
+): Promise<PlayerProfile> => {
+  const res = await api.post<ApiResponse<PlayerProfile>>('/admin/players', data)
+  return res.data.data!
+}
+
+export const updateAdminPlayer = async (
+  id: number,
+  data: AdminPlayerFormData,
+): Promise<PlayerProfile> => {
+  const res = await api.put<ApiResponse<PlayerProfile>>(`/admin/players/${id}`, data)
+  return res.data.data!
+}
+
+export const deleteAdminPlayer = async (id: number): Promise<void> => {
+  await api.delete(`/admin/players/${id}`)
+}
+
 // ─── Coach Dashboard ──────────────────────────────────────────────────────────
 
-export const getMyCoachProfile = async (): Promise<CoachProfile> => {
+export const getMyCoachProfile = async (): Promise<CoachProfile | null> => {
   const res = await api.get<ApiResponse<CoachProfile>>('/coach/profile')
-  return res.data.data!
+  return res.data.data ?? null
 }
 
 export const updateMyCoachProfile = async (data: CoachProfileFormData): Promise<CoachProfile> => {
@@ -470,6 +772,74 @@ export const updateMyCoachProfile = async (data: CoachProfileFormData): Promise<
 export const getMyCoachSessions = async (): Promise<Booking[]> => {
   const res = await api.get<ApiResponse<Booking[]>>('/coach/sessions')
   return res.data.data ?? []
+}
+
+export const updateCoachSessionStatus = async (
+  id: number,
+  status: string,
+): Promise<Booking> => {
+  const res = await api.patch<ApiResponse<Booking>>(`/coach/sessions/${id}/status`, { status })
+  return res.data.data!
+}
+
+export const rescheduleCoachSession = async (
+  id: number,
+  newDate: string,
+  newTime: string,
+): Promise<Booking> => {
+  const res = await api.patch<ApiResponse<Booking>>(`/coach/sessions/${id}/reschedule`, {
+    newDate,
+    newTime,
+  })
+  return res.data.data!
+}
+
+export const getCoachAvailabilityRules = async (): Promise<AvailabilityRule[]> => {
+  const res = await api.get<ApiResponse<AvailabilityRule[]>>('/coach/availability/rules')
+  return res.data.data ?? []
+}
+
+export const createCoachAvailabilityRule = async (
+  data: Partial<AvailabilityRule>,
+): Promise<AvailabilityRule> => {
+  const res = await api.post<ApiResponse<AvailabilityRule>>('/coach/availability/rules', data)
+  return res.data.data!
+}
+
+export const updateCoachAvailabilityRule = async (
+  id: number,
+  data: Partial<AvailabilityRule>,
+): Promise<AvailabilityRule> => {
+  const res = await api.put<ApiResponse<AvailabilityRule>>(`/coach/availability/rules/${id}`, data)
+  return res.data.data!
+}
+
+export const deleteCoachAvailabilityRule = async (id: number): Promise<void> => {
+  await api.delete(`/coach/availability/rules/${id}`)
+}
+
+export const getCoachBlockedSlots = async (): Promise<BlockedSlot[]> => {
+  const res = await api.get<ApiResponse<BlockedSlot[]>>('/coach/availability/blocked')
+  return res.data.data ?? []
+}
+
+export const createCoachBlockedSlot = async (
+  data: Partial<BlockedSlot>,
+): Promise<BlockedSlot> => {
+  const res = await api.post<ApiResponse<BlockedSlot>>('/coach/availability/blocked', data)
+  return res.data.data!
+}
+
+export const updateCoachBlockedSlot = async (
+  id: number,
+  data: Partial<BlockedSlot>,
+): Promise<BlockedSlot> => {
+  const res = await api.put<ApiResponse<BlockedSlot>>(`/coach/availability/blocked/${id}`, data)
+  return res.data.data!
+}
+
+export const deleteCoachBlockedSlot = async (id: number): Promise<void> => {
+  await api.delete(`/coach/availability/blocked/${id}`)
 }
 
 // ─── Account Player Profiles ──────────────────────────────────────────────────
@@ -494,6 +864,135 @@ export const updatePlayerProfile = async (
 
 export const removePlayerProfile = async (id: number): Promise<void> => {
   await api.delete(`/account/players/${id}`)
+}
+
+export const getStaffDashboard = async (): Promise<StaffDashboard> => {
+  const res = await api.get<ApiResponse<StaffDashboard>>('/staff/dashboard')
+  return res.data.data!
+}
+
+export const getStaffBookings = async (): Promise<Booking[]> => {
+  const res = await api.get<ApiResponse<Booking[]>>('/staff/bookings')
+  return res.data.data ?? []
+}
+
+export const createStaffBooking = async (data: BookingFormData): Promise<Booking> => {
+  const res = await api.post<ApiResponse<Booking>>('/staff/bookings', data)
+  return res.data.data!
+}
+
+export const updateStaffBookingStatus = async (id: number, status: string): Promise<Booking> => {
+  const res = await api.patch<ApiResponse<Booking>>(`/staff/bookings/${id}/status`, { status })
+  return res.data.data!
+}
+
+export const rescheduleStaffBooking = async (
+  id: number,
+  newDate: string,
+  newTime: string,
+): Promise<Booking> => {
+  const res = await api.patch<ApiResponse<Booking>>(`/staff/bookings/${id}/reschedule`, {
+    newDate,
+    newTime,
+  })
+  return res.data.data!
+}
+
+export const getStaffMessages = async (): Promise<ContactMessage[]> => {
+  const res = await api.get<ApiResponse<ContactMessage[]>>('/staff/messages')
+  return res.data.data ?? []
+}
+
+export const markStaffMessageAsRead = async (id: number): Promise<ContactMessage> => {
+  const res = await api.patch<ApiResponse<ContactMessage>>(`/staff/messages/${id}/read`, {})
+  return res.data.data!
+}
+
+export const deleteStaffMessage = async (id: number): Promise<void> => {
+  await api.delete(`/staff/messages/${id}`)
+}
+
+export const getStaffAvailabilityRules = async (): Promise<AvailabilityRule[]> => {
+  const res = await api.get<ApiResponse<AvailabilityRule[]>>('/staff/availability/rules')
+  return res.data.data ?? []
+}
+
+export const createStaffAvailabilityRule = async (
+  data: Partial<AvailabilityRule>,
+): Promise<AvailabilityRule> => {
+  const res = await api.post<ApiResponse<AvailabilityRule>>('/staff/availability/rules', data)
+  return res.data.data!
+}
+
+export const updateStaffAvailabilityRule = async (
+  id: number,
+  data: Partial<AvailabilityRule>,
+): Promise<AvailabilityRule> => {
+  const res = await api.put<ApiResponse<AvailabilityRule>>(`/staff/availability/rules/${id}`, data)
+  return res.data.data!
+}
+
+export const deleteStaffAvailabilityRule = async (id: number): Promise<void> => {
+  await api.delete(`/staff/availability/rules/${id}`)
+}
+
+export const getStaffBlockedSlots = async (): Promise<BlockedSlot[]> => {
+  const res = await api.get<ApiResponse<BlockedSlot[]>>('/staff/availability/blocked')
+  return res.data.data ?? []
+}
+
+export const createStaffBlockedSlot = async (data: Partial<BlockedSlot>): Promise<BlockedSlot> => {
+  const res = await api.post<ApiResponse<BlockedSlot>>('/staff/availability/blocked', data)
+  return res.data.data!
+}
+
+export const updateStaffBlockedSlot = async (
+  id: number,
+  data: Partial<BlockedSlot>,
+): Promise<BlockedSlot> => {
+  const res = await api.put<ApiResponse<BlockedSlot>>(`/staff/availability/blocked/${id}`, data)
+  return res.data.data!
+}
+
+export const deleteStaffBlockedSlot = async (id: number): Promise<void> => {
+  await api.delete(`/staff/availability/blocked/${id}`)
+}
+
+export const getStaffTournaments = async (): Promise<Tournament[]> => {
+  const res = await api.get<ApiResponse<Tournament[]>>('/staff/tournaments')
+  return res.data.data ?? []
+}
+
+export const getStaffTournamentRegistrations = async (id: number): Promise<TeamRegistration[]> => {
+  const res = await api.get<ApiResponse<TeamRegistration[]>>(`/staff/tournaments/${id}/registrations`)
+  return res.data.data ?? []
+}
+
+export const updateStaffRegistrationStatus = async (
+  regId: number,
+  status: string,
+): Promise<TeamRegistration> => {
+  const res = await api.patch<ApiResponse<TeamRegistration>>(
+    `/staff/tournaments/registrations/${regId}/status`,
+    { status },
+  )
+  return res.data.data!
+}
+
+export const updateStaffRegistrationPaymentStatus = async (
+  regId: number,
+  paymentStatus: string,
+): Promise<TeamRegistration> => {
+  const res = await api.patch<ApiResponse<TeamRegistration>>(
+    `/staff/tournaments/registrations/${regId}/payment`,
+    { paymentStatus },
+  )
+  return res.data.data!
+}
+
+export const getStaffPlayers = async (): Promise<PlayerProfile[]> => {
+  const res = await api.get<ApiResponse<PlayerProfile[]>>('/staff/players')
+  return res.data.data ?? []
 }
 
 export default api

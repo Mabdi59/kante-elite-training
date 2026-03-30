@@ -26,8 +26,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("SELECT b FROM Booking b JOIN FETCH b.program ORDER BY b.createdAt DESC")
     List<Booking> findAllByOrderByCreatedAtDesc();
 
-    @Query("SELECT b FROM Booking b JOIN FETCH b.program WHERE b.email = :email ORDER BY b.createdAt DESC")
-    List<Booking> findByEmailOrderByCreatedAtDesc(@Param("email") String email);
+    @Query("SELECT b FROM Booking b JOIN FETCH b.program WHERE LOWER(b.email) = LOWER(:email) ORDER BY b.createdAt DESC")
+    List<Booking> findByEmailIgnoreCaseOrderByCreatedAtDesc(@Param("email") String email);
 
     long countByBookingStatus(BookingStatus status);
 }

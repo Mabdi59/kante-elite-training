@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import api, { getPrograms, getAvailability } from '../services/api'
 import type { ApiResponse, Program, AvailabilityData, BookingFormData, Booking } from '../types'
+import { useAuth } from '../context/AuthContext'
 
 const experienceLevels = [
-  { value: 'beginner', label: 'Beginner — Just starting out' },
-  { value: 'intermediate', label: 'Intermediate — Playing recreationally' },
-  { value: 'advanced', label: 'Advanced — Competitive club player' },
-  { value: 'elite', label: 'Elite — High school / academy level' },
+  { value: 'beginner', label: 'Beginner, just starting out' },
+  { value: 'intermediate', label: 'Intermediate, plays recreationally' },
+  { value: 'advanced', label: 'Advanced, competitive club player' },
+  { value: 'elite', label: 'Elite, high school or academy level' },
 ]
 
 const ageGroups = [
@@ -28,8 +29,10 @@ function getMaxDate() {
 
 function formatDisplayDate(dateStr: string) {
   if (!dateStr) return ''
-  return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', {
-    weekday: 'long', month: 'long', day: 'numeric',
+  return new Date(`${dateStr}T12:00:00`).toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
   })
 }
 
@@ -62,9 +65,11 @@ function StepIndicator({ steps, current }: StepIndicatorProps) {
             <div className={`flex items-center gap-2.5 ${active ? 'text-white' : done ? 'text-amber-500' : 'text-gray-600'}`}>
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 transition-all duration-300 ${
-                  done ? 'bg-amber-500 text-black'
-                    : active ? 'bg-white text-black ring-4 ring-white/20'
-                    : 'bg-[#222] text-gray-600'
+                  done
+                    ? 'bg-amber-500 text-black'
+                    : active
+                      ? 'bg-white text-black ring-4 ring-white/20'
+                      : 'bg-[#222] text-gray-600'
                 }`}
               >
                 {done ? (
@@ -85,7 +90,6 @@ function StepIndicator({ steps, current }: StepIndicatorProps) {
   )
 }
 
-// ── Booking Summary Sidebar ───────────────────────────────────────────────
 interface SidebarProps {
   program: Program | null
   date: string
@@ -95,19 +99,18 @@ interface SidebarProps {
 
 function BookingSidebar({ program, date, time, playerName }: SidebarProps) {
   const hasAnyDetail = date || time || playerName
+
   return (
     <aside className="lg:w-72 xl:w-80 flex-shrink-0">
       <div className="sticky top-24 space-y-4">
-        {/* Your booking card */}
         <div className="bg-[#111] border border-[#222] rounded-2xl overflow-hidden">
           <div className="px-5 py-4 border-b border-[#222] bg-[#161616]">
             <p className="text-amber-500 text-xs font-bold uppercase tracking-widest">Your Booking</p>
-            <p className="text-gray-600 text-xs mt-0.5">Takes less than 60 seconds to complete</p>
+            <p className="text-gray-600 text-xs mt-0.5">Most bookings take less than a minute.</p>
           </div>
           <div className="p-5">
             {program ? (
               <div className="space-y-4">
-                {/* Program */}
                 <div className="flex items-center gap-3 pb-4 border-b border-[#1e1e1e]">
                   <span className="text-2xl">{program.icon}</span>
                   <div>
@@ -149,14 +152,13 @@ function BookingSidebar({ program, date, time, playerName }: SidebarProps) {
           </div>
         </div>
 
-        {/* Trust signals */}
         <div className="bg-[#111] border border-[#222] rounded-2xl p-5 space-y-3">
           {[
             { icon: '🔒', text: 'Instant booking confirmation' },
             { icon: '📧', text: 'Confirmation email sent automatically' },
-            { icon: '👋', text: 'Coach Kante will follow up before your session' },
-            { icon: '🔄', text: 'You can reschedule if needed' },
-            { icon: '📱', text: 'Text or call us anytime' },
+            { icon: '👋', text: 'Coach Kante follows up before the session' },
+            { icon: '🔁', text: 'Rescheduling support if needed' },
+            { icon: '📱', text: 'Call or text us anytime' },
           ].map((item) => (
             <div key={item.text} className="flex items-center gap-3">
               <span className="text-base flex-shrink-0">{item.icon}</span>
@@ -165,11 +167,10 @@ function BookingSidebar({ program, date, time, playerName }: SidebarProps) {
           ))}
         </div>
 
-        {/* Spots warning */}
         <div className="bg-amber-500/8 border border-amber-500/20 rounded-xl p-4">
           <p className="text-amber-400 text-xs font-semibold flex items-center gap-2">
             <span>⚡</span>
-            Spots fill quickly — especially weekends. Book early to secure your preferred time.
+            Weekend and evening spots fill quickly. Book early for the best selection.
           </p>
         </div>
       </div>
@@ -177,18 +178,19 @@ function BookingSidebar({ program, date, time, playerName }: SidebarProps) {
   )
 }
 
-// ── Field wrapper ─────────────────────────────────────────────────────────
 interface FieldProps {
   label: string
   required?: boolean
   error?: string
   children: React.ReactNode
 }
+
 function Field({ label, required, error, children }: FieldProps) {
   return (
     <div>
       <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
-        {label}{required && <span className="text-amber-500 ml-1">*</span>}
+        {label}
+        {required && <span className="text-amber-500 ml-1">*</span>}
       </label>
       {children}
       {error && (
@@ -216,6 +218,7 @@ const INITIAL_FORM: Omit<BookingFormData, 'programId'> = {
 }
 
 export default function BookPage() {
+  const { user } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const preselectedProgramId = searchParams.get('program')
@@ -232,15 +235,13 @@ export default function BookPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
-  // Load programs
   useEffect(() => {
     getPrograms()
       .then((p) => {
         setPrograms(p)
         if (preselectedProgramId) {
           const found = p.find(
-            (prog) =>
-              prog.slug === preselectedProgramId || prog.id === Number(preselectedProgramId),
+            (prog) => prog.slug === preselectedProgramId || prog.id === Number(preselectedProgramId),
           )
           if (found) {
             setSelectedProgram(found)
@@ -252,7 +253,18 @@ export default function BookPage() {
       .finally(() => setLoadingPrograms(false))
   }, [preselectedProgramId])
 
-  // Load availability when program + date selected
+  useEffect(() => {
+    if (!user) return
+
+    const shouldPrefillContactName = user.role === 'PARENT' || user.role === 'USER'
+
+    setForm((prev) => ({
+      ...prev,
+      email: prev.email || user.email,
+      parentName: prev.parentName || (shouldPrefillContactName ? user.name : ''),
+    }))
+  }, [user])
+
   useEffect(() => {
     if (!selectedProgram || !form.bookingDate) return
     setLoadingSlots(true)
@@ -273,7 +285,6 @@ export default function BookPage() {
       setForm((prev) => ({ ...prev, [name]: value }))
     }
     setError('')
-    // Re-validate if field was touched
     if (touched[name]) {
       setFieldErrors((prev) => ({ ...prev, [name]: validateField(name, value) }))
     }
@@ -293,7 +304,10 @@ export default function BookPage() {
     let ok = true
     fields.forEach((f) => {
       const err = validateField(f, form[f])
-      if (err) { errors[f] = err; ok = false }
+      if (err) {
+        errors[f] = err
+        ok = false
+      }
     })
     setFieldErrors((prev) => ({ ...prev, ...errors }))
     setTouched((prev) => ({ ...prev, ...Object.fromEntries(fields.map((f) => [f, true])) }))
@@ -330,36 +344,76 @@ export default function BookPage() {
   ]
 
   const isTwoColumn = step >= 2 && selectedProgram !== null
+  const portalPath =
+    user?.role === 'ADMIN'
+      ? '/admin'
+      : user?.role === 'STAFF'
+        ? '/staff'
+        : user?.role === 'COACH'
+          ? '/coach'
+          : user?.role === 'TEAM_CAPTAIN'
+            ? '/captain'
+          : user?.role === 'PLAYER'
+            ? '/player'
+            : user?.role === 'PARENT'
+              ? '/parent'
+              : user?.role === 'USER'
+                ? '/user'
+              : null
+  const portalLabel =
+    user?.role === 'PLAYER'
+      ? 'Back to Player Portal'
+      : user?.role === 'PARENT'
+        ? 'Back to Parent Portal'
+        : user?.role === 'USER'
+          ? 'Back to Account Portal'
+        : user?.role === 'COACH'
+          ? 'Back to Coach Panel'
+          : user?.role === 'TEAM_CAPTAIN'
+            ? 'Back to Captain Portal'
+          : user?.role === 'STAFF'
+            ? 'Back to Staff Panel'
+            : user?.role === 'ADMIN'
+              ? 'Back to Admin Panel'
+              : ''
 
   return (
-    <div className="min-h-screen bg-black pt-20 pb-20 px-4">
+    <div className="min-h-screen bg-black pt-16 pb-16 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center pt-10 mb-10">
+        {portalPath ? (
+          <div className="max-w-5xl mx-auto pt-6 mb-2">
+            <Link
+              to={portalPath}
+              className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+              {portalLabel}
+            </Link>
+          </div>
+        ) : null}
+
+        <div className="text-center pt-8 mb-8">
           <span className="section-label">Booking</span>
           <h1 className="text-white font-black text-4xl md:text-5xl">Book a Session</h1>
           <p className="text-gray-400 mt-3 max-w-md mx-auto">
-            Select your program, pick a time, and confirm your spot in minutes.
+            Select your program, choose a time, and confirm your session in minutes.
           </p>
         </div>
 
-        {/* Step indicator */}
-        <div className={`mb-8 bg-[#111] border border-[#1e1e1e] rounded-2xl px-6 py-4 ${isTwoColumn ? 'max-w-5xl mx-auto' : 'max-w-3xl mx-auto'}`}>
+        <div className={`mb-6 bg-[#111] border border-[#1e1e1e] rounded-2xl px-6 py-4 ${isTwoColumn ? 'max-w-5xl mx-auto' : 'max-w-3xl mx-auto'}`}>
           <StepIndicator steps={steps} current={step} />
         </div>
 
-        {/* Main layout */}
         <div className={`${isTwoColumn ? 'max-w-5xl' : 'max-w-3xl'} mx-auto`}>
           <div className={`${isTwoColumn ? 'flex gap-8 items-start' : ''}`}>
-            {/* Main form column */}
             <div className="flex-1 min-w-0">
-
-              {/* ── STEP 1: Choose program ── */}
               {step === 1 && (
                 <div className="card p-8">
                   <h2 className="text-white font-black text-2xl mb-2">Choose Your Program</h2>
-                  <p className="text-gray-500 text-sm mb-7">
-                    Not sure which to pick? Look for the <span className="text-amber-500/80 font-semibold">Best for:</span> label — it tells you exactly who each program is designed for.
+                  <p className="text-gray-500 text-sm mb-6">
+                    Not sure which to choose? Use the <span className="text-amber-500/80 font-semibold">Best for:</span> label to see who each program fits best.
                   </p>
                   {loadingPrograms ? (
                     <div className="space-y-3">
@@ -401,7 +455,6 @@ export default function BookPage() {
                 </div>
               )}
 
-              {/* ── STEP 2: Date & time ── */}
               {step === 2 && selectedProgram && (
                 <div className="card p-8">
                   <button
@@ -415,9 +468,8 @@ export default function BookPage() {
                   </button>
 
                   <h2 className="text-white font-black text-2xl mb-2">Pick a Date & Time</h2>
-                  <p className="text-gray-500 text-sm mb-7">
-                    Spots are first-come, first-served.{' '}
-                    <span className="text-amber-500/70">Evening sessions fill quickly.</span>
+                  <p className="text-gray-500 text-sm mb-6">
+                    Bookings are first come, first served. Evening and weekend sessions go fastest.
                   </p>
 
                   <Field label="Select Date" required>
@@ -472,16 +524,15 @@ export default function BookPage() {
                   )}
 
                   <button
-                    className="btn-primary w-full justify-center mt-8 py-4 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none"
+                    className="btn-primary w-full justify-center mt-6 py-4 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none"
                     onClick={() => setStep(3)}
                     disabled={!form.bookingDate || !form.bookingTime}
                   >
-                    Continue to Your Details →
+                    Continue to Details
                   </button>
                 </div>
               )}
 
-              {/* ── STEP 3: Player details ── */}
               {step === 3 && selectedProgram && (
                 <div className="card p-8">
                   <button
@@ -491,11 +542,11 @@ export default function BookPage() {
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                     </svg>
-                    Change date / time
+                    Change date and time
                   </button>
 
                   <h2 className="text-white font-black text-2xl mb-2">Player & Contact Details</h2>
-                  <p className="text-gray-500 text-sm mb-7">Tell us about the player. This helps Coach Kante prepare for your session.</p>
+                  <p className="text-gray-500 text-sm mb-6">Tell us about the player so Coach Kante can prepare for the session.</p>
 
                   <div className="space-y-5">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -506,7 +557,7 @@ export default function BookPage() {
                           value={form.playerName}
                           onChange={handleChange}
                           onBlur={handleBlur}
-                          placeholder="Player's full name"
+                          placeholder="Player full name"
                           autoComplete="name"
                         />
                       </Field>
@@ -518,7 +569,11 @@ export default function BookPage() {
                           onChange={handleChange}
                         >
                           <option value="">Select age group...</option>
-                          {ageGroups.map((a) => <option key={a} value={a}>{a}</option>)}
+                          {ageGroups.map((a) => (
+                            <option key={a} value={a}>
+                              {a}
+                            </option>
+                          ))}
                         </select>
                       </Field>
                     </div>
@@ -537,16 +592,24 @@ export default function BookPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <Field label="Email Address" required error={touched.email ? fieldErrors.email : ''}>
-                        <input
-                          className={touched.email && fieldErrors.email ? 'input-field-error' : 'input-field-default'}
-                          type="email"
-                          name="email"
-                          value={form.email}
-                          onChange={handleChange}
-                          onBlur={handleBlur}
-                          placeholder="you@example.com"
-                          autoComplete="email"
-                        />
+                        <>
+                          <input
+                            className={touched.email && fieldErrors.email ? 'input-field-error' : 'input-field-default'}
+                            type="email"
+                            name="email"
+                            value={form.email}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            placeholder="you@example.com"
+                            autoComplete="email"
+                            readOnly={!!user}
+                          />
+                          {user ? (
+                            <p className="text-gray-600 text-xs mt-2">
+                              Using your signed in account email so this booking appears in your portal.
+                            </p>
+                          ) : null}
+                        </>
                       </Field>
                       <Field label="Phone Number" required error={touched.phone ? fieldErrors.phone : ''}>
                         <input
@@ -571,36 +634,37 @@ export default function BookPage() {
                       >
                         <option value="">Select experience level (optional)...</option>
                         {experienceLevels.map((l) => (
-                          <option key={l.value} value={l.value}>{l.label}</option>
+                          <option key={l.value} value={l.value}>
+                            {l.label}
+                          </option>
                         ))}
                       </select>
                     </Field>
 
-                    <Field label="Goals / Notes (optional)">
+                    <Field label="Goals or Notes (optional)">
                       <textarea
                         className="textarea-field"
                         rows={3}
                         name="notes"
                         value={form.notes}
                         onChange={handleChange}
-                        placeholder="Specific goals, areas to focus on, or anything Coach Kante should know beforehand..."
+                        placeholder="Share goals, focus areas, or anything Coach Kante should know before the session."
                       />
                     </Field>
                   </div>
 
                   <button
-                    className="btn-primary w-full justify-center mt-8 py-4 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none"
+                    className="btn-primary w-full justify-center mt-6 py-4 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none"
                     onClick={() => {
                       if (validateStep3()) setStep(4)
                     }}
                     disabled={!form.playerName || !form.email || !form.phone}
                   >
-                    Review Your Booking →
+                    Review Booking
                   </button>
                 </div>
               )}
 
-              {/* ── STEP 4: Confirm ── */}
               {step === 4 && selectedProgram && (
                 <div className="card p-8">
                   <button
@@ -614,11 +678,9 @@ export default function BookPage() {
                   </button>
 
                   <h2 className="text-white font-black text-2xl mb-2">Confirm Booking</h2>
-                  <p className="text-gray-500 text-sm mb-7">Review your booking below, then lock in your session.</p>
+                  <p className="text-gray-500 text-sm mb-6">Review your booking below, then confirm your session.</p>
 
-                  {/* Summary card */}
                   <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-xl overflow-hidden mb-6">
-                    {/* Program header */}
                     <div className="flex items-center gap-3 px-6 py-5 border-b border-[#1e1e1e] bg-[#111]">
                       <span className="text-3xl">{selectedProgram.icon}</span>
                       <div>
@@ -627,7 +689,6 @@ export default function BookPage() {
                       </div>
                     </div>
 
-                    {/* Details */}
                     <div className="px-6 py-5 space-y-3 text-sm">
                       {([
                         ['Date', formatDisplayDate(form.bookingDate)],
@@ -650,14 +711,12 @@ export default function BookPage() {
                         ))}
                     </div>
 
-                    {/* Total */}
                     <div className="px-6 py-4 border-t border-[#1e1e1e] bg-[#111] flex justify-between items-center">
                       <span className="text-gray-400 font-semibold">Session Rate</span>
                       <span className="text-amber-500 font-black text-xl">{selectedProgram.priceLabel}</span>
                     </div>
                   </div>
 
-                  {/* Error */}
                   {error && (
                     <div className="bg-red-900/20 border border-red-500/30 text-red-400 rounded-xl px-5 py-4 text-sm mb-5 flex items-start gap-3">
                       <span className="flex-shrink-0 mt-0.5">⚠️</span>
@@ -687,13 +746,12 @@ export default function BookPage() {
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-gray-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                     </svg>
-                    <p className="text-gray-600 text-xs">We will email your confirmation details right away and follow up with anything you need before the session.</p>
+                    <p className="text-gray-600 text-xs">We will send your confirmation right away and follow up before the session if needed.</p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Sidebar (steps 2-4) */}
             {isTwoColumn && (
               <BookingSidebar
                 program={selectedProgram}

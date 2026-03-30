@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { AuthUser } from '../types'
 
 interface AuthContextValue {
@@ -9,6 +9,7 @@ interface AuthContextValue {
   isAdmin: boolean
   isCoach: boolean
   isStaff: boolean
+  isPlayer: boolean
   loginUser: (token: string, refreshToken: string, user: AuthUser) => void
   logoutUser: () => void
   updateTokens: (token: string, refreshToken: string) => void
@@ -25,6 +26,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem('user')
     return stored ? (JSON.parse(stored) as AuthUser) : null
   })
+
+  useEffect(() => {
+    const syncFromStorage = () => {
+      const nextToken = localStorage.getItem('token')
+      const nextRefreshToken = localStorage.getItem('refreshToken')
+      const storedUser = localStorage.getItem('user')
+
+      setToken(nextToken)
+      setRefreshToken(nextRefreshToken)
+      setUser(storedUser ? (JSON.parse(storedUser) as AuthUser) : null)
+    }
+
+    window.addEventListener('storage', syncFromStorage)
+    window.addEventListener('auth-state-changed', syncFromStorage)
+
+    return () => {
+      window.removeEventListener('storage', syncFromStorage)
+      window.removeEventListener('auth-state-changed', syncFromStorage)
+    }
+  }, [])
 
   const loginUser = (newToken: string, newRefreshToken: string, newUser: AuthUser) => {
     localStorage.setItem('token', newToken)
@@ -61,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAdmin: user?.role === 'ADMIN',
         isCoach: user?.role === 'COACH' || user?.role === 'ADMIN',
         isStaff: user?.role === 'STAFF' || user?.role === 'ADMIN',
+        isPlayer: user?.role === 'PLAYER' || user?.role === 'ADMIN',
         loginUser,
         logoutUser,
         updateTokens,

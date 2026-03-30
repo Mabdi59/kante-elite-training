@@ -2,6 +2,7 @@ package com.kanteelite.training.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import com.kanteelite.training.enums.UserRole;
 import lombok.Data;
 
 @Data
@@ -13,4 +14,6 @@ public class LoginRequest {
 
     @NotBlank
     private String password;
+
+    private UserRole requestedRole;
 }

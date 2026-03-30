@@ -20,15 +20,14 @@ export default function CTASection({
   urgencyLine,
 }: CTASectionProps) {
   return (
-    <section className="relative bg-black py-24 px-4 text-center overflow-hidden">
-      {/* Background glow */}
+    <section className="relative bg-black py-20 px-4 text-center overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_#78350f_0%,_transparent_60%)] opacity-20" />
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/25 to-transparent" />
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/10 to-transparent" />
 
       <div className="relative max-w-4xl mx-auto">
         {urgencyLine && (
-          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-8">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-6">
             <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
             {urgencyLine}
           </div>
@@ -38,7 +37,7 @@ export default function CTASection({
           {title}
         </h2>
         {subtitle && (
-          <p className="text-gray-300 text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-gray-300 text-lg md:text-xl mb-8 max-w-2xl mx-auto leading-relaxed">
             {subtitle}
           </p>
         )}
@@ -56,9 +55,8 @@ export default function CTASection({
           )}
         </div>
 
-        {/* Trust micro-signals */}
-        <div className="flex flex-wrap items-center justify-center gap-6 mt-10 text-gray-600 text-xs">
-          {['No commitment required', 'Instant booking confirmation', 'Confirmation email sent fast'].map((t) => (
+        <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-gray-600 text-xs">
+          {['No commitment required', 'Instant booking confirmation', 'Fast confirmation email'].map((t) => (
             <span key={t} className="flex items-center gap-1.5">
               <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-amber-500/60" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />

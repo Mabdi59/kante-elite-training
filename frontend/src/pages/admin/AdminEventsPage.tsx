@@ -245,7 +245,7 @@ export default function AdminEventsPage() {
                   <span className="text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full">{e.type}</span>
                 </div>
                 <p className="text-gray-400 text-sm">
-                  {e.startDate}{e.endDate && e.endDate !== e.startDate ? ` – ${e.endDate}` : ''} · {e.location}
+                  {e.startDate}{e.endDate && e.endDate !== e.startDate ? ` to ${e.endDate}` : ''} · {e.location}
                   {e.price > 0 && ` · $${e.price}`}
                 </p>
                 <p className="text-gray-500 text-xs mt-1">

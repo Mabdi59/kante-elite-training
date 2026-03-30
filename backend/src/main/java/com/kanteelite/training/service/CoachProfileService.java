@@ -5,6 +5,7 @@ import com.kanteelite.training.dto.response.BookingResponse;
 import com.kanteelite.training.dto.response.CoachProfileResponse;
 import com.kanteelite.training.entity.CoachProfile;
 import com.kanteelite.training.entity.User;
+import com.kanteelite.training.enums.UserRole;
 import com.kanteelite.training.exception.ResourceNotFoundException;
 import com.kanteelite.training.repository.BookingRepository;
 import com.kanteelite.training.repository.CoachProfileRepository;
@@ -45,9 +46,20 @@ public class CoachProfileService {
 
     @Transactional(readOnly = true)
     public CoachProfileResponse getByUserEmail(String email) {
-        CoachProfile p = coachProfileRepository.findByUserEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("No coach profile for: " + email));
-        return toResponse(p);
+        return toResponse(ensureCoachProfileByEmail(email));
+    }
+
+    @Transactional
+    public CoachProfileResponse getOptionalByUserEmail(String email) {
+        return coachProfileRepository.findByUserEmail(email)
+                .map(this::toResponse)
+                .orElseGet(() -> {
+                    User user = userRepository.findByEmail(email).orElse(null);
+                    if (user == null || user.getRole() != UserRole.COACH) {
+                        return null;
+                    }
+                    return toResponse(createDefaultProfile(user));
+                });
     }
 
     @Transactional
@@ -80,8 +92,7 @@ public class CoachProfileService {
 
     @Transactional
     public CoachProfileResponse updateSelf(String email, CoachProfileRequest req) {
-        CoachProfile profile = coachProfileRepository.findByUserEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("No coach profile found."));
+        CoachProfile profile = ensureCoachProfileByEmail(email);
         profile.setBio(req.getBio());
         profile.setSpecialties(req.getSpecialties());
         profile.setCertifications(req.getCertifications());
@@ -99,7 +110,7 @@ public class CoachProfileService {
     /** Returns all bookings that involve this coach's email as contact. */
     @Transactional(readOnly = true)
     public List<BookingResponse> getAssignedSessions(String coachEmail) {
-        return bookingRepository.findByEmailOrderByCreatedAtDesc(coachEmail)
+        return bookingRepository.findByEmailIgnoreCaseOrderByCreatedAtDesc(coachEmail)
                 .stream().map(bookingService::toResponse).toList();
     }
 
@@ -115,5 +126,28 @@ public class CoachProfileService {
                 .active(p.isActive())
                 .createdAt(p.getCreatedAt())
                 .build();
+    }
+
+    private CoachProfile ensureCoachProfileByEmail(String email) {
+        return coachProfileRepository.findByUserEmail(email)
+                .orElseGet(() -> {
+                    User user = userRepository.findByEmail(email)
+                            .orElseThrow(() -> new IllegalArgumentException("No coach profile for: " + email));
+                    if (user.getRole() != UserRole.COACH) {
+                        throw new IllegalArgumentException("No coach profile for: " + email);
+                    }
+                    return createDefaultProfile(user);
+                });
+    }
+
+    private CoachProfile createDefaultProfile(User user) {
+        CoachProfile profile = CoachProfile.builder()
+                .user(user)
+                .bio("")
+                .specialties("")
+                .certifications("")
+                .active(true)
+                .build();
+        return coachProfileRepository.save(profile);
     }
 }

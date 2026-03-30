@@ -6,7 +6,7 @@ interface EventCardProps {
 }
 
 function formatDate(dateStr: string) {
-  return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', {
+  return new Date(`${dateStr}T12:00:00`).toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -21,8 +21,8 @@ export default function EventCard({ event }: EventCardProps) {
   const statusBadge = isSoldOut
     ? { label: 'Sold Out', cls: 'bg-red-900/40 text-red-400 border-red-500/30' }
     : isLimited
-    ? { label: `${event.spotsLeft} spots left`, cls: 'bg-amber-500/15 text-amber-400 border-amber-500/30' }
-    : { label: 'Open', cls: 'bg-green-900/30 text-green-400 border-green-500/30' }
+      ? { label: `Only ${event.spotsLeft} spots left`, cls: 'bg-amber-500/15 text-amber-400 border-amber-500/30' }
+      : { label: 'Open', cls: 'bg-green-900/30 text-green-400 border-green-500/30' }
 
   return (
     <div className={`card flex flex-col transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/30 ${isSoldOut ? 'opacity-75' : ''}`}>
@@ -48,7 +48,7 @@ export default function EventCard({ event }: EventCardProps) {
             <span className="text-amber-500">📅</span>
             <span>
               {formatDate(event.startDate)}
-              {event.endDate && ` – ${formatDate(event.endDate)}`}
+              {event.endDate && ` to ${formatDate(event.endDate)}`}
             </span>
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-300">
@@ -76,7 +76,7 @@ export default function EventCard({ event }: EventCardProps) {
           <span className="text-gray-500 text-sm font-bold">Registration Closed</span>
         ) : (
           <Link to="/book" className="btn-primary text-sm px-5 py-2">
-            Register
+            Register Now
           </Link>
         )}
       </div>

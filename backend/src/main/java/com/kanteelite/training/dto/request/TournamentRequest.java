@@ -38,4 +38,20 @@ public class TournamentRequest {
     private BigDecimal entryFee;
 
     private String notes;
+
+    private String formatType;
+
+    private Integer teamsPerGroup;
+
+    private Integer advancePerGroup;
+
+    private Integer pointsForWin;
+
+    private Integer pointsForDraw;
+
+    private Integer pointsForLoss;
+
+    private Integer matchDurationMinutes;
+
+    private Boolean thirdPlaceMatchEnabled;
 }

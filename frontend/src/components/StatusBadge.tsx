@@ -8,9 +8,14 @@ const presets: Record<string, string> = {
   UPCOMING: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
   ONGOING: 'bg-green-500/10 text-green-400 border-green-500/20',
   PENDING: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+  SUBMITTED: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
   APPROVED: 'bg-green-500/10 text-green-400 border-green-500/20',
   REJECTED: 'bg-red-500/10 text-red-400 border-red-500/20',
   WAITLISTED: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
+  PAID: 'bg-green-500/10 text-green-400 border-green-500/20',
+  FAILED: 'bg-red-500/10 text-red-400 border-red-500/20',
+  REFUNDED: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  NOT_REQUIRED: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
   // General
   OPEN: 'bg-green-500/10 text-green-400 border-green-500/20',
   CLOSED: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
@@ -31,13 +36,21 @@ interface Props {
   className?: string
 }
 
+function formatStatusLabel(status: string) {
+  return status
+    .toLowerCase()
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
 export default function StatusBadge({ status, className = '' }: Props) {
   const cls = presets[status.toUpperCase()] ?? 'bg-gray-500/10 text-gray-400 border-gray-500/20'
   return (
     <span
       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${cls} ${className}`}
     >
-      {status}
+      {formatStatusLabel(status)}
     </span>
   )
 }

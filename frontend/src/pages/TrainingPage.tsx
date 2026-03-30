@@ -8,36 +8,37 @@ import CTASection from '../components/CTASection'
 const faqs = [
   {
     q: 'What age groups do you train?',
-    a: 'We train players from U8 through 18+. All programs are tailored to the specific age, development stage, and goals of each player.',
+    a: "We train players from U8 through 18+. Each program is tailored to the player's age, development stage, and goals.",
   },
   {
-    q: 'How many players are in a "small group" session?',
-    a: 'Small group sessions are capped at 4 players to ensure every athlete gets meaningful coaching time and personalized feedback — never lost in a crowd.',
+    q: 'How many players are in a small group session?',
+    a: 'Small group sessions are capped at 4 players, so every athlete gets personal coaching time and clear feedback.',
   },
   {
     q: 'Do I need to bring my own ball?',
-    a: "It helps, but it's not required. Coach Kante has equipment available. Bring a ball if you have one — touching your own ball more reps is always better.",
+    a: 'Bring a ball if you have one, but it is not required. Coach Kante provides equipment for every session.',
   },
   {
     q: 'What if I need to cancel or reschedule?',
-    a: "We ask for at least 24 hours notice for cancellations or reschedules. Reply to your confirmation email or use the contact form and we'll get you sorted.",
+    a: 'Please give at least 24 hours notice if you need to cancel or reschedule. Reply to your confirmation email or use the contact form.',
   },
   {
     q: 'How quickly will I see improvement?',
-    a: 'Most players notice a difference within 3–4 focused sessions. Players who commit to consistent training — 1–2 sessions per week — typically show measurable improvement within 4–6 weeks.',
+    a: 'Many players feel a difference after 3 to 4 focused sessions. Players who train 1 to 2 times per week often show clear progress within 4 to 6 weeks.',
   },
   {
-    q: 'Is training available year-round?',
-    a: 'Yes. We train year-round indoors and outdoors depending on season and weather. Summer sees high demand — booking ahead is strongly recommended.',
+    q: 'Is training available year round?',
+    a: 'Yes. Training runs year round, indoors or outdoors depending on the season and weather. Summer sessions fill quickly, so early booking helps.',
   },
 ]
 
 function FAQ() {
   const [open, setOpen] = useState<number | null>(null)
+
   return (
-    <section className="bg-black py-20 px-4">
+    <section className="bg-black py-16 px-4">
       <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <span className="section-label">Common Questions</span>
           <h2 className="text-white font-black text-4xl">
             Everything You Need to <span className="gradient-text">Know</span>
@@ -96,19 +97,18 @@ export default function TrainingPage() {
       <HeroSection
         badge="What We Offer"
         title="Training Programs"
-        subtitle="From beginners finding their footing to elite players chasing college scholarships — every program is structured, purposeful, and personal."
+        subtitle="From first touch to high-level performance, every program is structured, focused, and personal."
       />
 
-      {/* Programs grid */}
-      <section className="bg-black py-20 px-4">
+      <section className="bg-black py-16 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <span className="section-label">5 Programs Available</span>
             <h2 className="text-white font-black text-4xl">
               Choose the Right <span className="gradient-text">Fit</span>
             </h2>
             <p className="text-gray-400 mt-4 max-w-xl mx-auto">
-              Every program is built around real development goals, not just field hours. Browse below and book the one that fits your player.
+              Every program is built around real development goals. Browse the options and book the one that fits your player best.
             </p>
           </div>
 
@@ -130,22 +130,20 @@ export default function TrainingPage() {
         </div>
       </section>
 
-      {/* How it works */}
-      <section className="bg-[#0a0a0a] py-20 px-4 border-t border-[#1a1a1a]">
+      <section className="bg-[#0a0a0a] py-16 px-4 border-t border-[#1a1a1a]">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
+          <div className="text-center mb-10">
             <span className="section-label">Simple Process</span>
             <h2 className="text-white font-black text-4xl">
               Book a Session in <span className="gradient-text">4 Steps</span>
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
-            {/* Connector line on desktop */}
             <div className="hidden md:block absolute top-8 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-amber-500/30 via-amber-500/10 to-amber-500/30" />
             {[
               { step: '01', title: 'Choose Program', desc: 'Pick the training type that matches your goals and schedule.', icon: '📋' },
-              { step: '02', title: 'Pick Date & Time', desc: 'Browse live availability and choose when works for you.', icon: '📅' },
-              { step: '03', title: 'Enter Details', desc: 'Quick player info form — takes less than two minutes.', icon: '✍️' },
+              { step: '02', title: 'Pick Date & Time', desc: 'Browse live availability and choose the session that works best for you.', icon: '📅' },
+              { step: '03', title: 'Enter Details', desc: 'Share quick player information. It takes less than two minutes.', icon: '✍️' },
               { step: '04', title: 'Confirm Spot', desc: 'Review your details and lock in your training time right away.', icon: '✅' },
             ].map((item) => (
               <div key={item.step} className="text-center relative">
@@ -161,13 +159,12 @@ export default function TrainingPage() {
         </div>
       </section>
 
-      {/* FAQ */}
       <FAQ />
 
       <CTASection
         title="Ready to Start Training?"
-        subtitle="Choose a program, book your first session, and see the difference — usually within weeks."
-        urgencyLine="Limited spots available — book ahead"
+        subtitle="Choose a program, book your first session, and start seeing progress within weeks."
+        urgencyLine="Limited spots available. Book ahead."
       />
     </div>
   )

@@ -12,7 +12,7 @@ export default function EventsPage() {
   useEffect(() => {
     getEvents()
       .then(setEvents)
-      .catch(() => { /* silently fail — empty state handles it */ })
+      .catch(() => { /* Empty state handles load failures. */ })
       .finally(() => setLoading(false))
   }, [])
 
@@ -24,10 +24,10 @@ export default function EventsPage() {
       <HeroSection
         badge="Upcoming"
         title="Camps & Events"
-        subtitle="Intensive training experiences designed to deliver the biggest improvements in the shortest time. Reserve your spot before they fill up."
+        subtitle="Focused camps and special events that give players extra reps, coaching, and confidence."
       />
 
-      <section className="bg-black py-20 px-4">
+      <section className="bg-black py-16 px-4">
         <div className="max-w-7xl mx-auto">
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -39,11 +39,11 @@ export default function EventsPage() {
             <div className="text-center py-16">
               <div className="text-6xl mb-4">📅</div>
               <h3 className="text-white font-black text-2xl mb-3">No Events Currently Scheduled</h3>
-              <p className="text-gray-400 mb-8">
-                Check back soon — we schedule new camps and events regularly throughout the year.
+              <p className="text-gray-400 mb-6">
+                Check back soon. New camps and events are added throughout the year.
               </p>
               <p className="text-gray-500 text-sm">
-                Want to be notified when new events are posted?{' '}
+                Want to hear about the next one first?{' '}
                 <a href="/contact" className="text-amber-500 hover:underline">
                   Contact us
                 </a>
@@ -54,7 +54,7 @@ export default function EventsPage() {
             <>
               {openEvents.length > 0 && (
                 <>
-                  <div className="mb-8">
+                  <div className="mb-6">
                     <p className="section-label">Available Now</p>
                     <h2 className="text-white font-black text-3xl">Open for Registration</h2>
                   </div>
@@ -68,10 +68,10 @@ export default function EventsPage() {
 
               {soldOutEvents.length > 0 && (
                 <>
-                  <div className="mb-8">
+                  <div className="mb-6">
                     <p className="section-label text-gray-500">Sold Out</p>
                     <h2 className="text-gray-400 font-bold text-3xl">
-                      Past & Sold Out Events
+                      Past and Sold Out Events
                     </h2>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -86,10 +86,9 @@ export default function EventsPage() {
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="bg-[#111111] py-20 px-4">
+      <section className="bg-[#111111] py-16 px-4">
         <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-6">
             <p className="section-label">Common Questions</p>
             <h2 className="text-white font-black text-3xl md:text-4xl">Events FAQ</h2>
           </div>
@@ -97,19 +96,19 @@ export default function EventsPage() {
             {[
               {
                 q: 'What should my child bring to camp?',
-                a: 'Cleats, shin guards, athletic clothing, a water bottle, and a packed lunch for full-day camps. A ball is recommended but we provide extras.',
+                a: 'Bring cleats, shin guards, athletic clothing, a water bottle, and a packed lunch for full-day camps. A ball is recommended, and we also provide extras.',
               },
               {
                 q: 'What age groups do events cover?',
-                a: 'We run events for players aged 8–18. Each event specifies its age range — make sure to check the age group listed on each card.',
+                a: 'We run events for players ages 8 to 18. Each listing includes the specific age range for that event.',
               },
               {
                 q: 'What happens if I need to cancel after booking?',
-                a: 'We offer full refunds up to 72 hours before the event start date. Contact us as soon as possible and we will work to accommodate you.',
+                a: 'We offer full refunds up to 72 hours before the event start date. Contact us as soon as possible and we will do our best to help.',
               },
               {
                 q: 'Are events held rain or shine?',
-                a: 'Most outdoor events are held rain or shine unless there is a lightning risk. We will notify all registered participants if there are weather cancellations.',
+                a: 'Most outdoor events go ahead unless there is a weather safety risk. We will contact registered families if plans change.',
               },
             ].map((item) => (
               <div key={item.q} className="card p-6">
@@ -122,8 +121,8 @@ export default function EventsPage() {
       </section>
 
       <CTASection
-        title="Want to Be Notified First?"
-        subtitle="Spots at our camps fill up fast. Contact us to be added to our notification list."
+        title="Want Early Event Updates?"
+        subtitle="Camps can fill quickly. Contact us to join our event updates list."
         primaryLabel="Get in Touch"
         primaryHref="/contact"
         secondaryLabel="View Programs"

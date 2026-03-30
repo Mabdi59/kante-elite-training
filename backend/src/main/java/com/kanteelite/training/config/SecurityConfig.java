@@ -17,6 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.Arrays;
 import java.util.List;
@@ -42,7 +43,14 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) ->
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED))
+                .accessDeniedHandler((request, response, accessDeniedException) ->
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN))
+            )
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.POST, "/api/auth/claim-team-captain").authenticated()
                 // Public auth endpoints
                 .requestMatchers("/api/auth/**").permitAll()
                 // Public read endpoints
@@ -50,16 +58,23 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/testimonials/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/availability/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/tournaments/*/registrations").hasAnyRole("ADMIN", "STAFF")
+                .requestMatchers(HttpMethod.GET, "/api/tournaments/registrations/access/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/tournaments/**").permitAll()
                 // Public write endpoints
                 .requestMatchers(HttpMethod.POST, "/api/bookings").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/contact").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/teams/register").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/tournaments/registrations/access/**").permitAll()
                 // Admin-only: tournament mutations and admin panel
                 .requestMatchers(HttpMethod.POST, "/api/tournaments/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/tournaments/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/tournaments/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                // Staff operations endpoints
+                .requestMatchers("/api/staff/**").hasAnyRole("ADMIN", "STAFF")
+                // Team captain endpoints
+                .requestMatchers("/api/captain/**").hasAnyRole("ADMIN", "TEAM_CAPTAIN", "COACH")
                 // Coach public endpoint
                 .requestMatchers(HttpMethod.GET, "/api/coach/public").permitAll()
                 // Coach authenticated endpoints

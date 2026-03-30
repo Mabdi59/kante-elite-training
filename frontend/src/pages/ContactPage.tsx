@@ -57,15 +57,14 @@ export default function ContactPage() {
       <HeroSection
         badge="Get in Touch"
         title="Contact Coach Kante"
-        subtitle="Have a question about a program, event, or anything else? We typically respond within 24 hours."
+        subtitle="Have a question about training, events, or scheduling? We usually reply within 24 hours."
       />
 
-      <section className="bg-black py-20 px-4">
+      <section className="bg-black py-16 px-4">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-12">
-          {/* Contact info */}
           <div className="lg:col-span-2">
             <p className="section-label">Reach Us</p>
-            <h2 className="text-white font-black text-3xl mb-8">
+            <h2 className="text-white font-black text-3xl mb-6">
               We'd Love to <span className="text-amber-500">Hear From You</span>
             </h2>
             <div className="space-y-6">
@@ -96,13 +95,11 @@ export default function ContactPage() {
             <div className="mt-10 bg-[#111111] border border-[#222] rounded-xl p-6">
               <p className="text-amber-500 font-bold text-sm mb-2">💡 Quick Tip</p>
               <p className="text-gray-400 text-sm leading-relaxed">
-                For the fastest response, include your player's age, current skill level, and which
-                program you're interested in.
+                For the fastest response, include your player's age, current level, and the program you are interested in.
               </p>
             </div>
           </div>
 
-          {/* Form */}
           <div className="lg:col-span-3">
             {success ? (
               <div className="card p-10 text-center">
@@ -111,9 +108,9 @@ export default function ContactPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                   </svg>
                 </div>
-                <h3 className="text-white font-black text-2xl mb-3">Message Sent!</h3>
-                <p className="text-gray-400 leading-relaxed mb-8 max-w-sm mx-auto">
-                  Thanks for reaching out. Coach Kante will respond within 24 hours — usually same day.
+                <h3 className="text-white font-black text-2xl mb-3">Message Sent</h3>
+                <p className="text-gray-400 leading-relaxed mb-6 max-w-sm mx-auto">
+                  Thanks for reaching out. Coach Kante will reply within 24 hours, and often sooner.
                 </p>
                 <button
                   onClick={() => setSuccess(false)}
@@ -125,7 +122,7 @@ export default function ContactPage() {
             ) : (
               <form onSubmit={handleSubmit} className="card p-8">
                 <h3 className="text-white font-black text-xl mb-2">Send a Message</h3>
-                <p className="text-gray-500 text-sm mb-7">We typically respond within 24 hours — usually much faster.</p>
+                <p className="text-gray-500 text-sm mb-7">We usually reply within 24 hours. Many messages are answered sooner.</p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
                   <div>
@@ -204,7 +201,7 @@ export default function ContactPage() {
                     name="message"
                     value={form.message}
                     onChange={handleChange}
-                    placeholder="Tell us about your player, their goals, and any questions you have..."
+                    placeholder="Tell us about your player, goals, and any questions you have."
                     required
                     minLength={10}
                   />
@@ -230,7 +227,7 @@ export default function ContactPage() {
                       </svg>
                       Sending...
                     </>
-                  ) : 'Send Message →'}
+                  ) : 'Send Message'}
                 </button>
 
                 <p className="text-gray-600 text-xs text-center mt-4">

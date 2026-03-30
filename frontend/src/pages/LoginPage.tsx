@@ -1,29 +1,48 @@
-import { useState, type FormEvent } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useMemo, useState, type FormEvent } from 'react'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { login } from '../services/api'
 import { useAuth } from '../context/AuthContext'
-import type { AuthUser } from '../types'
+import type { AuthUser, UserRole } from '../types'
 
 export default function LoginPage() {
   const { loginUser } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const requestedRole = (searchParams.get('requestedRole') as UserRole | null) ?? undefined
+  const isTournamentIntent = searchParams.get('intent') === 'tournament'
+  const redirectPath = useMemo(() => {
+    const redirect = searchParams.get('redirect')
+    return redirect && redirect.startsWith('/') ? redirect : null
+  }, [searchParams])
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
     try {
-      const res = await login(email, password)
+      const res = await login(email, password, requestedRole)
       const user: AuthUser = { email: res.email, name: res.name, role: res.role }
       loginUser(res.token, res.refreshToken, user)
-      if (res.role === 'ADMIN') {
+      if (redirectPath) {
+        navigate(redirectPath)
+      } else if (res.role === 'ADMIN') {
         navigate('/admin')
+      } else if (res.role === 'STAFF') {
+        navigate('/staff')
       } else if (res.role === 'COACH') {
         navigate('/coach')
+      } else if (res.role === 'TEAM_CAPTAIN') {
+        navigate('/captain')
+      } else if (res.role === 'PLAYER') {
+        navigate('/player')
+      } else if (res.role === 'PARENT') {
+        navigate('/parent')
+      } else if (res.role === 'USER') {
+        navigate('/user')
       } else {
         navigate('/account')
       }
@@ -44,7 +63,9 @@ export default function LoginPage() {
           <Link to="/" className="text-3xl font-black text-white">
             KANTÉ ELITE
           </Link>
-          <p className="text-gray-400 mt-2">Sign in to your account</p>
+          <p className="text-gray-400 mt-2">
+            {isTournamentIntent ? 'Sign in to manage your tournament entry' : 'Sign in to your account'}
+          </p>
         </div>
 
         <form
@@ -52,6 +73,12 @@ export default function LoginPage() {
           className="bg-gray-900 border border-gray-800 rounded-2xl p-8 space-y-6"
         >
           <h1 className="text-white text-2xl font-bold">Login</h1>
+
+          {isTournamentIntent ? (
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 text-amber-300 text-sm">
+              Use your account to continue as the team captain or team coach for this tournament.
+            </div>
+          ) : null}
 
           {error && (
             <div className="bg-red-900/30 border border-red-500 rounded-lg p-3 text-red-400 text-sm">
@@ -99,7 +126,16 @@ export default function LoginPage() {
 
           <p className="text-gray-500 text-sm text-center">
             Don't have an account?{' '}
-            <Link to="/register" className="text-green-400 hover:text-green-300">
+            <Link
+              to={
+                isTournamentIntent
+                  ? `/register?intent=tournament&requestedRole=${requestedRole ?? 'TEAM_CAPTAIN'}${
+                      redirectPath ? `&redirect=${encodeURIComponent(redirectPath)}` : ''
+                    }`
+                  : '/register'
+              }
+              className="text-green-400 hover:text-green-300"
+            >
               Register
             </Link>
           </p>

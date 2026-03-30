@@ -54,6 +54,14 @@ public class ContactService {
         return toResponse(contactMessageRepository.save(msg));
     }
 
+    @Transactional
+    public void deleteMessage(Long id) {
+        if (!contactMessageRepository.existsById(id)) {
+            throw new ResourceNotFoundException("ContactMessage", id);
+        }
+        contactMessageRepository.deleteById(id);
+    }
+
     private ContactMessageResponse toResponse(ContactMessage m) {
         return ContactMessageResponse.builder()
                 .id(m.getId())

@@ -13,8 +13,10 @@ import com.kanteelite.training.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +33,17 @@ public class BookingService {
      */
     @Transactional
     public BookingResponse createBooking(BookingRequest request) {
+        return createBooking(request, null);
+    }
+
+    /**
+     * Creates a booking and links it to the authenticated account when available.
+     */
+    @Transactional
+    public BookingResponse createBooking(BookingRequest request, String authenticatedEmail) {
         Program program = programService.getProgramEntityById(request.getProgramId());
+        String bookingEmail = normalizeEmail(
+                StringUtils.hasText(authenticatedEmail) ? authenticatedEmail : request.getEmail());
 
         boolean slotTaken = bookingRepository.existsByProgramIdAndBookingDateAndBookingTimeAndBookingStatusNot(
                 request.getProgramId(), request.getBookingDate(), request.getBookingTime(), BookingStatus.CANCELLED
@@ -50,7 +62,7 @@ public class BookingService {
                 .playerName(request.getPlayerName())
                 .playerAge(request.getPlayerAge())
                 .parentName(request.getParentName())
-                .email(request.getEmail())
+                .email(bookingEmail)
                 .phone(request.getPhone())
                 .experienceLevel(request.getExperienceLevel())
                 .notes(request.getNotes())
@@ -61,7 +73,7 @@ public class BookingService {
         Booking saved = bookingRepository.save(booking);
         BookingResponse response = toResponse(saved);
         emailService.sendBookingConfirmation(response);
-        auditLogService.log(request.getEmail(), "CREATE", "Booking", saved.getId(),
+        auditLogService.log(bookingEmail, "CREATE", "Booking", saved.getId(),
                 "Booked " + program.getName() + " on " + request.getBookingDate() + " at " + request.getBookingTime());
         return response;
     }
@@ -84,7 +96,7 @@ public class BookingService {
     /** Returns bookings for the authenticated user identified by email. */
     @Transactional(readOnly = true)
     public List<BookingResponse> getBookingsByEmail(String email) {
-        return bookingRepository.findByEmailOrderByCreatedAtDesc(email)
+        return bookingRepository.findByEmailIgnoreCaseOrderByCreatedAtDesc(email)
                 .stream().map(this::toResponse).toList();
     }
 
@@ -143,6 +155,37 @@ public class BookingService {
         return response;
     }
 
+    /** Allows a coach to update the status of a session assigned to their email. */
+    @Transactional
+    public BookingResponse updateCoachSessionStatus(Long id, String bookingStatus, String coachEmail) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", id));
+        ensureCoachOwnsBooking(booking, coachEmail);
+
+        BookingStatus nextStatus = BookingStatus.valueOf(bookingStatus);
+        if (nextStatus != BookingStatus.CONFIRMED
+                && nextStatus != BookingStatus.COMPLETED
+                && nextStatus != BookingStatus.CANCELLED) {
+            throw new IllegalArgumentException("Coaches can only set status to CONFIRMED, COMPLETED, or CANCELLED.");
+        }
+
+        String oldStatus = booking.getBookingStatus().name();
+        booking.setBookingStatus(nextStatus);
+        BookingResponse response = toResponse(bookingRepository.save(booking));
+        auditLogService.log(coachEmail, "COACH_UPDATE_STATUS", "Booking", id,
+                "Coach changed status from " + oldStatus + " to " + bookingStatus);
+        return response;
+    }
+
+    /** Allows a coach to reschedule a session assigned to their email. */
+    @Transactional
+    public BookingResponse rescheduleCoachSession(Long id, RescheduleRequest req, String coachEmail) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", id));
+        ensureCoachOwnsBooking(booking, coachEmail);
+        return reschedule(id, req, coachEmail);
+    }
+
     public BookingResponse toResponse(Booking b) {
         return BookingResponse.builder()
                 .id(b.getId())
@@ -161,5 +204,15 @@ public class BookingService {
                 .bookingStatus(b.getBookingStatus())
                 .createdAt(b.getCreatedAt())
                 .build();
+    }
+
+    private void ensureCoachOwnsBooking(Booking booking, String coachEmail) {
+        if (!booking.getEmail().equalsIgnoreCase(coachEmail)) {
+            throw new IllegalArgumentException("You are not authorized to manage this session.");
+        }
+    }
+
+    private String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
     }
 }

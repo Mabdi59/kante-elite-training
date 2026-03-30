@@ -22,6 +22,12 @@ public class TeamRegistrationRequest {
     @Size(max = 150)
     private String contactEmail;
 
+    @Size(max = 30)
+    private String phone;
+
+    @Size(max = 150)
+    private String clubName;
+
     @NotNull
     private Long tournamentId;
 }

@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import { useLocation, useSearchParams, Link } from 'react-router-dom'
 import api from '../services/api'
 import type { ApiResponse, Booking } from '../types'
+import { useAuth } from '../context/AuthContext'
 
 function formatDate(dateStr: string) {
-  return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', {
+  return new Date(`${dateStr}T12:00:00`).toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -13,6 +14,7 @@ function formatDate(dateStr: string) {
 }
 
 export default function BookingSuccessPage() {
+  const { user } = useAuth()
   const location = useLocation()
   const [searchParams] = useSearchParams()
   const bookingId = Number(searchParams.get('booking_id'))
@@ -20,6 +22,38 @@ export default function BookingSuccessPage() {
   const [booking, setBooking] = useState<Booking | null>(locationBooking)
   const [loading, setLoading] = useState(locationBooking === null)
   const [error, setError] = useState('')
+  const portalPath =
+    user?.role === 'ADMIN'
+      ? '/admin'
+      : user?.role === 'STAFF'
+        ? '/staff'
+        : user?.role === 'COACH'
+          ? '/coach'
+          : user?.role === 'TEAM_CAPTAIN'
+            ? '/captain'
+          : user?.role === 'PLAYER'
+            ? '/player'
+            : user?.role === 'PARENT'
+              ? '/parent'
+              : user?.role === 'USER'
+                ? '/user'
+              : null
+  const portalLabel =
+    user?.role === 'PLAYER'
+      ? 'Back to Player Portal'
+      : user?.role === 'PARENT'
+        ? 'Back to Parent Portal'
+        : user?.role === 'USER'
+          ? 'Back to Account Portal'
+        : user?.role === 'COACH'
+          ? 'Back to Coach Panel'
+          : user?.role === 'TEAM_CAPTAIN'
+            ? 'Back to Captain Portal'
+          : user?.role === 'STAFF'
+            ? 'Back to Staff Panel'
+            : user?.role === 'ADMIN'
+              ? 'Back to Admin Panel'
+              : ''
 
   useEffect(() => {
     if (locationBooking) {
@@ -70,11 +104,9 @@ export default function BookingSuccessPage() {
             <span className="text-3xl">⚠️</span>
           </div>
           <h2 className="text-white font-black text-2xl mb-3">Booking Details Unavailable</h2>
-          <p className="text-gray-400 text-sm mb-8 leading-relaxed">
-            {error}
-          </p>
-          <p className="text-gray-500 text-xs mb-8">
-            If your booking was submitted, a confirmation email was sent to your inbox. If you don't see it within a few minutes, check your spam folder or contact us.
+          <p className="text-gray-400 text-sm mb-6 leading-relaxed">{error}</p>
+          <p className="text-gray-500 text-xs mb-6">
+            If your booking was submitted, a confirmation email was sent to your inbox. If you do not see it within a few minutes, check your spam folder or contact us.
           </p>
           <div className="flex flex-col gap-3">
             <Link to="/contact" className="btn-primary text-center">
@@ -83,6 +115,11 @@ export default function BookingSuccessPage() {
             <Link to="/book" className="btn-secondary text-center">
               Try Booking Again
             </Link>
+            {portalPath ? (
+              <Link to={portalPath} className="text-sm text-gray-400 hover:text-white text-center">
+                {portalLabel}
+              </Link>
+            ) : null}
           </div>
         </div>
       </div>
@@ -90,12 +127,23 @@ export default function BookingSuccessPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black px-4 pt-20 pb-20">
+    <div className="min-h-screen bg-black px-4 pt-16 pb-16">
       <div className="max-w-2xl mx-auto">
+        {portalPath ? (
+          <div className="mb-6">
+            <Link
+              to={portalPath}
+              className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+              {portalLabel}
+            </Link>
+          </div>
+        ) : null}
 
-        {/* ── Success header ── */}
-        <div className="text-center mb-12">
-          {/* Animated checkmark ring */}
+        <div className="text-center mb-8">
           <div className="w-24 h-24 rounded-full bg-amber-500/10 border-2 border-amber-500 flex items-center justify-center mx-auto mb-6 relative">
             <div className="absolute inset-0 rounded-full bg-amber-500/5 animate-ping" />
             <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
@@ -105,21 +153,16 @@ export default function BookingSuccessPage() {
 
           <span className="section-label">Booking Confirmed</span>
           <h1 className="text-white font-black text-4xl md:text-5xl mb-4 leading-tight">
-            You're all set,{' '}
-            <span className="gradient-text">
-              {booking.playerName.split(' ')[0]}!
-            </span>
+            You&apos;re booked, <span className="gradient-text">{booking.playerName.split(' ')[0]}</span>.
           </h1>
           <p className="text-gray-300 text-lg max-w-md mx-auto leading-relaxed">
-            Your session is officially booked.
+            Your session is officially on the calendar.
           </p>
           <p className="text-gray-400 text-sm mt-2">
-            A confirmation email is on its way to{' '}
-            <strong className="text-white">{booking.email}</strong>.
+            A confirmation email has been sent to <strong className="text-white">{booking.email}</strong>.
           </p>
         </div>
 
-        {/* ── Booking summary ── */}
         <div className="card mb-6 overflow-hidden">
           <div className="px-6 py-4 border-b border-[#1e1e1e] bg-[#111] flex items-center justify-between">
             <div>
@@ -149,7 +192,6 @@ export default function BookingSuccessPage() {
           </div>
         </div>
 
-        {/* ── Before your session ── */}
         <div className="bg-[#111] border border-[#1e1e1e] rounded-2xl p-7 mb-6">
           <h3 className="text-white font-black text-base mb-5 flex items-center gap-2">
             <span className="text-amber-500">📋</span>
@@ -157,11 +199,11 @@ export default function BookingSuccessPage() {
           </h3>
           <ul className="space-y-3">
             {[
-              'Arrive 10 minutes early to warm up',
-              'Wear comfortable athletic clothing and cleats',
-              'Bring shin guards and a water bottle',
-              'Have your own ball if possible — Coach Kante provides them too',
-              'Come with specific goals in mind — the more focused, the better the session',
+              'Arrive 10 minutes early to warm up.',
+              'Wear comfortable athletic clothing and cleats.',
+              'Bring shin guards and a water bottle.',
+              'Bring a ball if you have one. Coach Kante can also provide one.',
+              'Come with one or two goals in mind so the session stays focused.',
             ].map((item) => (
               <li key={item} className="flex items-start gap-3 text-sm text-gray-300">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
@@ -173,8 +215,12 @@ export default function BookingSuccessPage() {
           </ul>
         </div>
 
-        {/* ── Actions ── */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          {portalPath ? (
+            <Link to={portalPath} className="btn-secondary text-center flex-1">
+              Return to Portal
+            </Link>
+          ) : null}
           <Link to="/training" className="btn-primary text-center flex-1">
             Explore All Programs
           </Link>

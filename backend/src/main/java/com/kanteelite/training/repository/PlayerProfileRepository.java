@@ -12,9 +12,11 @@ import java.util.List;
 public interface PlayerProfileRepository extends JpaRepository<PlayerProfile, Long> {
     List<PlayerProfile> findByParentUserIdAndActiveTrueOrderByNameAsc(Long parentUserId);
 
-    @Query("SELECT p FROM PlayerProfile p WHERE p.parentUser.email = :email ORDER BY p.name ASC")
-    List<PlayerProfile> findByParentUserEmailOrderByNameAsc(@Param("email") String email);
+    @Query("SELECT p FROM PlayerProfile p WHERE p.parentUser.email = :email AND p.active = true ORDER BY p.name ASC")
+    List<PlayerProfile> findByParentUserEmailAndActiveTrueOrderByNameAsc(@Param("email") String email);
 
     List<PlayerProfile> findAllByOrderByCreatedAtDesc();
+    boolean existsByParentUserIdAndActiveTrue(Long parentUserId);
     long countByActiveTrue();
+    void deleteByParentUserId(Long parentUserId);
 }

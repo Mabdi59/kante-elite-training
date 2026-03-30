@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tournament Registration Update</title>
+  <style>
+    body { margin: 0; padding: 0; background-color: #f4f4f4; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
+    .wrapper { max-width: 620px; margin: 32px auto; background: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 16px rgba(0,0,0,0.08); }
+    .header { background: #0f172a; padding: 32px 36px; text-align: center; }
+    .header h1 { color: #f59e0b; font-size: 22px; margin: 0 0 6px; letter-spacing: 1px; text-transform: uppercase; }
+    .header p { color: #cbd5e1; font-size: 13px; margin: 0; }
+    .hero { background: #111827; padding: 28px 36px; border-bottom: 3px solid #f59e0b; }
+    .hero h2 { color: #ffffff; margin: 0 0 8px; font-size: 28px; }
+    .hero p { color: #d1d5db; margin: 0; line-height: 1.6; font-size: 15px; }
+    .content { padding: 32px 36px; }
+    .card { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 22px; margin-bottom: 24px; }
+    .card h3 { margin: 0 0 14px; color: #111827; font-size: 16px; }
+    .detail-row { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: #6b7280; font-weight: 600; }
+    .detail-value { color: #111827; font-weight: 600; text-align: right; }
+    .steps { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 20px 22px; margin-bottom: 24px; }
+    .steps h3 { color: #92400e; margin: 0 0 10px; font-size: 15px; }
+    .steps ul { margin: 0; padding-left: 20px; color: #78350f; line-height: 1.7; font-size: 14px; }
+    .cta { display: inline-block; background: #f59e0b; color: #111827 !important; text-decoration: none; font-weight: 700; padding: 14px 24px; border-radius: 8px; }
+    .footer { background: #111827; color: #94a3b8; text-align: center; padding: 24px 36px; font-size: 12px; }
+    .footer a { color: #f59e0b; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <h1>Kante Elite Training</h1>
+      <p>Columbus tournament registration</p>
+    </div>
+
+    <div class="hero">
+      <h2 th:text="${heroTitle}">Registration Update</h2>
+      <p th:text="${intro}">Your tournament registration has been updated.</p>
+    </div>
+
+    <div class="content">
+      <div class="card">
+        <h3>Registration Details</h3>
+        <div class="detail-row">
+          <span class="detail-label">Tournament</span>
+          <span class="detail-value" th:text="${registration.tournamentName}">Tournament Name</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Team</span>
+          <span class="detail-value" th:text="${registration.teamName}">Team Name</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Captain</span>
+          <span class="detail-value" th:text="${registration.captainName}">Captain Name</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Registration Status</span>
+          <span class="detail-value" th:text="${registration.status}">PENDING</span>
+        </div>
+        <div class="detail-row" th:if="${registration.paymentStatus != null}">
+          <span class="detail-label">Payment Status</span>
+          <span class="detail-value" th:text="${registration.paymentStatus}">PENDING</span>
+        </div>
+        <div class="detail-row" th:if="${registration.entryFee != null}">
+          <span class="detail-label">Entry Fee</span>
+          <span class="detail-value" th:text="'$' + ${registration.entryFee}">$0</span>
+        </div>
+      </div>
+
+      <div class="steps" th:if="${nextSteps != null and !nextSteps.isEmpty()}">
+        <h3>Next Steps</h3>
+        <ul>
+          <li th:each="step : ${nextSteps}" th:text="${step}">Review your Team Portal</li>
+        </ul>
+      </div>
+
+      <p style="margin: 0 0 24px; color: #4b5563; line-height: 1.7; font-size: 14px;">
+        Your team account is the fastest way to review tournament updates, payment progress, and roster details. This link opens the registration workspace tied to that account.
+      </p>
+
+      <a th:href="${ctaUrl}" class="cta" th:text="${ctaLabel}">Open Registration Workspace</a>
+    </div>
+
+    <div class="footer">
+      <p><strong style="color: #f59e0b;">Kante Elite Training</strong></p>
+      <p>If you need help, reply to this email or contact <a href="mailto:info@kanteelitetraining.com">info@kanteelitetraining.com</a>.</p>
+    </div>
+  </div>
+</body>
+</html>

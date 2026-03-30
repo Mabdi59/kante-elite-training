@@ -1,29 +1,38 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import {
-  getAvailabilityRules,
   createAvailabilityRule,
-  deleteAvailabilityRule,
-  getBlockedSlots,
   createBlockedSlot,
+  deleteAvailabilityRule,
   deleteBlockedSlot,
+  getAvailabilityRules,
+  getBlockedSlots,
+  updateAvailabilityRule,
+  updateBlockedSlot,
 } from '../../services/api'
 import type { AvailabilityRule, BlockedSlot } from '../../types'
+import ErrorBanner from '../../components/ErrorBanner'
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+function normalizeTimeInput(value: string) {
+  return value.length >= 5 ? value.slice(0, 5) : value
+}
 
 export default function AdminAvailabilityPage() {
   const [rules, setRules] = useState<AvailabilityRule[]>([])
   const [blocked, setBlocked] = useState<BlockedSlot[]>([])
   const [loadingRules, setLoadingRules] = useState(true)
   const [loadingBlocked, setLoadingBlocked] = useState(true)
+  const [error, setError] = useState('')
 
-  // New rule form
+  const [editingRuleId, setEditingRuleId] = useState<number | null>(null)
   const [ruleDay, setRuleDay] = useState('1')
   const [ruleStart, setRuleStart] = useState('08:00')
   const [ruleEnd, setRuleEnd] = useState('18:00')
+  const [ruleActive, setRuleActive] = useState(true)
   const [savingRule, setSavingRule] = useState(false)
 
-  // New blocked slot form
+  const [editingBlockedId, setEditingBlockedId] = useState<number | null>(null)
   const [blockDate, setBlockDate] = useState('')
   const [blockTime, setBlockTime] = useState('')
   const [blockReason, setBlockReason] = useState('')
@@ -32,89 +41,161 @@ export default function AdminAvailabilityPage() {
   useEffect(() => {
     getAvailabilityRules()
       .then(setRules)
+      .catch(() => setError('Failed to load availability rules.'))
       .finally(() => setLoadingRules(false))
+
     getBlockedSlots()
       .then(setBlocked)
+      .catch(() => setError('Failed to load blocked slots.'))
       .finally(() => setLoadingBlocked(false))
   }, [])
 
-  const handleAddRule = async (e: FormEvent) => {
-    e.preventDefault()
+  const resetRuleForm = () => {
+    setEditingRuleId(null)
+    setRuleDay('1')
+    setRuleStart('08:00')
+    setRuleEnd('18:00')
+    setRuleActive(true)
+  }
+
+  const resetBlockedForm = () => {
+    setEditingBlockedId(null)
+    setBlockDate('')
+    setBlockTime('')
+    setBlockReason('')
+  }
+
+  const handleRuleSubmit = async (event: FormEvent) => {
+    event.preventDefault()
     setSavingRule(true)
+    setError('')
+
     try {
-      const created = await createAvailabilityRule({
+      const payload = {
         dayOfWeek: Number(ruleDay),
         startTime: ruleStart,
         endTime: ruleEnd,
-        active: true,
-      })
-      setRules((prev) => [...prev, created])
+        active: ruleActive,
+      }
+
+      if (editingRuleId) {
+        const updated = await updateAvailabilityRule(editingRuleId, payload)
+        setRules((prev) => prev.map((item) => (item.id === editingRuleId ? updated : item)))
+      } else {
+        const created = await createAvailabilityRule(payload)
+        setRules((prev) => [...prev, created])
+      }
+      resetRuleForm()
     } catch {
-      alert('Failed to create rule.')
+      setError('Failed to save availability rule.')
     } finally {
       setSavingRule(false)
     }
+  }
+
+  const handleBlockedSubmit = async (event: FormEvent) => {
+    event.preventDefault()
+    setSavingBlock(true)
+    setError('')
+
+    try {
+      const payload = {
+        slotDate: blockDate,
+        slotTime: blockTime || undefined,
+        reason: blockReason || undefined,
+      }
+
+      if (editingBlockedId) {
+        const updated = await updateBlockedSlot(editingBlockedId, payload)
+        setBlocked((prev) => prev.map((item) => (item.id === editingBlockedId ? updated : item)))
+      } else {
+        const created = await createBlockedSlot(payload)
+        setBlocked((prev) => [created, ...prev])
+      }
+      resetBlockedForm()
+    } catch {
+      setError('Failed to save blocked slot.')
+    } finally {
+      setSavingBlock(false)
+    }
+  }
+
+  const openRuleEdit = (rule: AvailabilityRule) => {
+    setEditingRuleId(rule.id)
+    setRuleDay(String(rule.dayOfWeek))
+    setRuleStart(normalizeTimeInput(rule.startTime))
+    setRuleEnd(normalizeTimeInput(rule.endTime))
+    setRuleActive(rule.active)
+  }
+
+  const openBlockedEdit = (slot: BlockedSlot) => {
+    setEditingBlockedId(slot.id)
+    setBlockDate(slot.slotDate)
+    setBlockTime(slot.slotTime ?? '')
+    setBlockReason(slot.reason ?? '')
   }
 
   const handleDeleteRule = async (id: number) => {
     if (!window.confirm('Delete this rule?')) return
     try {
       await deleteAvailabilityRule(id)
-      setRules((prev) => prev.filter((r) => r.id !== id))
+      setRules((prev) => prev.filter((item) => item.id !== id))
+      if (editingRuleId === id) {
+        resetRuleForm()
+      }
     } catch {
-      alert('Failed to delete rule.')
-    }
-  }
-
-  const handleAddBlock = async (e: FormEvent) => {
-    e.preventDefault()
-    setSavingBlock(true)
-    try {
-      const created = await createBlockedSlot({
-        slotDate: blockDate,
-        slotTime: blockTime || undefined,
-        reason: blockReason || undefined,
-      })
-      setBlocked((prev) => [created, ...prev])
-      setBlockDate('')
-      setBlockTime('')
-      setBlockReason('')
-    } catch {
-      alert('Failed to block slot.')
-    } finally {
-      setSavingBlock(false)
+      setError('Failed to delete rule.')
     }
   }
 
   const handleDeleteBlock = async (id: number) => {
+    if (!window.confirm('Delete this blocked slot?')) return
     try {
       await deleteBlockedSlot(id)
-      setBlocked((prev) => prev.filter((b) => b.id !== id))
+      setBlocked((prev) => prev.filter((item) => item.id !== id))
+      if (editingBlockedId === id) {
+        resetBlockedForm()
+      }
     } catch {
-      alert('Failed to remove blocked slot.')
+      setError('Failed to delete blocked slot.')
     }
   }
 
   return (
     <div className="space-y-10">
-      <h1 className="text-white text-3xl font-black">Availability Management</h1>
+      <div>
+        <h1 className="text-white text-3xl font-black">Availability Management</h1>
+        <p className="text-gray-400 text-sm mt-2">Manage weekly availability rules and blocked dates from one place.</p>
+      </div>
 
-      {/* Availability Rules */}
+      {error ? <ErrorBanner message={error} onDismiss={() => setError('')} /> : null}
+
       <section className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-        <h2 className="text-white text-xl font-bold mb-4">📋 Weekly Availability Rules</h2>
-        <p className="text-gray-500 text-sm mb-6">
-          Define which hours are available on each day of the week. If no rules exist, defaults to
-          8:00 AM – 6:00 PM daily.
-        </p>
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 className="text-white text-xl font-bold">Weekly Availability Rules</h2>
+            <p className="text-gray-500 text-sm mt-1">Create, edit, or remove weekly time windows.</p>
+          </div>
+          {editingRuleId ? (
+            <button
+              onClick={resetRuleForm}
+              className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm"
+            >
+              Cancel Edit
+            </button>
+          ) : null}
+        </div>
 
-        <form onSubmit={handleAddRule} className="flex flex-wrap gap-3 mb-6">
+        <form onSubmit={handleRuleSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
           <select
             value={ruleDay}
             onChange={(e) => setRuleDay(e.target.value)}
             className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
           >
-            {DAYS.map((d, i) => (
-              <option key={i} value={i}>{d}</option>
+            {DAYS.map((day, index) => (
+              <option key={day} value={index}>
+                {day}
+              </option>
             ))}
           </select>
           <input
@@ -123,64 +204,80 @@ export default function AdminAvailabilityPage() {
             onChange={(e) => setRuleStart(e.target.value)}
             className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
           />
-          <span className="text-gray-500 self-center">to</span>
           <input
             type="time"
             value={ruleEnd}
             onChange={(e) => setRuleEnd(e.target.value)}
             className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
           />
+          <label className="flex items-center gap-2 text-sm text-gray-300 px-1">
+            <input
+              type="checkbox"
+              checked={ruleActive}
+              onChange={(e) => setRuleActive(e.target.checked)}
+              className="w-4 h-4 accent-green-500"
+            />
+            Active
+          </label>
           <button
             type="submit"
             disabled={savingRule}
             className="bg-green-600 hover:bg-green-500 text-white rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50"
           >
-            {savingRule ? 'Adding…' : '+ Add Rule'}
+            {savingRule ? 'Saving...' : editingRuleId ? 'Save Rule' : 'Add Rule'}
           </button>
         </form>
 
         {loadingRules ? (
-          <p className="text-gray-500 text-sm">Loading…</p>
+          <p className="text-gray-500 text-sm">Loading...</p>
         ) : rules.length === 0 ? (
-          <p className="text-gray-500 text-sm">No custom rules. Default hours apply (8 AM – 6 PM).</p>
+          <p className="text-gray-500 text-sm">No custom rules yet.</p>
         ) : (
           <div className="space-y-2">
-            {rules.map((r) => (
-              <div
-                key={r.id}
-                className="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3"
-              >
-                <div className="flex items-center gap-4">
-                  <span className="text-white font-medium w-24">{DAYS[r.dayOfWeek]}</span>
+            {rules.map((rule) => (
+              <div key={rule.id} className="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3 gap-4">
+                <div className="flex items-center gap-4 flex-wrap">
+                  <span className="text-white font-medium w-24">{DAYS[rule.dayOfWeek]}</span>
                   <span className="text-gray-400 text-sm">
-                    {r.startTime} – {r.endTime}
+                    {normalizeTimeInput(rule.startTime)} to {normalizeTimeInput(rule.endTime)}
                   </span>
-                  {!r.active && (
+                  {!rule.active ? (
                     <span className="text-xs text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full">
                       Inactive
                     </span>
-                  )}
+                  ) : null}
                 </div>
-                <button
-                  onClick={() => handleDeleteRule(r.id)}
-                  className="text-red-400 hover:text-red-300 text-sm"
-                >
-                  Remove
-                </button>
+                <div className="flex gap-2 shrink-0">
+                  <button onClick={() => openRuleEdit(rule)} className="text-cyan-400 hover:text-cyan-300 text-sm">
+                    Edit
+                  </button>
+                  <button onClick={() => handleDeleteRule(rule.id)} className="text-red-400 hover:text-red-300 text-sm">
+                    Remove
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         )}
       </section>
 
-      {/* Blocked Slots */}
       <section className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-        <h2 className="text-white text-xl font-bold mb-4">🚫 Blocked Dates & Times</h2>
-        <p className="text-gray-500 text-sm mb-6">
-          Block specific dates or time slots. Leave time empty to block the entire day.
-        </p>
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 className="text-white text-xl font-bold">Blocked Dates and Times</h2>
+            <p className="text-gray-500 text-sm mt-1">Create, edit, or remove one-off blocks.</p>
+          </div>
+          {editingBlockedId ? (
+            <button
+              onClick={resetBlockedForm}
+              className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm"
+            >
+              Cancel Edit
+            </button>
+          ) : null}
+        </div>
 
-        <form onSubmit={handleAddBlock} className="flex flex-wrap gap-3 mb-6">
+        <form onSubmit={handleBlockedSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
           <input
             type="date"
             value={blockDate}
@@ -192,53 +289,52 @@ export default function AdminAvailabilityPage() {
             type="text"
             value={blockTime}
             onChange={(e) => setBlockTime(e.target.value)}
-            placeholder="Time (optional, e.g. 10:00 AM)"
-            className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm w-56"
+            placeholder="Time, optional"
+            className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
           />
           <input
             type="text"
             value={blockReason}
             onChange={(e) => setBlockReason(e.target.value)}
-            placeholder="Reason (optional)"
-            className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-40"
+            placeholder="Reason, optional"
+            className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
           />
           <button
             type="submit"
             disabled={savingBlock}
             className="bg-red-700 hover:bg-red-600 text-white rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50"
           >
-            {savingBlock ? 'Blocking…' : '🚫 Block'}
+            {savingBlock ? 'Saving...' : editingBlockedId ? 'Save Block' : 'Add Block'}
           </button>
         </form>
 
         {loadingBlocked ? (
-          <p className="text-gray-500 text-sm">Loading…</p>
+          <p className="text-gray-500 text-sm">Loading...</p>
         ) : blocked.length === 0 ? (
           <p className="text-gray-500 text-sm">No blocked slots.</p>
         ) : (
           <div className="space-y-2">
-            {blocked.map((b) => (
-              <div
-                key={b.id}
-                className="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3"
-              >
+            {blocked.map((slot) => (
+              <div key={slot.id} className="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3 gap-4">
                 <div className="flex items-center gap-4 flex-wrap">
-                  <span className="text-white font-medium">{b.slotDate}</span>
-                  {b.slotTime ? (
-                    <span className="text-gray-400 text-sm">@ {b.slotTime}</span>
+                  <span className="text-white font-medium">{slot.slotDate}</span>
+                  {slot.slotTime ? (
+                    <span className="text-gray-400 text-sm">{slot.slotTime}</span>
                   ) : (
                     <span className="text-xs text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full">
                       Full day
                     </span>
                   )}
-                  {b.reason && <span className="text-gray-500 text-sm italic">{b.reason}</span>}
+                  {slot.reason ? <span className="text-gray-500 text-sm italic">{slot.reason}</span> : null}
                 </div>
-                <button
-                  onClick={() => handleDeleteBlock(b.id)}
-                  className="text-red-400 hover:text-red-300 text-sm"
-                >
-                  Remove
-                </button>
+                <div className="flex gap-2 shrink-0">
+                  <button onClick={() => openBlockedEdit(slot)} className="text-cyan-400 hover:text-cyan-300 text-sm">
+                    Edit
+                  </button>
+                  <button onClick={() => handleDeleteBlock(slot.id)} className="text-red-400 hover:text-red-300 text-sm">
+                    Remove
+                  </button>
+                </div>
               </div>
             ))}
           </div>

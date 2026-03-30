@@ -1,10 +1,11 @@
 package com.kanteelite.training.controller.admin;
 
+import com.kanteelite.training.dto.request.AdminUserCreateRequest;
+import com.kanteelite.training.dto.request.AdminUserUpdateRequest;
 import com.kanteelite.training.dto.response.AdminDashboardResponse;
 import com.kanteelite.training.dto.response.ApiResponse;
 import com.kanteelite.training.dto.response.AuditLogResponse;
 import com.kanteelite.training.dto.response.UserResponse;
-import com.kanteelite.training.entity.User;
 import com.kanteelite.training.enums.BookingStatus;
 import com.kanteelite.training.enums.TeamRegistrationStatus;
 import com.kanteelite.training.enums.UserRole;
@@ -17,9 +18,12 @@ import com.kanteelite.training.repository.ProgramRepository;
 import com.kanteelite.training.repository.TeamRegistrationRepository;
 import com.kanteelite.training.repository.TournamentRepository;
 import com.kanteelite.training.repository.UserRepository;
+import com.kanteelite.training.service.AdminUserService;
 import com.kanteelite.training.service.AuditLogService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,6 +41,7 @@ public class AdminController {
     private final UserRepository userRepository;
     private final ContactMessageRepository contactMessageRepository;
     private final AuditLogService auditLogService;
+    private final AdminUserService adminUserService;
     private final CoachProfileRepository coachProfileRepository;
     private final PlayerProfileRepository playerProfileRepository;
     private final TeamRegistrationRepository teamRegistrationRepository;
@@ -66,18 +71,38 @@ public class AdminController {
 
     @GetMapping("/users")
     public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers() {
-        List<UserResponse> users = userRepository.findAll()
-                .stream().map(this::toUserResponse).toList();
-        return ResponseEntity.ok(ApiResponse.success(users));
+        return ResponseEntity.ok(ApiResponse.success(adminUserService.getAllUsers()));
+    }
+
+    @PostMapping("/users")
+    public ResponseEntity<ApiResponse<UserResponse>> createUser(
+            @Valid @RequestBody AdminUserCreateRequest request) {
+        UserResponse created = adminUserService.createUser(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("User created.", created));
+    }
+
+    @PutMapping("/users/{id}")
+    public ResponseEntity<ApiResponse<UserResponse>> updateUser(
+            @PathVariable Long id,
+            @Valid @RequestBody AdminUserUpdateRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "User updated.",
+                adminUserService.updateUser(id, request)));
     }
 
     @PatchMapping("/users/{id}/role")
     public ResponseEntity<ApiResponse<UserResponse>> updateUserRole(
             @PathVariable Long id, @RequestBody Map<String, String> body) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
-        user.setRole(UserRole.valueOf(body.get("role")));
-        return ResponseEntity.ok(ApiResponse.success("Role updated.", toUserResponse(userRepository.save(user))));
+        return ResponseEntity.ok(ApiResponse.success(
+                "Role updated.",
+                adminUserService.updateUserRole(id, body.get("role"))));
+    }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
+        adminUserService.deleteUser(id);
+        return ResponseEntity.ok(ApiResponse.success("User deleted.", null));
     }
 
     @GetMapping("/audit-logs")
@@ -94,15 +119,5 @@ public class AdminController {
                         .build())
                 .toList();
         return ResponseEntity.ok(ApiResponse.success(logs));
-    }
-
-    private UserResponse toUserResponse(User u) {
-        return UserResponse.builder()
-                .id(u.getId())
-                .name(u.getName())
-                .email(u.getEmail())
-                .role(u.getRole().name())
-                .createdAt(u.getCreatedAt())
-                .build();
     }
 }

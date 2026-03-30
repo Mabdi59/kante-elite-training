@@ -8,6 +8,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,8 +21,11 @@ public class TeamController {
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<TeamRegistrationResponse>> register(
-            @Valid @RequestBody TeamRegistrationRequest request) {
-        TeamRegistrationResponse response = tournamentService.registerTeam(request);
+            @Valid @RequestBody TeamRegistrationRequest request,
+            @AuthenticationPrincipal UserDetails principal) {
+        TeamRegistrationResponse response = principal != null
+                ? tournamentService.registerTeamForUser(request, principal.getUsername())
+                : tournamentService.registerTeam(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Team registered successfully.", response));
     }

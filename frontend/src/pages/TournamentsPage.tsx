@@ -113,7 +113,24 @@ export default function TournamentsPage() {
   }, [])
 
   const allStatuses = [...new Set(tournaments.map((t) => t.status))]
-  const filtered = filterStatus ? tournaments.filter((t) => t.status === filterStatus) : tournaments
+  const filtered = (filterStatus ? tournaments.filter((t) => t.status === filterStatus) : tournaments).sort(
+    (a, b) => {
+      const aOpen = a.status !== 'COMPLETED' && a.status !== 'CANCELLED'
+      const bOpen = b.status !== 'COMPLETED' && b.status !== 'CANCELLED'
+      if (aOpen !== bOpen) return aOpen ? -1 : 1
+      return a.startDate.localeCompare(b.startDate)
+    },
+  )
+  const openTournaments = tournaments.filter(
+    (t) => t.status !== 'COMPLETED' && t.status !== 'CANCELLED',
+  )
+  const closingSoon = tournaments.filter((t) => {
+    if (!t.registrationDeadline) return false
+    const today = new Date()
+    const deadline = new Date(t.registrationDeadline)
+    const diffDays = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+    return diffDays >= 0 && diffDays <= 7
+  })
 
   return (
     <div className="min-h-screen bg-black py-20 px-4">
@@ -121,8 +138,24 @@ export default function TournamentsPage() {
         <div className="text-center mb-12">
           <h1 className="text-white text-5xl font-black mb-4">TOURNAMENTS</h1>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Compete at the highest level. Register your team for upcoming tournaments.
+            Public registration is open. Review the details, choose your tournament, and register your team in a few minutes.
           </p>
+          {!loading && tournaments.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mt-8">
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+                <p className="text-gray-400 text-sm mb-2">Available Now</p>
+                <p className="text-3xl font-black text-green-400">{openTournaments.length}</p>
+              </div>
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+                <p className="text-gray-400 text-sm mb-2">Closing Soon</p>
+                <p className="text-3xl font-black text-amber-400">{closingSoon.length}</p>
+              </div>
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+                <p className="text-gray-400 text-sm mb-2">Total Listings</p>
+                <p className="text-3xl font-black text-white">{tournaments.length}</p>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {!loading && tournaments.length > 0 && (

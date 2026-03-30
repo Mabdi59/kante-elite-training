@@ -2,8 +2,14 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import MainLayout from './layouts/MainLayout'
 import AdminLayout from './layouts/AdminLayout'
-import CoachLayout from './layouts/CoachLayout'
+import CoachPanelLayout from './layouts/CoachPanelLayout'
+import StaffLayout from './layouts/StaffLayout'
+import ParentLayout from './layouts/ParentLayout'
+import PlayerLayout from './layouts/PlayerLayout'
+import CaptainLayout from './layouts/CaptainLayout'
+import UserLayout from './layouts/UserLayout'
 import ProtectedRoute from './components/ProtectedRoute'
+import ScrollToTop from './components/ScrollToTop'
 import HomePage from './pages/HomePage'
 import TrainingPage from './pages/TrainingPage'
 import EventsPage from './pages/EventsPage'
@@ -18,12 +24,14 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import AccountPage from './pages/AccountPage'
 import TournamentsPage from './pages/TournamentsPage'
-import TeamRegisterPage from './pages/TeamRegisterPage'
+import PublicTeamRegisterPage from './pages/PublicTeamRegisterPage'
+import TournamentRegistrationDashboardPage from './pages/TournamentRegistrationDashboardPage'
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
 import AdminBookingsPage from './pages/admin/AdminBookingsPage'
 import AdminProgramsPage from './pages/admin/AdminProgramsPage'
 import AdminEventsPage from './pages/admin/AdminEventsPage'
 import AdminTournamentsPage from './pages/admin/AdminTournamentsPage'
+import AdminTournamentWorkflowPage from './pages/admin/AdminTournamentWorkflowPage'
 import AdminTestimonialsPage from './pages/admin/AdminTestimonialsPage'
 import AdminMessagesPage from './pages/admin/AdminMessagesPage'
 import AdminUsersPage from './pages/admin/AdminUsersPage'
@@ -32,8 +40,27 @@ import AdminAuditLogsPage from './pages/admin/AdminAuditLogsPage'
 import AdminCoachesPage from './pages/admin/AdminCoachesPage'
 import AdminPlayersPage from './pages/admin/AdminPlayersPage'
 import CoachDashboardPage from './pages/coach/CoachDashboardPage'
-import CoachSessionsPage from './pages/coach/CoachSessionsPage'
+import CoachSessionsManagerPage from './pages/coach/CoachSessionsManagerPage'
+import CoachAvailabilityPage from './pages/coach/CoachAvailabilityPage'
 import CoachProfilePage from './pages/coach/CoachProfilePage'
+import StaffDashboardPage from './pages/staff/StaffDashboardPage'
+import StaffBookingsPage from './pages/staff/StaffBookingsPage'
+import StaffMessagesPage from './pages/staff/StaffMessagesPage'
+import StaffAvailabilityPage from './pages/staff/StaffAvailabilityPage'
+import StaffTournamentsPage from './pages/staff/StaffTournamentsPage'
+import StaffPlayersPage from './pages/staff/StaffPlayersPage'
+import ParentDashboardPage from './pages/parent/ParentDashboardPage'
+import ParentBookingsPage from './pages/parent/ParentBookingsPage'
+import ParentPlayersPage from './pages/parent/ParentPlayersPage'
+import UserDashboardPage from './pages/user/UserDashboardPage'
+import UserBookingsPage from './pages/user/UserBookingsPage'
+import UserPlayersPage from './pages/user/UserPlayersPage'
+import PlayerDashboardPage from './pages/player/PlayerDashboardPage'
+import PlayerSessionsPage from './pages/player/PlayerSessionsPage'
+import PlayerProfilePage from './pages/player/PlayerProfilePage'
+import CaptainDashboardPage from './pages/captain/CaptainDashboardPage'
+import CaptainTournamentsPage from './pages/captain/CaptainTournamentsPage'
+import CaptainRegistrationsPage from './pages/captain/CaptainRegistrationsPage'
 
 function NotFoundPage() {
   return (
@@ -54,8 +81,8 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <ScrollToTop />
         <Routes>
-          {/* Public routes */}
           <Route
             path="/"
             element={
@@ -112,17 +139,23 @@ export default function App() {
               </MainLayout>
             }
           />
-          <Route path="/tournaments/:id/register" element={<TeamRegisterPage />} />
+          <Route path="/tournaments/:id/register" element={<PublicTeamRegisterPage />} />
+          <Route
+            path="/tournaments/registration/:token"
+            element={
+              <MainLayout>
+                <TournamentRegistrationDashboardPage />
+              </MainLayout>
+            }
+          />
           <Route path="/book" element={<BookPage />} />
           <Route path="/book/success" element={<BookingSuccessPage />} />
 
-          {/* Auth routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-          {/* Authenticated user account */}
           <Route
             path="/account"
             element={
@@ -132,14 +165,137 @@ export default function App() {
             }
           />
 
-          {/* Coach routes */}
+          <Route
+            path="/parent"
+            element={
+              <ProtectedRoute requireRole="PARENT">
+                <ParentLayout>
+                  <ParentDashboardPage />
+                </ParentLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/bookings"
+            element={
+              <ProtectedRoute requireRole="PARENT">
+                <ParentLayout>
+                  <ParentBookingsPage />
+                </ParentLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/players"
+            element={
+              <ProtectedRoute requireRole="PARENT">
+                <ParentLayout>
+                  <ParentPlayersPage />
+                </ParentLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/user"
+            element={
+              <ProtectedRoute requireRole="USER">
+                <UserLayout>
+                  <UserDashboardPage />
+                </UserLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/user/bookings"
+            element={
+              <ProtectedRoute requireRole="USER">
+                <UserLayout>
+                  <UserBookingsPage />
+                </UserLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/user/players"
+            element={
+              <ProtectedRoute requireRole="USER">
+                <UserLayout>
+                  <UserPlayersPage />
+                </UserLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/player"
+            element={
+              <ProtectedRoute requireRole="PLAYER">
+                <PlayerLayout>
+                  <PlayerDashboardPage />
+                </PlayerLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/player/sessions"
+            element={
+              <ProtectedRoute requireRole="PLAYER">
+                <PlayerLayout>
+                  <PlayerSessionsPage />
+                </PlayerLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/player/profile"
+            element={
+              <ProtectedRoute requireRole="PLAYER">
+                <PlayerLayout>
+                  <PlayerProfilePage />
+                </PlayerLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/captain"
+            element={
+              <ProtectedRoute requireRoles={['TEAM_CAPTAIN', 'COACH']}>
+                <CaptainLayout>
+                  <CaptainDashboardPage />
+                </CaptainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/captain/tournaments"
+            element={
+              <ProtectedRoute requireRoles={['TEAM_CAPTAIN', 'COACH']}>
+                <CaptainLayout>
+                  <CaptainTournamentsPage />
+                </CaptainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/captain/registrations"
+            element={
+              <ProtectedRoute requireRoles={['TEAM_CAPTAIN', 'COACH']}>
+                <CaptainLayout>
+                  <CaptainRegistrationsPage />
+                </CaptainLayout>
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/coach"
             element={
               <ProtectedRoute requireRole="COACH">
-                <CoachLayout>
+                <CoachPanelLayout>
                   <CoachDashboardPage />
-                </CoachLayout>
+                </CoachPanelLayout>
               </ProtectedRoute>
             }
           />
@@ -147,9 +303,19 @@ export default function App() {
             path="/coach/sessions"
             element={
               <ProtectedRoute requireRole="COACH">
-                <CoachLayout>
-                  <CoachSessionsPage />
-                </CoachLayout>
+                <CoachPanelLayout>
+                  <CoachSessionsManagerPage />
+                </CoachPanelLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/coach/availability"
+            element={
+              <ProtectedRoute requireRole="COACH">
+                <CoachPanelLayout>
+                  <CoachAvailabilityPage />
+                </CoachPanelLayout>
               </ProtectedRoute>
             }
           />
@@ -157,14 +323,74 @@ export default function App() {
             path="/coach/profile"
             element={
               <ProtectedRoute requireRole="COACH">
-                <CoachLayout>
+                <CoachPanelLayout>
                   <CoachProfilePage />
-                </CoachLayout>
+                </CoachPanelLayout>
               </ProtectedRoute>
             }
           />
 
-          {/* Admin routes */}
+          <Route
+            path="/staff"
+            element={
+              <ProtectedRoute requireRole="STAFF">
+                <StaffLayout>
+                  <StaffDashboardPage />
+                </StaffLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/bookings"
+            element={
+              <ProtectedRoute requireRole="STAFF">
+                <StaffLayout>
+                  <StaffBookingsPage />
+                </StaffLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/messages"
+            element={
+              <ProtectedRoute requireRole="STAFF">
+                <StaffLayout>
+                  <StaffMessagesPage />
+                </StaffLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/availability"
+            element={
+              <ProtectedRoute requireRole="STAFF">
+                <StaffLayout>
+                  <StaffAvailabilityPage />
+                </StaffLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/tournaments"
+            element={
+              <ProtectedRoute requireRole="STAFF">
+                <StaffLayout>
+                  <StaffTournamentsPage />
+                </StaffLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/players"
+            element={
+              <ProtectedRoute requireRole="STAFF">
+                <StaffLayout>
+                  <StaffPlayersPage />
+                </StaffLayout>
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/admin"
             element={
@@ -211,6 +437,26 @@ export default function App() {
               <ProtectedRoute requireAdmin>
                 <AdminLayout>
                   <AdminTournamentsPage />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/tournaments/workflow"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminLayout>
+                  <AdminTournamentWorkflowPage />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/tournaments/:id/workflow"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminLayout>
+                  <AdminTournamentWorkflowPage />
                 </AdminLayout>
               </ProtectedRoute>
             }
@@ -292,4 +538,3 @@ export default function App() {
     </AuthProvider>
   )
 }
-

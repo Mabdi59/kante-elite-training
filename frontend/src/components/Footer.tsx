@@ -12,12 +12,10 @@ const footerLinks = [
 export default function Footer() {
   return (
     <footer className="bg-[#0a0a0a] border-t border-[#1a1a1a]">
-      {/* CTA Strip */}
-      <div className="bg-black border-b border-[#1a1a1a] py-12 px-4 text-center">
+      <div className="bg-black border-b border-[#1a1a1a] py-10 px-4 text-center">
         <p className="section-label">Ready to Start?</p>
         <h2 className="text-white font-black text-2xl md:text-3xl mb-6">
-          How fast can your child improve?{' '}
-          <span className="text-amber-500">Find out.</span>
+          How fast can your child improve? <span className="text-amber-500">Find out.</span>
         </h2>
         <div className="flex flex-wrap gap-3 justify-center">
           <Link to="/book" className="btn-primary">
@@ -29,9 +27,7 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Footer body */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-1 md:grid-cols-3 gap-10">
-        {/* Brand */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 grid grid-cols-1 md:grid-cols-3 gap-10">
         <div>
           <div className="flex items-center gap-2 mb-4">
             <span className="text-2xl">⚽</span>
@@ -43,12 +39,10 @@ export default function Footer() {
             </div>
           </div>
           <p className="text-gray-400 text-sm leading-relaxed">
-            Columbus's premier youth soccer development academy. Building elite players — and better
-            people — one session at a time.
+            Columbus's trusted youth soccer training academy. Developing skilled players and strong people, one session at a time.
           </p>
         </div>
 
-        {/* Navigation */}
         <div>
           <h4 className="text-white font-bold text-sm uppercase tracking-widest mb-4">Quick Links</h4>
           <ul className="space-y-2">
@@ -65,7 +59,6 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Contact */}
         <div>
           <h4 className="text-white font-bold text-sm uppercase tracking-widest mb-4">Contact</h4>
           <ul className="space-y-3 text-sm text-gray-400">
@@ -92,10 +85,9 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Copyright */}
       <div className="border-t border-[#1a1a1a] py-5 px-4 text-center">
         <p className="text-gray-600 text-xs">
-          © {new Date().getFullYear()} Kante Elite Training. All rights reserved.
+          Copyright {new Date().getFullYear()} Kante Elite Training. All rights reserved.
         </p>
       </div>
     </footer>

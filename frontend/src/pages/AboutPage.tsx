@@ -1,33 +1,32 @@
 import HeroSection from '../components/HeroSection'
 import CTASection from '../components/CTASection'
 
-const credentials = [
-  { icon: '🏅', label: 'USSF A License' },
-  { icon: '🏅', label: 'UEFA B License' },
-  { icon: '📋', label: 'Youth Coaching Specialist' },
-  { icon: '⏱️', label: '10+ Years Experience' },
-  { icon: '🎓', label: 'Sports Science Background' },
-  { icon: '🏆', label: 'Former Semi-Professional Player' },
+const experiencePoints = [
+  'Somalia National Team player',
+  'Ohio Dominican University captain and starter',
+  'All-Conference honors and Player of the Week',
+  'Experience in USL2 and UPSL level competition',
+  'Years of competitive and high level training',
 ]
 
 const pillars = [
   {
-    icon: '🎯',
-    title: 'Technical Excellence',
+    icon: '⚽',
+    title: 'Technical Detail',
     description:
-      'We believe technical mastery is the foundation of every great player. Every session focuses on deliberate practice to build lasting technical skills that translate to game performance.',
+      'Sessions focus on clean technique, sharper decision making, and the details that hold up under pressure.',
   },
   {
     icon: '💪',
-    title: 'Mental Strength',
+    title: 'Game Confidence',
     description:
-      'Soccer is as much a mental game as it is physical. We develop confident, resilient athletes who can perform under pressure and lead their teams with composure.',
+      'Players train with intent. The goal is to help them step on the field prepared, confident, and ready to perform.',
   },
   {
-    icon: '⚡',
-    title: 'Physical Development',
+    icon: '📈',
+    title: 'Weekly Progress',
     description:
-      'Athletic excellence requires a strong physical foundation. Our training incorporates sport science principles to develop speed, strength, and endurance appropriate for each age group.',
+      'Training is built for steady improvement. Players get clear direction, honest feedback, and work that leads to real growth.',
   },
 ]
 
@@ -35,75 +34,93 @@ export default function AboutPage() {
   return (
     <div className="pt-20">
       <HeroSection
-        badge="Our Story"
-        title="About Coach Kante"
-        subtitle="A commitment to developing the next generation of soccer excellence — right here in Columbus, Ohio."
+        badge="About"
+        title="Mohamed Sheik Kante"
+        subtitle="Founder and Head Coach. Known as Coach Kante."
       />
 
-      {/* Coach profile */}
-      <section className="bg-black py-20 px-4">
+      <section className="bg-black py-16 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="bg-[#1a1a1a] rounded-2xl h-96 lg:h-full min-h-80 flex items-center justify-center relative overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="bg-[#1a1a1a] rounded-2xl h-96 lg:h-full min-h-80 flex items-center justify-center relative overflow-hidden border border-[#222]">
               <div className="absolute inset-0 bg-gradient-to-br from-amber-500/8 to-transparent" />
-              <div className="text-center relative z-10">
+              <div className="text-center relative z-10 px-8">
                 <div className="text-8xl mb-4">👨‍🏫</div>
-                <p className="text-gray-400 text-sm">Coach Mamadou Kante</p>
+                <p className="text-white font-bold text-lg">Mohamed Sheik Kante</p>
+                <p className="text-gray-500 text-sm mt-1">Known as Coach Kante</p>
+                <p className="text-amber-500 text-xs font-bold uppercase tracking-widest mt-2">
+                  Founder and Head Coach
+                </p>
               </div>
             </div>
+
             <div>
-              <span className="section-label">The Coach</span>
-              <h2 className="text-white font-black text-4xl mb-6">
-                Coach Mamadou{' '}
-                <span className="gradient-text">Kante</span>
+              <span className="section-label">About</span>
+              <h2 className="text-white font-black text-4xl mb-4">
+                Built on real playing experience and high level competition
               </h2>
               <div className="space-y-4 text-gray-400 leading-relaxed text-sm">
                 <p>
-                  Born and raised in Columbus, Ohio, Coach Mamadou Kante has dedicated his life to
-                  the beautiful game and to developing the next generation of elite soccer players
-                  right here in the city he calls home.
+                  Mohamed Sheik Kante brings real experience from the national team, college soccer, and high level competitive environments.
                 </p>
                 <p>
-                  After a decorated playing career that included stints as a semi-professional player
-                  in the USL and NPSL leagues, Coach Kante transitioned to coaching with one mission:
-                  to provide Columbus youth players with the same world-class development opportunities
-                  available in elite soccer academies around the globe.
+                  Training here is direct and performance focused. Players work on the details that matter on game day.
                 </p>
                 <p>
-                  With over a decade of coaching experience, UEFA and USSF licensure, and a deep
-                  understanding of player development science, Coach Kante has built Kante Elite
-                  Training into Columbus's premier youth soccer academy.
-                </p>
-                <p>
-                  His players have gone on to earn college scholarships, compete in Olympic Development
-                  Programs, and represent Ohio at national youth tournaments.
+                  Every session is designed to help players improve with purpose, build confidence, and compete at a higher level.
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-3 mt-8">
-                {credentials.map((c) => (
-                  <div
-                    key={c.label}
-                    className="flex items-center gap-3 bg-[#111111] border border-[#1e1e1e] rounded-xl p-3 hover:border-amber-500/20 transition-colors"
-                  >
-                    <span className="text-xl">{c.icon}</span>
-                    <span className="text-white text-xs font-semibold">{c.label}</span>
-                  </div>
-                ))}
+
+              <div className="mt-6 bg-amber-500/10 border border-amber-500/20 rounded-xl px-5 py-4">
+                <p className="text-amber-400 font-semibold text-sm">
+                  Helping players in Columbus improve every week.
+                </p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Philosophy */}
-      <section className="bg-[#111111] py-20 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <span className="section-label">Philosophy</span>
-            <h2 className="text-white font-black text-4xl md:text-5xl">
-              The Three <span className="gradient-text">Pillars</span>
+      <section className="bg-[#111111] py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-8">
+            <span className="section-label">Coaching and Playing Experience</span>
+            <h2 className="text-white font-black text-4xl md:text-5xl mb-4">
+              Proven experience that shapes every session
             </h2>
+            <p className="text-gray-400 max-w-2xl mx-auto text-sm leading-relaxed">
+              Built on real playing experience and high level competition.
+            </p>
           </div>
+
+          <div className="bg-[#1a1a1a] border border-[#222] rounded-2xl p-8">
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {experiencePoints.map((point) => (
+                <li
+                  key={point}
+                  className="flex items-start gap-3 rounded-xl bg-[#111] border border-[#1f1f1f] px-4 py-4"
+                >
+                  <span className="text-amber-500 mt-0.5">•</span>
+                  <span className="text-white text-sm font-semibold leading-relaxed">{point}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-black py-16 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-8">
+            <span className="section-label">Coaching Philosophy</span>
+            <h2 className="text-white font-black text-4xl md:text-5xl">
+              How Players Get Better Here
+            </h2>
+            <p className="text-gray-400 mt-4 max-w-2xl mx-auto text-sm leading-relaxed">
+              Training is built for players who want to improve with intent and perform when it matters most.
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {pillars.map((pillar) => (
               <div
@@ -121,25 +138,9 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Mission */}
-      <section className="bg-black py-20 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-10">
-            <p className="section-label">Our Mission</p>
-          </div>
-          <div className="border-l-4 border-amber-500 pl-8">
-            <blockquote className="text-white font-black text-2xl md:text-3xl leading-relaxed italic">
-              &ldquo;To provide every young player in Columbus with the tools, training, and belief
-              to reach their full potential — on the field and in life.&rdquo;
-            </blockquote>
-            <p className="text-amber-500 font-bold mt-4">— Coach Mamadou Kante</p>
-          </div>
-        </div>
-      </section>
-
       <CTASection
-        title="Ready to Start Your Journey?"
-        subtitle="Join 200+ Columbus players who've trained with Coach Kante and saw real results. Book your first session today."
+        title="Train With Confidence"
+        subtitle="Book a session with a coach who brings real playing experience and a clear plan for development."
         urgencyLine="Limited spots available each week"
       />
     </div>

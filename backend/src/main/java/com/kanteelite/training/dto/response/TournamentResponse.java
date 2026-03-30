@@ -26,5 +26,13 @@ public class TournamentResponse {
     private String division;
     private BigDecimal entryFee;
     private String notes;
+    private String formatType;
+    private Integer teamsPerGroup;
+    private Integer advancePerGroup;
+    private Integer pointsForWin;
+    private Integer pointsForDraw;
+    private Integer pointsForLoss;
+    private Integer matchDurationMinutes;
+    private Boolean thirdPlaceMatchEnabled;
     private LocalDateTime createdAt;
 }

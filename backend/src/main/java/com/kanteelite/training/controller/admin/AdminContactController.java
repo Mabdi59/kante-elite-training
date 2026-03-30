@@ -25,4 +25,10 @@ public class AdminContactController {
     public ResponseEntity<ApiResponse<ContactMessageResponse>> markAsRead(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success("Message marked as read.", contactService.markAsRead(id)));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteMessage(@PathVariable Long id) {
+        contactService.deleteMessage(id);
+        return ResponseEntity.ok(ApiResponse.success("Message deleted.", null));
+    }
 }

@@ -237,7 +237,7 @@ export default function AccountPage() {
                       onChange={(e) => setPlayerForm({ ...playerForm, skillLevel: e.target.value })}
                       className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
                     >
-                      <option value="">— select —</option>
+                      <option value="">Select level</option>
                       <option>BEGINNER</option>
                       <option>INTERMEDIATE</option>
                       <option>ADVANCED</option>

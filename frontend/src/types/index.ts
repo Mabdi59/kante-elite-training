@@ -117,19 +117,118 @@ export interface Tournament {
   division?: string
   entryFee?: number
   notes?: string
+  formatType?: string
+  teamsPerGroup?: number
+  advancePerGroup?: number
+  pointsForWin?: number
+  pointsForDraw?: number
+  pointsForLoss?: number
+  matchDurationMinutes?: number
+  thirdPlaceMatchEnabled?: boolean
   createdAt: string
+}
+
+export interface TeamPlayer {
+  id: number
+  teamId: number
+  fullName: string
+  jerseyNumber?: string
+  position?: string
+  captain?: boolean
+  notes?: string
+  createdAt: string
+}
+
+export interface TournamentWorkflowTeam {
+  registrationId: number
+  tournamentId: number
+  teamId: number
+  teamName: string
+  captainName: string
+  contactEmail: string
+  phone?: string
+  clubName?: string
+  registrationStatus: string
+  paymentStatus?: string
+  publicAccessUrl?: string
+  playerCount: number
+  players: TeamPlayer[]
+}
+
+export interface TournamentMatch {
+  id: number
+  tournamentId: number
+  homeTeamId?: number
+  homeTeamName?: string
+  awayTeamId?: number
+  awayTeamName?: string
+  stageName?: string
+  roundName?: string
+  matchDate?: string
+  kickoffTime?: string
+  venue?: string
+  fieldName?: string
+  status: string
+  homeScore?: number
+  awayScore?: number
+  notes?: string
+  createdAt: string
+}
+
+export interface TournamentWorkflow {
+  tournament: Tournament
+  teams: TournamentWorkflowTeam[]
+  matches: TournamentMatch[]
+  totalPlayers: number
+  completedMatches: number
 }
 
 export interface TeamRegistration {
   id: number
   tournamentId: number
   tournamentName: string
+  tournamentLocation?: string
+  tournamentStartDate?: string
+  tournamentStatus?: string
   teamId: number
   teamName: string
   captainName: string
   contactEmail: string
+  phone?: string
+  clubName?: string
   status: string
+  paymentStatus?: string
+  paymentMethod?: string
+  paymentReference?: string
+  paymentNotes?: string
+  entryFee?: number
+  paymentRequired?: boolean
+  rosterSubmitted?: boolean
+  rosterText?: string
+  rosterFileName?: string
+  rosterSubmittedAt?: string
+  guestAccessToken?: string
+  publicAccessUrl?: string
   createdAt: string
+}
+
+export interface TournamentRegistrationDashboard {
+  registration: TeamRegistration
+  paymentRequired: boolean
+  onlinePaymentAvailable: boolean
+  entryFee?: number
+  rosterSubmitted: boolean
+  rosterText?: string
+  rosterFileName?: string
+  rosterSubmittedAt?: string
+  lastFollowUpSentAt?: string
+  publicAccessUrl: string
+  nextSteps: string[]
+}
+
+export interface TournamentPaymentCheckout {
+  checkoutUrl?: string
+  message?: string
 }
 
 export interface ContactMessage {
@@ -162,11 +261,31 @@ export interface AdminDashboard {
   usersWithRoleUser: number
 }
 
+export interface StaffDashboard {
+  totalBookings: number
+  todayBookings: number
+  upcomingBookings: number
+  confirmedBookings: number
+  unreadMessages: number
+  blockedSlots: number
+  pendingRegistrations: number
+  totalPlayers: number
+  totalTournaments: number
+}
+
+export interface CaptainDashboard {
+  totalRegistrations: number
+  pendingRegistrations: number
+  approvedRegistrations: number
+  waitlistedRegistrations: number
+  availableTournaments: number
+}
+
 export interface AdminUser {
   id: number
   name: string
   email: string
-  role: string
+  role: UserRole
   createdAt: string
 }
 
@@ -262,7 +381,47 @@ export interface TeamRegistrationFormData {
   teamName: string
   captainName: string
   contactEmail: string
+  phone?: string
+  clubName?: string
   tournamentId: number
+}
+
+export interface AdminTeamRegistrationFormData extends TeamRegistrationFormData {
+  status: string
+  paymentStatus: string
+  paymentMethod?: string
+  paymentReference?: string
+  paymentNotes?: string
+  rosterText?: string
+}
+
+export interface TeamPlayerFormData {
+  fullName: string
+  jerseyNumber?: string
+  position?: string
+  captain?: boolean
+  notes?: string
+}
+
+export interface TournamentMatchFormData {
+  homeTeamId?: number
+  awayTeamId?: number
+  stageName?: string
+  roundName?: string
+  matchDate?: string
+  kickoffTime?: string
+  venue?: string
+  fieldName?: string
+  status: string
+  homeScore?: number | ''
+  awayScore?: number | ''
+  notes?: string
+}
+
+export interface ManualTournamentPaymentFormData {
+  paymentMethod: string
+  paymentReference?: string
+  notes?: string
 }
 
 export interface PlayerProfileFormData {
@@ -278,5 +437,23 @@ export interface CoachProfileFormData {
   bio?: string
   specialties?: string
   certifications?: string
+  active?: boolean
+}
+
+export interface AdminUserFormData {
+  name: string
+  email: string
+  password?: string
+  role: UserRole
+}
+
+export interface AdminPlayerFormData {
+  parentUserId: number
+  name: string
+  dateOfBirth?: string
+  age?: number
+  skillLevel?: string
+  preferredPosition?: string
+  notes?: string
   active?: boolean
 }

@@ -16,9 +16,13 @@ export default function CoachProfilePage() {
     getMyCoachProfile()
       .then((p) => {
         setProfile(p)
+        if (!p) {
+          setError('No coach profile found. Contact an admin to get set up.')
+          return
+        }
         setForm({ bio: p.bio ?? '', specialties: p.specialties ?? '', certifications: p.certifications ?? '' })
       })
-      .catch(() => setError('No coach profile found. Contact an admin to get set up.'))
+      .catch(() => setError('Could not load your profile. Please try again.'))
       .finally(() => setLoading(false))
   }, [])
 

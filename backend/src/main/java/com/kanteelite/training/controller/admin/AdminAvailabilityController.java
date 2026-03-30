@@ -61,6 +61,15 @@ public class AdminAvailabilityController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Slot blocked.", created));
     }
 
+    @PutMapping("/blocked/{id}")
+    public ResponseEntity<ApiResponse<BlockedSlotResponse>> updateBlockedSlot(
+            @PathVariable Long id,
+            @Valid @RequestBody BlockedSlotRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Blocked slot updated.",
+                availabilityService.updateBlockedSlot(id, request)));
+    }
+
     @DeleteMapping("/blocked/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteBlockedSlot(@PathVariable Long id) {
         availabilityService.deleteBlockedSlot(id);

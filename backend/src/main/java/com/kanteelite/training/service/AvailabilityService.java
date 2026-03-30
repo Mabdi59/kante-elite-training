@@ -160,6 +160,16 @@ public class AvailabilityService {
     }
 
     @Transactional
+    public BlockedSlotResponse updateBlockedSlot(Long id, BlockedSlotRequest req) {
+        BlockedSlot slot = blockedSlotRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("BlockedSlot", id));
+        slot.setSlotDate(req.getSlotDate());
+        slot.setSlotTime(req.getSlotTime());
+        slot.setReason(req.getReason());
+        return toBlockedSlotResponse(blockedSlotRepository.save(slot));
+    }
+
+    @Transactional
     public void deleteBlockedSlot(Long id) {
         if (!blockedSlotRepository.existsById(id)) {
             throw new ResourceNotFoundException("BlockedSlot", id);

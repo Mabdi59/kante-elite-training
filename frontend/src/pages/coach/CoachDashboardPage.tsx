@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { getMyCoachProfile, getMyCoachSessions } from '../../services/api'
 import type { CoachProfile, Booking } from '../../types'
@@ -35,11 +36,26 @@ export default function CoachDashboardPage() {
           <h1 className="text-white text-3xl font-black">Hi, {user?.name?.split(' ')[0]}</h1>
           <p className="text-gray-400 mt-1">Here's what's coming up.</p>
         </div>
-        {!profile && (
-          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-4 py-3 text-yellow-400 text-sm">
-            No coach profile found. Ask an admin to set one up.
-          </div>
-        )}
+        <div className="flex flex-wrap gap-2">
+          <Link
+            to="/coach/sessions"
+            className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-4 py-2 rounded-lg"
+          >
+            Manage Sessions
+          </Link>
+          <Link
+            to="/coach/availability"
+            className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg"
+          >
+            Manage Availability
+          </Link>
+          <Link
+            to="/coach/profile"
+            className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg"
+          >
+            Edit Profile
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

@@ -18,21 +18,21 @@ const outcomes = [
     context: 'U18 Player',
     result: 'Committed to play Division II soccer',
     story:
-      'Came to Coach Kante when college scouts were passing him by. After one summer of private training, his first touch, shooting, and confidence were completely transformed.',
+      'Jordan came to Coach Kante when college scouts were passing him by. After one summer of private training, his first touch, finishing, and confidence improved dramatically.',
   },
   {
     player: 'Aisha B.',
     context: 'U16 Player',
     result: 'Called up for State ODP Program',
     story:
-      "Struggled with first touch under pressure. Coach Kante rebuilt her technique from the ground up with a clear system. Now one of the most composed players in her club.",
+      'Aisha struggled with first touch under pressure. Coach Kante rebuilt her technique with a clear system. She is now one of the most composed players on her club team.',
   },
   {
     player: 'Marcus T.',
     context: 'U14 Player',
     result: 'Starting position secured at competitive club',
     story:
-      "Wasn't getting playing time at club level. Within 3 months of private sessions, visible improvement in every technical area and earned a starting spot.",
+      'Marcus was not getting playing time at club level. After three months of private sessions, he improved across the board and earned a starting spot.',
   },
 ]
 
@@ -43,7 +43,7 @@ export default function ResultsPage() {
   useEffect(() => {
     getTestimonials()
       .then(setTestimonials)
-      .catch(() => { /* silently fail — page still renders without testimonials */ })
+      .catch(() => { /* Page still works without testimonials. */ })
       .finally(() => setLoading(false))
   }, [])
 
@@ -51,12 +51,11 @@ export default function ResultsPage() {
     <div className="pt-20">
       <HeroSection
         badge="Real Results"
-        title="Players Who Showed Up. Coaches Who Delivered."
-        subtitle="We don't measure success in promises — we measure it in the players who earned scholarships, club starts, and ODP calls because they did the work here."
+        title="Real Progress. Real Results."
+        subtitle="We measure success by player growth, confidence, and the opportunities earned through consistent training."
       />
 
-      {/* Achievements */}
-      <section className="bg-[#111111] py-20 px-4">
+      <section className="bg-[#111111] py-16 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {achievements.map((a) => (
@@ -73,10 +72,9 @@ export default function ResultsPage() {
         </div>
       </section>
 
-      {/* Featured outcomes */}
-      <section className="bg-black py-20 px-4">
+      <section className="bg-black py-16 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-14">
+          <div className="text-center mb-10">
             <p className="section-label">Player Stories</p>
             <h2 className="text-white font-black text-4xl">
               Development <span className="text-amber-500">Outcomes</span>
@@ -104,10 +102,9 @@ export default function ResultsPage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="bg-[#111111] py-20 px-4">
+      <section className="bg-[#111111] py-16 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-14">
+          <div className="text-center mb-10">
             <p className="section-label">What Families Say</p>
             <h2 className="text-white font-black text-4xl">
               Honest Reviews from <span className="text-amber-500">Real Families</span>
@@ -131,8 +128,8 @@ export default function ResultsPage() {
       </section>
 
       <CTASection
-        title="Ready to Write Your Own Story?"
-        subtitle="Every one of those players started with a single booking. Your player's breakthrough is one session away."
+        title="Ready to Start Your Player's Story?"
+        subtitle="Every result starts with a first session. Book now and begin with a clear plan."
       />
     </div>
   )

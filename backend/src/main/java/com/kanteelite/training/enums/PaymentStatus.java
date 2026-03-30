@@ -2,7 +2,9 @@ package com.kanteelite.training.enums;
 
 public enum PaymentStatus {
     PENDING,
+    SUBMITTED,
     PAID,
     FAILED,
-    REFUNDED
+    REFUNDED,
+    NOT_REQUIRED
 }

@@ -41,11 +41,12 @@ public class UserService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email is already registered.");
         }
+        UserRole role = resolveRequestedPublicRole(request.getRequestedRole());
         User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(UserRole.USER)
+                .role(role)
                 .build();
         user = userRepository.save(user);
         String accessToken = jwtUtil.generateAccessToken(user.getEmail(), user.getRole().name());
@@ -60,6 +61,26 @@ public class UserService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Invalid email or password.");
         }
+        if (request.getRequestedRole() == UserRole.TEAM_CAPTAIN
+                && (user.getRole() == UserRole.USER || user.getRole() == UserRole.PARENT)) {
+            user.setRole(UserRole.TEAM_CAPTAIN);
+            user = userRepository.save(user);
+        }
+        String accessToken = jwtUtil.generateAccessToken(user.getEmail(), user.getRole().name());
+        String refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
+        return buildResponse(user, accessToken, refreshToken);
+    }
+
+    @Transactional
+    public AuthResponse claimTeamCaptainAccess(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+
+        if (user.getRole() == UserRole.USER || user.getRole() == UserRole.PARENT) {
+            user.setRole(UserRole.TEAM_CAPTAIN);
+            user = userRepository.save(user);
+        }
+
         String accessToken = jwtUtil.generateAccessToken(user.getEmail(), user.getRole().name());
         String refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
         return buildResponse(user, accessToken, refreshToken);
@@ -140,5 +161,12 @@ public class UserService {
                 .name(user.getName())
                 .role(user.getRole().name())
                 .build();
+    }
+
+    private UserRole resolveRequestedPublicRole(UserRole requestedRole) {
+        if (requestedRole == UserRole.TEAM_CAPTAIN) {
+            return UserRole.TEAM_CAPTAIN;
+        }
+        return UserRole.USER;
     }
 }

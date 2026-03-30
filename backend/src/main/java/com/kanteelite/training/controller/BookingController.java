@@ -8,6 +8,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,8 +20,11 @@ public class BookingController {
     private final BookingService bookingService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<BookingResponse>> createBooking(@Valid @RequestBody BookingRequest request) {
-        BookingResponse booking = bookingService.createBooking(request);
+    public ResponseEntity<ApiResponse<BookingResponse>> createBooking(
+            @Valid @RequestBody BookingRequest request,
+            @AuthenticationPrincipal UserDetails principal) {
+        BookingResponse booking = bookingService.createBooking(
+                request, principal != null ? principal.getUsername() : null);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Booking confirmed successfully.", booking));
     }

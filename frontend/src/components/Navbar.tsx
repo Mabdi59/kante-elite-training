@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 
 const navLinks = [
   { href: '/training', label: 'Programs' },
+  { href: '/tournaments', label: 'Tournaments' },
   { href: '/events', label: 'Events' },
   { href: '/results', label: 'Results' },
   { href: '/about', label: 'About' },
@@ -15,6 +16,22 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
   const { user, isAuthenticated, isAdmin, isCoach, logoutUser } = useAuth()
+  const portalPath =
+    user?.role === 'ADMIN'
+      ? '/admin'
+      : user?.role === 'STAFF'
+        ? '/staff'
+        : user?.role === 'COACH'
+          ? '/coach'
+          : user?.role === 'TEAM_CAPTAIN'
+            ? '/captain'
+            : user?.role === 'PLAYER'
+              ? '/player'
+              : user?.role === 'PARENT'
+                ? '/parent'
+                : user?.role === 'USER'
+                  ? '/user'
+                  : '/account'
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -77,7 +94,7 @@ export default function Navbar() {
                   Coach
                 </Link>
               )}
-              <Link to="/account" className="text-sm text-gray-300 hover:text-white font-semibold">
+              <Link to={portalPath} className="text-sm text-gray-300 hover:text-white font-semibold">
                 {user?.name?.split(' ')[0]}
               </Link>
               <button
@@ -139,7 +156,7 @@ export default function Navbar() {
           ))}
           {isAuthenticated ? (
             <>
-              <Link to="/account" className="text-lg font-bold text-white">
+              <Link to={portalPath} className="text-lg font-bold text-white">
                 My Account
               </Link>
               {isAdmin && (

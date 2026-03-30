@@ -58,6 +58,38 @@ public class Tournament {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    @Column(name = "format_type", nullable = false, length = 30)
+    @Builder.Default
+    private String formatType = "ROUND_ROBIN";
+
+    @Column(name = "teams_per_group")
+    @Builder.Default
+    private Integer teamsPerGroup = 4;
+
+    @Column(name = "advance_per_group")
+    @Builder.Default
+    private Integer advancePerGroup = 2;
+
+    @Column(name = "points_for_win", nullable = false)
+    @Builder.Default
+    private Integer pointsForWin = 3;
+
+    @Column(name = "points_for_draw", nullable = false)
+    @Builder.Default
+    private Integer pointsForDraw = 1;
+
+    @Column(name = "points_for_loss", nullable = false)
+    @Builder.Default
+    private Integer pointsForLoss = 0;
+
+    @Column(name = "match_duration_minutes", nullable = false)
+    @Builder.Default
+    private Integer matchDurationMinutes = 50;
+
+    @Column(name = "third_place_match_enabled", nullable = false)
+    @Builder.Default
+    private Boolean thirdPlaceMatchEnabled = false;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

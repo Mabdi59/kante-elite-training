@@ -2,6 +2,7 @@ package com.kanteelite.training.service;
 
 import com.kanteelite.training.dto.request.ContactRequest;
 import com.kanteelite.training.dto.response.BookingResponse;
+import com.kanteelite.training.dto.response.TeamRegistrationResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,10 +10,13 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import jakarta.mail.internet.MimeMessage;
+
+import java.util.List;
 
 @Service
 public class EmailService {
@@ -123,5 +127,76 @@ public class EmailService {
         } catch (Exception e) {
             log.error("Failed to send contact notification: {}", e.getMessage());
         }
+    }
+
+    public void sendTournamentRegistrationConfirmation(
+            TeamRegistrationResponse registration,
+            List<String> nextSteps) {
+        sendTournamentRegistrationEmail(
+                registration,
+                "Tournament Registration Received, Kante Elite Training",
+                "Registration Received",
+                "Your team has been added to our tournament registration queue. Use your Team Portal to track updates, complete payment, and submit your roster.",
+                nextSteps
+        );
+    }
+
+    public void sendTournamentRegistrationUpdate(
+            TeamRegistrationResponse registration,
+            String subject,
+            String heroTitle,
+            String intro,
+            List<String> nextSteps) {
+        sendTournamentRegistrationEmail(registration, subject, heroTitle, intro, nextSteps);
+    }
+
+    private void sendTournamentRegistrationEmail(
+            TeamRegistrationResponse registration,
+            String subject,
+            String heroTitle,
+            String intro,
+            List<String> nextSteps) {
+        if (!emailEnabled) {
+            log.info("Email disabled, skipping tournament registration email for {}", registration.getContactEmail());
+            return;
+        }
+        if (mailSender == null) {
+            log.warn("Email enabled but JavaMailSender is not configured; skipping tournament registration email for {}", registration.getContactEmail());
+            return;
+        }
+        if (!StringUtils.hasText(registration.getContactEmail())) {
+            log.warn("Tournament registration {} has no contact email; skipping email.", registration.getId());
+            return;
+        }
+
+        try {
+            Context ctx = new Context();
+            ctx.setVariable("registration", registration);
+            ctx.setVariable("heroTitle", heroTitle);
+            ctx.setVariable("intro", intro);
+            ctx.setVariable("nextSteps", nextSteps);
+            ctx.setVariable("ctaUrl", registration.getPublicAccessUrl());
+            ctx.setVariable("ctaLabel", "Open Registration Workspace");
+
+            String htmlBody = templateEngine.process("email/tournament-registration-update", ctx);
+            sendHtmlEmail(registration.getContactEmail(), subject, htmlBody, null);
+            log.info("Tournament registration email sent to {}", registration.getContactEmail());
+        } catch (Exception e) {
+            log.error("Failed to send tournament registration email to {}: {}",
+                    registration.getContactEmail(), e.getMessage());
+        }
+    }
+
+    private void sendHtmlEmail(String toEmail, String subject, String htmlBody, String replyTo) throws Exception {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        helper.setFrom(fromAddress);
+        helper.setTo(toEmail);
+        if (StringUtils.hasText(replyTo)) {
+            helper.setReplyTo(replyTo);
+        }
+        helper.setSubject(subject);
+        helper.setText(htmlBody, true);
+        mailSender.send(message);
     }
 }

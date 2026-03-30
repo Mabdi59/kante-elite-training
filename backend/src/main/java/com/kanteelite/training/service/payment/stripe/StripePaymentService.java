@@ -11,6 +11,7 @@ import com.kanteelite.training.repository.BookingRepository;
 import com.kanteelite.training.service.BookingService;
 import com.kanteelite.training.service.EmailService;
 import com.kanteelite.training.service.ProgramService;
+import com.kanteelite.training.service.TournamentPaymentService;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
@@ -46,6 +47,7 @@ public class StripePaymentService {
     private final ProgramService programService;
     private final EmailService emailService;
     private final BookingService bookingService;
+    private final TournamentPaymentService tournamentPaymentService;
 
     @Value("${stripe.secret-key:}")
     private String stripeSecretKey;
@@ -60,11 +62,13 @@ public class StripePaymentService {
             BookingRepository bookingRepository,
             ProgramService programService,
             EmailService emailService,
-            BookingService bookingService) {
+            BookingService bookingService,
+            TournamentPaymentService tournamentPaymentService) {
         this.bookingRepository = bookingRepository;
         this.programService = programService;
         this.emailService = emailService;
         this.bookingService = bookingService;
+        this.tournamentPaymentService = tournamentPaymentService;
     }
 
     /**
@@ -147,6 +151,13 @@ public class StripePaymentService {
 
     private void processCompletedCheckout(Session session) {
         String sessionId = session.getId();
+        java.util.Map<String, String> meta = session.getMetadata();
+
+        if (meta != null && "TOURNAMENT_REGISTRATION".equals(meta.get("checkoutType"))) {
+            tournamentPaymentService.handleCompletedCheckout(session);
+            log.info("Tournament registration payment confirmed for Stripe session {}", sessionId);
+            return;
+        }
 
         // Idempotency check — don't create duplicate bookings
         if (bookingRepository.findByStripeSessionId(sessionId).isPresent()) {
@@ -155,7 +166,6 @@ public class StripePaymentService {
         }
 
         try {
-            java.util.Map<String, String> meta = session.getMetadata();
             Long programId = Long.parseLong(meta.get("programId"));
             Program program = programService.getProgramEntityById(programId);
 
