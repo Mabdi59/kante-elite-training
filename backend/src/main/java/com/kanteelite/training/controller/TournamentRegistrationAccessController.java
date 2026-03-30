@@ -2,7 +2,6 @@ package com.kanteelite.training.controller;
 
 import com.kanteelite.training.dto.request.ManualTournamentPaymentRequest;
 import com.kanteelite.training.dto.response.ApiResponse;
-import com.kanteelite.training.dto.response.TeamRegistrationResponse;
 import com.kanteelite.training.dto.response.TournamentPaymentCheckoutResponse;
 import com.kanteelite.training.dto.response.TournamentRegistrationDashboardResponse;
 import com.kanteelite.training.service.TournamentPaymentService;

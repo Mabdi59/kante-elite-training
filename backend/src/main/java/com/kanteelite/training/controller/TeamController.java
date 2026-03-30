@@ -23,9 +23,7 @@ public class TeamController {
     public ResponseEntity<ApiResponse<TeamRegistrationResponse>> register(
             @Valid @RequestBody TeamRegistrationRequest request,
             @AuthenticationPrincipal UserDetails principal) {
-        TeamRegistrationResponse response = principal != null
-                ? tournamentService.registerTeamForUser(request, principal.getUsername())
-                : tournamentService.registerTeam(request);
+        TeamRegistrationResponse response = tournamentService.registerTeamForUser(request, principal.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Team registered successfully.", response));
     }
