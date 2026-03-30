@@ -1253,16 +1253,55 @@ public class TournamentService {
 
     private List<TournamentMatch> generateGroupStageMatches(Tournament tournament, List<Team> teams) {
         int teamsPerGroup = normalizePositiveInteger(tournament.getTeamsPerGroup(), 4);
+        int advancePerGroup = normalizePositiveInteger(tournament.getAdvancePerGroup(), 2);
         List<TournamentMatch> matches = new ArrayList<>();
+        int numGroups = 0;
 
         for (int index = 0; index < teams.size(); index += teamsPerGroup) {
             int endIndex = Math.min(index + teamsPerGroup, teams.size());
             List<Team> groupTeams = new ArrayList<>(teams.subList(index, endIndex));
             char groupLetter = (char) ('A' + (index / teamsPerGroup));
             matches.addAll(generateRoundRobinMatches(tournament, groupTeams, "Group " + groupLetter));
+            numGroups++;
+        }
+
+        // Knockout bracket: placeholder (TBD) matches generated after group phase
+        int totalAdvancing = numGroups * advancePerGroup;
+        if (totalAdvancing >= 2) {
+            int size = Integer.highestOneBit(totalAdvancing); // round down to nearest power of 2
+            while (size >= 2) {
+                String roundLabel = switch (size) {
+                    case 2 -> "Final";
+                    case 4 -> "Semifinal";
+                    case 8 -> "Quarterfinal";
+                    default -> "Round of " + size;
+                };
+                int matchesInRound = size / 2;
+                if (matchesInRound == 1) {
+                    matches.add(createKnockoutPlaceholder(tournament, "Knockout", roundLabel));
+                } else {
+                    for (int i = 1; i <= matchesInRound; i++) {
+                        matches.add(createKnockoutPlaceholder(tournament, "Knockout", roundLabel + " " + i));
+                    }
+                }
+                size /= 2;
+            }
+            if (Boolean.TRUE.equals(tournament.getThirdPlaceMatchEnabled())) {
+                matches.add(createKnockoutPlaceholder(tournament, "Knockout", "Third Place"));
+            }
         }
 
         return matches;
+    }
+
+    private TournamentMatch createKnockoutPlaceholder(Tournament tournament, String stageName, String roundName) {
+        return TournamentMatch.builder()
+                .tournament(tournament)
+                .stageName(stageName)
+                .roundName(roundName)
+                .venue(tournament.getLocation())
+                .status(MATCH_STATUS_SCHEDULED)
+                .build();
     }
 
     private List<TournamentMatch> generateKnockoutMatches(Tournament tournament, List<Team> teams) {
