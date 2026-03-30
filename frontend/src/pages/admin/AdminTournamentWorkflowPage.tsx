@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import FormatSelector from '../../components/FormatSelector'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   bulkCreateTournamentTeamPlayers,
@@ -85,7 +86,7 @@ const emptyTournamentForm = (): TournamentFormState => ({
   division: '',
   entryFee: 0,
   notes: '',
-  formatType: 'ROUND_ROBIN',
+  formatType: 'GROUP_STAGE',
   teamsPerGroup: 4,
   advancePerGroup: 2,
   pointsForWin: 3,
@@ -148,7 +149,7 @@ function toTournamentForm(tournament: Tournament | null | undefined): Tournament
     division: tournament.division ?? '',
     entryFee: Number(tournament.entryFee ?? 0),
     notes: tournament.notes ?? '',
-    formatType: tournament.formatType ?? 'ROUND_ROBIN',
+    formatType: tournament.formatType ?? 'GROUP_STAGE',
     teamsPerGroup: tournament.teamsPerGroup ?? 4,
     advancePerGroup: tournament.advancePerGroup ?? 2,
     pointsForWin: tournament.pointsForWin ?? 3,
@@ -692,38 +693,42 @@ export default function AdminTournamentWorkflowPage() {
           <>
             <h2 className="text-white font-black text-2xl">Format</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Format type</label>
-                <select className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" value={tournamentForm.formatType} onChange={(e) => setTournamentForm((prev) => ({ ...prev, formatType: e.target.value }))}>
-                  <option value="ROUND_ROBIN">Round Robin — every team plays each other</option>
-                  <option value="GROUP_STAGE">Group Stage — groups then knockout</option>
-                  <option value="KNOCKOUT">Knockout — single elimination</option>
-                </select>
-              </div>
+              <FormatSelector
+                value={tournamentForm.formatType}
+                onChange={(val) => setTournamentForm((prev) => ({ ...prev, formatType: val }))}
+              />
               <div>
                 <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Match duration (minutes)</label>
                 <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={1} value={tournamentForm.matchDurationMinutes} onChange={(e) => setTournamentForm((prev) => ({ ...prev, matchDurationMinutes: Number(e.target.value) }))} />
               </div>
-              <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Teams per group</label>
-                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={2} value={tournamentForm.teamsPerGroup} onChange={(e) => setTournamentForm((prev) => ({ ...prev, teamsPerGroup: Number(e.target.value) }))} />
-              </div>
-              <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Teams advancing per group</label>
-                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={1} value={tournamentForm.advancePerGroup} onChange={(e) => setTournamentForm((prev) => ({ ...prev, advancePerGroup: Number(e.target.value) }))} />
-              </div>
-              <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Points for win</label>
-                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={0} value={tournamentForm.pointsForWin} onChange={(e) => setTournamentForm((prev) => ({ ...prev, pointsForWin: Number(e.target.value) }))} />
-              </div>
-              <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Points for draw</label>
-                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={0} value={tournamentForm.pointsForDraw} onChange={(e) => setTournamentForm((prev) => ({ ...prev, pointsForDraw: Number(e.target.value) }))} />
-              </div>
-              <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Points for loss</label>
-                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={0} value={tournamentForm.pointsForLoss} onChange={(e) => setTournamentForm((prev) => ({ ...prev, pointsForLoss: Number(e.target.value) }))} />
-              </div>
+              {tournamentForm.formatType !== 'KNOCKOUT' && (
+                <div>
+                  <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Teams per group</label>
+                  <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={2} value={tournamentForm.teamsPerGroup} onChange={(e) => setTournamentForm((prev) => ({ ...prev, teamsPerGroup: Number(e.target.value) }))} />
+                </div>
+              )}
+              {tournamentForm.formatType === 'GROUP_STAGE' && (
+                <div>
+                  <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Teams advancing per group</label>
+                  <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={1} value={tournamentForm.advancePerGroup} onChange={(e) => setTournamentForm((prev) => ({ ...prev, advancePerGroup: Number(e.target.value) }))} />
+                </div>
+              )}
+              {tournamentForm.formatType !== 'KNOCKOUT' && (
+                <>
+                  <div>
+                    <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Points for win</label>
+                    <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={0} value={tournamentForm.pointsForWin} onChange={(e) => setTournamentForm((prev) => ({ ...prev, pointsForWin: Number(e.target.value) }))} />
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Points for draw</label>
+                    <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={0} value={tournamentForm.pointsForDraw} onChange={(e) => setTournamentForm((prev) => ({ ...prev, pointsForDraw: Number(e.target.value) }))} />
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Points for loss</label>
+                    <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={0} value={tournamentForm.pointsForLoss} onChange={(e) => setTournamentForm((prev) => ({ ...prev, pointsForLoss: Number(e.target.value) }))} />
+                  </div>
+                </>
+              )}
               <div className="flex items-center gap-3 pt-5">
                 <input id="thirdPlace" type="checkbox" checked={tournamentForm.thirdPlaceMatchEnabled} onChange={(e) => setTournamentForm((prev) => ({ ...prev, thirdPlaceMatchEnabled: e.target.checked }))} className="w-4 h-4" />
                 <label htmlFor="thirdPlace" className="text-gray-300 text-sm cursor-pointer">Enable third place match</label>
