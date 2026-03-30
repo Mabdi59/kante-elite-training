@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
+  bulkCreateTournamentTeamPlayers,
   createAdminTournamentRegistration,
   createTournament,
   createTournamentMatch,
@@ -17,6 +18,7 @@ import {
 } from '../../services/api'
 import type {
   AdminTeamRegistrationFormData,
+  StandingEntry,
   TeamPlayer,
   TeamPlayerFormData,
   Tournament,
@@ -30,7 +32,7 @@ import ErrorBanner from '../../components/ErrorBanner'
 import EmptyState from '../../components/EmptyState'
 import StatusBadge from '../../components/StatusBadge'
 
-type WorkflowStep = 'details' | 'teams' | 'players' | 'format' | 'schedule' | 'results'
+type WorkflowStep = 'details' | 'teams' | 'players' | 'format' | 'schedule' | 'results' | 'standings'
 
 type TournamentFormState = {
   name: string
@@ -62,12 +64,12 @@ const WORKFLOW_STEPS: { key: WorkflowStep; label: string; hint: string }[] = [
   { key: 'format', label: '4. Format', hint: 'Set match rules and structure.' },
   { key: 'schedule', label: '5. Schedule', hint: 'Build the full match list.' },
   { key: 'results', label: '6. Results', hint: 'Enter scores and finalize games.' },
+  { key: 'standings', label: '7. Standings', hint: 'Live table sorted by points.' },
 ]
 
 const TOURNAMENT_STATUSES = ['UPCOMING', 'ONGOING', 'COMPLETED', 'CANCELLED']
 const REGISTRATION_STATUSES = ['PENDING', 'APPROVED', 'REJECTED', 'WAITLISTED']
 const PAYMENT_STATUSES = ['PENDING', 'SUBMITTED', 'PAID', 'FAILED', 'REFUNDED', 'NOT_REQUIRED']
-const FORMAT_TYPES = ['ROUND_ROBIN', 'GROUP_STAGE', 'KNOCKOUT']
 const MATCH_STATUSES = ['SCHEDULED', 'IN_PROGRESS', 'FINAL', 'POSTPONED', 'CANCELLED']
 
 const emptyTournamentForm = (): TournamentFormState => ({
@@ -198,6 +200,17 @@ export default function AdminTournamentWorkflowPage() {
   const [matchForm, setMatchForm] = useState<TournamentMatchFormData>(emptyMatchForm())
   const [editingMatch, setEditingMatch] = useState<TournamentMatch | null>(null)
   const [showMatchForm, setShowMatchForm] = useState(false)
+
+  // Inline result editing: matchId → { homeScore, awayScore, status }
+  const [inlineResults, setInlineResults] = useState<
+    Record<number, { homeScore: string; awayScore: string; status: string }>
+  >({})
+  const [savingResultId, setSavingResultId] = useState<number | null>(null)
+
+  // Bulk player import
+  const [bulkImportText, setBulkImportText] = useState('')
+  const [showBulkImport, setShowBulkImport] = useState(false)
+  const [importingBulk, setImportingBulk] = useState(false)
 
   const selectedTeam = useMemo(
     () => workflow?.teams.find((team) => team.teamId === selectedTeamId) ?? null,
@@ -356,9 +369,85 @@ export default function AdminTournamentWorkflowPage() {
     setShowMatchForm(true)
   }
 
+  const selectTeamForPlayers = (teamId: number) => {
+    setSelectedTeamId(teamId)
+    setPlayerForm(emptyPlayerForm())
+    setEditingPlayer(null)
+    setShowBulkImport(false)
+    setBulkImportText('')
+  }
+
+  const openInlineResult = (match: TournamentMatch) => {
+    setInlineResults((prev) => ({
+      ...prev,
+      [match.id]: {
+        homeScore: match.homeScore != null ? String(match.homeScore) : '',
+        awayScore: match.awayScore != null ? String(match.awayScore) : '',
+        status: match.status ?? 'SCHEDULED',
+      },
+    }))
+  }
+
+  const saveInlineResult = async (match: TournamentMatch) => {
+    if (!tournamentId) return
+    const data = inlineResults[match.id]
+    if (!data) return
+    setSavingResultId(match.id)
+    setError('')
+    try {
+      await updateTournamentMatch(tournamentId, match.id, {
+        homeTeamId: match.homeTeamId,
+        awayTeamId: match.awayTeamId,
+        stageName: match.stageName ?? '',
+        roundName: match.roundName ?? '',
+        matchDate: match.matchDate ?? '',
+        kickoffTime: match.kickoffTime ? match.kickoffTime.slice(0, 5) : '',
+        venue: match.venue ?? '',
+        fieldName: match.fieldName ?? '',
+        status: data.status,
+        homeScore: data.homeScore,
+        awayScore: data.awayScore,
+        notes: match.notes ?? '',
+      })
+      setInlineResults((prev) => {
+        const next = { ...prev }
+        delete next[match.id]
+        return next
+      })
+      await loadWorkflow(tournamentId)
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        'Could not save this result.'
+      setError(message)
+    } finally {
+      setSavingResultId(null)
+    }
+  }
+
+  const runBulkImport = async () => {
+    if (!tournamentId || !selectedTeamId || !bulkImportText.trim()) return
+    setImportingBulk(true)
+    setError('')
+    try {
+      const lines = bulkImportText.split('\n')
+      await bulkCreateTournamentTeamPlayers(tournamentId, selectedTeamId, lines)
+      setBulkImportText('')
+      setShowBulkImport(false)
+      await loadWorkflow(tournamentId)
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        'Bulk import failed.'
+      setError(message)
+    } finally {
+      setImportingBulk(false)
+    }
+  }
+
   const currentStepIndex = WORKFLOW_STEPS.findIndex((step) => step.key === currentStep)
   const previousStep = WORKFLOW_STEPS[Math.max(currentStepIndex - 1, 0)]?.key ?? 'details'
-  const nextStep = WORKFLOW_STEPS[Math.min(currentStepIndex + 1, WORKFLOW_STEPS.length - 1)]?.key ?? 'results'
+  const nextStep = WORKFLOW_STEPS[Math.min(currentStepIndex + 1, WORKFLOW_STEPS.length - 1)]?.key ?? 'standings'
 
   if (loading) return <LoadingSpinner label="Loading tournament workflow..." />
 
@@ -405,19 +494,55 @@ export default function AdminTournamentWorkflowPage() {
         {currentStep === 'details' ? (
           <>
             <h2 className="text-white font-black text-2xl">Tournament Details</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm md:col-span-2" placeholder="Tournament name" value={tournamentForm.name} onChange={(e) => setTournamentForm((prev) => ({ ...prev, name: e.target.value }))} />
-              <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Location" value={tournamentForm.location} onChange={(e) => setTournamentForm((prev) => ({ ...prev, location: e.target.value }))} />
-              <select className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" value={tournamentForm.status} onChange={(e) => setTournamentForm((prev) => ({ ...prev, status: e.target.value }))}>{TOURNAMENT_STATUSES.map((status) => <option key={status}>{status}</option>)}</select>
-              <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="date" value={tournamentForm.startDate} onChange={(e) => setTournamentForm((prev) => ({ ...prev, startDate: e.target.value }))} />
-              <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="date" value={tournamentForm.endDate} onChange={(e) => setTournamentForm((prev) => ({ ...prev, endDate: e.target.value }))} />
-              <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="date" value={tournamentForm.registrationDeadline} onChange={(e) => setTournamentForm((prev) => ({ ...prev, registrationDeadline: e.target.value }))} />
-              <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={2} value={tournamentForm.maxTeams} onChange={(e) => setTournamentForm((prev) => ({ ...prev, maxTeams: Number(e.target.value) }))} />
-              <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Age group" value={tournamentForm.ageGroup} onChange={(e) => setTournamentForm((prev) => ({ ...prev, ageGroup: e.target.value }))} />
-              <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Division" value={tournamentForm.division} onChange={(e) => setTournamentForm((prev) => ({ ...prev, division: e.target.value }))} />
-              <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={0} value={tournamentForm.entryFee} onChange={(e) => setTournamentForm((prev) => ({ ...prev, entryFee: Number(e.target.value) }))} />
-              <textarea className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm min-h-[110px] md:col-span-2" placeholder="Description" value={tournamentForm.description} onChange={(e) => setTournamentForm((prev) => ({ ...prev, description: e.target.value }))} />
-              <textarea className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm min-h-[110px] md:col-span-2" placeholder="Notes for families and staff" value={tournamentForm.notes} onChange={(e) => setTournamentForm((prev) => ({ ...prev, notes: e.target.value }))} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="md:col-span-2">
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Tournament name</label>
+                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="e.g. Summer Cup 2026" value={tournamentForm.name} onChange={(e) => setTournamentForm((prev) => ({ ...prev, name: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Location</label>
+                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="e.g. Kante Elite Complex" value={tournamentForm.location} onChange={(e) => setTournamentForm((prev) => ({ ...prev, location: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Status</label>
+                <select className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" value={tournamentForm.status} onChange={(e) => setTournamentForm((prev) => ({ ...prev, status: e.target.value }))}>{TOURNAMENT_STATUSES.map((status) => <option key={status}>{status}</option>)}</select>
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Start date</label>
+                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="date" value={tournamentForm.startDate} onChange={(e) => setTournamentForm((prev) => ({ ...prev, startDate: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">End date</label>
+                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="date" value={tournamentForm.endDate} onChange={(e) => setTournamentForm((prev) => ({ ...prev, endDate: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Registration deadline</label>
+                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="date" value={tournamentForm.registrationDeadline} onChange={(e) => setTournamentForm((prev) => ({ ...prev, registrationDeadline: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Max teams</label>
+                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={2} value={tournamentForm.maxTeams} onChange={(e) => setTournamentForm((prev) => ({ ...prev, maxTeams: Number(e.target.value) }))} />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Age group</label>
+                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="e.g. U14, U18, Open" value={tournamentForm.ageGroup} onChange={(e) => setTournamentForm((prev) => ({ ...prev, ageGroup: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Division</label>
+                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="e.g. Elite, Recreational" value={tournamentForm.division} onChange={(e) => setTournamentForm((prev) => ({ ...prev, division: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Entry fee ($)</label>
+                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={0} value={tournamentForm.entryFee} onChange={(e) => setTournamentForm((prev) => ({ ...prev, entryFee: Number(e.target.value) }))} />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Description (public)</label>
+                <textarea className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm min-h-[110px]" placeholder="Describe the tournament for participants and families." value={tournamentForm.description} onChange={(e) => setTournamentForm((prev) => ({ ...prev, description: e.target.value }))} />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Internal notes</label>
+                <textarea className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm min-h-[110px]" placeholder="Notes for staff and coaches (not shown publicly)." value={tournamentForm.notes} onChange={(e) => setTournamentForm((prev) => ({ ...prev, notes: e.target.value }))} />
+              </div>
             </div>
             <button type="button" onClick={() => saveTournament('teams')} disabled={saving} className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-5 py-2.5 rounded-lg text-sm disabled:opacity-50">
               {saving ? 'Saving...' : tournamentId ? 'Save and Continue' : 'Create Tournament'}
@@ -485,7 +610,7 @@ export default function AdminTournamentWorkflowPage() {
               <div className="grid grid-cols-1 xl:grid-cols-[260px,1fr] gap-5">
                 <div className="space-y-2">
                   {workflow.teams.map((team) => (
-                    <button key={team.teamId} type="button" onClick={() => setSelectedTeamId(team.teamId)} className={`w-full text-left rounded-xl border px-4 py-3 ${selectedTeamId === team.teamId ? 'border-cyan-500 bg-cyan-500/10' : 'border-gray-800 bg-gray-950 hover:border-gray-700'}`}>
+                    <button key={team.teamId} type="button" onClick={() => selectTeamForPlayers(team.teamId)} className={`w-full text-left rounded-xl border px-4 py-3 ${selectedTeamId === team.teamId ? 'border-cyan-500 bg-cyan-500/10' : 'border-gray-800 bg-gray-950 hover:border-gray-700'}`}>
                       <div className="text-white font-semibold">{team.teamName}</div>
                       <div className="text-gray-500 text-xs mt-1">{team.playerCount} players</div>
                     </button>
@@ -494,6 +619,40 @@ export default function AdminTournamentWorkflowPage() {
                 <div className="space-y-4">
                   {selectedTeam ? (
                     <>
+                      <div className="flex items-center justify-between gap-3 flex-wrap">
+                        <p className="text-gray-400 text-sm">Roster for <span className="text-white font-semibold">{selectedTeam.teamName}</span></p>
+                        <button
+                          type="button"
+                          onClick={() => { setShowBulkImport((v) => !v); setBulkImportText('') }}
+                          className="text-xs bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg"
+                        >
+                          {showBulkImport ? 'Cancel Paste Import' : 'Paste Import'}
+                        </button>
+                      </div>
+
+                      {showBulkImport ? (
+                        <div className="bg-gray-950 border border-gray-800 rounded-xl p-4 space-y-3">
+                          <p className="text-gray-400 text-xs">One player per line. Format: <span className="text-gray-300">Name</span> or <span className="text-gray-300">Name, Jersey, Position</span></p>
+                          <textarea
+                            className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm min-h-[130px] font-mono"
+                            placeholder={"Alex Johnson\nMarcus Lee, 7, Forward\nJordan Smith, 10, Midfielder"}
+                            value={bulkImportText}
+                            onChange={(e) => setBulkImportText(e.target.value)}
+                          />
+                          <div className="flex gap-3">
+                            <button
+                              type="button"
+                              onClick={runBulkImport}
+                              disabled={importingBulk || !bulkImportText.trim()}
+                              className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-4 py-2 rounded-lg text-sm disabled:opacity-50"
+                            >
+                              {importingBulk ? 'Importing...' : `Import ${bulkImportText.split('\n').filter((l) => l.trim()).length} Players`}
+                            </button>
+                            <button type="button" onClick={() => { setShowBulkImport(false); setBulkImportText('') }} className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm">Cancel</button>
+                          </div>
+                        </div>
+                      ) : null}
+
                       <div className="bg-gray-950 border border-gray-800 rounded-xl p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <input className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Player name" value={playerForm.fullName} onChange={(e) => setPlayerForm((prev) => ({ ...prev, fullName: e.target.value }))} />
                         <input className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Jersey number" value={playerForm.jerseyNumber ?? ''} onChange={(e) => setPlayerForm((prev) => ({ ...prev, jerseyNumber: e.target.value }))} />
@@ -505,7 +664,7 @@ export default function AdminTournamentWorkflowPage() {
                           <button type="button" onClick={() => { setPlayerForm(emptyPlayerForm()); setEditingPlayer(null) }} className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm">Clear</button>
                         </div>
                       </div>
-                      {selectedTeam.players.length === 0 ? <EmptyState title="No players added yet" description="Build the roster for this team before scheduling matches." /> : (
+                      {selectedTeam.players.length === 0 ? <EmptyState title="No players added yet" description="Add players above or use Paste Import for multiple players at once." /> : (
                         <div className="space-y-3">
                           {selectedTeam.players.map((player) => (
                             <div key={player.id} className="bg-gray-950 border border-gray-800 rounded-xl p-4 flex items-start justify-between gap-4">
@@ -532,15 +691,43 @@ export default function AdminTournamentWorkflowPage() {
         {currentStep === 'format' ? (
           <>
             <h2 className="text-white font-black text-2xl">Format</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <select className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" value={tournamentForm.formatType} onChange={(e) => setTournamentForm((prev) => ({ ...prev, formatType: e.target.value }))}>{FORMAT_TYPES.map((format) => <option key={format}>{format}</option>)}</select>
-              <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={2} value={tournamentForm.matchDurationMinutes} onChange={(e) => setTournamentForm((prev) => ({ ...prev, matchDurationMinutes: Number(e.target.value) }))} placeholder="Match duration" />
-              <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={2} value={tournamentForm.teamsPerGroup} onChange={(e) => setTournamentForm((prev) => ({ ...prev, teamsPerGroup: Number(e.target.value) }))} placeholder="Teams per group" />
-              <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={1} value={tournamentForm.advancePerGroup} onChange={(e) => setTournamentForm((prev) => ({ ...prev, advancePerGroup: Number(e.target.value) }))} placeholder="Advance per group" />
-              <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" value={tournamentForm.pointsForWin} onChange={(e) => setTournamentForm((prev) => ({ ...prev, pointsForWin: Number(e.target.value) }))} placeholder="Points for win" />
-              <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" value={tournamentForm.pointsForDraw} onChange={(e) => setTournamentForm((prev) => ({ ...prev, pointsForDraw: Number(e.target.value) }))} placeholder="Points for draw" />
-              <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" value={tournamentForm.pointsForLoss} onChange={(e) => setTournamentForm((prev) => ({ ...prev, pointsForLoss: Number(e.target.value) }))} placeholder="Points for loss" />
-              <label className="flex items-center gap-3 text-gray-300 text-sm"><input type="checkbox" checked={tournamentForm.thirdPlaceMatchEnabled} onChange={(e) => setTournamentForm((prev) => ({ ...prev, thirdPlaceMatchEnabled: e.target.checked }))} /> Third place match</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Format type</label>
+                <select className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" value={tournamentForm.formatType} onChange={(e) => setTournamentForm((prev) => ({ ...prev, formatType: e.target.value }))}>
+                  <option value="ROUND_ROBIN">Round Robin — every team plays each other</option>
+                  <option value="GROUP_STAGE">Group Stage — groups then knockout</option>
+                  <option value="KNOCKOUT">Knockout — single elimination</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Match duration (minutes)</label>
+                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={1} value={tournamentForm.matchDurationMinutes} onChange={(e) => setTournamentForm((prev) => ({ ...prev, matchDurationMinutes: Number(e.target.value) }))} />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Teams per group</label>
+                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={2} value={tournamentForm.teamsPerGroup} onChange={(e) => setTournamentForm((prev) => ({ ...prev, teamsPerGroup: Number(e.target.value) }))} />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Teams advancing per group</label>
+                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={1} value={tournamentForm.advancePerGroup} onChange={(e) => setTournamentForm((prev) => ({ ...prev, advancePerGroup: Number(e.target.value) }))} />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Points for win</label>
+                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={0} value={tournamentForm.pointsForWin} onChange={(e) => setTournamentForm((prev) => ({ ...prev, pointsForWin: Number(e.target.value) }))} />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Points for draw</label>
+                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={0} value={tournamentForm.pointsForDraw} onChange={(e) => setTournamentForm((prev) => ({ ...prev, pointsForDraw: Number(e.target.value) }))} />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Points for loss</label>
+                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={0} value={tournamentForm.pointsForLoss} onChange={(e) => setTournamentForm((prev) => ({ ...prev, pointsForLoss: Number(e.target.value) }))} />
+              </div>
+              <div className="flex items-center gap-3 pt-5">
+                <input id="thirdPlace" type="checkbox" checked={tournamentForm.thirdPlaceMatchEnabled} onChange={(e) => setTournamentForm((prev) => ({ ...prev, thirdPlaceMatchEnabled: e.target.checked }))} className="w-4 h-4" />
+                <label htmlFor="thirdPlace" className="text-gray-300 text-sm cursor-pointer">Enable third place match</label>
+              </div>
             </div>
             <button type="button" onClick={() => saveTournament('schedule')} disabled={saving} className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-5 py-2.5 rounded-lg text-sm disabled:opacity-50">
               {saving ? 'Saving...' : 'Save Format'}
@@ -623,25 +810,100 @@ export default function AdminTournamentWorkflowPage() {
         ) : null}
         {currentStep === 'results' && workflow ? (
           <>
-            <h2 className="text-white font-black text-2xl">Results</h2>
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <h2 className="text-white font-black text-2xl">Results</h2>
+                <p className="text-gray-400 text-sm mt-1">Enter scores to update standings automatically. Set status to <span className="text-white">Final</span> to count the result.</p>
+              </div>
+              {workflow.completedMatches > 0 ? (
+                <button type="button" onClick={() => setStep('standings')} className="bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 px-4 py-2 rounded-lg text-sm font-semibold">
+                  View Standings →
+                </button>
+              ) : null}
+            </div>
             {workflow.matches.length === 0 ? <EmptyState title="Build the schedule first" description="Results are entered against scheduled matches." /> : (
               <div className="space-y-3">
-                {workflow.matches.map((match) => (
-                  <div key={match.id} className="bg-gray-950 border border-gray-800 rounded-xl p-4">
-                    <div className="flex items-start justify-between gap-4 flex-wrap">
-                      <div>
-                        <div className="text-white font-semibold">{match.homeTeamName ?? 'TBD'} vs {match.awayTeamName ?? 'TBD'}</div>
-                        <div className="text-gray-400 text-sm mt-1">{match.stageName || 'Stage not set'}{match.roundName ? `, ${match.roundName}` : ''}</div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <StatusBadge status={match.status} />
-                        <div className="text-white font-black text-xl">{match.homeScore ?? '-'} : {match.awayScore ?? '-'}</div>
-                        <button type="button" onClick={() => { setStep('schedule'); openMatchEditor(match) }} className="bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 px-3 py-1.5 rounded-lg text-xs">Edit Result</button>
+                {workflow.matches.map((match) => {
+                  const inline = inlineResults[match.id]
+                  const isSaving = savingResultId === match.id
+                  return (
+                    <div key={match.id} className="bg-gray-950 border border-gray-800 rounded-xl p-4">
+                      <div className="flex items-start gap-4 flex-wrap">
+                        <div className="flex-1 min-w-0">
+                          <div className="text-white font-semibold">{match.homeTeamName ?? 'TBD'} vs {match.awayTeamName ?? 'TBD'}</div>
+                          <div className="text-gray-400 text-sm mt-1">{match.stageName || 'Stage not set'}{match.roundName ? `, ${match.roundName}` : ''}{match.matchDate ? ` · ${match.matchDate}` : ''}</div>
+                        </div>
+                        {!inline ? (
+                          <div className="flex items-center gap-3 shrink-0">
+                            <StatusBadge status={match.status} />
+                            <div className="text-white font-black text-xl tabular-nums">{match.homeScore ?? '-'} : {match.awayScore ?? '-'}</div>
+                            <button type="button" onClick={() => openInlineResult(match)} className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg text-xs">Enter Score</button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 flex-wrap shrink-0">
+                            <input
+                              type="number"
+                              min={0}
+                              value={inline.homeScore}
+                              onChange={(e) => setInlineResults((prev) => ({ ...prev, [match.id]: { ...prev[match.id], homeScore: e.target.value } }))}
+                              className="w-14 bg-black border border-gray-700 rounded-lg px-2 py-1.5 text-white text-sm text-center tabular-nums"
+                              placeholder="0"
+                            />
+                            <span className="text-gray-500">:</span>
+                            <input
+                              type="number"
+                              min={0}
+                              value={inline.awayScore}
+                              onChange={(e) => setInlineResults((prev) => ({ ...prev, [match.id]: { ...prev[match.id], awayScore: e.target.value } }))}
+                              className="w-14 bg-black border border-gray-700 rounded-lg px-2 py-1.5 text-white text-sm text-center tabular-nums"
+                              placeholder="0"
+                            />
+                            <select
+                              value={inline.status}
+                              onChange={(e) => setInlineResults((prev) => ({ ...prev, [match.id]: { ...prev[match.id], status: e.target.value } }))}
+                              className="bg-black border border-gray-700 rounded-lg px-2 py-1.5 text-white text-xs"
+                            >
+                              {MATCH_STATUSES.map((s) => <option key={s}>{s}</option>)}
+                            </select>
+                            <button
+                              type="button"
+                              onClick={() => saveInlineResult(match)}
+                              disabled={isSaving}
+                              className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-3 py-1.5 rounded-lg text-xs disabled:opacity-50"
+                            >
+                              {isSaving ? '...' : 'Save'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setInlineResults((prev) => { const next = { ...prev }; delete next[match.id]; return next })}
+                              className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg text-xs"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
+            )}
+          </>
+        ) : null}
+
+        {currentStep === 'standings' && workflow ? (
+          <>
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <h2 className="text-white font-black text-2xl">Standings</h2>
+                <p className="text-gray-400 text-sm mt-1">Auto-calculated from finalized match results. Sorted by points, goal difference, goals scored.</p>
+              </div>
+              <div className="text-gray-500 text-sm">{workflow.completedMatches} / {workflow.matches.length} matches completed</div>
+            </div>
+            {!workflow.standings || workflow.standings.length === 0 ? (
+              <EmptyState title="No standings yet" description="Mark matches as Final in the Results step to see the live standings table." />
+            ) : (
+              <StandingsTable standings={workflow.standings} />
             )}
           </>
         ) : null}
@@ -664,6 +926,62 @@ export default function AdminTournamentWorkflowPage() {
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+// ─── Standings Table component ─────────────────────────────────────────────────
+
+function StandingsTable({ standings }: { standings: StandingEntry[] }) {
+  const groups = standings.reduce<Record<string, StandingEntry[]>>((acc, entry) => {
+    const key = entry.groupName ?? 'All Matches'
+    ;(acc[key] = acc[key] ?? []).push(entry)
+    return acc
+  }, {})
+
+  return (
+    <div className="space-y-6">
+      {Object.entries(groups).map(([groupName, rows]) => (
+        <div key={groupName}>
+          <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-3">{groupName}</div>
+          <div className="overflow-x-auto rounded-xl border border-gray-800">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-800 bg-gray-950">
+                  <th className="text-left text-gray-500 font-medium px-4 py-2.5 w-8">#</th>
+                  <th className="text-left text-gray-500 font-medium px-4 py-2.5">Team</th>
+                  <th className="text-center text-gray-500 font-medium px-3 py-2.5 w-10" title="Played">P</th>
+                  <th className="text-center text-gray-500 font-medium px-3 py-2.5 w-10" title="Won">W</th>
+                  <th className="text-center text-gray-500 font-medium px-3 py-2.5 w-10" title="Drawn">D</th>
+                  <th className="text-center text-gray-500 font-medium px-3 py-2.5 w-10" title="Lost">L</th>
+                  <th className="text-center text-gray-500 font-medium px-3 py-2.5 w-10" title="Goals For">GF</th>
+                  <th className="text-center text-gray-500 font-medium px-3 py-2.5 w-10" title="Goals Against">GA</th>
+                  <th className="text-center text-gray-500 font-medium px-3 py-2.5 w-10" title="Goal Difference">GD</th>
+                  <th className="text-center text-white font-bold px-4 py-2.5 w-12" title="Points">Pts</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, index) => (
+                  <tr key={row.teamId} className={`border-b border-gray-900 last:border-0 ${index % 2 === 0 ? 'bg-gray-900' : 'bg-gray-950'}`}>
+                    <td className="px-4 py-3 text-gray-500 text-center">{row.position}</td>
+                    <td className="px-4 py-3 text-white font-semibold">{row.teamName}</td>
+                    <td className="px-3 py-3 text-gray-400 text-center tabular-nums">{row.played}</td>
+                    <td className="px-3 py-3 text-green-400 text-center tabular-nums">{row.won}</td>
+                    <td className="px-3 py-3 text-gray-400 text-center tabular-nums">{row.drawn}</td>
+                    <td className="px-3 py-3 text-red-400 text-center tabular-nums">{row.lost}</td>
+                    <td className="px-3 py-3 text-gray-400 text-center tabular-nums">{row.goalsFor}</td>
+                    <td className="px-3 py-3 text-gray-400 text-center tabular-nums">{row.goalsAgainst}</td>
+                    <td className={`px-3 py-3 text-center tabular-nums font-medium ${row.goalDifference > 0 ? 'text-green-400' : row.goalDifference < 0 ? 'text-red-400' : 'text-gray-400'}`}>
+                      {row.goalDifference > 0 ? `+${row.goalDifference}` : row.goalDifference}
+                    </td>
+                    <td className="px-4 py-3 text-white font-black text-center tabular-nums">{row.points}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
     </div>
   )
 }

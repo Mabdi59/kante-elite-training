@@ -13,6 +13,7 @@ public class TournamentWorkflowResponse {
     private TournamentResponse tournament;
     private List<TournamentWorkflowTeamResponse> teams;
     private List<TournamentMatchResponse> matches;
+    private List<StandingEntryResponse> standings;
     private long totalPlayers;
     private long completedMatches;
 }

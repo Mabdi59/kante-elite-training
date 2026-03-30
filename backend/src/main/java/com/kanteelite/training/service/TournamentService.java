@@ -9,6 +9,7 @@ import com.kanteelite.training.dto.request.TournamentRequest;
 import com.kanteelite.training.dto.response.TeamCaptainDashboardResponse;
 import com.kanteelite.training.dto.response.TeamPlayerResponse;
 import com.kanteelite.training.dto.response.TeamRegistrationResponse;
+import com.kanteelite.training.dto.response.StandingEntryResponse;
 import com.kanteelite.training.dto.response.TournamentMatchResponse;
 import com.kanteelite.training.dto.response.TournamentRegistrationDashboardResponse;
 import com.kanteelite.training.dto.response.TournamentResponse;
@@ -31,6 +32,7 @@ import com.kanteelite.training.repository.TournamentMatchRepository;
 import com.kanteelite.training.repository.TournamentRepository;
 import com.kanteelite.training.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +52,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class TournamentService {
 
@@ -128,6 +131,7 @@ public class TournamentService {
                 .tournament(toResponse(tournament))
                 .teams(teams)
                 .matches(matches)
+                .standings(computeStandings(tournamentId))
                 .totalPlayers(teams.stream().mapToLong(TournamentWorkflowTeamResponse::getPlayerCount).sum())
                 .completedMatches(matches.stream().filter(match -> MATCH_STATUS_FINAL.equalsIgnoreCase(match.getStatus())).count())
                 .build();
@@ -684,6 +688,118 @@ public class TournamentService {
         teamPlayerRepository.delete(player);
         auditLogService.log(actorEmail, "DELETE", "TeamPlayer", playerId,
                 "Deleted player " + player.getFullName() + " from " + player.getTeam().getName());
+    }
+
+    @Transactional
+    public List<TeamPlayerResponse> bulkCreateTeamPlayers(
+            Long tournamentId,
+            Long teamId,
+            List<String> lines,
+            String actorEmail) {
+        Team team = getRegisteredTournamentTeam(tournamentId, teamId);
+        List<TeamPlayer> created = new ArrayList<>();
+        for (String raw : lines) {
+            String line = raw == null ? "" : raw.strip();
+            if (line.isBlank()) continue;
+
+            String fullName;
+            String jerseyNumber = null;
+            String position = null;
+
+            // Accept "Name, Jersey, Position" or "Name, Jersey" or just "Name"
+            String[] parts = line.split(",", 3);
+            fullName = parts[0].strip();
+            if (fullName.isEmpty()) continue;
+            if (parts.length > 1) jerseyNumber = trimToNull(parts[1].strip());
+            if (parts.length > 2) position = trimToNull(parts[2].strip());
+
+            TeamPlayer player = TeamPlayer.builder()
+                    .team(team)
+                    .fullName(fullName.length() > 150 ? truncate("fullName", fullName, 150) : fullName)
+                    .jerseyNumber(jerseyNumber != null && jerseyNumber.length() > 20 ? truncate("jerseyNumber", jerseyNumber, 20) : jerseyNumber)
+                    .position(position != null && position.length() > 80 ? truncate("position", position, 80) : position)
+                    .captain(false)
+                    .build();
+            created.add(teamPlayerRepository.save(player));
+        }
+        auditLogService.log(actorEmail, "CREATE", "TeamPlayer", teamId,
+                "Bulk added " + created.size() + " players to " + team.getName());
+        return created.stream().map(this::toTeamPlayerResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<StandingEntryResponse> computeStandings(Long tournamentId) {
+        Tournament tournament = getTournamentEntity(tournamentId);
+        List<TournamentMatch> finalMatches = tournamentMatchRepository
+                .findByTournamentIdOrderByMatchDateAscKickoffTimeAscIdAsc(tournamentId)
+                .stream()
+                .filter(m -> MATCH_STATUS_FINAL.equalsIgnoreCase(m.getStatus())
+                        && m.getHomeScore() != null && m.getAwayScore() != null)
+                .toList();
+
+        int pointsForWin = defaultInt(tournament.getPointsForWin(), 3);
+        int pointsForDraw = defaultInt(tournament.getPointsForDraw(), 1);
+        int pointsForLoss = defaultInt(tournament.getPointsForLoss(), 0);
+
+        // key = "<group>|<teamId>" → stats accumulator
+        java.util.Map<String, TeamStatsAccumulator> statsMap = new java.util.LinkedHashMap<>();
+
+        for (TournamentMatch m : finalMatches) {
+            String group = m.getStageName() != null ? m.getStageName() : "All Matches";
+            int hGoals = m.getHomeScore();
+            int aGoals = m.getAwayScore();
+
+            if (m.getHomeTeam() != null) {
+                String key = group + "|" + m.getHomeTeam().getId();
+                TeamStatsAccumulator acc = statsMap.computeIfAbsent(key,
+                        ignored -> new TeamStatsAccumulator(group, m.getHomeTeam().getId(), m.getHomeTeam().getName()));
+                acc.played++;
+                acc.goalsFor += hGoals;
+                acc.goalsAgainst += aGoals;
+                if (hGoals > aGoals) { acc.won++; acc.points += pointsForWin; }
+                else if (hGoals == aGoals) { acc.drawn++; acc.points += pointsForDraw; }
+                else { acc.lost++; acc.points += pointsForLoss; }
+            }
+            if (m.getAwayTeam() != null) {
+                String key = group + "|" + m.getAwayTeam().getId();
+                TeamStatsAccumulator acc = statsMap.computeIfAbsent(key,
+                        ignored -> new TeamStatsAccumulator(group, m.getAwayTeam().getId(), m.getAwayTeam().getName()));
+                acc.played++;
+                acc.goalsFor += aGoals;
+                acc.goalsAgainst += hGoals;
+                if (aGoals > hGoals) { acc.won++; acc.points += pointsForWin; }
+                else if (aGoals == hGoals) { acc.drawn++; acc.points += pointsForDraw; }
+                else { acc.lost++; acc.points += pointsForLoss; }
+            }
+        }
+
+        // Group by stage name, sort within each group
+        java.util.Map<String, List<StandingEntryResponse>> byGroup = new java.util.LinkedHashMap<>();
+        for (TeamStatsAccumulator acc : statsMap.values()) {
+            StandingEntryResponse row = StandingEntryResponse.builder()
+                    .teamId(acc.teamId)
+                    .teamName(acc.teamName)
+                    .groupName(acc.group)
+                    .played(acc.played).won(acc.won).drawn(acc.drawn).lost(acc.lost)
+                    .goalsFor(acc.goalsFor).goalsAgainst(acc.goalsAgainst)
+                    .goalDifference(acc.goalsFor - acc.goalsAgainst)
+                    .points(acc.points)
+                    .build();
+            byGroup.computeIfAbsent(acc.group, g -> new ArrayList<>()).add(row);
+        }
+
+        List<StandingEntryResponse> result = new ArrayList<>();
+        for (List<StandingEntryResponse> group : byGroup.values()) {
+            group.sort(Comparator.comparingInt(StandingEntryResponse::getPoints).reversed()
+                    .thenComparingInt(StandingEntryResponse::getGoalDifference).reversed()
+                    .thenComparingInt(StandingEntryResponse::getGoalsFor).reversed()
+                    .thenComparing(StandingEntryResponse::getTeamName));
+            for (int i = 0; i < group.size(); i++) {
+                group.get(i).setPosition(i + 1);
+            }
+            result.addAll(group);
+        }
+        return result;
     }
 
     @Transactional
@@ -1328,6 +1444,11 @@ public class TournamentService {
         return StringUtils.hasText(value) ? value.trim() : null;
     }
 
+    private String truncate(String fieldName, String value, int maxLength) {
+        log.warn("Bulk import: {} value truncated from {} to {} characters", fieldName, value.length(), maxLength);
+        return value.substring(0, maxLength);
+    }
+
     private String buildDuplicateTournamentName(String originalName) {
         String baseName = StringUtils.hasText(originalName) ? originalName.trim() : "Tournament";
         List<String> existingNames = tournamentRepository.findAll().stream()
@@ -1477,6 +1598,25 @@ public class TournamentService {
                 currentDate = currentDate.plusDays(1);
                 currentTime = LocalTime.of(9, 0);
             }
+        }
+    }
+
+    private static class TeamStatsAccumulator {
+        final String group;
+        final Long teamId;
+        final String teamName;
+        int played;
+        int won;
+        int drawn;
+        int lost;
+        int goalsFor;
+        int goalsAgainst;
+        int points;
+
+        TeamStatsAccumulator(String group, Long teamId, String teamName) {
+            this.group = group;
+            this.teamId = teamId;
+            this.teamName = teamName;
         }
     }
 }

@@ -6,6 +6,7 @@ import com.kanteelite.training.dto.request.TeamPlayerRequest;
 import com.kanteelite.training.dto.request.TournamentMatchRequest;
 import com.kanteelite.training.dto.request.TournamentRequest;
 import com.kanteelite.training.dto.response.ApiResponse;
+import com.kanteelite.training.dto.response.StandingEntryResponse;
 import com.kanteelite.training.dto.response.TeamPlayerResponse;
 import com.kanteelite.training.dto.response.TeamRegistrationResponse;
 import com.kanteelite.training.dto.response.TournamentMatchResponse;
@@ -228,5 +229,22 @@ public class AdminTournamentController {
                         id,
                         overwrite,
                         principal != null ? principal.getUsername() : null)));
+    }
+
+    @GetMapping("/{id}/standings")
+    public ResponseEntity<ApiResponse<List<StandingEntryResponse>>> getStandings(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(tournamentService.computeStandings(id)));
+    }
+
+    @PostMapping("/{id}/teams/{teamId}/players/bulk")
+    public ResponseEntity<ApiResponse<List<TeamPlayerResponse>>> bulkCreatePlayers(
+            @PathVariable Long id,
+            @PathVariable Long teamId,
+            @RequestBody List<String> lines,
+            @AuthenticationPrincipal UserDetails principal) {
+        List<TeamPlayerResponse> created = tournamentService.bulkCreateTeamPlayers(
+                id, teamId, lines, principal != null ? principal.getUsername() : null);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Players imported.", created));
     }
 }
