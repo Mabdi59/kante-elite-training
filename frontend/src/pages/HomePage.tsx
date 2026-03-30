@@ -86,7 +86,7 @@ export default function HomePage() {
         setEvents(e.slice(0, 3))
         setTournaments(tourneys.slice(0, 3))
       })
-      .catch(console.error)
+      .catch(() => { /* silenced */ })
       .finally(() => setLoading(false))
   }, [])
 

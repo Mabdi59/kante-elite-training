@@ -405,8 +405,8 @@ export default function AdminTournamentWorkflowPage() {
         venue: match.venue ?? '',
         fieldName: match.fieldName ?? '',
         status: data.status,
-        homeScore: data.homeScore === '' ? '' : Number(data.homeScore),
-        awayScore: data.awayScore === '' ? '' : Number(data.awayScore),
+        homeScore: data.homeScore == null || data.homeScore === '' ? '' : Number(data.homeScore),
+        awayScore: data.awayScore == null || data.awayScore === '' ? '' : Number(data.awayScore),
         notes: match.notes ?? '',
       })
       setInlineResults((prev) => {

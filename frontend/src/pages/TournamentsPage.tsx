@@ -108,7 +108,7 @@ export default function TournamentsPage() {
   useEffect(() => {
     getTournaments()
       .then(setTournaments)
-      .catch(console.error)
+      .catch(() => { /* silenced */ })
       .finally(() => setLoading(false))
   }, [])
 

@@ -249,7 +249,7 @@ export default function BookPage() {
           }
         }
       })
-      .catch(console.error)
+      .catch(() => { /* silenced */ })
       .finally(() => setLoadingPrograms(false))
   }, [preselectedProgramId])
 
@@ -271,7 +271,7 @@ export default function BookPage() {
     setAvailability(null)
     getAvailability(selectedProgram.id, form.bookingDate)
       .then(setAvailability)
-      .catch(console.error)
+      .catch(() => { /* silenced */ })
       .finally(() => setLoadingSlots(false))
   }, [selectedProgram, form.bookingDate])
 

@@ -159,8 +159,12 @@ function formatDate(d?: string | null) {
   if (!d) return '—'
   try {
     // Parse as local date by splitting the date string to avoid UTC offset shifts
-    const [year, month, day] = d.split('-').map(Number)
-    return new Date(year, (month ?? 1) - 1, day ?? 1).toLocaleDateString('en-US', {
+    const parts = d.split('-').map(Number)
+    const year = parts[0]
+    const month = parts[1]
+    const day = parts[2]
+    if (!year || !month || !day || isNaN(year) || isNaN(month) || isNaN(day)) return d
+    return new Date(year, month - 1, day).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
