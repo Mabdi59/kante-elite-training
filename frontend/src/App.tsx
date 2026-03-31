@@ -38,8 +38,8 @@ const TournamentRegistrationDashboardPage = lazy(
 
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'))
 const AdminBookingsPage = lazy(() => import('./pages/admin/AdminBookingsPage'))
-const AdminProgramsPage = lazy(() => import('./pages/admin/AdminProgramsPage'))
-const AdminEventsPage = lazy(() => import('./pages/admin/AdminEventsPage'))
+const AdminProgramsPage = lazy(() => import('./pages/admin/AdminProgramsWorkspacePage'))
+const AdminEventsPage = lazy(() => import('./pages/admin/AdminEventsWorkspacePage'))
 const AdminTournamentsPage = lazy(() => import('./pages/admin/AdminTournamentsPage'))
 const AdminTournamentWorkflowPage = lazy(() => import('./pages/admin/AdminTournamentWorkflowPage'))
 const AdminTestimonialsPage = lazy(() => import('./pages/admin/AdminTestimonialsPage'))

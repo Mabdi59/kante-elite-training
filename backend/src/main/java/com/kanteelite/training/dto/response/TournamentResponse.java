@@ -27,6 +27,7 @@ public class TournamentResponse {
     private BigDecimal entryFee;
     private String notes;
     private String formatType;
+    private Integer groupCount;
     private Integer teamsPerGroup;
     private Integer advancePerGroup;
     private Integer pointsForWin;

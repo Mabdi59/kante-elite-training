@@ -12,7 +12,8 @@ A full-stack multi-role tournament management platform for youth soccer in Colum
 └── backend/    Java 17 + Spring Boot 3.2 + PostgreSQL + Flyway + Spring Security (JWT)
 ```
 
-All API calls from the frontend proxy through Vite (`/api → http://localhost:8080`) in development.
+All API calls from the frontend proxy through Vite (`/api -> http://localhost:8080`) in development.
+Production builds can point at the backend with `VITE_API_URL`, or keep same-origin `/api` if you place a reverse proxy in front of the API.
 
 ---
 
@@ -190,6 +191,7 @@ The Vite dev server proxies `/api` to `http://localhost:8080`.
 | `DB_URL` | PostgreSQL JDBC URL |
 | `DB_USERNAME` | PostgreSQL username |
 | `DB_PASSWORD` | PostgreSQL password |
+| `SPRING_PROFILES_ACTIVE` | Use `prod` on AWS |
 
 ### Admin account (strongly recommended for production)
 
@@ -203,11 +205,15 @@ The Vite dev server proxies `/api` to `http://localhost:8080`.
 
 ### Auth
 
+When `SPRING_PROFILES_ACTIVE=prod`, the app refuses to start with the default admin email or password.
+
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `JWT_SECRET` | random dev key | JWT signing secret (use a long random string in production) |
 | `JWT_EXPIRATION_MS` | `900000` (15 min) | Access token lifetime |
 | `JWT_REFRESH_EXPIRATION_MS` | `604800000` (7 days) | Refresh token lifetime |
+| `JPA_DDL_AUTO` | `update` locally, `validate` in production | JPA schema mode |
+| `JPA_OPEN_IN_VIEW` | `true` locally, `false` in production | Keep lazy loading out of web responses |
 
 ### App settings
 
@@ -218,6 +224,14 @@ The Vite dev server proxies `/api` to `http://localhost:8080`.
 | `APP_EMAIL_ENABLED` | `false` | Set to `true` to send emails |
 | `APP_EMAIL_FROM` | — | Sender email address |
 | `APP_EMAIL_ADMIN` | — | Admin inbox for contact notifications |
+
+| `APP_PAYMENTS_ENABLED` | `false` | Enables Stripe payment flow when keys are set |
+
+### Frontend
+
+| Variable | Description |
+|----------|-------------|
+| `VITE_API_URL` | Backend root URL. Example: `http://your-ec2-ip:8080` or `https://api.yourdomain.com` |
 
 ### Email (only when `APP_EMAIL_ENABLED=true`)
 
@@ -245,6 +259,8 @@ Stripe is disabled by default. To re-enable, set `app.payments.enabled=true` in 
 
 ```bash
 cd frontend
+cp .env.example .env.production
+# Update VITE_API_URL before building if the frontend is hosted separately
 npm run build
 # Output: frontend/dist/
 ```
@@ -253,9 +269,38 @@ npm run build
 
 ```bash
 cd backend
+cp .env.example .env
+# Update the values in .env or export them directly in your shell
+export SPRING_PROFILES_ACTIVE=prod
 mvn package -DskipTests
 java -jar target/kante-elite-training-1.0.0.jar
 ```
+
+---
+
+## AWS Deployment Notes
+
+Recommended setup:
+
+- Frontend: S3 + CloudFront
+- Backend: EC2
+- Database: RDS PostgreSQL
+
+Checklist:
+
+1. Set `VITE_API_URL` before running the frontend build if S3 or CloudFront will not proxy `/api`.
+2. Set `SPRING_PROFILES_ACTIVE=prod` on the backend.
+3. Set `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_NAME` before the first production boot.
+4. Set `JWT_SECRET` to a long random secret.
+5. Set `CORS_ALLOWED_ORIGINS` to your real frontend domains, comma separated.
+6. Point `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` at RDS.
+7. Make sure the EC2 security group allows the backend port you actually expose.
+8. Configure CloudFront or S3 static hosting to serve `index.html` on client-side route refreshes.
+
+Important:
+
+- The app will refuse to start with default admin credentials when `SPRING_PROFILES_ACTIVE=prod`.
+- Production uses `application-prod.properties`, which switches JPA to `validate` and disables Open Session in View.
 
 ---
 

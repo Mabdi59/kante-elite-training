@@ -21,6 +21,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
@@ -30,7 +31,7 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
 
     @Value("${app.cors.allowed-origins:http://localhost:5173}")
-    private String[] allowedOrigins;
+    private String allowedOriginsProperty;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -93,7 +94,23 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList(allowedOrigins));
+        List<String> allowedOrigins = Arrays.stream(allowedOriginsProperty.split(","))
+                .map(String::trim)
+                .filter(value -> !value.isBlank())
+                .collect(Collectors.toList());
+        List<String> exactOrigins = allowedOrigins.stream()
+                .filter(origin -> !origin.contains("*"))
+                .toList();
+        List<String> originPatterns = allowedOrigins.stream()
+                .filter(origin -> origin.contains("*"))
+                .toList();
+
+        if (!exactOrigins.isEmpty()) {
+            config.setAllowedOrigins(exactOrigins);
+        }
+        if (!originPatterns.isEmpty()) {
+            config.setAllowedOriginPatterns(originPatterns);
+        }
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

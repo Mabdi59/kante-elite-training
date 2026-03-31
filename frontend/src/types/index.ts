@@ -40,6 +40,13 @@ export interface Program {
   slug: string
   description: string
   shortDescription: string
+  active?: boolean
+  location?: string
+  startAt?: string
+  endAt?: string
+  capacity?: number
+  status?: string
+  participantCount?: number
   price: number
   priceLabel: string
   durationMinutes: number
@@ -57,6 +64,10 @@ export interface Event {
   venue: string
   startDate: string
   endDate?: string
+  startAt?: string
+  endAt?: string
+  capacity?: number
+  participantCount?: number
   ageGroup: string
   spotsTotal: number
   spotsLeft: number
@@ -118,6 +129,7 @@ export interface Tournament {
   entryFee?: number
   notes?: string
   formatType?: string
+  groupCount?: number
   teamsPerGroup?: number
   advancePerGroup?: number
   pointsForWin?: number
@@ -242,6 +254,30 @@ export interface TournamentRegistrationDashboard {
   lastFollowUpSentAt?: string
   publicAccessUrl: string
   nextSteps: string[]
+}
+
+export interface ManagedParticipant {
+  id: number
+  userId?: number
+  playerProfileId?: number
+  participantType: string
+  name: string
+  email?: string
+  createdAt: string
+}
+
+export interface ProgramWorkflow {
+  program: Program
+  participants: ManagedParticipant[]
+  participantCount: number
+  capacityReached: boolean
+}
+
+export interface EventWorkflow {
+  event: Event
+  participants: ManagedParticipant[]
+  participantCount: number
+  capacityReached: boolean
 }
 
 export interface TournamentPaymentCheckout {
@@ -474,4 +510,11 @@ export interface AdminPlayerFormData {
   preferredPosition?: string
   notes?: string
   active?: boolean
+}
+
+export interface ParticipantAssignmentFormData {
+  userId?: number
+  playerProfileId?: number
+  manualName?: string
+  manualEmail?: string
 }

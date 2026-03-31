@@ -62,6 +62,10 @@ public class Tournament {
     @Builder.Default
     private String formatType = "ROUND_ROBIN";
 
+    @Column(name = "group_count")
+    @Builder.Default
+    private Integer groupCount = 2;
+
     @Column(name = "teams_per_group")
     @Builder.Default
     private Integer teamsPerGroup = 4;

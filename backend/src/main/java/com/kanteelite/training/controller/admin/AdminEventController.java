@@ -1,8 +1,11 @@
 package com.kanteelite.training.controller.admin;
 
 import com.kanteelite.training.dto.request.EventRequest;
+import com.kanteelite.training.dto.request.ParticipantAssignmentRequest;
 import com.kanteelite.training.dto.response.ApiResponse;
 import com.kanteelite.training.dto.response.EventResponse;
+import com.kanteelite.training.dto.response.EventWorkflowResponse;
+import com.kanteelite.training.dto.response.ManagedParticipantResponse;
 import com.kanteelite.training.service.AuditLogService;
 import com.kanteelite.training.service.EventService;
 import jakarta.validation.Valid;
@@ -28,6 +31,11 @@ public class AdminEventController {
         return ResponseEntity.ok(ApiResponse.success(eventService.getAllEvents()));
     }
 
+    @GetMapping("/{id}/workflow")
+    public ResponseEntity<ApiResponse<EventWorkflowResponse>> getEventWorkflow(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(eventService.getEventWorkflow(id)));
+    }
+
     @PostMapping
     public ResponseEntity<ApiResponse<EventResponse>> createEvent(
             @Valid @RequestBody EventRequest request,
@@ -46,6 +54,31 @@ public class AdminEventController {
         String actor = principal != null ? principal.getUsername() : "admin";
         auditLogService.log(actor, "UPDATE", "Event", id, "Updated event: " + updated.getTitle());
         return ResponseEntity.ok(ApiResponse.success("Event updated.", updated));
+    }
+
+    @PostMapping("/{id}/participants")
+    public ResponseEntity<ApiResponse<ManagedParticipantResponse>> addParticipant(
+            @PathVariable Long id,
+            @RequestBody ParticipantAssignmentRequest request,
+            @AuthenticationPrincipal UserDetails principal) {
+        ManagedParticipantResponse created = eventService.addParticipant(id, request);
+        String actor = principal != null ? principal.getUsername() : "admin";
+        auditLogService.log(actor, "CREATE", "EventParticipant", created.getId(),
+                "Added participant to event #" + id);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Participant added.", created));
+    }
+
+    @DeleteMapping("/{id}/participants/{participantId}")
+    public ResponseEntity<ApiResponse<Void>> removeParticipant(
+            @PathVariable Long id,
+            @PathVariable Long participantId,
+            @AuthenticationPrincipal UserDetails principal) {
+        eventService.removeParticipant(id, participantId);
+        String actor = principal != null ? principal.getUsername() : "admin";
+        auditLogService.log(actor, "DELETE", "EventParticipant", participantId,
+                "Removed participant from event #" + id);
+        return ResponseEntity.ok(ApiResponse.success("Participant removed.", null));
     }
 
     @DeleteMapping("/{id}")

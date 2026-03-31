@@ -4,6 +4,7 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 public class ProgramRequest {
@@ -20,6 +21,18 @@ public class ProgramRequest {
 
     @Size(max = 255)
     private String shortDescription;
+
+    @Size(max = 200)
+    private String location;
+
+    private LocalDateTime startAt;
+
+    private LocalDateTime endAt;
+
+    private Integer capacity;
+
+    @Size(max = 30)
+    private String status;
 
     @NotNull
     @DecimalMin("0.00")

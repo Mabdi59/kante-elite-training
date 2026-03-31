@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class EventRequest {
@@ -26,6 +27,12 @@ public class EventRequest {
     private LocalDate startDate;
 
     private LocalDate endDate;
+
+    private LocalDateTime startAt;
+
+    private LocalDateTime endAt;
+
+    private Integer capacity;
 
     @Size(max = 50)
     private String ageGroup;

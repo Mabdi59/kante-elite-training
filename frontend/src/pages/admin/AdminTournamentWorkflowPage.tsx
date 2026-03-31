@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import FormatSelector from '../../components/FormatSelector'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
@@ -50,6 +50,7 @@ type TournamentFormState = {
   entryFee: number
   notes: string
   formatType: string
+  groupCount: number
   teamsPerGroup: number
   advancePerGroup: number
   pointsForWin: number
@@ -88,6 +89,7 @@ const emptyTournamentForm = (): TournamentFormState => ({
   entryFee: 0,
   notes: '',
   formatType: 'ROUND_ROBIN',
+  groupCount: 2,
   teamsPerGroup: 4,
   advancePerGroup: 2,
   pointsForWin: 3,
@@ -151,6 +153,7 @@ function toTournamentForm(tournament: Tournament | null | undefined): Tournament
     entryFee: Number(tournament.entryFee ?? 0),
     notes: tournament.notes ?? '',
     formatType: tournament.formatType ?? 'ROUND_ROBIN',
+    groupCount: tournament.groupCount ?? 2,
     teamsPerGroup: tournament.teamsPerGroup ?? 4,
     advancePerGroup: tournament.advancePerGroup ?? 2,
     pointsForWin: tournament.pointsForWin ?? 3,
@@ -176,6 +179,150 @@ function toMatchForm(match: TournamentMatch): TournamentMatchFormData {
     awayScore: match.awayScore ?? '',
     notes: match.notes ?? '',
   }
+}
+
+function formatIsoDateForDisplay(value: string) {
+  if (!value) return ''
+  const [year, month, day] = value.split('-')
+  if (!year || !month || !day) return ''
+  return `${month}/${day}/${year}`
+}
+
+function formatDateDigitsInput(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 8)
+  if (digits.length <= 2) return digits
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
+}
+
+function parseDisplayDateToIso(value: string) {
+  const trimmed = value.trim()
+  if (!trimmed) return ''
+
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(trimmed)
+  if (!match) return null
+
+  const month = Number(match[1])
+  const day = Number(match[2])
+  const year = Number(match[3])
+
+  if (!Number.isInteger(month) || !Number.isInteger(day) || !Number.isInteger(year)) return null
+  if (month < 1 || month > 12) return null
+  if (day < 1 || day > 31) return null
+
+  const parsed = new Date(Date.UTC(year, month - 1, day))
+  if (
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day
+  ) {
+    return null
+  }
+
+  return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+}
+
+function CalendarIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="w-4 h-4"
+      aria-hidden="true"
+    >
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M16 2v4" />
+      <path d="M8 2v4" />
+      <path d="M3 10h18" />
+    </svg>
+  )
+}
+
+type DatePickerFieldProps = {
+  value: string
+  onChange: (value: string) => void
+}
+
+function DatePickerField({ value, onChange }: DatePickerFieldProps) {
+  const pickerRef = useRef<HTMLInputElement | null>(null)
+  const [displayValue, setDisplayValue] = useState(() => formatIsoDateForDisplay(value))
+
+  useEffect(() => {
+    setDisplayValue(formatIsoDateForDisplay(value))
+  }, [value])
+
+  const openPicker = () => {
+    const picker = pickerRef.current as (HTMLInputElement & { showPicker?: () => void }) | null
+    if (!picker) return
+    if (typeof picker.showPicker === 'function') {
+      picker.showPicker()
+      return
+    }
+    picker.focus()
+    picker.click()
+  }
+
+  const handleTextChange = (nextValue: string) => {
+    const formatted = formatDateDigitsInput(nextValue)
+    setDisplayValue(formatted)
+
+    const parsed = parseDisplayDateToIso(formatted)
+    if (parsed) {
+      onChange(parsed)
+    } else if (!formatted) {
+      onChange('')
+    }
+  }
+
+  const handleBlur = () => {
+    const parsed = parseDisplayDateToIso(displayValue)
+    if (parsed === null) {
+      setDisplayValue(formatIsoDateForDisplay(value))
+      return
+    }
+    onChange(parsed)
+    setDisplayValue(formatIsoDateForDisplay(parsed))
+  }
+
+  return (
+    <div className="relative">
+      <input
+        className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 pr-11 text-white text-sm placeholder:text-gray-500"
+        type="text"
+        inputMode="numeric"
+        autoComplete="off"
+        placeholder="mm/dd/yyyy"
+        value={displayValue}
+        onChange={(e) => handleTextChange(e.target.value)}
+        onBlur={handleBlur}
+        onClick={openPicker}
+      />
+      <button
+        type="button"
+        onClick={openPicker}
+        className="absolute inset-y-0 right-0 flex items-center justify-center px-3 text-gray-400 hover:text-cyan-300"
+        aria-label="Open date picker"
+      >
+        <CalendarIcon />
+      </button>
+      <input
+        ref={pickerRef}
+        type="date"
+        tabIndex={-1}
+        aria-hidden="true"
+        className="sr-only"
+        value={value}
+        onChange={(e) => {
+          onChange(e.target.value)
+          setDisplayValue(formatIsoDateForDisplay(e.target.value))
+        }}
+      />
+    </div>
+  )
 }
 
 export default function AdminTournamentWorkflowPage() {
@@ -260,6 +407,15 @@ export default function AdminTournamentWorkflowPage() {
     loadWorkflow(tournamentId)
   }, [tournamentId])
 
+  const updateEntryFee = (rawValue: string) => {
+    const digitsOnly = rawValue.replace(/\D/g, '')
+    const normalized = digitsOnly.replace(/^0+(?=\d)/, '')
+    setTournamentForm((prev) => ({
+      ...prev,
+      entryFee: normalized ? Number(normalized) : 0,
+    }))
+  }
+
   const saveTournament = async (nextStep?: WorkflowStep) => {
     setSaving(true)
     setError('')
@@ -284,16 +440,34 @@ export default function AdminTournamentWorkflowPage() {
 
   const saveFormat = async () => {
     const teamCount = workflow?.teams.length ?? 0
-    if (teamCount > 0) {
+    if (tournamentForm.formatType !== 'KNOCKOUT') {
+      const configuredCapacity = tournamentForm.groupCount * tournamentForm.teamsPerGroup
+      if (configuredCapacity > tournamentForm.maxTeams) {
+        setError('The selected group setup is larger than the tournament max teams.')
+        return
+      }
+      if (teamCount > 0 && configuredCapacity !== teamCount) {
+        setError(
+          `The current group setup creates ${configuredCapacity} slots, but ${teamCount} teams are registered. Update the group settings or team list before building the schedule.`,
+        )
+        return
+      }
+      if (
+        tournamentForm.formatType === 'GROUP_STAGE' &&
+        tournamentForm.advancePerGroup >= tournamentForm.teamsPerGroup
+      ) {
+        setError('Teams advancing to the knockout phase must be less than teams in each group.')
+        return
+      }
+      if (tournamentForm.formatType === 'GROUP_STAGE' && tournamentForm.groupCount < 2) {
+        setError('Use at least two groups when the tournament includes a knockout phase.')
+        return
+      }
       if (tournamentForm.formatType === 'GROUP_STAGE') {
-        if (teamCount % tournamentForm.teamsPerGroup !== 0) {
-          setError(
-            `With ${teamCount} teams, the teams-per-group value (${tournamentForm.teamsPerGroup}) must divide evenly. Adjust either value before saving.`,
-          )
-          return
-        }
-        if (tournamentForm.advancePerGroup >= tournamentForm.teamsPerGroup) {
-          setError('Teams advancing per group must be less than teams per group.')
+        const advancingTeams = tournamentForm.groupCount * tournamentForm.advancePerGroup
+        const validBracketSize = advancingTeams >= 2 && (advancingTeams & (advancingTeams - 1)) === 0
+        if (!validBracketSize) {
+          setError('The teams advancing to the knockout phase must create a power-of-2 bracket.')
           return
         }
       }
@@ -304,6 +478,21 @@ export default function AdminTournamentWorkflowPage() {
           const confirmed = window.confirm(`Knockout format works best with a power-of-2 team count (2, 4, 8, 16…). You have ${teamCount} teams. Continue anyway?`)
           if (!confirmed) return
         }
+      }
+    }
+    if (tournamentForm.formatType === 'KNOCKOUT') {
+      if (tournamentForm.maxTeams < 2) {
+        setError('Choose at least two teams for a knockout bracket.')
+        return
+      }
+    }
+    if (teamCount > 0 && tournamentForm.formatType === 'KNOCKOUT') {
+      const isPowerOfTwo = (teamCount & (teamCount - 1)) === 0
+      if (!isPowerOfTwo) {
+        const confirmed = window.confirm(
+          `Knockout format works best with a power-of-2 team count, 2, 4, 8, or 16. You have ${teamCount} teams. Continue anyway?`,
+        )
+        if (!confirmed) return
       }
     }
     await saveTournament('schedule')
@@ -567,15 +756,24 @@ export default function AdminTournamentWorkflowPage() {
               </div>
               <div>
                 <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Start date</label>
-                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="date" value={tournamentForm.startDate} onChange={(e) => setTournamentForm((prev) => ({ ...prev, startDate: e.target.value }))} />
+                <DatePickerField
+                  value={tournamentForm.startDate}
+                  onChange={(value) => setTournamentForm((prev) => ({ ...prev, startDate: value }))}
+                />
               </div>
               <div>
                 <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">End date</label>
-                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="date" value={tournamentForm.endDate} onChange={(e) => setTournamentForm((prev) => ({ ...prev, endDate: e.target.value }))} />
+                <DatePickerField
+                  value={tournamentForm.endDate}
+                  onChange={(value) => setTournamentForm((prev) => ({ ...prev, endDate: value }))}
+                />
               </div>
               <div>
                 <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Registration deadline</label>
-                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="date" value={tournamentForm.registrationDeadline} onChange={(e) => setTournamentForm((prev) => ({ ...prev, registrationDeadline: e.target.value }))} />
+                <DatePickerField
+                  value={tournamentForm.registrationDeadline}
+                  onChange={(value) => setTournamentForm((prev) => ({ ...prev, registrationDeadline: value }))}
+                />
               </div>
               <div>
                 <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Max teams</label>
@@ -591,7 +789,19 @@ export default function AdminTournamentWorkflowPage() {
               </div>
               <div>
                 <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Entry fee ($)</label>
-                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={0} value={tournamentForm.entryFee} onChange={(e) => setTournamentForm((prev) => ({ ...prev, entryFee: Number(e.target.value) }))} />
+                <input
+                  className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  value={String(tournamentForm.entryFee)}
+                  onFocus={(e) => {
+                    if (e.currentTarget.value === '0') {
+                      e.currentTarget.select()
+                    }
+                  }}
+                  onChange={(e) => updateEntryFee(e.target.value)}
+                />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Description (public)</label>
@@ -757,12 +967,12 @@ export default function AdminTournamentWorkflowPage() {
               <div className="col-span-full">
                 {tournamentForm.formatType === 'ROUND_ROBIN' && (
                   <p className="text-gray-400 text-sm bg-gray-900 border border-gray-800 rounded-lg px-4 py-3">
-                    All teams play each other once. Points are awarded for wins and draws. Final standings determine the winner.
+                    Teams play within their group only. Group standings decide the final rankings.
                   </p>
                 )}
                 {tournamentForm.formatType === 'GROUP_STAGE' && (
                   <p className="text-gray-400 text-sm bg-gray-900 border border-gray-800 rounded-lg px-4 py-3">
-                    Teams compete in groups, then the top teams advance to elimination rounds. Group standings determine who progresses.
+                    Teams start in groups, then the top teams move into the knockout phase.
                   </p>
                 )}
                 {tournamentForm.formatType === 'KNOCKOUT' && (
@@ -775,16 +985,67 @@ export default function AdminTournamentWorkflowPage() {
                 <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Match duration (minutes)</label>
                 <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={1} value={tournamentForm.matchDurationMinutes} onChange={(e) => setTournamentForm((prev) => ({ ...prev, matchDurationMinutes: Number(e.target.value) }))} />
               </div>
-              {tournamentForm.formatType !== 'KNOCKOUT' && (
-                <div>
-                  <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Teams per group</label>
-                  <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={2} value={tournamentForm.teamsPerGroup} onChange={(e) => setTournamentForm((prev) => ({ ...prev, teamsPerGroup: Number(e.target.value) }))} />
+              {tournamentForm.formatType === 'KNOCKOUT' && (
+                <div className="col-span-full bg-gray-950 border border-gray-800 rounded-xl p-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-white text-sm font-semibold mb-2">How many teams are in the knockout phase?</label>
+                      <input
+                        className="w-full md:max-w-xs bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
+                        type="number"
+                        min={2}
+                        value={tournamentForm.maxTeams}
+                        onChange={(e) => setTournamentForm((prev) => ({ ...prev, maxTeams: Number(e.target.value) }))}
+                      />
+                      <p className="text-gray-500 text-xs mt-2">Use a power-of-2 bracket size like 2, 4, 8, or 16.</p>
+                    </div>
+                    <div className="flex items-end">
+                      <p className="text-gray-500 text-sm">You can change the format at any time.</p>
+                    </div>
+                  </div>
                 </div>
               )}
-              {tournamentForm.formatType === 'GROUP_STAGE' && (
-                <div>
-                  <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Teams advancing per group</label>
-                  <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={1} value={tournamentForm.advancePerGroup} onChange={(e) => setTournamentForm((prev) => ({ ...prev, advancePerGroup: Number(e.target.value) }))} />
+              {tournamentForm.formatType !== 'KNOCKOUT' && (
+                <div className="col-span-full grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-950 border border-gray-800 rounded-xl p-5">
+                  <div>
+                    <label className="block text-white text-sm font-semibold mb-2">How many groups do you want to create?</label>
+                    <input
+                      className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
+                      type="number"
+                      min={1}
+                      value={tournamentForm.groupCount}
+                      onChange={(e) => setTournamentForm((prev) => ({ ...prev, groupCount: Number(e.target.value) }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-white text-sm font-semibold mb-2">How many teams are there in each group?</label>
+                    <input
+                      className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
+                      type="number"
+                      min={2}
+                      value={tournamentForm.teamsPerGroup}
+                      onChange={(e) => setTournamentForm((prev) => ({ ...prev, teamsPerGroup: Number(e.target.value) }))}
+                    />
+                  </div>
+                  {tournamentForm.formatType === 'GROUP_STAGE' && (
+                    <div className="md:col-span-2">
+                      <label className="block text-white text-sm font-semibold mb-2">How many teams proceed to the knockout phase?</label>
+                      <input
+                        className="w-full md:max-w-xs bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
+                        type="number"
+                        min={1}
+                        value={tournamentForm.advancePerGroup}
+                        onChange={(e) => setTournamentForm((prev) => ({ ...prev, advancePerGroup: Number(e.target.value) }))}
+                      />
+                      <p className="text-gray-500 text-xs mt-2">This value is used per group when the bracket is seeded.</p>
+                    </div>
+                  )}
+                  <div className="md:col-span-2 flex flex-wrap items-center justify-between gap-3 text-sm">
+                    <p className="text-gray-400">
+                      Planned group slots: <span className="text-white font-semibold">{tournamentForm.groupCount * tournamentForm.teamsPerGroup}</span>
+                    </p>
+                    <p className="text-gray-500">You can change the format at any time.</p>
+                  </div>
                 </div>
               )}
               {tournamentForm.formatType !== 'KNOCKOUT' && (

@@ -218,6 +218,7 @@ public class TournamentService {
                 .entryFee(source.getEntryFee())
                 .notes(source.getNotes())
                 .formatType(source.getFormatType())
+                .groupCount(source.getGroupCount())
                 .teamsPerGroup(source.getTeamsPerGroup())
                 .advancePerGroup(source.getAdvancePerGroup())
                 .pointsForWin(source.getPointsForWin())
@@ -889,9 +890,9 @@ public class TournamentService {
         }
 
         List<TournamentMatch> generatedMatches = switch (normalizeFormatType(tournament.getFormatType())) {
-            case "GROUP_STAGE" -> generateGroupStageMatches(tournament, teams);
+            case "GROUP_STAGE" -> generateGroupPhaseMatches(tournament, teams, true);
             case "KNOCKOUT" -> generateKnockoutMatches(tournament, teams);
-            default -> generateRoundRobinMatches(tournament, teams, "Round Robin");
+            default -> generateGroupPhaseMatches(tournament, teams, false);
         };
 
         List<TournamentMatch> savedMatches = tournamentMatchRepository.saveAll(generatedMatches);
@@ -977,6 +978,7 @@ public class TournamentService {
 
     private void applyTournamentFormat(Tournament tournament, TournamentRequest request) {
         tournament.setFormatType(normalizeFormatType(request.getFormatType()));
+        tournament.setGroupCount(normalizePositiveInteger(request.getGroupCount(), 2));
         tournament.setTeamsPerGroup(normalizePositiveInteger(request.getTeamsPerGroup(), 4));
         tournament.setAdvancePerGroup(normalizePositiveInteger(request.getAdvancePerGroup(), 2));
         tournament.setPointsForWin(defaultInt(request.getPointsForWin(), 3));
@@ -1072,6 +1074,7 @@ public class TournamentService {
                 .entryFee(t.getEntryFee())
                 .notes(t.getNotes())
                 .formatType(t.getFormatType())
+                .groupCount(t.getGroupCount())
                 .teamsPerGroup(t.getTeamsPerGroup())
                 .advancePerGroup(t.getAdvancePerGroup())
                 .pointsForWin(t.getPointsForWin())
@@ -1273,24 +1276,54 @@ public class TournamentService {
         return matches;
     }
 
-    private List<TournamentMatch> generateGroupStageMatches(Tournament tournament, List<Team> teams) {
+    private List<TournamentMatch> generateGroupPhaseMatches(
+            Tournament tournament,
+            List<Team> teams,
+            boolean includeKnockoutPhase) {
+        int groupCount = normalizePositiveInteger(tournament.getGroupCount(), 2);
         int teamsPerGroup = normalizePositiveInteger(tournament.getTeamsPerGroup(), 4);
         int advancePerGroup = normalizePositiveInteger(tournament.getAdvancePerGroup(), 2);
-        List<TournamentMatch> matches = new ArrayList<>();
-        int numGroups = 0;
 
-        for (int index = 0; index < teams.size(); index += teamsPerGroup) {
-            int endIndex = Math.min(index + teamsPerGroup, teams.size());
-            List<Team> groupTeams = new ArrayList<>(teams.subList(index, endIndex));
-            char groupLetter = (char) ('A' + (index / teamsPerGroup));
-            matches.addAll(generateRoundRobinMatches(tournament, groupTeams, "Group " + groupLetter));
-            numGroups++;
+        if (groupCount < 1) {
+            throw new IllegalArgumentException("Choose at least one group.");
+        }
+        if (teamsPerGroup < 2) {
+            throw new IllegalArgumentException("Each group must have at least two teams.");
+        }
+        if (teams.isEmpty()) {
+            return List.of();
+        }
+        if (teams.size() != groupCount * teamsPerGroup) {
+            throw new IllegalArgumentException(
+                    "The current teams do not match the selected group layout. "
+                    + "Add or remove teams, or update the group settings before building the schedule.");
+        }
+        if (includeKnockoutPhase && groupCount < 2) {
+            throw new IllegalArgumentException("Use at least two groups when the tournament includes a knockout phase.");
+        }
+        if (includeKnockoutPhase && advancePerGroup >= teamsPerGroup) {
+            throw new IllegalArgumentException("Teams advancing to the knockout phase must be less than teams per group.");
         }
 
-        // Knockout bracket: placeholder (TBD) matches generated after group phase
-        int totalAdvancing = numGroups * advancePerGroup;
+        List<TournamentMatch> matches = new ArrayList<>();
+        for (int index = 0; index < groupCount; index++) {
+            int startIndex = index * teamsPerGroup;
+            int endIndex = startIndex + teamsPerGroup;
+            List<Team> groupTeams = new ArrayList<>(teams.subList(startIndex, endIndex));
+            matches.addAll(generateRoundRobinMatches(tournament, groupTeams, "Group " + buildGroupLabel(index)));
+        }
+
+        if (!includeKnockoutPhase) {
+            return matches;
+        }
+
+        int totalAdvancing = groupCount * advancePerGroup;
         if (totalAdvancing >= 2) {
-            int size = Integer.highestOneBit(totalAdvancing); // round down to nearest power of 2
+            if ((totalAdvancing & (totalAdvancing - 1)) != 0) {
+                throw new IllegalArgumentException(
+                        "The teams advancing to the knockout phase must create a power-of-2 bracket.");
+            }
+            int size = Integer.highestOneBit(totalAdvancing);
             while (size >= 2) {
                 String roundLabel = switch (size) {
                     case 2 -> "Final";
@@ -1314,6 +1347,16 @@ public class TournamentService {
         }
 
         return matches;
+    }
+
+    private String buildGroupLabel(int index) {
+        int value = index;
+        StringBuilder label = new StringBuilder();
+        do {
+            label.insert(0, (char) ('A' + (value % 26)));
+            value = (value / 26) - 1;
+        } while (value >= 0);
+        return label.toString();
     }
 
     private TournamentMatch createKnockoutPlaceholder(Tournament tournament, String stageName, String roundName) {

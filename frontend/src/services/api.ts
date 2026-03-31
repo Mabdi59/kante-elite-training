@@ -2,7 +2,9 @@ import axios from 'axios'
 import type {
   ApiResponse,
   Program,
+  ProgramWorkflow,
   Event,
+  EventWorkflow,
   Testimonial,
   Booking,
   AvailabilityData,
@@ -36,11 +38,18 @@ import type {
   AdminPlayerFormData,
   PlayerProfile,
   PlayerProfileFormData,
+  ParticipantAssignmentFormData,
+  ManagedParticipant,
   StandingEntry,
 } from '../types'
 
+const configuredApiUrl = (import.meta.env.VITE_API_URL ?? '').trim()
+const normalizedApiBaseUrl = configuredApiUrl
+  ? `${configuredApiUrl.replace(/\/+$/, '').replace(/\/api$/, '')}/api`
+  : '/api'
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: normalizedApiBaseUrl,
   headers: { 'Content-Type': 'application/json' },
 })
 
@@ -391,13 +400,26 @@ export const getAdminPrograms = async (): Promise<Program[]> => {
   return res.data.data ?? []
 }
 
+export const getAdminProgramWorkflow = async (id: number): Promise<ProgramWorkflow> => {
+  const res = await api.get<ApiResponse<ProgramWorkflow>>(`/admin/programs/${id}/workflow`)
+  return res.data.data!
+}
+
 export const createProgram = async (data: Partial<Program>): Promise<Program> => {
-  const res = await api.post<ApiResponse<Program>>('/admin/programs', data)
+  const payload = {
+    ...data,
+    features: Array.isArray(data.features) ? data.features.join('|') : data.features,
+  }
+  const res = await api.post<ApiResponse<Program>>('/admin/programs', payload)
   return res.data.data!
 }
 
 export const updateProgram = async (id: number, data: Partial<Program>): Promise<Program> => {
-  const res = await api.put<ApiResponse<Program>>(`/admin/programs/${id}`, data)
+  const payload = {
+    ...data,
+    features: Array.isArray(data.features) ? data.features.join('|') : data.features,
+  }
+  const res = await api.put<ApiResponse<Program>>(`/admin/programs/${id}`, payload)
   return res.data.data!
 }
 
@@ -405,9 +427,29 @@ export const deleteProgram = async (id: number): Promise<void> => {
   await api.delete(`/admin/programs/${id}`)
 }
 
+export const addAdminProgramParticipant = async (
+  programId: number,
+  data: ParticipantAssignmentFormData,
+) : Promise<ManagedParticipant> => {
+  const res = await api.post<ApiResponse<ManagedParticipant>>(`/admin/programs/${programId}/participants`, data)
+  return res.data.data!
+}
+
+export const removeAdminProgramParticipant = async (
+  programId: number,
+  participantId: number,
+): Promise<void> => {
+  await api.delete(`/admin/programs/${programId}/participants/${participantId}`)
+}
+
 export const getAdminEvents = async (): Promise<Event[]> => {
   const res = await api.get<ApiResponse<Event[]>>('/admin/events')
   return res.data.data ?? []
+}
+
+export const getAdminEventWorkflow = async (id: number): Promise<EventWorkflow> => {
+  const res = await api.get<ApiResponse<EventWorkflow>>(`/admin/events/${id}/workflow`)
+  return res.data.data!
 }
 
 export const createEvent = async (data: Partial<Event>): Promise<Event> => {
@@ -422,6 +464,21 @@ export const updateEvent = async (id: number, data: Partial<Event>): Promise<Eve
 
 export const deleteEvent = async (id: number): Promise<void> => {
   await api.delete(`/admin/events/${id}`)
+}
+
+export const addAdminEventParticipant = async (
+  eventId: number,
+  data: ParticipantAssignmentFormData,
+) : Promise<ManagedParticipant> => {
+  const res = await api.post<ApiResponse<ManagedParticipant>>(`/admin/events/${eventId}/participants`, data)
+  return res.data.data!
+}
+
+export const removeAdminEventParticipant = async (
+  eventId: number,
+  participantId: number,
+): Promise<void> => {
+  await api.delete(`/admin/events/${eventId}/participants/${participantId}`)
 }
 
 export const getAdminTestimonials = async (): Promise<Testimonial[]> => {

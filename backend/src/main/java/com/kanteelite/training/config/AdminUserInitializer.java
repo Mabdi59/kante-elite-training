@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,15 +33,29 @@ public class AdminUserInitializer implements ApplicationRunner {
     @Value("${app.admin.name:Kante Elite Admin}")
     private String adminName;
 
+    private final Environment environment;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
+        failFastIfProductionUsesDefaults();
         warnIfUsingDefaults();
         userRepository.findByEmail(adminEmail)
                 .ifPresentOrElse(this::ensureAdminRole, this::createDefaultAdminUser);
+    }
+
+    private void failFastIfProductionUsesDefaults() {
+        if (!environment.acceptsProfiles(Profiles.of("prod"))) {
+            return;
+        }
+
+        if (DEFAULT_ADMIN_EMAIL.equals(adminEmail) || DEFAULT_ADMIN_PASSWORD.equals(adminPassword)) {
+            throw new IllegalStateException(
+                    "Production profile cannot start with default admin credentials. " +
+                    "Set ADMIN_EMAIL, ADMIN_PASSWORD, and ADMIN_NAME before deployment.");
+        }
     }
 
     private void warnIfUsingDefaults() {

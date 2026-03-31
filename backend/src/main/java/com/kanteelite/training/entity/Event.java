@@ -40,6 +40,16 @@ public class Event {
     @Column(name = "end_date")
     private LocalDate endDate;
 
+    @Column(name = "start_at")
+    private LocalDateTime startAt;
+
+    @Column(name = "end_at")
+    private LocalDateTime endAt;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer capacity = 20;
+
     @Column(name = "age_group", length = 50)
     private String ageGroup;
 
@@ -54,7 +64,7 @@ public class Event {
 
     @Column(length = 50)
     @Builder.Default
-    private String status = "OPEN";
+    private String status = "UPCOMING";
 
     @Column(length = 50)
     private String type;

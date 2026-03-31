@@ -41,6 +41,8 @@ public class TournamentRequest {
 
     private String formatType;
 
+    private Integer groupCount;
+
     private Integer teamsPerGroup;
 
     private Integer advancePerGroup;

@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -16,6 +17,10 @@ public class EventResponse {
     private String venue;
     private LocalDate startDate;
     private LocalDate endDate;
+    private LocalDateTime startAt;
+    private LocalDateTime endAt;
+    private Integer capacity;
+    private long participantCount;
     private String ageGroup;
     private Integer spotsTotal;
     private Integer spotsLeft;

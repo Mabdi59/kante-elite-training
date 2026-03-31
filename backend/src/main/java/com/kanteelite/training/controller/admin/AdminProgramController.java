@@ -1,8 +1,11 @@
 package com.kanteelite.training.controller.admin;
 
+import com.kanteelite.training.dto.request.ParticipantAssignmentRequest;
 import com.kanteelite.training.dto.request.ProgramRequest;
 import com.kanteelite.training.dto.response.ApiResponse;
+import com.kanteelite.training.dto.response.ManagedParticipantResponse;
 import com.kanteelite.training.dto.response.ProgramResponse;
+import com.kanteelite.training.dto.response.ProgramWorkflowResponse;
 import com.kanteelite.training.service.AuditLogService;
 import com.kanteelite.training.service.ProgramService;
 import jakarta.validation.Valid;
@@ -28,6 +31,11 @@ public class AdminProgramController {
         return ResponseEntity.ok(ApiResponse.success(programService.getAllPrograms()));
     }
 
+    @GetMapping("/{id}/workflow")
+    public ResponseEntity<ApiResponse<ProgramWorkflowResponse>> getProgramWorkflow(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(programService.getProgramWorkflow(id)));
+    }
+
     @PostMapping
     public ResponseEntity<ApiResponse<ProgramResponse>> createProgram(
             @Valid @RequestBody ProgramRequest request,
@@ -46,6 +54,31 @@ public class AdminProgramController {
         String actor = principal != null ? principal.getUsername() : "admin";
         auditLogService.log(actor, "UPDATE", "Program", id, "Updated program: " + updated.getName());
         return ResponseEntity.ok(ApiResponse.success("Program updated.", updated));
+    }
+
+    @PostMapping("/{id}/participants")
+    public ResponseEntity<ApiResponse<ManagedParticipantResponse>> addParticipant(
+            @PathVariable Long id,
+            @RequestBody ParticipantAssignmentRequest request,
+            @AuthenticationPrincipal UserDetails principal) {
+        ManagedParticipantResponse created = programService.addParticipant(id, request);
+        String actor = principal != null ? principal.getUsername() : "admin";
+        auditLogService.log(actor, "CREATE", "ProgramParticipant", created.getId(),
+                "Added participant to program #" + id);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Participant added.", created));
+    }
+
+    @DeleteMapping("/{id}/participants/{participantId}")
+    public ResponseEntity<ApiResponse<Void>> removeParticipant(
+            @PathVariable Long id,
+            @PathVariable Long participantId,
+            @AuthenticationPrincipal UserDetails principal) {
+        programService.removeParticipant(id, participantId);
+        String actor = principal != null ? principal.getUsername() : "admin";
+        auditLogService.log(actor, "DELETE", "ProgramParticipant", participantId,
+                "Removed participant from program #" + id);
+        return ResponseEntity.ok(ApiResponse.success("Participant removed.", null));
     }
 
     @DeleteMapping("/{id}")

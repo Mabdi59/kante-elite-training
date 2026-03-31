@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -14,6 +15,12 @@ public class ProgramResponse {
     private String slug;
     private String description;
     private String shortDescription;
+    private String location;
+    private LocalDateTime startAt;
+    private LocalDateTime endAt;
+    private Integer capacity;
+    private String status;
+    private long participantCount;
     private BigDecimal price;
     private String priceLabel;
     private Integer durationMinutes;

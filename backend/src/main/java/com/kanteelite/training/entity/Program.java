@@ -37,6 +37,23 @@ public class Program {
     @Column(name = "short_description", length = 255)
     private String shortDescription;
 
+    @Column(length = 200)
+    private String location;
+
+    @Column(name = "start_at")
+    private LocalDateTime startAt;
+
+    @Column(name = "end_at")
+    private LocalDateTime endAt;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer capacity = 20;
+
+    @Column(nullable = false, length = 30)
+    @Builder.Default
+    private String status = "UPCOMING";
+
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
