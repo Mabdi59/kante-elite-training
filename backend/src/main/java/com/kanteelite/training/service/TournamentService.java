@@ -1001,6 +1001,15 @@ public class TournamentService {
             throw new IllegalArgumentException("Final results require both scores.");
         }
 
+        // Knockout matches must have a clear winner — draws are not permitted
+        boolean isKnockoutStage = "Knockout".equals(trimToNull(request.getStageName()));
+        if (isKnockoutStage && MATCH_STATUS_FINAL.equals(status)
+                && request.getHomeScore() != null && request.getAwayScore() != null
+                && request.getHomeScore().equals(request.getAwayScore())) {
+            throw new IllegalArgumentException(
+                    "Knockout matches cannot end in a draw. Adjust the score to show a clear winner.");
+        }
+
         match.setTournament(tournament);
         match.setHomeTeam(homeTeam);
         match.setAwayTeam(awayTeam);
@@ -1505,17 +1514,22 @@ public class TournamentService {
         boolean isHomeSlot = matchPos % 2 == 1;
         int nextPos = (matchPos + 1) / 2; // 1-based position in the next round
 
-        // Advance winner into next round
+        // Advance winner into next round (skip if slot already occupied to prevent duplicate advancement)
         String nextBase = roundOrder.get(currentIdx + 1);
         List<TournamentMatch> nextRoundMatches = roundMap.get(nextBase);
         if (nextRoundMatches != null && nextPos >= 1 && nextPos <= nextRoundMatches.size()) {
             TournamentMatch target = nextRoundMatches.get(nextPos - 1);
-            if (isHomeSlot) {
-                target.setHomeTeam(winner);
-            } else {
-                target.setAwayTeam(winner);
+            boolean slotAlreadyFilled = isHomeSlot
+                    ? target.getHomeTeam() != null
+                    : target.getAwayTeam() != null;
+            if (!slotAlreadyFilled) {
+                if (isHomeSlot) {
+                    target.setHomeTeam(winner);
+                } else {
+                    target.setAwayTeam(winner);
+                }
+                tournamentMatchRepository.save(target);
             }
-            tournamentMatchRepository.save(target);
         }
 
         // If this is the penultimate winner-bracket round (one before Final), advance loser to Third Place
@@ -1530,12 +1544,17 @@ public class TournamentService {
                             && "Third Place".equalsIgnoreCase(m.getRoundName()))
                     .findFirst()
                     .ifPresent(thirdPlace -> {
-                        if (finalIsHomeSlot) {
-                            thirdPlace.setHomeTeam(finalLoser);
-                        } else {
-                            thirdPlace.setAwayTeam(finalLoser);
+                        boolean tpSlotFilled = finalIsHomeSlot
+                                ? thirdPlace.getHomeTeam() != null
+                                : thirdPlace.getAwayTeam() != null;
+                        if (!tpSlotFilled) {
+                            if (finalIsHomeSlot) {
+                                thirdPlace.setHomeTeam(finalLoser);
+                            } else {
+                                thirdPlace.setAwayTeam(finalLoser);
+                            }
+                            tournamentMatchRepository.save(thirdPlace);
                         }
-                        tournamentMatchRepository.save(thirdPlace);
                     });
         }
     }

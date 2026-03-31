@@ -208,6 +208,12 @@ export default function AdminTournamentWorkflowPage() {
     Record<number, { homeScore: string; awayScore: string; status: string }>
   >({})
   const [savingResultId, setSavingResultId] = useState<number | null>(null)
+  const [successMessage, setSuccessMessage] = useState('')
+
+  const showSuccess = (msg: string) => {
+    setSuccessMessage(msg)
+    setTimeout(() => setSuccessMessage(''), 3500)
+  }
 
   // Bulk player import
   const [bulkImportText, setBulkImportText] = useState('')
@@ -444,6 +450,10 @@ export default function AdminTournamentWorkflowPage() {
         return next
       })
       await loadWorkflow(tournamentId)
+      if (data.status === 'FINAL') {
+        const isKnockout = match.stageName === 'Knockout'
+        showSuccess(isKnockout ? 'Result saved — winner advanced to next round.' : 'Result saved and standings updated.')
+      }
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
@@ -499,6 +509,13 @@ export default function AdminTournamentWorkflowPage() {
       </div>
 
       {error ? <ErrorBanner message={error} onDismiss={() => setError('')} /> : null}
+      {successMessage ? (
+        <div className="flex items-center gap-3 bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-3 text-green-300 text-sm">
+          <span className="shrink-0">✓</span>
+          <span>{successMessage}</span>
+          <button type="button" onClick={() => setSuccessMessage('')} className="ml-auto text-green-500 hover:text-green-300 text-xs">✕</button>
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-3">
         {WORKFLOW_STEPS.map((step) => (
@@ -828,6 +845,7 @@ export default function AdminTournamentWorkflowPage() {
                       try {
                         await seedTournamentKnockoutBracket(tournamentId)
                         await loadWorkflow(tournamentId)
+                        showSuccess('Knockout bracket seeded — teams placed based on group standings.')
                       } catch (err: unknown) {
                         setError((err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Could not seed the knockout bracket.')
                       }
@@ -957,46 +975,53 @@ export default function AdminTournamentWorkflowPage() {
                                       <button type="button" onClick={() => openInlineResult(match)} className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg text-xs">Enter Score</button>
                                     </div>
                                   ) : (
-                                    <div className="flex items-center gap-2 flex-wrap shrink-0">
-                                      <input
-                                        type="number"
-                                        min={0}
-                                        value={inline.homeScore}
-                                        onChange={(e) => setInlineResults((prev) => ({ ...prev, [match.id]: { ...prev[match.id], homeScore: e.target.value } }))}
-                                        className="w-14 bg-black border border-gray-700 rounded-lg px-2 py-1.5 text-white text-sm text-center tabular-nums"
-                                        placeholder="0"
-                                      />
-                                      <span className="text-gray-500">:</span>
-                                      <input
-                                        type="number"
-                                        min={0}
-                                        value={inline.awayScore}
-                                        onChange={(e) => setInlineResults((prev) => ({ ...prev, [match.id]: { ...prev[match.id], awayScore: e.target.value } }))}
-                                        className="w-14 bg-black border border-gray-700 rounded-lg px-2 py-1.5 text-white text-sm text-center tabular-nums"
-                                        placeholder="0"
-                                      />
-                                      <select
-                                        value={inline.status}
-                                        onChange={(e) => setInlineResults((prev) => ({ ...prev, [match.id]: { ...prev[match.id], status: e.target.value } }))}
-                                        className="bg-black border border-gray-700 rounded-lg px-2 py-1.5 text-white text-xs"
-                                      >
-                                        {MATCH_STATUSES.map((s) => <option key={s}>{s}</option>)}
-                                      </select>
-                                      <button
-                                        type="button"
-                                        onClick={() => saveInlineResult(match)}
-                                        disabled={isSaving}
-                                        className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-3 py-1.5 rounded-lg text-xs disabled:opacity-50"
-                                      >
-                                        {isSaving ? '...' : 'Save'}
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => setInlineResults((prev) => { const next = { ...prev }; delete next[match.id]; return next })}
-                                        className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg text-xs"
-                                      >
-                                        Cancel
-                                      </button>
+                                    <div className="flex flex-col gap-2 shrink-0 items-end">
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <input
+                                          type="number"
+                                          min={0}
+                                          value={inline.homeScore}
+                                          onChange={(e) => setInlineResults((prev) => ({ ...prev, [match.id]: { ...prev[match.id], homeScore: e.target.value } }))}
+                                          className="w-14 bg-black border border-gray-700 rounded-lg px-2 py-1.5 text-white text-sm text-center tabular-nums"
+                                          placeholder="0"
+                                        />
+                                        <span className="text-gray-500">:</span>
+                                        <input
+                                          type="number"
+                                          min={0}
+                                          value={inline.awayScore}
+                                          onChange={(e) => setInlineResults((prev) => ({ ...prev, [match.id]: { ...prev[match.id], awayScore: e.target.value } }))}
+                                          className="w-14 bg-black border border-gray-700 rounded-lg px-2 py-1.5 text-white text-sm text-center tabular-nums"
+                                          placeholder="0"
+                                        />
+                                        <select
+                                          value={inline.status}
+                                          onChange={(e) => setInlineResults((prev) => ({ ...prev, [match.id]: { ...prev[match.id], status: e.target.value } }))}
+                                          className="bg-black border border-gray-700 rounded-lg px-2 py-1.5 text-white text-xs"
+                                        >
+                                          {MATCH_STATUSES.map((s) => <option key={s}>{s}</option>)}
+                                        </select>
+                                        <button
+                                          type="button"
+                                          onClick={() => saveInlineResult(match)}
+                                          disabled={isSaving}
+                                          className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-3 py-1.5 rounded-lg text-xs disabled:opacity-50"
+                                        >
+                                          {isSaving ? 'Saving...' : 'Save'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => setInlineResults((prev) => { const next = { ...prev }; delete next[match.id]; return next })}
+                                          className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg text-xs"
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
+                                      {match.stageName === 'Knockout' && inline.status === 'FINAL' && inline.homeScore !== '' && inline.awayScore !== '' && inline.homeScore === inline.awayScore && (
+                                        <div className="text-amber-400 text-xs bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-1.5 w-full text-center">
+                                          ⚠ Knockout matches cannot end in a draw — adjust the score so there is a clear winner.
+                                        </div>
+                                      )}
                                     </div>
                                   )}
                                 </div>
@@ -1125,7 +1150,9 @@ function AdminBracketView({ matches }: { matches: TournamentMatch[] }) {
   const bracketMatches = matches.filter((m) => m.stageName === 'Knockout')
   if (bracketMatches.length === 0) return null
 
+  // Third Place is shown as a separate column appended after Final
   const knownRoundOrder = ['Round of 32', 'Round of 16', 'Round of 8', 'Quarterfinal', 'Semifinal', 'Final']
+  const thirdPlaceKey = 'Third Place'
 
   const roundMap = new Map<string, TournamentMatch[]>()
   for (const m of bracketMatches) {
@@ -1140,44 +1167,63 @@ function AdminBracketView({ matches }: { matches: TournamentMatch[] }) {
   for (const r of knownRoundOrder) {
     if (roundMap.has(r)) sorted.push([r, roundMap.get(r)!])
   }
+  // Append Third Place after Final if it exists
+  if (roundMap.has(thirdPlaceKey)) sorted.push([thirdPlaceKey, roundMap.get(thirdPlaceKey)!])
+  // Catch-all for any other custom round names
   for (const [k, v] of roundMap.entries()) {
-    if (!knownRoundOrder.some((r) => r.toLowerCase() === k.toLowerCase())) sorted.push([k, v])
+    const known = [...knownRoundOrder, thirdPlaceKey]
+    if (!known.some((r) => r.toLowerCase() === k.toLowerCase())) sorted.push([k, v])
   }
 
+  const allFinal = bracketMatches.every((m) => m.status === 'FINAL')
+  const anyFinal = bracketMatches.some((m) => m.status === 'FINAL')
+
   return (
-    <div className="mt-6">
-      <h3 className="text-white font-black text-lg mb-1">Knockout Bracket</h3>
-      <p className="text-gray-500 text-sm mb-4">
-        Winners automatically advance when a match is saved as <span className="text-white font-semibold">FINAL</span>.
-      </p>
-      <div className="flex gap-5 overflow-x-auto pb-4">
+    <div className="mt-6 border-t border-gray-800 pt-6">
+      <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
+        <div>
+          <h3 className="text-white font-black text-lg">Knockout Bracket</h3>
+          <p className="text-gray-500 text-sm mt-0.5">
+            {allFinal
+              ? '🏆 All matches complete.'
+              : anyFinal
+              ? 'In progress — winners advance automatically when a match is saved as FINAL.'
+              : 'Waiting for results — save a match as FINAL to advance the winner.'}
+          </p>
+        </div>
+      </div>
+      <div className="flex gap-8 overflow-x-auto pb-4 items-start">
         {sorted.map(([roundName, roundMatches]) => (
-          <div key={roundName} className="flex flex-col gap-3 min-w-[210px]">
-            <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest text-center">{roundName}</div>
-            <div className="flex flex-col gap-3 justify-around h-full">
+          <div key={roundName} className="flex flex-col gap-2 min-w-[220px]">
+            <div className={`text-xs font-bold uppercase tracking-widest text-center mb-2 ${roundName === 'Final' ? 'text-yellow-400' : roundName === 'Third Place' ? 'text-gray-400' : 'text-cyan-400'}`}>
+              {roundName === 'Final' ? '🏆 ' : ''}{roundName}
+            </div>
+            <div className="flex flex-col gap-4">
               {roundMatches.map((m) => {
                 const isFinal = m.status === 'FINAL'
                 const homeWon = isFinal && m.homeScore != null && m.awayScore != null && m.homeScore > m.awayScore
                 const awayWon = isFinal && m.homeScore != null && m.awayScore != null && m.awayScore > m.homeScore
+                const statusColor = m.status === 'FINAL' ? 'text-green-400' : m.status === 'IN_PROGRESS' ? 'text-yellow-400' : 'text-gray-600'
                 return (
-                  <div key={m.id} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden text-sm">
-                    <div className={`flex items-center justify-between px-3 py-2.5 gap-3 ${homeWon ? 'bg-cyan-500/10' : ''}`}>
-                      <span className={`font-semibold truncate ${homeWon ? 'text-cyan-300' : m.homeTeamName ? 'text-gray-200' : 'text-gray-600 italic'}`}>
-                        {m.homeTeamName ?? 'TBD'}
+                  <div key={m.id} className={`bg-gray-900 border rounded-xl overflow-hidden text-sm ${isFinal ? 'border-gray-700' : 'border-gray-800'}`}>
+                    <div className={`flex items-center justify-between px-3 py-2.5 gap-3 ${homeWon ? 'bg-green-500/10' : ''}`}>
+                      <span className={`font-semibold truncate ${homeWon ? 'text-green-300' : m.homeTeamName ? 'text-gray-200' : 'text-gray-600 italic'}`}>
+                        {homeWon && '▶ '}{m.homeTeamName ?? 'TBD'}
                       </span>
-                      {isFinal && m.homeScore != null && (
-                        <span className={`tabular-nums font-black shrink-0 ${homeWon ? 'text-cyan-300' : 'text-gray-400'}`}>{m.homeScore}</span>
+                      {m.homeScore != null && (
+                        <span className={`tabular-nums font-black shrink-0 text-base ${homeWon ? 'text-green-300' : 'text-gray-400'}`}>{m.homeScore}</span>
                       )}
                     </div>
                     <div className="h-px bg-gray-800" />
-                    <div className={`flex items-center justify-between px-3 py-2.5 gap-3 ${awayWon ? 'bg-cyan-500/10' : ''}`}>
-                      <span className={`font-semibold truncate ${awayWon ? 'text-cyan-300' : m.awayTeamName ? 'text-gray-200' : 'text-gray-600 italic'}`}>
-                        {m.awayTeamName ?? 'TBD'}
+                    <div className={`flex items-center justify-between px-3 py-2.5 gap-3 ${awayWon ? 'bg-green-500/10' : ''}`}>
+                      <span className={`font-semibold truncate ${awayWon ? 'text-green-300' : m.awayTeamName ? 'text-gray-200' : 'text-gray-600 italic'}`}>
+                        {awayWon && '▶ '}{m.awayTeamName ?? 'TBD'}
                       </span>
-                      {isFinal && m.awayScore != null && (
-                        <span className={`tabular-nums font-black shrink-0 ${awayWon ? 'text-cyan-300' : 'text-gray-400'}`}>{m.awayScore}</span>
+                      {m.awayScore != null && (
+                        <span className={`tabular-nums font-black shrink-0 text-base ${awayWon ? 'text-green-300' : 'text-gray-400'}`}>{m.awayScore}</span>
                       )}
                     </div>
+                    <div className={`px-3 py-1 text-xs font-semibold border-t border-gray-800 ${statusColor}`}>{m.status}</div>
                   </div>
                 )
               })}

@@ -431,24 +431,25 @@ function BracketTab({ matches }: { matches: TournamentMatch[] }) {
 
   const rounds = useMemo(() => {
     const knownRoundOrder = ['Round of 32', 'Round of 16', 'Round of 8', 'Quarterfinal', 'Semifinal', 'Final']
+    const thirdPlaceKey = 'Third Place'
     const map = new Map<string, TournamentMatch[]>()
     for (const m of bracketMatches) {
       const key = m.roundName ?? 'Round'
-      // Normalize: strip trailing number to get base name
       const base = key.replace(/\s+\d+$/, '').trim()
       const normalized = knownRoundOrder.find((r) => base.toLowerCase() === r.toLowerCase()) ?? base
       const arr = map.get(normalized) ?? []
       arr.push(m)
       map.set(normalized, arr)
     }
-    // Sort: known rounds first in order, then Third Place at the end
     const sortedEntries: [string, TournamentMatch[]][] = []
     for (const r of knownRoundOrder) {
       if (map.has(r)) sortedEntries.push([r, map.get(r)!])
     }
-    // Anything not in knownRoundOrder (e.g. "Third Place", custom names)
+    // Third Place after Final
+    if (map.has(thirdPlaceKey)) sortedEntries.push([thirdPlaceKey, map.get(thirdPlaceKey)!])
     for (const [k, v] of map.entries()) {
-      if (!knownRoundOrder.some((r) => r.toLowerCase() === k.toLowerCase())) {
+      const known = [...knownRoundOrder, thirdPlaceKey]
+      if (!known.some((r) => r.toLowerCase() === k.toLowerCase())) {
         sortedEntries.push([k, v])
       }
     }
@@ -468,11 +469,13 @@ function BracketTab({ matches }: { matches: TournamentMatch[] }) {
   return (
     <div>
       <p className="text-gray-500 text-sm mb-6">Knockout bracket — winners advance from left to right.</p>
-      <div className="flex gap-6 overflow-x-auto pb-4">
+      <div className="flex gap-8 overflow-x-auto pb-4 items-start">
         {(rounds as [string, TournamentMatch[]][]).map(([roundName, roundMatches]) => (
-          <div key={roundName} className="flex flex-col gap-4 min-w-[220px]">
-            <h3 className="text-cyan-400 text-xs font-bold uppercase tracking-widest text-center">{roundName}</h3>
-            <div className="flex flex-col gap-3 justify-around h-full">
+          <div key={roundName} className="flex flex-col min-w-[220px]">
+            <h3 className={`text-xs font-bold uppercase tracking-widest text-center mb-3 ${roundName === 'Final' ? 'text-yellow-400' : roundName === 'Third Place' ? 'text-gray-400' : 'text-cyan-400'}`}>
+              {roundName === 'Final' ? '🏆 ' : ''}{roundName}
+            </h3>
+            <div className="flex flex-col gap-4">
               {roundMatches.map((m) => (
                 <BracketMatch key={m.id} match={m} />
               ))}
@@ -488,23 +491,32 @@ function BracketMatch({ match: m }: { match: TournamentMatch }) {
   const isFinal = m.status === 'FINAL'
   const homeWon = isFinal && m.homeScore != null && m.awayScore != null && m.homeScore > m.awayScore
   const awayWon = isFinal && m.homeScore != null && m.awayScore != null && m.awayScore > m.homeScore
+  const isSeeded = m.homeTeamName != null || m.awayTeamName != null
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden text-sm">
-      <BracketTeamRow name={m.homeTeamName ?? 'TBD'} score={m.homeScore} won={homeWon} />
+    <div className={`border rounded-xl overflow-hidden text-sm ${isFinal ? 'bg-gray-900 border-gray-700' : isSeeded ? 'bg-gray-900 border-gray-800' : 'bg-gray-950 border-gray-800'}`}>
+      <BracketTeamRow name={m.homeTeamName ?? 'TBD'} score={isFinal ? m.homeScore : undefined} won={homeWon} seeded={!!m.homeTeamName} />
       <div className="h-px bg-gray-800" />
-      <BracketTeamRow name={m.awayTeamName ?? 'TBD'} score={m.awayScore} won={awayWon} />
-    </div>
-  )
-}
-
-function BracketTeamRow({ name, score, won }: { name: string; score?: number | null; won: boolean }) {
-  return (
-    <div className={`flex items-center justify-between px-3 py-2.5 gap-3 ${won ? 'bg-cyan-500/10' : ''}`}>
-      <span className={`font-semibold truncate ${won ? 'text-cyan-300' : 'text-gray-300'}`}>{name}</span>
-      {score != null && (
-        <span className={`tabular-nums font-black shrink-0 ${won ? 'text-cyan-300' : 'text-gray-400'}`}>{score}</span>
+      <BracketTeamRow name={m.awayTeamName ?? 'TBD'} score={isFinal ? m.awayScore : undefined} won={awayWon} seeded={!!m.awayTeamName} />
+      {m.status !== 'SCHEDULED' && (
+        <div className={`px-3 py-1 text-xs font-semibold border-t border-gray-800 ${isFinal ? 'text-green-400' : m.status === 'IN_PROGRESS' ? 'text-yellow-400' : 'text-gray-500'}`}>
+          {m.status}
+        </div>
       )}
     </div>
   )
 }
+
+function BracketTeamRow({ name, score, won, seeded }: { name: string; score?: number | null; won: boolean; seeded: boolean }) {
+  return (
+    <div className={`flex items-center justify-between px-3 py-2.5 gap-3 ${won ? 'bg-green-500/10' : ''}`}>
+      <span className={`font-semibold truncate ${won ? 'text-green-300' : seeded ? 'text-gray-200' : 'text-gray-600 italic'}`}>
+        {won && '▶ '}{name}
+      </span>
+      {score != null && (
+        <span className={`tabular-nums font-black shrink-0 text-base ${won ? 'text-green-300' : 'text-gray-400'}`}>{score}</span>
+      )}
+    </div>
+  )
+}
+
