@@ -23,6 +23,8 @@ export default function TournamentDetailPage() {
   }, [id])
 
   const isKnockout = data?.tournament.formatType === 'KNOCKOUT'
+  const hasKnockoutMatches = data?.matches.some((m) => m.stageName === 'Knockout') ?? false
+  const showBracket = isKnockout || (data?.tournament.formatType === 'GROUP_STAGE' && hasKnockoutMatches)
 
   const tabs: { key: Tab; label: string }[] = [
     { key: 'overview', label: 'Overview' },
@@ -31,7 +33,7 @@ export default function TournamentDetailPage() {
     ...(data?.standings && data.standings.length > 0
       ? [{ key: 'standings' as Tab, label: 'Standings' }]
       : []),
-    ...(isKnockout && data && data.matches.length > 0
+    ...(showBracket && data && data.matches.length > 0
       ? [{ key: 'bracket' as Tab, label: 'Bracket' }]
       : []),
   ]
@@ -147,7 +149,7 @@ export default function TournamentDetailPage() {
         {tab === 'teams' && <TeamsTab teams={data.teams} />}
         {tab === 'schedule' && <ScheduleTab matches={data.matches} />}
         {tab === 'standings' && data.standings?.length > 0 && <StandingsTab standings={data.standings} />}
-        {tab === 'bracket' && isKnockout && <BracketTab matches={data.matches} />}
+        {tab === 'bracket' && showBracket && <BracketTab matches={data.matches} />}
       </div>
     </div>
   )
@@ -424,34 +426,50 @@ function StandingsTab({ standings }: { standings: StandingEntry[] }) {
 // ─── Bracket Tab ──────────────────────────────────────────────────────────────
 
 function BracketTab({ matches }: { matches: TournamentMatch[] }) {
-  // Group matches by round name for visual bracket display
+  // Only show matches in the Knockout stage (works for both KNOCKOUT and GROUP_STAGE formats)
+  const bracketMatches = matches.filter((m) => m.stageName === 'Knockout')
+
   const rounds = useMemo(() => {
-    const roundOrder = ['Quarterfinal', 'Semifinal', 'Final']
+    const knownRoundOrder = ['Round of 32', 'Round of 16', 'Round of 8', 'Quarterfinal', 'Semifinal', 'Final']
     const map = new Map<string, TournamentMatch[]>()
-    for (const m of matches) {
-      const key = m.roundName ?? m.stageName ?? 'Round'
-      // normalize
-      const normalized = roundOrder.find((r) => key.toLowerCase().includes(r.toLowerCase())) ?? key
+    for (const m of bracketMatches) {
+      const key = m.roundName ?? 'Round'
+      // Normalize: strip trailing number to get base name
+      const base = key.replace(/\s+\d+$/, '').trim()
+      const normalized = knownRoundOrder.find((r) => base.toLowerCase() === r.toLowerCase()) ?? base
       const arr = map.get(normalized) ?? []
       arr.push(m)
       map.set(normalized, arr)
     }
-    // Sort map keys by known order
+    // Sort: known rounds first in order, then Third Place at the end
     const sortedEntries: [string, TournamentMatch[]][] = []
-    for (const r of roundOrder) {
+    for (const r of knownRoundOrder) {
       if (map.has(r)) sortedEntries.push([r, map.get(r)!])
     }
+    // Anything not in knownRoundOrder (e.g. "Third Place", custom names)
     for (const [k, v] of map.entries()) {
-      if (!roundOrder.some((r) => k.includes(r))) sortedEntries.push([k, v])
+      if (!knownRoundOrder.some((r) => r.toLowerCase() === k.toLowerCase())) {
+        sortedEntries.push([k, v])
+      }
     }
     return sortedEntries
-  }, [matches])
+  }, [bracketMatches])
+
+  if (bracketMatches.length === 0) {
+    return (
+      <div className="text-center py-16 text-gray-500">
+        <div className="text-4xl mb-3">🏆</div>
+        <p className="text-white font-semibold">Bracket not available yet</p>
+        <p className="text-sm mt-1">The knockout bracket will appear here once matches have been seeded.</p>
+      </div>
+    )
+  }
 
   return (
     <div>
       <p className="text-gray-500 text-sm mb-6">Knockout bracket — winners advance from left to right.</p>
       <div className="flex gap-6 overflow-x-auto pb-4">
-        {rounds.map(([roundName, roundMatches]) => (
+        {(rounds as [string, TournamentMatch[]][]).map(([roundName, roundMatches]) => (
           <div key={roundName} className="flex flex-col gap-4 min-w-[220px]">
             <h3 className="text-cyan-400 text-xs font-bold uppercase tracking-widest text-center">{roundName}</h3>
             <div className="flex flex-col gap-3 justify-around h-full">

@@ -1010,6 +1010,9 @@ export default function AdminTournamentWorkflowPage() {
                 </div>
               )
             })()}
+            {workflow.matches.some((m) => m.stageName === 'Knockout') && (
+              <AdminBracketView matches={workflow.matches} />
+            )}
           </>
         ) : null}
 
@@ -1112,6 +1115,76 @@ function StandingsTable({ standings }: { standings: StandingEntry[] }) {
           </div>
         </div>
       ))}
+    </div>
+  )
+}
+
+// ─── Admin Bracket View ────────────────────────────────────────────────────────
+
+function AdminBracketView({ matches }: { matches: TournamentMatch[] }) {
+  const bracketMatches = matches.filter((m) => m.stageName === 'Knockout')
+  if (bracketMatches.length === 0) return null
+
+  const knownRoundOrder = ['Round of 32', 'Round of 16', 'Round of 8', 'Quarterfinal', 'Semifinal', 'Final']
+
+  const roundMap = new Map<string, TournamentMatch[]>()
+  for (const m of bracketMatches) {
+    const base = (m.roundName ?? 'Round').replace(/\s+\d+$/, '').trim()
+    const key = knownRoundOrder.find((r) => r.toLowerCase() === base.toLowerCase()) ?? base
+    const arr = roundMap.get(key) ?? []
+    arr.push(m)
+    roundMap.set(key, arr)
+  }
+
+  const sorted: [string, TournamentMatch[]][] = []
+  for (const r of knownRoundOrder) {
+    if (roundMap.has(r)) sorted.push([r, roundMap.get(r)!])
+  }
+  for (const [k, v] of roundMap.entries()) {
+    if (!knownRoundOrder.some((r) => r.toLowerCase() === k.toLowerCase())) sorted.push([k, v])
+  }
+
+  return (
+    <div className="mt-6">
+      <h3 className="text-white font-black text-lg mb-1">Knockout Bracket</h3>
+      <p className="text-gray-500 text-sm mb-4">
+        Winners automatically advance when a match is saved as <span className="text-white font-semibold">FINAL</span>.
+      </p>
+      <div className="flex gap-5 overflow-x-auto pb-4">
+        {sorted.map(([roundName, roundMatches]) => (
+          <div key={roundName} className="flex flex-col gap-3 min-w-[210px]">
+            <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest text-center">{roundName}</div>
+            <div className="flex flex-col gap-3 justify-around h-full">
+              {roundMatches.map((m) => {
+                const isFinal = m.status === 'FINAL'
+                const homeWon = isFinal && m.homeScore != null && m.awayScore != null && m.homeScore > m.awayScore
+                const awayWon = isFinal && m.homeScore != null && m.awayScore != null && m.awayScore > m.homeScore
+                return (
+                  <div key={m.id} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden text-sm">
+                    <div className={`flex items-center justify-between px-3 py-2.5 gap-3 ${homeWon ? 'bg-cyan-500/10' : ''}`}>
+                      <span className={`font-semibold truncate ${homeWon ? 'text-cyan-300' : m.homeTeamName ? 'text-gray-200' : 'text-gray-600 italic'}`}>
+                        {m.homeTeamName ?? 'TBD'}
+                      </span>
+                      {isFinal && m.homeScore != null && (
+                        <span className={`tabular-nums font-black shrink-0 ${homeWon ? 'text-cyan-300' : 'text-gray-400'}`}>{m.homeScore}</span>
+                      )}
+                    </div>
+                    <div className="h-px bg-gray-800" />
+                    <div className={`flex items-center justify-between px-3 py-2.5 gap-3 ${awayWon ? 'bg-cyan-500/10' : ''}`}>
+                      <span className={`font-semibold truncate ${awayWon ? 'text-cyan-300' : m.awayTeamName ? 'text-gray-200' : 'text-gray-600 italic'}`}>
+                        {m.awayTeamName ?? 'TBD'}
+                      </span>
+                      {isFinal && m.awayScore != null && (
+                        <span className={`tabular-nums font-black shrink-0 ${awayWon ? 'text-cyan-300' : 'text-gray-400'}`}>{m.awayScore}</span>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
