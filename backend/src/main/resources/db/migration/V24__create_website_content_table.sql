@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS website_content (
+    id BIGSERIAL PRIMARY KEY,
+    home_badge VARCHAR(120),
+    home_headline VARCHAR(255),
+    home_description TEXT,
+    home_highlights_title VARCHAR(255),
+    home_highlights_description TEXT,
+    about_badge VARCHAR(120),
+    about_hero_title VARCHAR(255),
+    about_hero_description TEXT,
+    about_headline VARCHAR(255),
+    about_intro TEXT,
+    about_body TEXT,
+    about_trust_statement VARCHAR(255),
+    about_gallery_title VARCHAR(255),
+    about_gallery_description TEXT,
+    about_experience_title VARCHAR(255),
+    about_experience_description TEXT,
+    about_experience_points TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

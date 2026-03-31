@@ -57,6 +57,9 @@ public class SecurityConfig {
                 // Public read endpoints
                 .requestMatchers(HttpMethod.GET, "/api/programs/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/content/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/media/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/uploads/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/testimonials/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/availability/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/tournaments/*/registrations").hasAnyRole("ADMIN", "STAFF")

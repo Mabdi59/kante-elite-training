@@ -22,7 +22,8 @@ import RegisterPage from './pages/RegisterPage'
 const TrainingPage = lazy(() => import('./pages/TrainingPage'))
 const EventsPage = lazy(() => import('./pages/EventsPage'))
 const ResultsPage = lazy(() => import('./pages/ResultsPage'))
-const AboutPage = lazy(() => import('./pages/AboutPage'))
+const MediaPage = lazy(() => import('./pages/MediaPage'))
+const AboutPage = lazy(() => import('./pages/AboutMediaPage'))
 const ContactPage = lazy(() => import('./pages/ContactPage'))
 const BookPage = lazy(() => import('./pages/BookPage'))
 const BookingSuccessPage = lazy(() => import('./pages/BookingSuccessPage'))
@@ -42,6 +43,8 @@ const AdminProgramsPage = lazy(() => import('./pages/admin/AdminProgramsWorkspac
 const AdminEventsPage = lazy(() => import('./pages/admin/AdminEventsWorkspacePage'))
 const AdminTournamentsPage = lazy(() => import('./pages/admin/AdminTournamentsPage'))
 const AdminTournamentWorkflowPage = lazy(() => import('./pages/admin/AdminTournamentWorkflowPage'))
+const AdminContentPage = lazy(() => import('./pages/admin/AdminContentPage'))
+const AdminMediaPage = lazy(() => import('./pages/admin/AdminMediaPage'))
 const AdminTestimonialsPage = lazy(() => import('./pages/admin/AdminTestimonialsPage'))
 const AdminMessagesPage = lazy(() => import('./pages/admin/AdminMessagesPage'))
 const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'))
@@ -137,6 +140,14 @@ export default function App() {
               element={
                 <MainLayout>
                   <ResultsPage />
+                </MainLayout>
+              }
+            />
+            <Route
+              path="/media"
+              element={
+                <MainLayout>
+                  <MediaPage />
                 </MainLayout>
               }
             />
@@ -520,6 +531,26 @@ export default function App() {
                 <ProtectedRoute requireAdmin>
                   <AdminLayout>
                     <AdminAvailabilityPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/content"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminContentPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/media"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminMediaPage />
                   </AdminLayout>
                 </ProtectedRoute>
               }

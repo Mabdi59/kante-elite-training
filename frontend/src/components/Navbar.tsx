@@ -6,6 +6,7 @@ const navLinks = [
   { href: '/training', label: 'Programs' },
   { href: '/tournaments', label: 'Tournaments' },
   { href: '/events', label: 'Events' },
+  { href: '/media', label: 'Media' },
   { href: '/results', label: 'Results' },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },

@@ -40,7 +40,11 @@ import type {
   PlayerProfileFormData,
   ParticipantAssignmentFormData,
   ManagedParticipant,
+  MediaPost,
+  MediaPostUpdateFormData,
   StandingEntry,
+  WebsiteContent,
+  WebsiteContentFormData,
 } from '../types'
 
 const configuredApiUrl = (import.meta.env.VITE_API_URL ?? '').trim()
@@ -103,9 +107,12 @@ api.interceptors.response.use(
       isRefreshing = true
 
       try {
-        const res = await axios.post<ApiResponse<AuthResponse>>('/api/auth/refresh', {
+        const res = await axios.post<ApiResponse<AuthResponse>>(
+          `${normalizedApiBaseUrl}/auth/refresh`,
+          {
           refreshToken: storedRefresh,
-        })
+          },
+        )
         const data = res.data.data!
         localStorage.setItem('token', data.token)
         localStorage.setItem('refreshToken', data.refreshToken)
@@ -153,6 +160,16 @@ export const getProgramById = async (id: number): Promise<Program> => {
 export const getEvents = async (): Promise<Event[]> => {
   const res = await api.get<ApiResponse<Event[]>>('/events')
   return res.data.data ?? []
+}
+
+export const getMediaPosts = async (): Promise<MediaPost[]> => {
+  const res = await api.get<ApiResponse<MediaPost[]>>('/media')
+  return res.data.data ?? []
+}
+
+export const getWebsiteContent = async (): Promise<WebsiteContent> => {
+  const res = await api.get<ApiResponse<WebsiteContent>>('/content')
+  return res.data.data!
 }
 
 // ─── Testimonials ─────────────────────────────────────────────────────────────
@@ -367,6 +384,41 @@ export const deleteCaptainRegistration = async (id: number): Promise<void> => {
 
 export const getAdminDashboard = async (): Promise<AdminDashboard> => {
   const res = await api.get<ApiResponse<AdminDashboard>>('/admin/dashboard')
+  return res.data.data!
+}
+
+export const createMediaPost = async (file: File, caption: string): Promise<MediaPost> => {
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('caption', caption.trim())
+
+  const res = await api.post<ApiResponse<MediaPost>>('/admin/media', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return res.data.data!
+}
+
+export const updateMediaPost = async (
+  id: number,
+  data: MediaPostUpdateFormData,
+): Promise<MediaPost> => {
+  const res = await api.put<ApiResponse<MediaPost>>(`/admin/media/${id}`, data)
+  return res.data.data!
+}
+
+export const deleteMediaPost = async (id: number): Promise<void> => {
+  await api.delete(`/admin/media/${id}`)
+}
+
+export const getAdminWebsiteContent = async (): Promise<WebsiteContent> => {
+  const res = await api.get<ApiResponse<WebsiteContent>>('/admin/content')
+  return res.data.data!
+}
+
+export const updateWebsiteContent = async (
+  data: WebsiteContentFormData,
+): Promise<WebsiteContent> => {
+  const res = await api.put<ApiResponse<WebsiteContent>>('/admin/content', data)
   return res.data.data!
 }
 

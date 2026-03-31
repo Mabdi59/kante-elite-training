@@ -35,6 +35,7 @@ import EmptyState from '../../components/EmptyState'
 import StatusBadge from '../../components/StatusBadge'
 
 type WorkflowStep = 'details' | 'teams' | 'players' | 'format' | 'schedule' | 'results' | 'standings'
+type TeamFormMode = 'single' | 'multiple'
 
 type TournamentFormState = {
   name: string
@@ -136,6 +137,48 @@ const emptyMatchForm = (): TournamentMatchFormData => ({
   awayScore: '',
   notes: '',
 })
+
+type ParsedBulkTeamEntry = {
+  teamName: string
+  captainName: string
+  contactEmail: string
+  phone: string
+  clubName: string
+}
+
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
+}
+
+function parseBulkTeamLines(value: string) {
+  const valid: ParsedBulkTeamEntry[] = []
+  const invalid: string[] = []
+
+  value
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .forEach((line) => {
+      const parts = line.split(',').map((part) => part.trim())
+      const [teamName = '', captainName = '', contactEmail = '', phone = '', ...clubParts] = parts
+      const clubName = clubParts.join(', ').trim()
+
+      if (!teamName || !captainName || !contactEmail || !isValidEmail(contactEmail)) {
+        invalid.push(line)
+        return
+      }
+
+      valid.push({
+        teamName,
+        captainName,
+        contactEmail,
+        phone,
+        clubName,
+      })
+    })
+
+  return { valid, invalid }
+}
 
 function toTournamentForm(tournament: Tournament | null | undefined): TournamentFormState {
   if (!tournament) return emptyTournamentForm()
@@ -341,6 +384,9 @@ export default function AdminTournamentWorkflowPage() {
   const [registrationForm, setRegistrationForm] = useState<AdminTeamRegistrationFormData>(emptyRegistrationForm())
   const [editingRegistrationId, setEditingRegistrationId] = useState<number | null>(null)
   const [showRegistrationForm, setShowRegistrationForm] = useState(false)
+  const [teamFormMode, setTeamFormMode] = useState<TeamFormMode>('single')
+  const [bulkTeamText, setBulkTeamText] = useState('')
+  const [creatingBulkTeams, setCreatingBulkTeams] = useState(false)
 
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null)
   const [playerForm, setPlayerForm] = useState<TeamPlayerFormData>(emptyPlayerForm())
@@ -372,6 +418,16 @@ export default function AdminTournamentWorkflowPage() {
   const selectedTeam = useMemo(
     () => workflow?.teams.find((team) => team.teamId === selectedTeamId) ?? null,
     [selectedTeamId, workflow],
+  )
+  const bulkTeamsPreview = useMemo(() => parseBulkTeamLines(bulkTeamText), [bulkTeamText])
+  const singleTeamFormValid = useMemo(
+    () =>
+      Boolean(
+        registrationForm.teamName.trim() &&
+          registrationForm.captainName.trim() &&
+          isValidEmail(registrationForm.contactEmail),
+      ),
+    [registrationForm],
   )
 
   const setStep = (step: WorkflowStep) => {
@@ -511,6 +567,9 @@ export default function AdminTournamentWorkflowPage() {
       setShowRegistrationForm(false)
       setEditingRegistrationId(null)
       setRegistrationForm(emptyRegistrationForm(tournamentId))
+      setTeamFormMode('single')
+      setBulkTeamText('')
+      showSuccess(editingRegistrationId ? 'Team updated.' : 'Team created.')
       await loadWorkflow(tournamentId)
     } catch (err: unknown) {
       const message =
@@ -519,6 +578,37 @@ export default function AdminTournamentWorkflowPage() {
       setError(message)
     } finally {
       setSaving(false)
+    }
+  }
+
+  const saveBulkRegistrations = async () => {
+    if (!tournamentId || bulkTeamsPreview.valid.length === 0) return
+    setCreatingBulkTeams(true)
+    setError('')
+    try {
+      for (const team of bulkTeamsPreview.valid) {
+        await createAdminTournamentRegistration({
+          ...emptyRegistrationForm(tournamentId),
+          ...team,
+          tournamentId,
+          status: registrationForm.status,
+          paymentStatus: registrationForm.paymentStatus,
+        })
+      }
+      setShowRegistrationForm(false)
+      setEditingRegistrationId(null)
+      setRegistrationForm(emptyRegistrationForm(tournamentId))
+      setTeamFormMode('single')
+      setBulkTeamText('')
+      showSuccess(`${bulkTeamsPreview.valid.length} teams created.`)
+      await loadWorkflow(tournamentId)
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        'Could not create these teams.'
+      setError(message)
+    } finally {
+      setCreatingBulkTeams(false)
     }
   }
 
@@ -572,6 +662,8 @@ export default function AdminTournamentWorkflowPage() {
   const openRegistrationEditor = (team: TournamentWorkflowTeam) => {
     if (!tournamentId) return
     setEditingRegistrationId(team.registrationId)
+    setTeamFormMode('single')
+    setBulkTeamText('')
     setRegistrationForm({
       tournamentId,
       teamName: team.teamName,
@@ -618,9 +710,48 @@ export default function AdminTournamentWorkflowPage() {
     if (!tournamentId) return
     const data = inlineResults[match.id]
     if (!data) return
-    setSavingResultId(match.id)
+
+    const homeScoreText = data.homeScore.trim()
+    const awayScoreText = data.awayScore.trim()
+    const homeScoreBlank = homeScoreText === ''
+    const awayScoreBlank = awayScoreText === ''
+    const homeScore = homeScoreBlank ? undefined : Number(homeScoreText)
+    const awayScore = awayScoreBlank ? undefined : Number(awayScoreText)
+    const isKnockoutStage = match.stageName === 'Knockout'
+
     setError('')
     setBracketWarning('')
+
+    if (homeScoreBlank !== awayScoreBlank) {
+      setError('Enter both scores or leave both blank.')
+      return
+    }
+
+    if (
+      (!homeScoreBlank && Number.isNaN(homeScore)) ||
+      (!awayScoreBlank && Number.isNaN(awayScore))
+    ) {
+      setError('Scores must be valid numbers.')
+      return
+    }
+
+    if (data.status === 'FINAL' && (homeScoreBlank || awayScoreBlank)) {
+      setError('Final results require both scores.')
+      return
+    }
+
+    if (
+      isKnockoutStage &&
+      data.status === 'FINAL' &&
+      homeScore != null &&
+      awayScore != null &&
+      homeScore === awayScore
+    ) {
+      setError('Knockout matches cannot end in a draw. Adjust the score to show a clear winner.')
+      return
+    }
+
+    setSavingResultId(match.id)
     try {
       const updated = await updateTournamentMatch(tournamentId, match.id, {
         homeTeamId: match.homeTeamId,
@@ -632,8 +763,8 @@ export default function AdminTournamentWorkflowPage() {
         venue: match.venue ?? '',
         fieldName: match.fieldName ?? '',
         status: data.status,
-        homeScore: data.homeScore == null || data.homeScore === '' ? '' : Number(data.homeScore),
-        awayScore: data.awayScore == null || data.awayScore === '' ? '' : Number(data.awayScore),
+        homeScore: homeScore ?? '',
+        awayScore: awayScore ?? '',
         notes: match.notes ?? '',
       })
       setInlineResults((prev) => {
@@ -824,24 +955,145 @@ export default function AdminTournamentWorkflowPage() {
                 <h2 className="text-white font-black text-2xl">Teams</h2>
                 <p className="text-gray-400 text-sm mt-1">Add teams manually or edit registrations before building rosters.</p>
               </div>
-              <button type="button" onClick={() => { setRegistrationForm(emptyRegistrationForm(tournamentId ?? 0)); setEditingRegistrationId(null); setShowRegistrationForm(true) }} className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-4 py-2 rounded-lg text-sm">
+              <button
+                type="button"
+                onClick={() => {
+                  setRegistrationForm(emptyRegistrationForm(tournamentId ?? 0))
+                  setEditingRegistrationId(null)
+                  setTeamFormMode('single')
+                  setBulkTeamText('')
+                  setShowRegistrationForm(true)
+                }}
+                className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-4 py-2 rounded-lg text-sm"
+              >
                 Add Team
               </button>
             </div>
 
             {showRegistrationForm ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-950 border border-gray-800 rounded-xl p-4">
-                <input className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Team name" value={registrationForm.teamName} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, teamName: e.target.value }))} />
-                <input className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Captain name" value={registrationForm.captainName} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, captainName: e.target.value }))} />
-                <input className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Contact email" value={registrationForm.contactEmail} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, contactEmail: e.target.value }))} />
-                <input className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Phone" value={registrationForm.phone ?? ''} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, phone: e.target.value }))} />
-                <input className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Club name" value={registrationForm.clubName ?? ''} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, clubName: e.target.value }))} />
-                <select className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" value={registrationForm.status} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, status: e.target.value }))}>{REGISTRATION_STATUSES.map((status) => <option key={status}>{status}</option>)}</select>
-                <select className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" value={registrationForm.paymentStatus} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, paymentStatus: e.target.value }))}>{PAYMENT_STATUSES.map((status) => <option key={status}>{status}</option>)}</select>
-                <div className="md:col-span-2 flex gap-3">
-                  <button type="button" onClick={saveRegistration} disabled={saving} className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-4 py-2 rounded-lg text-sm disabled:opacity-50">{saving ? 'Saving...' : editingRegistrationId ? 'Save Team' : 'Create Team'}</button>
-                  <button type="button" onClick={() => setShowRegistrationForm(false)} className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm">Close</button>
-                </div>
+              <div className="bg-gray-950 border border-gray-800 rounded-xl p-5 space-y-5">
+                {editingRegistrationId ? null : (
+                  <div className="flex items-center gap-2 rounded-xl bg-black border border-gray-800 p-1 w-fit">
+                    <button
+                      type="button"
+                      onClick={() => setTeamFormMode('single')}
+                      className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                        teamFormMode === 'single'
+                          ? 'bg-cyan-500 text-black'
+                          : 'text-gray-300 hover:text-white'
+                      }`}
+                    >
+                      Single
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTeamFormMode('multiple')}
+                      className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                        teamFormMode === 'multiple'
+                          ? 'bg-cyan-500 text-black'
+                          : 'text-gray-300 hover:text-white'
+                      }`}
+                    >
+                      Multiple
+                    </button>
+                  </div>
+                )}
+
+                {editingRegistrationId || teamFormMode === 'single' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Team name</label>
+                      <input className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Team name" value={registrationForm.teamName} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, teamName: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Captain name</label>
+                      <input className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Captain name" value={registrationForm.captainName} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, captainName: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Contact email</label>
+                      <input className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Contact email" value={registrationForm.contactEmail} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, contactEmail: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Phone</label>
+                      <input className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Phone" value={registrationForm.phone ?? ''} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, phone: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Club name</label>
+                      <input className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Club name" value={registrationForm.clubName ?? ''} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, clubName: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Registration status</label>
+                      <select className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" value={registrationForm.status} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, status: e.target.value }))}>{REGISTRATION_STATUSES.map((status) => <option key={status}>{status}</option>)}</select>
+                    </div>
+                    <div>
+                      <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Payment status</label>
+                      <select className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" value={registrationForm.paymentStatus} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, paymentStatus: e.target.value }))}>{PAYMENT_STATUSES.map((status) => <option key={status}>{status}</option>)}</select>
+                    </div>
+                    <div className="md:col-span-2 flex gap-3">
+                      <button type="button" onClick={saveRegistration} disabled={saving || !singleTeamFormValid} className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-4 py-2 rounded-lg text-sm disabled:opacity-50">{saving ? 'Saving...' : editingRegistrationId ? 'Save Team' : 'Create Team'}</button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowRegistrationForm(false)
+                          setTeamFormMode('single')
+                          setBulkTeamText('')
+                        }}
+                        className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Registration status</label>
+                        <select className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" value={registrationForm.status} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, status: e.target.value }))}>{REGISTRATION_STATUSES.map((status) => <option key={status}>{status}</option>)}</select>
+                      </div>
+                      <div>
+                        <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Payment status</label>
+                        <select className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" value={registrationForm.paymentStatus} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, paymentStatus: e.target.value }))}>{PAYMENT_STATUSES.map((status) => <option key={status}>{status}</option>)}</select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">List of teams</label>
+                      <textarea
+                        className="w-full bg-black border border-gray-800 rounded-lg px-3 py-3 text-white text-sm min-h-[180px] font-mono"
+                        placeholder={'Dallas Strikers, Michael Johnson, michael.johnson@gmail.com\nOhio Elite, Sarah Davis, sarah.davis@gmail.com, 6145550000, Ohio Elite SC'}
+                        value={bulkTeamText}
+                        onChange={(e) => setBulkTeamText(e.target.value)}
+                      />
+                      <p className="text-gray-500 text-xs mt-2">
+                        One team per line. Format: <span className="text-gray-300">Team Name, Captain Name, Contact Email</span> or <span className="text-gray-300">Team Name, Captain Name, Contact Email, Phone, Club Name</span>.
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                      <div className="text-sm text-gray-400">
+                        <span className="text-white font-semibold">{bulkTeamsPreview.valid.length}</span> valid team{bulkTeamsPreview.valid.length === 1 ? '' : 's'} ready
+                        {bulkTeamsPreview.invalid.length ? (
+                          <span className="text-amber-400">, {bulkTeamsPreview.invalid.length} invalid line{bulkTeamsPreview.invalid.length === 1 ? '' : 's'}</span>
+                        ) : null}
+                      </div>
+                      <div className="flex gap-3">
+                        <button type="button" onClick={saveBulkRegistrations} disabled={creatingBulkTeams || bulkTeamsPreview.valid.length === 0} className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-4 py-2 rounded-lg text-sm disabled:opacity-50">
+                          {creatingBulkTeams ? 'Creating...' : `Add ${bulkTeamsPreview.valid.length} Teams`}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowRegistrationForm(false)
+                            setTeamFormMode('single')
+                            setBulkTeamText('')
+                          }}
+                          className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"
+                        >
+                          Close
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : null}
 

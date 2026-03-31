@@ -1,0 +1,20 @@
+package com.kanteelite.training.dto.response;
+
+import com.kanteelite.training.enums.MediaType;
+import lombok.Builder;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Data
+@Builder
+public class MediaPostResponse {
+    private Long id;
+    private String mediaUrl;
+    private MediaType mediaType;
+    private String caption;
+    private boolean featured;
+    private boolean showOnHome;
+    private boolean showOnAbout;
+    private LocalDateTime createdAt;
+}

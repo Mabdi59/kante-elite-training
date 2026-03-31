@@ -1,0 +1,488 @@
+import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import EmptyState from '../../components/EmptyState'
+import ErrorBanner from '../../components/ErrorBanner'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import MediaPostCard from '../../components/MediaPostCard'
+import { defaultWebsiteContent } from '../../content/defaultWebsiteContent'
+import {
+  getAdminWebsiteContent,
+  getMediaPosts,
+  updateMediaPost,
+  updateWebsiteContent,
+} from '../../services/api'
+import type { MediaPost, WebsiteContent } from '../../types'
+
+function TextField({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+}) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-medium text-gray-300">{label}</span>
+      <input
+        type="text"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-xl border border-gray-800 bg-black px-4 py-3 text-sm text-white"
+      />
+    </label>
+  )
+}
+
+function TextAreaField({
+  label,
+  value,
+  onChange,
+  rows = 4,
+  placeholder,
+  helper,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  rows?: number
+  placeholder?: string
+  helper?: string
+}) {
+  return (
+    <label className="block">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <span className="text-sm font-medium text-gray-300">{label}</span>
+        {helper ? <span className="text-xs text-gray-500">{helper}</span> : null}
+      </div>
+      <textarea
+        rows={rows}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-xl border border-gray-800 bg-black px-4 py-3 text-sm text-white"
+      />
+    </label>
+  )
+}
+
+function ToggleButton({
+  badge,
+  label,
+  active,
+  disabled,
+  onClick,
+}: {
+  badge: string
+  label: string
+  active: boolean
+  disabled?: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={`rounded-full px-3 py-2 text-xs font-semibold transition-colors ${
+        active
+          ? 'bg-cyan-500 text-black'
+          : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+      } disabled:opacity-50`}
+    >
+      <span className={`mr-2 inline-flex rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.18em] ${
+        active ? 'bg-black/15 text-black' : 'bg-black text-gray-200'
+      }`}>
+        {badge}
+      </span>
+      {label}
+    </button>
+  )
+}
+
+type EditableContentField =
+  | 'homeBadge'
+  | 'homeHeadline'
+  | 'homeDescription'
+  | 'homeHighlightsTitle'
+  | 'homeHighlightsDescription'
+  | 'aboutBadge'
+  | 'aboutHeroTitle'
+  | 'aboutHeroDescription'
+  | 'aboutHeadline'
+  | 'aboutIntro'
+  | 'aboutBody'
+  | 'aboutTrustStatement'
+  | 'aboutGalleryTitle'
+  | 'aboutGalleryDescription'
+  | 'aboutExperienceTitle'
+  | 'aboutExperienceDescription'
+
+export default function AdminContentPage() {
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [status, setStatus] = useState('')
+  const [savingPostIds, setSavingPostIds] = useState<number[]>([])
+  const [content, setContent] = useState<WebsiteContent>(defaultWebsiteContent)
+  const [experiencePointsText, setExperiencePointsText] = useState(
+    defaultWebsiteContent.aboutExperiencePoints.join('\n'),
+  )
+  const [posts, setPosts] = useState<MediaPost[]>([])
+
+  useEffect(() => {
+    setLoading(true)
+    Promise.all([getAdminWebsiteContent(), getMediaPosts()])
+      .then(([websiteContent, mediaPosts]) => {
+        const mergedContent = {
+          ...defaultWebsiteContent,
+          ...websiteContent,
+          aboutExperiencePoints:
+            websiteContent.aboutExperiencePoints?.length > 0
+              ? websiteContent.aboutExperiencePoints
+              : defaultWebsiteContent.aboutExperiencePoints,
+        }
+        setContent(mergedContent)
+        setExperiencePointsText(mergedContent.aboutExperiencePoints.join('\n'))
+        setPosts(mediaPosts)
+      })
+      .catch(() => setError('Could not load website content.'))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const featuredPostCount = useMemo(
+    () => posts.filter((post) => post.featured).length,
+    [posts],
+  )
+
+  const updateContentField = (key: EditableContentField, value: string) => {
+    setStatus('')
+    setContent((current) => ({
+      ...current,
+      [key]: value,
+    }))
+  }
+
+  const saveContent = async () => {
+    setSaving(true)
+    setError('')
+    setStatus('')
+
+    try {
+      const updated = await updateWebsiteContent({
+        homeBadge: content.homeBadge,
+        homeHeadline: content.homeHeadline,
+        homeDescription: content.homeDescription,
+        homeHighlightsTitle: content.homeHighlightsTitle,
+        homeHighlightsDescription: content.homeHighlightsDescription,
+        aboutBadge: content.aboutBadge,
+        aboutHeroTitle: content.aboutHeroTitle,
+        aboutHeroDescription: content.aboutHeroDescription,
+        aboutHeadline: content.aboutHeadline,
+        aboutIntro: content.aboutIntro,
+        aboutBody: content.aboutBody,
+        aboutTrustStatement: content.aboutTrustStatement,
+        aboutGalleryTitle: content.aboutGalleryTitle,
+        aboutGalleryDescription: content.aboutGalleryDescription,
+        aboutExperienceTitle: content.aboutExperienceTitle,
+        aboutExperienceDescription: content.aboutExperienceDescription,
+        aboutExperiencePoints: experiencePointsText
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter(Boolean),
+      })
+
+      const mergedContent = {
+        ...defaultWebsiteContent,
+        ...updated,
+        aboutExperiencePoints:
+          updated.aboutExperiencePoints?.length > 0
+            ? updated.aboutExperiencePoints
+            : defaultWebsiteContent.aboutExperiencePoints,
+      }
+
+      setContent(mergedContent)
+      setExperiencePointsText(mergedContent.aboutExperiencePoints.join('\n'))
+      setStatus('Website content saved.')
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        'Could not save website content.'
+      setError(message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const togglePost = async (postId: number, patch: Partial<MediaPost>) => {
+    setSavingPostIds((current) => [...current, postId])
+    setError('')
+    setStatus('')
+
+    try {
+      await updateMediaPost(postId, {
+        featured: patch.featured,
+        showOnHome: patch.showOnHome,
+        showOnAbout: patch.showOnAbout,
+      })
+      const refreshedPosts = await getMediaPosts()
+      setPosts(refreshedPosts)
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        'Could not update media placement.'
+      setError(message)
+    } finally {
+      setSavingPostIds((current) => current.filter((id) => id !== postId))
+    }
+  }
+
+  if (loading) {
+    return <LoadingSpinner label="Loading website content..." />
+  }
+
+  return (
+    <div>
+      <div className="sticky top-0 z-20 -mx-8 mb-6 border-b border-gray-900 bg-gray-950/95 px-8 py-4 backdrop-blur">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-black text-white">Content</h1>
+            <p className="mt-1 text-sm text-gray-400">
+              Control homepage copy, about page content, and where each media post appears.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link to="/admin/media" className="rounded-lg bg-gray-800 px-4 py-2 text-sm font-semibold text-gray-200 hover:bg-gray-700">
+              Upload Media
+            </Link>
+            <button
+              type="button"
+              onClick={saveContent}
+              disabled={saving}
+              className="rounded-lg bg-cyan-500 px-5 py-2.5 text-sm font-bold text-black hover:bg-cyan-400 disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Save Content'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {error ? (
+        <div className="mb-6">
+          <ErrorBanner message={error} onDismiss={() => setError('')} />
+        </div>
+      ) : null}
+
+      {status ? (
+        <div className="mb-6 rounded-xl border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm font-medium text-green-300">
+          {status}
+        </div>
+      ) : null}
+
+      <div className="space-y-6">
+        <section className="rounded-2xl border border-gray-800 bg-gray-900 p-6">
+          <div className="mb-6">
+            <span className="section-label">Homepage</span>
+            <h2 className="text-2xl font-black text-white">Hero and highlights copy</h2>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <TextField
+              label="Home badge"
+              value={content.homeBadge ?? ''}
+              onChange={(value) => updateContentField('homeBadge', value)}
+            />
+            <TextField
+              label="Home headline"
+              value={content.homeHeadline ?? ''}
+              onChange={(value) => updateContentField('homeHeadline', value)}
+            />
+            <div className="lg:col-span-2">
+              <TextAreaField
+                label="Home description"
+                value={content.homeDescription ?? ''}
+                onChange={(value) => updateContentField('homeDescription', value)}
+                rows={4}
+              />
+            </div>
+            <TextField
+              label="Highlights section title"
+              value={content.homeHighlightsTitle ?? ''}
+              onChange={(value) => updateContentField('homeHighlightsTitle', value)}
+            />
+            <div className="lg:col-span-2">
+              <TextAreaField
+                label="Highlights section description"
+                value={content.homeHighlightsDescription ?? ''}
+                onChange={(value) => updateContentField('homeHighlightsDescription', value)}
+                rows={3}
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-gray-800 bg-gray-900 p-6">
+          <div className="mb-6">
+            <span className="section-label">About Page</span>
+            <h2 className="text-2xl font-black text-white">Story, trust, and credentials</h2>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <TextField
+              label="About badge"
+              value={content.aboutBadge ?? ''}
+              onChange={(value) => updateContentField('aboutBadge', value)}
+            />
+            <TextField
+              label="About hero title"
+              value={content.aboutHeroTitle ?? ''}
+              onChange={(value) => updateContentField('aboutHeroTitle', value)}
+            />
+            <div className="lg:col-span-2">
+              <TextAreaField
+                label="About hero description"
+                value={content.aboutHeroDescription ?? ''}
+                onChange={(value) => updateContentField('aboutHeroDescription', value)}
+                rows={3}
+              />
+            </div>
+            <TextField
+              label="About headline"
+              value={content.aboutHeadline ?? ''}
+              onChange={(value) => updateContentField('aboutHeadline', value)}
+            />
+            <TextField
+              label="Trust statement"
+              value={content.aboutTrustStatement ?? ''}
+              onChange={(value) => updateContentField('aboutTrustStatement', value)}
+            />
+            <div className="lg:col-span-2">
+              <TextAreaField
+                label="About intro"
+                value={content.aboutIntro ?? ''}
+                onChange={(value) => updateContentField('aboutIntro', value)}
+                rows={3}
+              />
+            </div>
+            <div className="lg:col-span-2">
+              <TextAreaField
+                label="About body"
+                value={content.aboutBody ?? ''}
+                onChange={(value) => updateContentField('aboutBody', value)}
+                rows={4}
+              />
+            </div>
+            <TextField
+              label="Gallery title"
+              value={content.aboutGalleryTitle ?? ''}
+              onChange={(value) => updateContentField('aboutGalleryTitle', value)}
+            />
+            <div className="lg:col-span-2">
+              <TextAreaField
+                label="Gallery description"
+                value={content.aboutGalleryDescription ?? ''}
+                onChange={(value) => updateContentField('aboutGalleryDescription', value)}
+                rows={3}
+              />
+            </div>
+            <TextField
+              label="Experience title"
+              value={content.aboutExperienceTitle ?? ''}
+              onChange={(value) => updateContentField('aboutExperienceTitle', value)}
+            />
+            <div className="lg:col-span-2">
+              <TextAreaField
+                label="Experience description"
+                value={content.aboutExperienceDescription ?? ''}
+                onChange={(value) => updateContentField('aboutExperienceDescription', value)}
+                rows={3}
+              />
+            </div>
+            <div className="lg:col-span-2">
+              <TextAreaField
+                label="Experience bullet points"
+                value={experiencePointsText}
+                onChange={setExperiencePointsText}
+                rows={6}
+                helper="One line per point"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-gray-800 bg-gray-900 p-6">
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <span className="section-label">Media Placement</span>
+              <h2 className="text-2xl font-black text-white">Choose what appears on each page</h2>
+              <p className="mt-2 text-sm text-gray-400">
+                Featured media becomes the hero background on Home and About. Home and About sections only show posts enabled here.
+              </p>
+              <p className="mt-2 text-xs font-medium uppercase tracking-[0.18em] text-amber-400">
+                Only one featured hero is active at a time.
+              </p>
+            </div>
+            <div className="rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-300">
+              {featuredPostCount} featured
+            </div>
+          </div>
+
+          {posts.length === 0 ? (
+            <EmptyState
+              icon="Media"
+              title="No media posts yet"
+              description="Upload your first image or video before placing content on the homepage and about page."
+              action={
+                <Link
+                  to="/admin/media"
+                  className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-bold text-black hover:bg-cyan-400"
+                >
+                  Go to Media Uploads
+                </Link>
+              }
+            />
+          ) : (
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 2xl:grid-cols-3">
+              {posts.map((post) => {
+                const isSavingPost = savingPostIds.includes(post.id)
+
+                return (
+                  <div key={post.id} className="rounded-2xl border border-gray-800 bg-black/40 p-4">
+                    <MediaPostCard post={post} />
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <ToggleButton
+                        badge="Home"
+                        label={post.showOnHome ? 'Showing on Home Page' : 'Show on Home Page'}
+                        active={post.showOnHome}
+                        disabled={isSavingPost}
+                        onClick={() => togglePost(post.id, { showOnHome: !post.showOnHome })}
+                      />
+                      <ToggleButton
+                        badge="About"
+                        label={post.showOnAbout ? 'Showing on About Page' : 'Show on About Page'}
+                        active={post.showOnAbout}
+                        disabled={isSavingPost}
+                        onClick={() => togglePost(post.id, { showOnAbout: !post.showOnAbout })}
+                      />
+                      <ToggleButton
+                        badge="Hero"
+                        label={post.featured ? 'Featured for Hero' : 'Feature for Hero'}
+                        active={post.featured}
+                        disabled={isSavingPost}
+                        onClick={() => togglePost(post.id, { featured: !post.featured })}
+                      />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </section>
+      </div>
+    </div>
+  )
+}

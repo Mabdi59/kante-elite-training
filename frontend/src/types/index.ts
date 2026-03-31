@@ -78,6 +78,42 @@ export interface Event {
   displayOrder: number
 }
 
+export type MediaType = 'IMAGE' | 'VIDEO'
+
+export interface MediaPost {
+  id: number
+  mediaUrl: string
+  mediaType: MediaType
+  caption?: string
+  featured: boolean
+  showOnHome: boolean
+  showOnAbout: boolean
+  createdAt: string
+}
+
+export interface WebsiteContent {
+  id: number
+  homeBadge?: string
+  homeHeadline?: string
+  homeDescription?: string
+  homeHighlightsTitle?: string
+  homeHighlightsDescription?: string
+  aboutBadge?: string
+  aboutHeroTitle?: string
+  aboutHeroDescription?: string
+  aboutHeadline?: string
+  aboutIntro?: string
+  aboutBody?: string
+  aboutTrustStatement?: string
+  aboutGalleryTitle?: string
+  aboutGalleryDescription?: string
+  aboutExperienceTitle?: string
+  aboutExperienceDescription?: string
+  aboutExperiencePoints: string[]
+  createdAt?: string
+  updatedAt?: string
+}
+
 export interface Testimonial {
   id: number
   name: string
@@ -517,4 +553,31 @@ export interface ParticipantAssignmentFormData {
   playerProfileId?: number
   manualName?: string
   manualEmail?: string
+}
+
+export interface MediaPostUpdateFormData {
+  caption?: string
+  featured?: boolean
+  showOnHome?: boolean
+  showOnAbout?: boolean
+}
+
+export interface WebsiteContentFormData {
+  homeBadge?: string
+  homeHeadline?: string
+  homeDescription?: string
+  homeHighlightsTitle?: string
+  homeHighlightsDescription?: string
+  aboutBadge?: string
+  aboutHeroTitle?: string
+  aboutHeroDescription?: string
+  aboutHeadline?: string
+  aboutIntro?: string
+  aboutBody?: string
+  aboutTrustStatement?: string
+  aboutGalleryTitle?: string
+  aboutGalleryDescription?: string
+  aboutExperienceTitle?: string
+  aboutExperienceDescription?: string
+  aboutExperiencePoints?: string[]
 }

@@ -1,11 +1,20 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getPrograms, getFeaturedTestimonials, getEvents, getTournaments } from '../services/api'
-import type { Program, Testimonial, Event, Tournament } from '../types'
+import {
+  getPrograms,
+  getFeaturedTestimonials,
+  getEvents,
+  getMediaPosts,
+  getTournaments,
+  getWebsiteContent,
+} from '../services/api'
+import type { Program, Testimonial, Event, Tournament, MediaPost, WebsiteContent } from '../types'
 import ProgramCard from '../components/ProgramCard'
 import TestimonialCard from '../components/TestimonialCard'
 import EventCard from '../components/EventCard'
 import CTASection from '../components/CTASection'
+import MediaPostCard from '../components/MediaPostCard'
+import { defaultWebsiteContent } from '../content/defaultWebsiteContent'
 
 const stats = [
   { value: '200+', label: 'Players Trained' },
@@ -75,26 +84,88 @@ export default function HomePage() {
   const [programs, setPrograms] = useState<Program[]>([])
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const [events, setEvents] = useState<Event[]>([])
+  const [mediaPosts, setMediaPosts] = useState<MediaPost[]>([])
   const [tournaments, setTournaments] = useState<Tournament[]>([])
+  const [siteContent, setSiteContent] = useState<WebsiteContent>(defaultWebsiteContent)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    Promise.all([getPrograms(), getFeaturedTestimonials(), getEvents(), getTournaments()])
-      .then(([p, t, e, tourneys]) => {
-        setPrograms(p)
-        setTestimonials(t.slice(0, 3))
-        setEvents(e.slice(0, 3))
-        setTournaments(tourneys.slice(0, 3))
+    Promise.allSettled([
+      getPrograms(),
+      getFeaturedTestimonials(),
+      getEvents(),
+      getMediaPosts(),
+      getTournaments(),
+      getWebsiteContent(),
+    ])
+      .then(([programResult, testimonialResult, eventResult, mediaResult, tournamentResult, contentResult]) => {
+        if (programResult.status === 'fulfilled') {
+          setPrograms(programResult.value)
+        }
+        if (testimonialResult.status === 'fulfilled') {
+          setTestimonials(testimonialResult.value.slice(0, 3))
+        }
+        if (eventResult.status === 'fulfilled') {
+          setEvents(eventResult.value.slice(0, 3))
+        }
+        if (mediaResult.status === 'fulfilled') {
+          setMediaPosts(mediaResult.value)
+        }
+        if (tournamentResult.status === 'fulfilled') {
+          setTournaments(tournamentResult.value.slice(0, 3))
+        }
+        if (contentResult.status === 'fulfilled') {
+          setSiteContent({
+            ...defaultWebsiteContent,
+            ...contentResult.value,
+            aboutExperiencePoints:
+              contentResult.value.aboutExperiencePoints?.length > 0
+                ? contentResult.value.aboutExperiencePoints
+                : defaultWebsiteContent.aboutExperiencePoints,
+          })
+        }
       })
-      .catch(() => { /* silenced */ })
       .finally(() => setLoading(false))
   }, [])
+
+  const heroMedia = mediaPosts[0] ?? null
+  const homeMediaPosts = mediaPosts.filter((post) => post.showOnHome).slice(0, 6)
+  const coachFeatureMedia =
+    homeMediaPosts.find((post) => post.id !== heroMedia?.id) ??
+    homeMediaPosts[0] ??
+    mediaPosts.find((post) => post.id !== heroMedia?.id) ??
+    null
 
   return (
     <div>
       <section className="relative min-h-[50vh] bg-black flex items-center px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-radial-hero" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_#0a0500_0%,_transparent_70%)] opacity-70" />
+        {heroMedia ? (
+          <div className="absolute inset-0">
+            {heroMedia.mediaType === 'VIDEO' ? (
+              <video
+                src={heroMedia.mediaUrl}
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <img
+                src={heroMedia.mediaUrl}
+                alt={heroMedia.caption?.trim() || siteContent.homeHeadline || 'Kante Elite highlight'}
+                className="h-full w-full object-cover"
+              />
+            )}
+            <div className="absolute inset-0 bg-black/65" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(120,53,15,0.55)_0%,_transparent_68%)]" />
+          </div>
+        ) : (
+          <>
+            <div className="absolute inset-0 bg-radial-hero" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_#0a0500_0%,_transparent_70%)] opacity-70" />
+          </>
+        )}
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent" />
         <div className="absolute top-1/4 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-1/4 left-10 w-64 h-64 bg-amber-900/20 rounded-full blur-2xl pointer-events-none" />
@@ -103,18 +174,15 @@ export default function HomePage() {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-6">
               <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
-              Columbus youth soccer training. 200+ players coached.
+              {siteContent.homeBadge || defaultWebsiteContent.homeBadge}
             </div>
 
             <h1 className="text-white font-black text-5xl md:text-6xl lg:text-7xl leading-[1.05] mb-6">
-              Train Like an Elite Player.
-              <br />
-              <span className="gradient-text">Perform With Confidence.</span>
+              {siteContent.homeHeadline || defaultWebsiteContent.homeHeadline}
             </h1>
 
             <p className="text-gray-300 text-lg md:text-xl leading-relaxed mb-4 max-w-xl">
-              Private and small group soccer training for Columbus players ages 8 to 18.
-              Every player gets focused coaching, a clear plan, and progress you can see.
+              {siteContent.homeDescription || defaultWebsiteContent.homeDescription}
             </p>
 
             <div className="flex flex-wrap gap-3 mb-8">
@@ -375,6 +443,51 @@ export default function HomePage() {
         </section>
       )}
 
+      <section className="bg-black py-16 px-4 border-t border-[#1a1a1a]">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+            <div>
+              <span className="section-label">{siteContent.homeHighlightsTitle || defaultWebsiteContent.homeHighlightsTitle}</span>
+              <h2 className="text-white font-black text-4xl md:text-5xl">
+                Training Moments <span className="gradient-text">Worth Seeing</span>
+              </h2>
+              <p className="text-gray-400 mt-4 max-w-xl text-sm leading-relaxed">
+                {siteContent.homeHighlightsDescription || defaultWebsiteContent.homeHighlightsDescription}
+              </p>
+            </div>
+            <Link to="/media" className="btn-secondary text-sm whitespace-nowrap self-start md:self-end">
+              View All Highlights
+            </Link>
+          </div>
+
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[...Array(3)].map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
+          ) : homeMediaPosts.length > 0 ? (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              {homeMediaPosts.map((post) => (
+                <Link key={post.id} to="/media" className="block h-full">
+                  <MediaPostCard post={post} className="h-full transition-colors hover:border-amber-500/30" />
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-[#2a2a2a] bg-[#0f0f0f] px-6 py-12 text-center">
+              <p className="text-lg font-semibold text-white">Latest highlights will appear here soon.</p>
+              <p className="mt-3 text-sm leading-relaxed text-gray-400">
+                Check back after new photos and videos are published to the media feed.
+              </p>
+              <Link to="/media" className="btn-secondary mt-6 inline-flex text-sm">
+                View all highlights
+              </Link>
+            </div>
+          )}
+        </div>
+      </section>
+
       <section className="bg-[#0a0a0a] py-16 px-4 border-t border-[#1a1a1a]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-10">
@@ -412,7 +525,16 @@ export default function HomePage() {
       <section className="bg-black py-16 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="bg-[#111] rounded-2xl h-96 lg:h-auto min-h-80 flex items-center justify-center relative overflow-hidden order-2 lg:order-1 border border-[#1e1e1e]">
+            {coachFeatureMedia ? (
+              <div className="order-2 lg:order-1">
+                <MediaPostCard
+                  post={coachFeatureMedia}
+                  aspectClassName="aspect-[5/4]"
+                  showDate={false}
+                />
+              </div>
+            ) : null}
+            <div className={`${coachFeatureMedia ? 'hidden' : 'flex'} bg-[#111] rounded-2xl h-96 lg:h-auto min-h-80 items-center justify-center relative overflow-hidden order-2 lg:order-1 border border-[#1e1e1e]`}>
               <div className="absolute inset-0 bg-gradient-to-br from-amber-500/8 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent" />
               <div className="text-center relative z-10 p-8">
@@ -424,22 +546,21 @@ export default function HomePage() {
             <div className="order-1 lg:order-2">
               <span className="section-label">The Coach</span>
               <h2 className="text-white font-black text-4xl mb-5">
-                Meet <span className="gradient-text">Coach Kante</span>
+                Meet <span className="gradient-text">{siteContent.aboutHeroTitle || defaultWebsiteContent.aboutHeroTitle}</span>
               </h2>
               <div className="space-y-4 text-gray-400 leading-relaxed text-sm">
                 <p>
-                  With more than a decade of coaching experience, UEFA and USSF licensure, and a deep
-                  commitment to player development, Coach Kante has built Kante Elite Training into one
-                  of Columbus&apos;s most trusted individual soccer programs.
+                  {siteContent.aboutIntro || defaultWebsiteContent.aboutIntro}
                 </p>
                 <p>
-                  His players have earned college scholarships, competed in Olympic Development Programs,
-                  and represented Ohio at major youth events. Every session is focused because your time
-                  and investment should lead to results.
+                  {siteContent.aboutBody || defaultWebsiteContent.aboutBody}
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3 mt-6 mb-8">
-                {['USSF A License', 'UEFA B License', '10+ Years Coaching', 'Sports Science Background'].map((cred) => (
+                {(siteContent.aboutExperiencePoints?.length
+                  ? siteContent.aboutExperiencePoints
+                  : defaultWebsiteContent.aboutExperiencePoints
+                ).slice(0, 4).map((cred) => (
                   <div key={cred} className="flex items-center gap-2 bg-[#111] border border-[#222] rounded-xl p-3 hover:border-amber-500/20 transition-colors">
                     <span className="text-amber-500">🏅</span>
                     <span className="text-white text-xs font-semibold">{cred}</span>
