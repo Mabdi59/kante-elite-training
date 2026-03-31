@@ -469,19 +469,21 @@ function BracketTab({ matches }: { matches: TournamentMatch[] }) {
   return (
     <div>
       <p className="text-gray-500 text-sm mb-6">Knockout bracket — winners advance from left to right.</p>
-      <div className="flex gap-8 overflow-x-auto pb-4 items-start">
-        {(rounds as [string, TournamentMatch[]][]).map(([roundName, roundMatches]) => (
-          <div key={roundName} className="flex flex-col min-w-[220px]">
-            <h3 className={`text-xs font-bold uppercase tracking-widest text-center mb-3 ${roundName === 'Final' ? 'text-yellow-400' : roundName === 'Third Place' ? 'text-gray-400' : 'text-cyan-400'}`}>
-              {roundName === 'Final' ? '🏆 ' : ''}{roundName}
-            </h3>
-            <div className="flex flex-col gap-4">
-              {roundMatches.map((m) => (
-                <BracketMatch key={m.id} match={m} />
-              ))}
+      <div className="w-full overflow-x-auto pb-4">
+        <div className="flex gap-8 items-start" style={{ minWidth: 'max-content' }}>
+          {(rounds as [string, TournamentMatch[]][]).map(([roundName, roundMatches]) => (
+            <div key={roundName} className="flex flex-col w-[220px] shrink-0">
+              <h3 className={`text-xs font-bold uppercase tracking-widest text-center mb-3 ${roundName === 'Final' ? 'text-yellow-400' : roundName === 'Third Place' ? 'text-gray-400' : 'text-cyan-400'}`}>
+                {roundName === 'Final' ? '🏆 ' : ''}{roundName}
+              </h3>
+              <div className="flex flex-col gap-4">
+                {roundMatches.map((m) => (
+                  <BracketMatch key={m.id} match={m} />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   )

@@ -209,8 +209,10 @@ export default function AdminTournamentWorkflowPage() {
   >({})
   const [savingResultId, setSavingResultId] = useState<number | null>(null)
   const [successMessage, setSuccessMessage] = useState('')
+  const [bracketWarning, setBracketWarning] = useState('')
 
   const showSuccess = (msg: string) => {
+    setBracketWarning('')
     setSuccessMessage(msg)
     setTimeout(() => setSuccessMessage(''), 3500)
   }
@@ -429,8 +431,9 @@ export default function AdminTournamentWorkflowPage() {
     if (!data) return
     setSavingResultId(match.id)
     setError('')
+    setBracketWarning('')
     try {
-      await updateTournamentMatch(tournamentId, match.id, {
+      const updated = await updateTournamentMatch(tournamentId, match.id, {
         homeTeamId: match.homeTeamId,
         awayTeamId: match.awayTeamId,
         stageName: match.stageName ?? '',
@@ -450,7 +453,9 @@ export default function AdminTournamentWorkflowPage() {
         return next
       })
       await loadWorkflow(tournamentId)
-      if (data.status === 'FINAL') {
+      if (updated.warning) {
+        setBracketWarning('⚠ Result saved, but bracket advancement was blocked: ' + updated.warning)
+      } else if (data.status === 'FINAL') {
         const isKnockout = match.stageName === 'Knockout'
         showSuccess(isKnockout ? 'Result saved — winner advanced to next round.' : 'Result saved and standings updated.')
       }
@@ -509,6 +514,13 @@ export default function AdminTournamentWorkflowPage() {
       </div>
 
       {error ? <ErrorBanner message={error} onDismiss={() => setError('')} /> : null}
+      {bracketWarning ? (
+        <div className="flex items-start gap-3 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3 text-amber-300 text-sm">
+          <span className="shrink-0 mt-0.5">⚠</span>
+          <span>{bracketWarning}</span>
+          <button type="button" onClick={() => setBracketWarning('')} className="ml-auto text-amber-500 hover:text-amber-300 text-xs shrink-0">✕</button>
+        </div>
+      ) : null}
       {successMessage ? (
         <div className="flex items-center gap-3 bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-3 text-green-300 text-sm">
           <span className="shrink-0">✓</span>
@@ -1192,44 +1204,46 @@ function AdminBracketView({ matches }: { matches: TournamentMatch[] }) {
           </p>
         </div>
       </div>
-      <div className="flex gap-8 overflow-x-auto pb-4 items-start">
-        {sorted.map(([roundName, roundMatches]) => (
-          <div key={roundName} className="flex flex-col gap-2 min-w-[220px]">
-            <div className={`text-xs font-bold uppercase tracking-widest text-center mb-2 ${roundName === 'Final' ? 'text-yellow-400' : roundName === 'Third Place' ? 'text-gray-400' : 'text-cyan-400'}`}>
-              {roundName === 'Final' ? '🏆 ' : ''}{roundName}
-            </div>
-            <div className="flex flex-col gap-4">
-              {roundMatches.map((m) => {
-                const isFinal = m.status === 'FINAL'
-                const homeWon = isFinal && m.homeScore != null && m.awayScore != null && m.homeScore > m.awayScore
-                const awayWon = isFinal && m.homeScore != null && m.awayScore != null && m.awayScore > m.homeScore
-                const statusColor = m.status === 'FINAL' ? 'text-green-400' : m.status === 'IN_PROGRESS' ? 'text-yellow-400' : 'text-gray-600'
-                return (
-                  <div key={m.id} className={`bg-gray-900 border rounded-xl overflow-hidden text-sm ${isFinal ? 'border-gray-700' : 'border-gray-800'}`}>
-                    <div className={`flex items-center justify-between px-3 py-2.5 gap-3 ${homeWon ? 'bg-green-500/10' : ''}`}>
-                      <span className={`font-semibold truncate ${homeWon ? 'text-green-300' : m.homeTeamName ? 'text-gray-200' : 'text-gray-600 italic'}`}>
-                        {homeWon && '▶ '}{m.homeTeamName ?? 'TBD'}
-                      </span>
-                      {m.homeScore != null && (
-                        <span className={`tabular-nums font-black shrink-0 text-base ${homeWon ? 'text-green-300' : 'text-gray-400'}`}>{m.homeScore}</span>
-                      )}
+      <div className="w-full overflow-x-auto pb-4">
+        <div className="flex gap-8 items-start" style={{ minWidth: 'max-content' }}>
+          {sorted.map(([roundName, roundMatches]) => (
+            <div key={roundName} className="flex flex-col gap-2 w-[220px] shrink-0">
+              <div className={`text-xs font-bold uppercase tracking-widest text-center mb-2 ${roundName === 'Final' ? 'text-yellow-400' : roundName === 'Third Place' ? 'text-gray-400' : 'text-cyan-400'}`}>
+                {roundName === 'Final' ? '🏆 ' : ''}{roundName}
+              </div>
+              <div className="flex flex-col gap-4">
+                {roundMatches.map((m) => {
+                  const isFinal = m.status === 'FINAL'
+                  const homeWon = isFinal && m.homeScore != null && m.awayScore != null && m.homeScore > m.awayScore
+                  const awayWon = isFinal && m.homeScore != null && m.awayScore != null && m.awayScore > m.homeScore
+                  const statusColor = m.status === 'FINAL' ? 'text-green-400' : m.status === 'IN_PROGRESS' ? 'text-yellow-400' : 'text-gray-600'
+                  return (
+                    <div key={m.id} className={`bg-gray-900 border rounded-xl overflow-hidden text-sm ${isFinal ? 'border-gray-700' : 'border-gray-800'}`}>
+                      <div className={`flex items-center justify-between px-3 py-2.5 gap-3 ${homeWon ? 'bg-green-500/10' : ''}`}>
+                        <span className={`font-semibold truncate ${homeWon ? 'text-green-300' : m.homeTeamName ? 'text-gray-200' : 'text-gray-600 italic'}`}>
+                          {homeWon && '▶ '}{m.homeTeamName ?? 'TBD'}
+                        </span>
+                        {m.homeScore != null && (
+                          <span className={`tabular-nums font-black shrink-0 text-base ${homeWon ? 'text-green-300' : 'text-gray-400'}`}>{m.homeScore}</span>
+                        )}
+                      </div>
+                      <div className="h-px bg-gray-800" />
+                      <div className={`flex items-center justify-between px-3 py-2.5 gap-3 ${awayWon ? 'bg-green-500/10' : ''}`}>
+                        <span className={`font-semibold truncate ${awayWon ? 'text-green-300' : m.awayTeamName ? 'text-gray-200' : 'text-gray-600 italic'}`}>
+                          {awayWon && '▶ '}{m.awayTeamName ?? 'TBD'}
+                        </span>
+                        {m.awayScore != null && (
+                          <span className={`tabular-nums font-black shrink-0 text-base ${awayWon ? 'text-green-300' : 'text-gray-400'}`}>{m.awayScore}</span>
+                        )}
+                      </div>
+                      <div className={`px-3 py-1 text-xs font-semibold border-t border-gray-800 ${statusColor}`}>{m.status}</div>
                     </div>
-                    <div className="h-px bg-gray-800" />
-                    <div className={`flex items-center justify-between px-3 py-2.5 gap-3 ${awayWon ? 'bg-green-500/10' : ''}`}>
-                      <span className={`font-semibold truncate ${awayWon ? 'text-green-300' : m.awayTeamName ? 'text-gray-200' : 'text-gray-600 italic'}`}>
-                        {awayWon && '▶ '}{m.awayTeamName ?? 'TBD'}
-                      </span>
-                      {m.awayScore != null && (
-                        <span className={`tabular-nums font-black shrink-0 text-base ${awayWon ? 'text-green-300' : 'text-gray-400'}`}>{m.awayScore}</span>
-                      )}
-                    </div>
-                    <div className={`px-3 py-1 text-xs font-semibold border-t border-gray-800 ${statusColor}`}>{m.status}</div>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   )
