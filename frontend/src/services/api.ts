@@ -630,6 +630,13 @@ export const generateTournamentSchedule = async (
   return res.data.data ?? []
 }
 
+export const seedTournamentKnockoutBracket = async (tournamentId: number): Promise<TournamentMatch[]> => {
+  const res = await api.post<ApiResponse<TournamentMatch[]>>(
+    `/admin/tournaments/${tournamentId}/bracket/seed`,
+  )
+  return res.data.data ?? []
+}
+
 export const getAdminTournamentStandings = async (tournamentId: number): Promise<StandingEntry[]> => {
   const res = await api.get<ApiResponse<StandingEntry[]>>(`/admin/tournaments/${tournamentId}/standings`)
   return res.data.data ?? []

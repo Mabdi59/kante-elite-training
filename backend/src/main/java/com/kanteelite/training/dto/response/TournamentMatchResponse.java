@@ -29,4 +29,6 @@ public class TournamentMatchResponse {
     private Integer awayScore;
     private String notes;
     private LocalDateTime createdAt;
+    /** Non-fatal advisory message returned when auto-advancement was partially blocked (e.g. next slot already filled). */
+    private String warning;
 }

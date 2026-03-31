@@ -46,10 +46,13 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -834,6 +837,16 @@ public class TournamentService {
         TournamentMatch saved = tournamentMatchRepository.save(match);
         auditLogService.log(actorEmail, "UPDATE", "TournamentMatch", saved.getId(),
                 "Updated tournament match for " + tournament.getName());
+
+        if (MATCH_STATUS_FINAL.equals(saved.getStatus()) && "Knockout".equals(saved.getStageName())) {
+            String advancementWarning = advanceKnockoutWinner(tournamentId, saved);
+            if (advancementWarning != null) {
+                TournamentMatchResponse response = toMatchResponse(saved);
+                response.setWarning(advancementWarning);
+                return response;
+            }
+        }
+
         return toMatchResponse(saved);
     }
 
@@ -991,6 +1004,15 @@ public class TournamentService {
         if (MATCH_STATUS_FINAL.equals(status)
                 && (request.getHomeScore() == null || request.getAwayScore() == null)) {
             throw new IllegalArgumentException("Final results require both scores.");
+        }
+
+        // Knockout matches must have a clear winner — draws are not permitted
+        boolean isKnockoutStage = "Knockout".equals(trimToNull(request.getStageName()));
+        if (isKnockoutStage && MATCH_STATUS_FINAL.equals(status)
+                && request.getHomeScore() != null && request.getAwayScore() != null
+                && request.getHomeScore().equals(request.getAwayScore())) {
+            throw new IllegalArgumentException(
+                    "Knockout matches cannot end in a draw. Adjust the score to show a clear winner.");
         }
 
         match.setTournament(tournament);
@@ -1253,16 +1275,345 @@ public class TournamentService {
 
     private List<TournamentMatch> generateGroupStageMatches(Tournament tournament, List<Team> teams) {
         int teamsPerGroup = normalizePositiveInteger(tournament.getTeamsPerGroup(), 4);
+        int advancePerGroup = normalizePositiveInteger(tournament.getAdvancePerGroup(), 2);
         List<TournamentMatch> matches = new ArrayList<>();
+        int numGroups = 0;
 
         for (int index = 0; index < teams.size(); index += teamsPerGroup) {
             int endIndex = Math.min(index + teamsPerGroup, teams.size());
             List<Team> groupTeams = new ArrayList<>(teams.subList(index, endIndex));
             char groupLetter = (char) ('A' + (index / teamsPerGroup));
             matches.addAll(generateRoundRobinMatches(tournament, groupTeams, "Group " + groupLetter));
+            numGroups++;
+        }
+
+        // Knockout bracket: placeholder (TBD) matches generated after group phase
+        int totalAdvancing = numGroups * advancePerGroup;
+        if (totalAdvancing >= 2) {
+            int size = Integer.highestOneBit(totalAdvancing); // round down to nearest power of 2
+            while (size >= 2) {
+                String roundLabel = switch (size) {
+                    case 2 -> "Final";
+                    case 4 -> "Semifinal";
+                    case 8 -> "Quarterfinal";
+                    default -> "Round of " + size;
+                };
+                int matchesInRound = size / 2;
+                if (matchesInRound == 1) {
+                    matches.add(createKnockoutPlaceholder(tournament, "Knockout", roundLabel));
+                } else {
+                    for (int i = 1; i <= matchesInRound; i++) {
+                        matches.add(createKnockoutPlaceholder(tournament, "Knockout", roundLabel + " " + i));
+                    }
+                }
+                size /= 2;
+            }
+            if (Boolean.TRUE.equals(tournament.getThirdPlaceMatchEnabled())) {
+                matches.add(createKnockoutPlaceholder(tournament, "Knockout", "Third Place"));
+            }
         }
 
         return matches;
+    }
+
+    private TournamentMatch createKnockoutPlaceholder(Tournament tournament, String stageName, String roundName) {
+        return TournamentMatch.builder()
+                .tournament(tournament)
+                .stageName(stageName)
+                .roundName(roundName)
+                .venue(tournament.getLocation())
+                .status(MATCH_STATUS_SCHEDULED)
+                .build();
+    }
+
+    @Transactional
+    public List<TournamentMatchResponse> seedKnockoutBracket(Long tournamentId, String actorEmail) {
+        Tournament tournament = getTournamentEntity(tournamentId);
+
+        if (!"GROUP_STAGE".equals(normalizeFormatType(tournament.getFormatType()))) {
+            throw new IllegalArgumentException("Bracket seeding is only available for GROUP_STAGE tournaments.");
+        }
+
+        List<TournamentMatch> allMatches = tournamentMatchRepository
+                .findByTournamentIdOrderByMatchDateAscKickoffTimeAscIdAsc(tournamentId);
+
+        List<TournamentMatch> groupMatches = allMatches.stream()
+                .filter(m -> m.getStageName() != null && m.getStageName().startsWith("Group "))
+                .toList();
+
+        List<TournamentMatch> knockoutMatches = allMatches.stream()
+                .filter(m -> "Knockout".equals(m.getStageName()))
+                .sorted(Comparator.comparing(TournamentMatch::getId))
+                .toList();
+
+        if (knockoutMatches.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "No knockout bracket found. Run 'Auto Build Schedule' first to generate the bracket.");
+        }
+
+        long unfinishedGroupMatches = groupMatches.stream()
+                .filter(m -> !MATCH_STATUS_FINAL.equalsIgnoreCase(m.getStatus()))
+                .count();
+        if (unfinishedGroupMatches > 0) {
+            throw new IllegalArgumentException(
+                    unfinishedGroupMatches + " group stage match(es) are not yet marked FINAL. "
+                    + "Complete all group matches before seeding the knockout bracket.");
+        }
+
+        // Compute standings and group by group name
+        List<StandingEntryResponse> standings = computeStandings(tournamentId);
+        LinkedHashMap<String, List<StandingEntryResponse>> byGroup = new LinkedHashMap<>();
+        for (StandingEntryResponse s : standings) {
+            if (s.getGroupName() != null && s.getGroupName().startsWith("Group ")) {
+                byGroup.computeIfAbsent(s.getGroupName(), k -> new ArrayList<>()).add(s);
+            }
+        }
+
+        if (byGroup.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "No group standings found. Mark group matches as FINAL first.");
+        }
+
+        int advancePerGroup = normalizePositiveInteger(tournament.getAdvancePerGroup(), 2);
+
+        // For each group, collect the top advancePerGroup team IDs (standings are already sorted)
+        List<List<Long>> groupAdvancerIds = new ArrayList<>();
+        for (List<StandingEntryResponse> groupRows : byGroup.values()) {
+            List<Long> ids = groupRows.stream()
+                    .limit(advancePerGroup)
+                    .map(StandingEntryResponse::getTeamId)
+                    .toList();
+            groupAdvancerIds.add(ids);
+        }
+
+        // Build cross-seeded pairs: A1 vs B2, B1 vs A2 etc.
+        List<long[]> seedPairs = buildGroupSeedPairs(groupAdvancerIds, advancePerGroup);
+
+        if (seedPairs.isEmpty()) {
+            throw new IllegalArgumentException("Could not build seeding pairs from the current group standings.");
+        }
+        if (seedPairs.size() > knockoutMatches.size()) {
+            throw new IllegalArgumentException(
+                    "Not enough knockout bracket slots (" + knockoutMatches.size()
+                    + ") for " + seedPairs.size() + " seeded pairs.");
+        }
+
+        // Load Team entities for all advancing team IDs
+        Set<Long> allTeamIds = new LinkedHashSet<>();
+        for (long[] pair : seedPairs) {
+            allTeamIds.add(pair[0]);
+            allTeamIds.add(pair[1]);
+        }
+        Map<Long, Team> teamById = new LinkedHashMap<>();
+        for (Long tid : allTeamIds) {
+            teamById.put(tid, teamRepository.findById(tid)
+                    .orElseThrow(() -> new ResourceNotFoundException("Team", tid)));
+        }
+
+        // Seed the first-round knockout matches (first N matches in ID order)
+        List<TournamentMatch> updated = new ArrayList<>();
+        for (int i = 0; i < seedPairs.size(); i++) {
+            TournamentMatch match = knockoutMatches.get(i);
+            match.setHomeTeam(teamById.get(seedPairs.get(i)[0]));
+            match.setAwayTeam(teamById.get(seedPairs.get(i)[1]));
+            updated.add(tournamentMatchRepository.save(match));
+        }
+
+        auditLogService.log(actorEmail, "SEED", "KnockoutBracket", tournamentId,
+                "Seeded knockout bracket for " + tournament.getName()
+                + " with " + seedPairs.size() + " first-round match(es).");
+
+        return updated.stream().map(this::toMatchResponse).toList();
+    }
+
+    /**
+     * Builds cross-seeded pairs from a list of per-group advancer ID lists.
+     * For two groups [A1,A2] and [B1,B2] with advancePerGroup=2 this produces:
+     *   (A1, B2), (B1, A2)
+     * For four groups with advancePerGroup=2 this produces:
+     *   (A1, B2), (B1, A2), (C1, D2), (D1, C2)
+     */
+    private List<long[]> buildGroupSeedPairs(List<List<Long>> groups, int advancePerGroup) {
+        List<long[]> pairs = new ArrayList<>();
+
+        // Process groups in pairs for cross-seeding
+        for (int gi = 0; gi + 1 < groups.size(); gi += 2) {
+            List<Long> g1 = groups.get(gi);
+            List<Long> g2 = groups.get(gi + 1);
+            int n = Math.min(advancePerGroup, Math.min(g1.size(), g2.size()));
+
+            // Interleave: (g1[0] vs g2[n-1]), (g2[0] vs g1[n-1]), (g1[1] vs g2[n-2]), (g2[1] vs g1[n-2]), ...
+            for (int pos = 0; pos < n; pos++) {
+                if (pos % 2 == 0) {
+                    pairs.add(new long[]{g1.get(pos / 2), g2.get(n - 1 - pos / 2)});
+                } else {
+                    pairs.add(new long[]{g2.get(pos / 2), g1.get(n - 1 - pos / 2)});
+                }
+            }
+        }
+
+        // Handle an odd unpaired group — seed within itself
+        if (groups.size() % 2 != 0) {
+            List<Long> lastGroup = groups.get(groups.size() - 1);
+            for (int i = 0; i + 1 < lastGroup.size(); i += 2) {
+                pairs.add(new long[]{lastGroup.get(i), lastGroup.get(i + 1)});
+            }
+        }
+
+        return pairs;
+    }
+
+    /**
+     * When a knockout match is marked FINAL, slot the winner into the next-round match
+     * and (for the penultimate round) slot the loser into the Third Place match.
+     * Round names follow the pattern generated by the scheduler:
+     *   "Quarterfinal 1", "Quarterfinal 2", "Semifinal 1", "Final", "Third Place"
+     * The position within a round drives home/away slot assignment.
+     *
+     * @return a warning message if advancement was blocked because a slot was already occupied, or null if all went well.
+     */
+    private String advanceKnockoutWinner(Long tournamentId, TournamentMatch finishedMatch) {
+        // Third Place and Final have nowhere to advance
+        String finishedRound = finishedMatch.getRoundName();
+        if ("Third Place".equalsIgnoreCase(finishedRound) || "Final".equalsIgnoreCase(finishedRound)) {
+            return null;
+        }
+
+
+        // Determine winner and loser
+        Team winner = null;
+        Team loser = null;
+        if (finishedMatch.getHomeScore() != null && finishedMatch.getAwayScore() != null) {
+            if (finishedMatch.getHomeScore() > finishedMatch.getAwayScore()) {
+                winner = finishedMatch.getHomeTeam();
+                loser = finishedMatch.getAwayTeam();
+            } else if (finishedMatch.getAwayScore() > finishedMatch.getHomeScore()) {
+                winner = finishedMatch.getAwayTeam();
+                loser = finishedMatch.getHomeTeam();
+            }
+        }
+        if (winner == null) {
+            return null; // draw — no definitive winner, cannot advance
+        }
+
+        // Load all knockout matches (excluding Third Place) ordered by creation ID
+        List<TournamentMatch> allKnockout = tournamentMatchRepository
+                .findByTournamentIdOrderByMatchDateAscKickoffTimeAscIdAsc(tournamentId)
+                .stream()
+                .filter(m -> "Knockout".equals(m.getStageName())
+                        && !"Third Place".equalsIgnoreCase(m.getRoundName()))
+                .sorted(Comparator.comparing(TournamentMatch::getId))
+                .collect(Collectors.toList());
+
+        // Group by base round name; LinkedHashMap preserves insertion order (earliest ID first)
+        LinkedHashMap<String, List<TournamentMatch>> roundMap = new LinkedHashMap<>();
+        for (TournamentMatch m : allKnockout) {
+            roundMap.computeIfAbsent(parseBaseRoundName(m.getRoundName()), k -> new ArrayList<>()).add(m);
+        }
+
+        List<String> roundOrder = new ArrayList<>(roundMap.keySet());
+        String currentBase = parseBaseRoundName(finishedRound);
+        int currentIdx = roundOrder.indexOf(currentBase);
+        if (currentIdx == -1 || currentIdx >= roundOrder.size() - 1) {
+            return null; // already in the final round of the winner bracket
+        }
+
+        int matchPos = parseRoundPosition(finishedRound); // 1-based position within the round
+        boolean isHomeSlot = matchPos % 2 == 1;
+        int nextPos = (matchPos + 1) / 2; // 1-based position in the next round
+
+        String advancementWarning = null;
+
+        // Advance winner into next round — warn the admin if the slot is already occupied
+        String nextBase = roundOrder.get(currentIdx + 1);
+        List<TournamentMatch> nextRoundMatches = roundMap.get(nextBase);
+        if (nextRoundMatches != null && nextPos >= 1 && nextPos <= nextRoundMatches.size()) {
+            TournamentMatch target = nextRoundMatches.get(nextPos - 1);
+            boolean slotAlreadyFilled = isHomeSlot
+                    ? target.getHomeTeam() != null
+                    : target.getAwayTeam() != null;
+            if (slotAlreadyFilled) {
+                advancementWarning = "The next-round slot in " + nextBase + " already has a team assigned. "
+                        + "The bracket may be in an inconsistent state — review the " + nextBase + " match manually.";
+            } else {
+                if (isHomeSlot) {
+                    target.setHomeTeam(winner);
+                } else {
+                    target.setAwayTeam(winner);
+                }
+                tournamentMatchRepository.save(target);
+            }
+        }
+
+        // If this is the penultimate winner-bracket round (one before Final), advance loser to Third Place
+        boolean isPenultimateRound = currentIdx == roundOrder.size() - 2;
+        if (isPenultimateRound && loser != null) {
+            final Team finalLoser = loser;
+            final boolean finalIsHomeSlot = isHomeSlot;
+            final String[] tpWarning = {null};
+            tournamentMatchRepository
+                    .findByTournamentIdOrderByMatchDateAscKickoffTimeAscIdAsc(tournamentId)
+                    .stream()
+                    .filter(m -> "Knockout".equals(m.getStageName())
+                            && "Third Place".equalsIgnoreCase(m.getRoundName()))
+                    .findFirst()
+                    .ifPresent(thirdPlace -> {
+                        boolean tpSlotFilled = finalIsHomeSlot
+                                ? thirdPlace.getHomeTeam() != null
+                                : thirdPlace.getAwayTeam() != null;
+                        if (tpSlotFilled) {
+                            tpWarning[0] = "The Third Place match slot already has a team assigned. "
+                                    + "Review the Third Place match manually.";
+                        } else {
+                            if (finalIsHomeSlot) {
+                                thirdPlace.setHomeTeam(finalLoser);
+                            } else {
+                                thirdPlace.setAwayTeam(finalLoser);
+                            }
+                            tournamentMatchRepository.save(thirdPlace);
+                        }
+                    });
+            if (tpWarning[0] != null) {
+                advancementWarning = advancementWarning != null
+                        ? advancementWarning + " Also: " + tpWarning[0]
+                        : tpWarning[0];
+            }
+        }
+
+        return advancementWarning;
+    }
+
+    /** Returns the base name of a round, stripping a trailing integer. */
+    private String parseBaseRoundName(String roundName) {
+        if (roundName == null) return "Unknown";
+        String trimmed = roundName.trim();
+        int lastSpace = trimmed.lastIndexOf(' ');
+        if (lastSpace > 0) {
+            String lastPart = trimmed.substring(lastSpace + 1);
+            try {
+                Integer.parseInt(lastPart);
+                return trimmed.substring(0, lastSpace).trim();
+            } catch (NumberFormatException e) {
+                // fall through
+            }
+        }
+        return trimmed;
+    }
+
+    /** Returns the 1-based position within a round ("Semifinal 2" → 2, "Final" → 1). */
+    private int parseRoundPosition(String roundName) {
+        if (roundName == null) return 1;
+        String trimmed = roundName.trim();
+        int lastSpace = trimmed.lastIndexOf(' ');
+        if (lastSpace > 0) {
+            String lastPart = trimmed.substring(lastSpace + 1);
+            try {
+                return Integer.parseInt(lastPart);
+            } catch (NumberFormatException e) {
+                // fall through
+            }
+        }
+        return 1;
     }
 
     private List<TournamentMatch> generateKnockoutMatches(Tournament tournament, List<Team> teams) {

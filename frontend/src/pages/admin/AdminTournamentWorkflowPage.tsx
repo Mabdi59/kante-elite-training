@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import FormatSelector from '../../components/FormatSelector'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   bulkCreateTournamentTeamPlayers,
@@ -11,6 +12,7 @@ import {
   deleteTournamentTeamPlayer,
   generateTournamentSchedule,
   getAdminTournamentWorkflow,
+  seedTournamentKnockoutBracket,
   updateAdminTournamentRegistration,
   updateTournament,
   updateTournamentMatch,
@@ -206,6 +208,14 @@ export default function AdminTournamentWorkflowPage() {
     Record<number, { homeScore: string; awayScore: string; status: string }>
   >({})
   const [savingResultId, setSavingResultId] = useState<number | null>(null)
+  const [successMessage, setSuccessMessage] = useState('')
+  const [bracketWarning, setBracketWarning] = useState('')
+
+  const showSuccess = (msg: string) => {
+    setBracketWarning('')
+    setSuccessMessage(msg)
+    setTimeout(() => setSuccessMessage(''), 3500)
+  }
 
   // Bulk player import
   const [bulkImportText, setBulkImportText] = useState('')
@@ -270,6 +280,33 @@ export default function AdminTournamentWorkflowPage() {
     } finally {
       setSaving(false)
     }
+  }
+
+  const saveFormat = async () => {
+    const teamCount = workflow?.teams.length ?? 0
+    if (teamCount > 0) {
+      if (tournamentForm.formatType === 'GROUP_STAGE') {
+        if (teamCount % tournamentForm.teamsPerGroup !== 0) {
+          setError(
+            `With ${teamCount} teams, the teams-per-group value (${tournamentForm.teamsPerGroup}) must divide evenly. Adjust either value before saving.`,
+          )
+          return
+        }
+        if (tournamentForm.advancePerGroup >= tournamentForm.teamsPerGroup) {
+          setError('Teams advancing per group must be less than teams per group.')
+          return
+        }
+      }
+      if (tournamentForm.formatType === 'KNOCKOUT') {
+        const isPowerOfTwo = (teamCount & (teamCount - 1)) === 0
+        if (!isPowerOfTwo) {
+          // window.confirm returns true for OK (continue) and false for Cancel (abort)
+          const confirmed = window.confirm(`Knockout format works best with a power-of-2 team count (2, 4, 8, 16…). You have ${teamCount} teams. Continue anyway?`)
+          if (!confirmed) return
+        }
+      }
+    }
+    await saveTournament('schedule')
   }
 
   const saveRegistration = async () => {
@@ -394,8 +431,9 @@ export default function AdminTournamentWorkflowPage() {
     if (!data) return
     setSavingResultId(match.id)
     setError('')
+    setBracketWarning('')
     try {
-      await updateTournamentMatch(tournamentId, match.id, {
+      const updated = await updateTournamentMatch(tournamentId, match.id, {
         homeTeamId: match.homeTeamId,
         awayTeamId: match.awayTeamId,
         stageName: match.stageName ?? '',
@@ -415,6 +453,12 @@ export default function AdminTournamentWorkflowPage() {
         return next
       })
       await loadWorkflow(tournamentId)
+      if (updated.warning) {
+        setBracketWarning('⚠ Result saved, but bracket advancement was blocked: ' + updated.warning)
+      } else if (data.status === 'FINAL') {
+        const isKnockout = match.stageName === 'Knockout'
+        showSuccess(isKnockout ? 'Result saved — winner advanced to next round.' : 'Result saved and standings updated.')
+      }
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
@@ -470,6 +514,20 @@ export default function AdminTournamentWorkflowPage() {
       </div>
 
       {error ? <ErrorBanner message={error} onDismiss={() => setError('')} /> : null}
+      {bracketWarning ? (
+        <div className="flex items-start gap-3 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3 text-amber-300 text-sm">
+          <span className="shrink-0 mt-0.5">⚠</span>
+          <span>{bracketWarning}</span>
+          <button type="button" onClick={() => setBracketWarning('')} className="ml-auto text-amber-500 hover:text-amber-300 text-xs shrink-0">✕</button>
+        </div>
+      ) : null}
+      {successMessage ? (
+        <div className="flex items-center gap-3 bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-3 text-green-300 text-sm">
+          <span className="shrink-0">✓</span>
+          <span>{successMessage}</span>
+          <button type="button" onClick={() => setSuccessMessage('')} className="ml-auto text-green-500 hover:text-green-300 text-xs">✕</button>
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-3">
         {WORKFLOW_STEPS.map((step) => (
@@ -692,44 +750,65 @@ export default function AdminTournamentWorkflowPage() {
           <>
             <h2 className="text-white font-black text-2xl">Format</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Format type</label>
-                <select className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" value={tournamentForm.formatType} onChange={(e) => setTournamentForm((prev) => ({ ...prev, formatType: e.target.value }))}>
-                  <option value="ROUND_ROBIN">Round Robin — every team plays each other</option>
-                  <option value="GROUP_STAGE">Group Stage — groups then knockout</option>
-                  <option value="KNOCKOUT">Knockout — single elimination</option>
-                </select>
+              <FormatSelector
+                value={tournamentForm.formatType}
+                onChange={(val) => { setTournamentForm((prev) => ({ ...prev, formatType: val })); setError('') }}
+              />
+              <div className="col-span-full">
+                {tournamentForm.formatType === 'ROUND_ROBIN' && (
+                  <p className="text-gray-400 text-sm bg-gray-900 border border-gray-800 rounded-lg px-4 py-3">
+                    All teams play each other once. Points are awarded for wins and draws. Final standings determine the winner.
+                  </p>
+                )}
+                {tournamentForm.formatType === 'GROUP_STAGE' && (
+                  <p className="text-gray-400 text-sm bg-gray-900 border border-gray-800 rounded-lg px-4 py-3">
+                    Teams compete in groups, then the top teams advance to elimination rounds. Group standings determine who progresses.
+                  </p>
+                )}
+                {tournamentForm.formatType === 'KNOCKOUT' && (
+                  <p className="text-gray-400 text-sm bg-gray-900 border border-gray-800 rounded-lg px-4 py-3">
+                    Single elimination bracket. Lose once and you're out. Works best with a power-of-2 number of teams (2, 4, 8, 16…).
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Match duration (minutes)</label>
                 <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={1} value={tournamentForm.matchDurationMinutes} onChange={(e) => setTournamentForm((prev) => ({ ...prev, matchDurationMinutes: Number(e.target.value) }))} />
               </div>
-              <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Teams per group</label>
-                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={2} value={tournamentForm.teamsPerGroup} onChange={(e) => setTournamentForm((prev) => ({ ...prev, teamsPerGroup: Number(e.target.value) }))} />
-              </div>
-              <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Teams advancing per group</label>
-                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={1} value={tournamentForm.advancePerGroup} onChange={(e) => setTournamentForm((prev) => ({ ...prev, advancePerGroup: Number(e.target.value) }))} />
-              </div>
-              <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Points for win</label>
-                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={0} value={tournamentForm.pointsForWin} onChange={(e) => setTournamentForm((prev) => ({ ...prev, pointsForWin: Number(e.target.value) }))} />
-              </div>
-              <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Points for draw</label>
-                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={0} value={tournamentForm.pointsForDraw} onChange={(e) => setTournamentForm((prev) => ({ ...prev, pointsForDraw: Number(e.target.value) }))} />
-              </div>
-              <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Points for loss</label>
-                <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={0} value={tournamentForm.pointsForLoss} onChange={(e) => setTournamentForm((prev) => ({ ...prev, pointsForLoss: Number(e.target.value) }))} />
-              </div>
+              {tournamentForm.formatType !== 'KNOCKOUT' && (
+                <div>
+                  <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Teams per group</label>
+                  <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={2} value={tournamentForm.teamsPerGroup} onChange={(e) => setTournamentForm((prev) => ({ ...prev, teamsPerGroup: Number(e.target.value) }))} />
+                </div>
+              )}
+              {tournamentForm.formatType === 'GROUP_STAGE' && (
+                <div>
+                  <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Teams advancing per group</label>
+                  <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={1} value={tournamentForm.advancePerGroup} onChange={(e) => setTournamentForm((prev) => ({ ...prev, advancePerGroup: Number(e.target.value) }))} />
+                </div>
+              )}
+              {tournamentForm.formatType !== 'KNOCKOUT' && (
+                <>
+                  <div>
+                    <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Points for win</label>
+                    <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={0} value={tournamentForm.pointsForWin} onChange={(e) => setTournamentForm((prev) => ({ ...prev, pointsForWin: Number(e.target.value) }))} />
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Points for draw</label>
+                    <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={0} value={tournamentForm.pointsForDraw} onChange={(e) => setTournamentForm((prev) => ({ ...prev, pointsForDraw: Number(e.target.value) }))} />
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Points for loss</label>
+                    <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={0} value={tournamentForm.pointsForLoss} onChange={(e) => setTournamentForm((prev) => ({ ...prev, pointsForLoss: Number(e.target.value) }))} />
+                  </div>
+                </>
+              )}
               <div className="flex items-center gap-3 pt-5">
                 <input id="thirdPlace" type="checkbox" checked={tournamentForm.thirdPlaceMatchEnabled} onChange={(e) => setTournamentForm((prev) => ({ ...prev, thirdPlaceMatchEnabled: e.target.checked }))} className="w-4 h-4" />
                 <label htmlFor="thirdPlace" className="text-gray-300 text-sm cursor-pointer">Enable third place match</label>
               </div>
             </div>
-            <button type="button" onClick={() => saveTournament('schedule')} disabled={saving} className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-5 py-2.5 rounded-lg text-sm disabled:opacity-50">
+            <button type="button" onClick={saveFormat} disabled={saving} className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-5 py-2.5 rounded-lg text-sm disabled:opacity-50">
               {saving ? 'Saving...' : 'Save Format'}
             </button>
           </>
@@ -739,7 +818,15 @@ export default function AdminTournamentWorkflowPage() {
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <div>
                 <h2 className="text-white font-black text-2xl">Schedule</h2>
-                <p className="text-gray-400 text-sm mt-1">Create matches manually or generate them from the current tournament format.</p>
+                {workflow.tournament.formatType === 'ROUND_ROBIN' && (
+                  <p className="text-gray-400 text-sm mt-1">Auto Build generates round-robin matches — every team plays every other team once.</p>
+                )}
+                {workflow.tournament.formatType === 'GROUP_STAGE' && (
+                  <p className="text-gray-400 text-sm mt-1">Auto Build generates group-phase matches and placeholder knockout rounds. Fill in knockout teams after groups complete.</p>
+                )}
+                {(!workflow.tournament.formatType || workflow.tournament.formatType === 'KNOCKOUT') && (
+                  <p className="text-gray-400 text-sm mt-1">Auto Build generates a single-elimination bracket. Teams must be an even number for this to work.</p>
+                )}
               </div>
               <div className="flex gap-3">
                 <button
@@ -748,13 +835,38 @@ export default function AdminTournamentWorkflowPage() {
                     if (!tournamentId) return
                     const overwrite = workflow.matches.length > 0 && window.confirm('Overwrite the current schedule?')
                     if (workflow.matches.length > 0 && !overwrite) return
-                    await generateTournamentSchedule(tournamentId, overwrite)
+                    setError('')
+                    try {
+                      await generateTournamentSchedule(tournamentId, overwrite)
+                    } catch (err: unknown) {
+                      setError((err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Could not generate schedule.')
+                      return
+                    }
                     await loadWorkflow(tournamentId)
                   }}
                   className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-4 py-2 rounded-lg text-sm"
                 >
                   Auto Build Schedule
                 </button>
+                {workflow.tournament.formatType === 'GROUP_STAGE' && workflow.matches.some((m) => m.stageName === 'Knockout' && !m.homeTeamId && !m.awayTeamId) && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!tournamentId) return
+                      setError('')
+                      try {
+                        await seedTournamentKnockoutBracket(tournamentId)
+                        await loadWorkflow(tournamentId)
+                        showSuccess('Knockout bracket seeded — teams placed based on group standings.')
+                      } catch (err: unknown) {
+                        setError((err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Could not seed the knockout bracket.')
+                      }
+                    }}
+                    className="bg-amber-500 hover:bg-amber-400 text-black font-bold px-4 py-2 rounded-lg text-sm"
+                  >
+                    Seed Knockout Bracket
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => {
@@ -788,24 +900,51 @@ export default function AdminTournamentWorkflowPage() {
               </div>
             ) : null}
 
-            {workflow.matches.length === 0 ? <EmptyState title="No matches yet" description="Build the schedule once teams and format are ready." /> : (
-              <div className="space-y-3">
-                {workflow.matches.map((match) => (
-                  <div key={match.id} className="bg-gray-950 border border-gray-800 rounded-xl p-4 flex items-start justify-between gap-4">
-                    <div>
-                      <div className="text-white font-semibold">{match.homeTeamName ?? 'TBD'} vs {match.awayTeamName ?? 'TBD'}</div>
-                      <div className="text-gray-400 text-sm mt-1">{match.stageName || 'Stage not set'}{match.roundName ? `, ${match.roundName}` : ''}</div>
-                      <div className="text-gray-500 text-xs mt-1">{match.matchDate || 'Date TBD'}{match.kickoffTime ? ` at ${match.kickoffTime.slice(0, 5)}` : ''}{match.venue ? `, ${match.venue}` : ''}</div>
+            {workflow.matches.length === 0 ? <EmptyState title="No matches yet" description="Build the schedule once teams and format are ready." /> : (() => {
+              const hasUnseededKnockout = workflow.tournament.formatType === 'GROUP_STAGE' && workflow.matches.some((m) => m.stageName === 'Knockout' && !m.homeTeamId && !m.awayTeamId)
+              const stageOrder = Array.from(new Set(workflow.matches.map((m) => m.stageName || 'Unassigned')))
+              return (
+                <div className="space-y-6">
+                  {hasUnseededKnockout && (
+                    <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3 text-amber-300 text-sm">
+                      Knockout bracket slots are waiting to be seeded. Once all group matches are <span className="font-bold text-white">FINAL</span>, click <span className="font-bold text-white">Seed Knockout Bracket</span> to fill them with the group stage winners.
                     </div>
-                    <div className="flex gap-2 items-start">
-                      <StatusBadge status={match.status} />
-                      <button type="button" onClick={() => openMatchEditor(match)} className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg text-xs">Edit</button>
-                      <button type="button" onClick={async () => { if (!window.confirm('Delete this match?')) return; await deleteTournamentMatch(tournamentId!, match.id); await loadWorkflow(tournamentId!) }} className="bg-red-500/10 hover:bg-red-500/20 text-red-400 px-3 py-1.5 rounded-lg text-xs">Delete</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  )}
+                  {stageOrder.map((stage) => {
+                    const stageMatches = workflow.matches.filter((m) => (m.stageName || 'Unassigned') === stage)
+                    return (
+                      <div key={stage}>
+                        <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-3">{stage}</div>
+                        <div className="space-y-3">
+                          {stageMatches.map((match) => (
+                            <div key={match.id} className="bg-gray-950 border border-gray-800 rounded-xl p-4 flex items-start justify-between gap-4">
+                              <div>
+                                <div className="text-white font-semibold">
+                                  {match.homeTeamName
+                                    ? match.homeTeamName
+                                    : <span className="text-gray-500 italic">TBD</span>}
+                                  {' vs '}
+                                  {match.awayTeamName
+                                    ? match.awayTeamName
+                                    : <span className="text-gray-500 italic">TBD</span>}
+                                </div>
+                                <div className="text-gray-400 text-sm mt-1">{match.stageName || 'Stage not set'}{match.roundName ? `, ${match.roundName}` : ''}</div>
+                                <div className="text-gray-500 text-xs mt-1">{match.matchDate || 'Date TBD'}{match.kickoffTime ? ` at ${match.kickoffTime.slice(0, 5)}` : ''}{match.venue ? `, ${match.venue}` : ''}</div>
+                              </div>
+                              <div className="flex gap-2 items-start">
+                                <StatusBadge status={match.status} />
+                                <button type="button" onClick={() => openMatchEditor(match)} className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg text-xs">Edit</button>
+                                <button type="button" onClick={async () => { if (!window.confirm('Delete this match?')) return; await deleteTournamentMatch(tournamentId!, match.id); await loadWorkflow(tournamentId!) }} className="bg-red-500/10 hover:bg-red-500/20 text-red-400 px-3 py-1.5 rounded-lg text-xs">Delete</button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })()}
           </>
         ) : null}
         {currentStep === 'results' && workflow ? (
@@ -821,72 +960,95 @@ export default function AdminTournamentWorkflowPage() {
                 </button>
               ) : null}
             </div>
-            {workflow.matches.length === 0 ? <EmptyState title="Build the schedule first" description="Results are entered against scheduled matches." /> : (
-              <div className="space-y-3">
-                {workflow.matches.map((match) => {
-                  const inline = inlineResults[match.id]
-                  const isSaving = savingResultId === match.id
-                  return (
-                    <div key={match.id} className="bg-gray-950 border border-gray-800 rounded-xl p-4">
-                      <div className="flex items-start gap-4 flex-wrap">
-                        <div className="flex-1 min-w-0">
-                          <div className="text-white font-semibold">{match.homeTeamName ?? 'TBD'} vs {match.awayTeamName ?? 'TBD'}</div>
-                          <div className="text-gray-400 text-sm mt-1">{match.stageName || 'Stage not set'}{match.roundName ? `, ${match.roundName}` : ''}{match.matchDate ? ` · ${match.matchDate}` : ''}</div>
+            {workflow.matches.length === 0 ? <EmptyState title="Build the schedule first" description="Results are entered against scheduled matches." /> : (() => {
+              const stageOrder = Array.from(new Set(workflow.matches.map((m) => m.stageName || 'Unassigned')))
+              return (
+                <div className="space-y-6">
+                  {stageOrder.map((stage) => {
+                    const stageMatches = workflow.matches.filter((m) => (m.stageName || 'Unassigned') === stage)
+                    return (
+                      <div key={stage}>
+                        <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-3">{stage}</div>
+                        <div className="space-y-3">
+                          {stageMatches.map((match) => {
+                            const inline = inlineResults[match.id]
+                            const isSaving = savingResultId === match.id
+                            return (
+                              <div key={match.id} className="bg-gray-950 border border-gray-800 rounded-xl p-4">
+                                <div className="flex items-start gap-4 flex-wrap">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="text-white font-semibold">{match.homeTeamName ?? 'TBD'} vs {match.awayTeamName ?? 'TBD'}</div>
+                                    <div className="text-gray-400 text-sm mt-1">{match.stageName || 'Stage not set'}{match.roundName ? `, ${match.roundName}` : ''}{match.matchDate ? ` · ${match.matchDate}` : ''}</div>
+                                  </div>
+                                  {!inline ? (
+                                    <div className="flex items-center gap-3 shrink-0">
+                                      <StatusBadge status={match.status} />
+                                      <div className="text-white font-black text-xl tabular-nums">{match.homeScore ?? '-'} : {match.awayScore ?? '-'}</div>
+                                      <button type="button" onClick={() => openInlineResult(match)} className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg text-xs">Enter Score</button>
+                                    </div>
+                                  ) : (
+                                    <div className="flex flex-col gap-2 shrink-0 items-end">
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <input
+                                          type="number"
+                                          min={0}
+                                          value={inline.homeScore}
+                                          onChange={(e) => setInlineResults((prev) => ({ ...prev, [match.id]: { ...prev[match.id], homeScore: e.target.value } }))}
+                                          className="w-14 bg-black border border-gray-700 rounded-lg px-2 py-1.5 text-white text-sm text-center tabular-nums"
+                                          placeholder="0"
+                                        />
+                                        <span className="text-gray-500">:</span>
+                                        <input
+                                          type="number"
+                                          min={0}
+                                          value={inline.awayScore}
+                                          onChange={(e) => setInlineResults((prev) => ({ ...prev, [match.id]: { ...prev[match.id], awayScore: e.target.value } }))}
+                                          className="w-14 bg-black border border-gray-700 rounded-lg px-2 py-1.5 text-white text-sm text-center tabular-nums"
+                                          placeholder="0"
+                                        />
+                                        <select
+                                          value={inline.status}
+                                          onChange={(e) => setInlineResults((prev) => ({ ...prev, [match.id]: { ...prev[match.id], status: e.target.value } }))}
+                                          className="bg-black border border-gray-700 rounded-lg px-2 py-1.5 text-white text-xs"
+                                        >
+                                          {MATCH_STATUSES.map((s) => <option key={s}>{s}</option>)}
+                                        </select>
+                                        <button
+                                          type="button"
+                                          onClick={() => saveInlineResult(match)}
+                                          disabled={isSaving}
+                                          className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-3 py-1.5 rounded-lg text-xs disabled:opacity-50"
+                                        >
+                                          {isSaving ? 'Saving...' : 'Save'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => setInlineResults((prev) => { const next = { ...prev }; delete next[match.id]; return next })}
+                                          className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg text-xs"
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
+                                      {match.stageName === 'Knockout' && inline.status === 'FINAL' && inline.homeScore !== '' && inline.awayScore !== '' && inline.homeScore === inline.awayScore && (
+                                        <div className="text-amber-400 text-xs bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-1.5 w-full text-center">
+                                          ⚠ Knockout matches cannot end in a draw — adjust the score so there is a clear winner.
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )
+                          })}
                         </div>
-                        {!inline ? (
-                          <div className="flex items-center gap-3 shrink-0">
-                            <StatusBadge status={match.status} />
-                            <div className="text-white font-black text-xl tabular-nums">{match.homeScore ?? '-'} : {match.awayScore ?? '-'}</div>
-                            <button type="button" onClick={() => openInlineResult(match)} className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg text-xs">Enter Score</button>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2 flex-wrap shrink-0">
-                            <input
-                              type="number"
-                              min={0}
-                              value={inline.homeScore}
-                              onChange={(e) => setInlineResults((prev) => ({ ...prev, [match.id]: { ...prev[match.id], homeScore: e.target.value } }))}
-                              className="w-14 bg-black border border-gray-700 rounded-lg px-2 py-1.5 text-white text-sm text-center tabular-nums"
-                              placeholder="0"
-                            />
-                            <span className="text-gray-500">:</span>
-                            <input
-                              type="number"
-                              min={0}
-                              value={inline.awayScore}
-                              onChange={(e) => setInlineResults((prev) => ({ ...prev, [match.id]: { ...prev[match.id], awayScore: e.target.value } }))}
-                              className="w-14 bg-black border border-gray-700 rounded-lg px-2 py-1.5 text-white text-sm text-center tabular-nums"
-                              placeholder="0"
-                            />
-                            <select
-                              value={inline.status}
-                              onChange={(e) => setInlineResults((prev) => ({ ...prev, [match.id]: { ...prev[match.id], status: e.target.value } }))}
-                              className="bg-black border border-gray-700 rounded-lg px-2 py-1.5 text-white text-xs"
-                            >
-                              {MATCH_STATUSES.map((s) => <option key={s}>{s}</option>)}
-                            </select>
-                            <button
-                              type="button"
-                              onClick={() => saveInlineResult(match)}
-                              disabled={isSaving}
-                              className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-3 py-1.5 rounded-lg text-xs disabled:opacity-50"
-                            >
-                              {isSaving ? '...' : 'Save'}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setInlineResults((prev) => { const next = { ...prev }; delete next[match.id]; return next })}
-                              className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg text-xs"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        )}
                       </div>
-                    </div>
-                  )
-                })}
-              </div>
+                    )
+                  })}
+                </div>
+              )
+            })()}
+            {workflow.matches.some((m) => m.stageName === 'Knockout') && (
+              <AdminBracketView matches={workflow.matches} />
             )}
           </>
         ) : null}
@@ -900,13 +1062,21 @@ export default function AdminTournamentWorkflowPage() {
               </div>
               <div className="text-gray-500 text-sm">{workflow.completedMatches} / {workflow.matches.length} matches completed</div>
             </div>
-            {!workflow.standings || workflow.standings.length === 0 ? (
-              <EmptyState title="No standings yet" description="Mark matches as Final in the Results step to see the live standings table." />
-            ) : (
-              <StandingsTable standings={workflow.standings} />
-            )}
+            {workflow.tournament.formatType === 'KNOCKOUT' ? (
+              <EmptyState title="No standings for knockout format" description="Knockout tournaments use a bracket — only match results matter." />
+            ) : (() => {
+              const groupStandings = workflow.tournament.formatType === 'GROUP_STAGE'
+                ? (workflow.standings ?? []).filter((s) => s.groupName?.startsWith('Group '))
+                : (workflow.standings ?? [])
+              return !groupStandings.length ? (
+                <EmptyState title="No standings yet" description="Mark matches as Final in the Results step to see the live standings table." />
+              ) : (
+                <StandingsTable standings={groupStandings} />
+              )
+            })()}
           </>
         ) : null}
+
 
         <div className="flex items-center justify-between pt-2 border-t border-gray-800">
           <button
@@ -982,6 +1152,99 @@ function StandingsTable({ standings }: { standings: StandingEntry[] }) {
           </div>
         </div>
       ))}
+    </div>
+  )
+}
+
+// ─── Admin Bracket View ────────────────────────────────────────────────────────
+
+function AdminBracketView({ matches }: { matches: TournamentMatch[] }) {
+  const bracketMatches = matches.filter((m) => m.stageName === 'Knockout')
+  if (bracketMatches.length === 0) return null
+
+  // Third Place is shown as a separate column appended after Final
+  const knownRoundOrder = ['Round of 32', 'Round of 16', 'Round of 8', 'Quarterfinal', 'Semifinal', 'Final']
+  const thirdPlaceKey = 'Third Place'
+
+  const roundMap = new Map<string, TournamentMatch[]>()
+  for (const m of bracketMatches) {
+    const base = (m.roundName ?? 'Round').replace(/\s+\d+$/, '').trim()
+    const key = knownRoundOrder.find((r) => r.toLowerCase() === base.toLowerCase()) ?? base
+    const arr = roundMap.get(key) ?? []
+    arr.push(m)
+    roundMap.set(key, arr)
+  }
+
+  const sorted: [string, TournamentMatch[]][] = []
+  for (const r of knownRoundOrder) {
+    if (roundMap.has(r)) sorted.push([r, roundMap.get(r)!])
+  }
+  // Append Third Place after Final if it exists
+  if (roundMap.has(thirdPlaceKey)) sorted.push([thirdPlaceKey, roundMap.get(thirdPlaceKey)!])
+  // Catch-all for any other custom round names
+  for (const [k, v] of roundMap.entries()) {
+    const known = [...knownRoundOrder, thirdPlaceKey]
+    if (!known.some((r) => r.toLowerCase() === k.toLowerCase())) sorted.push([k, v])
+  }
+
+  const allFinal = bracketMatches.every((m) => m.status === 'FINAL')
+  const anyFinal = bracketMatches.some((m) => m.status === 'FINAL')
+
+  return (
+    <div className="mt-6 border-t border-gray-800 pt-6">
+      <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
+        <div>
+          <h3 className="text-white font-black text-lg">Knockout Bracket</h3>
+          <p className="text-gray-500 text-sm mt-0.5">
+            {allFinal
+              ? '🏆 All matches complete.'
+              : anyFinal
+              ? 'In progress — winners advance automatically when a match is saved as FINAL.'
+              : 'Waiting for results — save a match as FINAL to advance the winner.'}
+          </p>
+        </div>
+      </div>
+      <div className="w-full overflow-x-auto pb-4">
+        <div className="flex gap-8 items-start" style={{ minWidth: 'max-content' }}>
+          {sorted.map(([roundName, roundMatches]) => (
+            <div key={roundName} className="flex flex-col gap-2 w-[220px] shrink-0">
+              <div className={`text-xs font-bold uppercase tracking-widest text-center mb-2 ${roundName === 'Final' ? 'text-yellow-400' : roundName === 'Third Place' ? 'text-gray-400' : 'text-cyan-400'}`}>
+                {roundName === 'Final' ? '🏆 ' : ''}{roundName}
+              </div>
+              <div className="flex flex-col gap-4">
+                {roundMatches.map((m) => {
+                  const isFinal = m.status === 'FINAL'
+                  const homeWon = isFinal && m.homeScore != null && m.awayScore != null && m.homeScore > m.awayScore
+                  const awayWon = isFinal && m.homeScore != null && m.awayScore != null && m.awayScore > m.homeScore
+                  const statusColor = m.status === 'FINAL' ? 'text-green-400' : m.status === 'IN_PROGRESS' ? 'text-yellow-400' : 'text-gray-600'
+                  return (
+                    <div key={m.id} className={`bg-gray-900 border rounded-xl overflow-hidden text-sm ${isFinal ? 'border-gray-700' : 'border-gray-800'}`}>
+                      <div className={`flex items-center justify-between px-3 py-2.5 gap-3 ${homeWon ? 'bg-green-500/10' : ''}`}>
+                        <span className={`font-semibold truncate ${homeWon ? 'text-green-300' : m.homeTeamName ? 'text-gray-200' : 'text-gray-600 italic'}`}>
+                          {homeWon && '▶ '}{m.homeTeamName ?? 'TBD'}
+                        </span>
+                        {m.homeScore != null && (
+                          <span className={`tabular-nums font-black shrink-0 text-base ${homeWon ? 'text-green-300' : 'text-gray-400'}`}>{m.homeScore}</span>
+                        )}
+                      </div>
+                      <div className="h-px bg-gray-800" />
+                      <div className={`flex items-center justify-between px-3 py-2.5 gap-3 ${awayWon ? 'bg-green-500/10' : ''}`}>
+                        <span className={`font-semibold truncate ${awayWon ? 'text-green-300' : m.awayTeamName ? 'text-gray-200' : 'text-gray-600 italic'}`}>
+                          {awayWon && '▶ '}{m.awayTeamName ?? 'TBD'}
+                        </span>
+                        {m.awayScore != null && (
+                          <span className={`tabular-nums font-black shrink-0 text-base ${awayWon ? 'text-green-300' : 'text-gray-400'}`}>{m.awayScore}</span>
+                        )}
+                      </div>
+                      <div className={`px-3 py-1 text-xs font-semibold border-t border-gray-800 ${statusColor}`}>{m.status}</div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

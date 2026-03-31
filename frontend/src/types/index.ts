@@ -173,6 +173,8 @@ export interface TournamentMatch {
   awayScore?: number
   notes?: string
   createdAt: string
+  /** Non-fatal advisory message from the backend when bracket advancement was partially blocked. */
+  warning?: string
 }
 
 export interface TournamentWorkflow {
