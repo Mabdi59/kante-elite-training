@@ -25,5 +25,6 @@ public class BookingResponse {
     private String notes;
     private PaymentStatus paymentStatus;
     private BookingStatus bookingStatus;
+    private String stripeSessionId;
     private LocalDateTime createdAt;
 }

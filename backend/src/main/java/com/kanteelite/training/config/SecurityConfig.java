@@ -84,7 +84,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/coach/public").permitAll()
                 // Coach authenticated endpoints
                 .requestMatchers("/api/coach/**").hasAnyRole("ADMIN", "COACH")
-                // Stripe webhook (public)
+                // Stripe webhook (public); /api/payments/my requires authentication
+                .requestMatchers(HttpMethod.GET, "/api/payments/my").authenticated()
                 .requestMatchers("/api/payments/**").permitAll()
                 // Attendance (coach, admin, staff can record; players/parents can read their own)
                 .requestMatchers(HttpMethod.POST, "/api/attendance").hasAnyRole("ADMIN", "STAFF", "COACH")
