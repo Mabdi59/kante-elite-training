@@ -1,5 +1,6 @@
 package com.kanteelite.training.service;
 
+import com.kanteelite.training.dto.request.AdminBookingRequest;
 import com.kanteelite.training.dto.request.BookingRequest;
 import com.kanteelite.training.dto.request.RescheduleRequest;
 import com.kanteelite.training.dto.response.BookingResponse;
@@ -9,12 +10,15 @@ import com.kanteelite.training.enums.BookingStatus;
 import com.kanteelite.training.enums.PaymentStatus;
 import com.kanteelite.training.exception.ResourceNotFoundException;
 import com.kanteelite.training.exception.SlotUnavailableException;
+import com.kanteelite.training.repository.AttendanceRecordRepository;
 import com.kanteelite.training.repository.BookingRepository;
+import com.kanteelite.training.repository.PlayerProgressNoteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 
@@ -28,6 +32,8 @@ public class BookingService {
     private final AvailabilityService availabilityService;
     private final AuditLogService auditLogService;
     private final NotificationService notificationService;
+    private final AttendanceRecordRepository attendanceRecordRepository;
+    private final PlayerProgressNoteRepository playerProgressNoteRepository;
 
     /**
      * Creates a booking directly without payment.
@@ -42,42 +48,82 @@ public class BookingService {
      */
     @Transactional
     public BookingResponse createBooking(BookingRequest request, String authenticatedEmail) {
-        Program program = programService.getProgramEntityById(request.getProgramId());
         String bookingEmail = normalizeEmail(
                 StringUtils.hasText(authenticatedEmail) ? authenticatedEmail : request.getEmail());
-
-        boolean slotTaken = bookingRepository.existsByProgramIdAndBookingDateAndBookingTimeAndBookingStatusNot(
-                request.getProgramId(), request.getBookingDate(), request.getBookingTime(), BookingStatus.CANCELLED
-        );
-        if (slotTaken) {
-            throw new SlotUnavailableException("This time slot is already booked. Please choose a different time.");
-        }
-        if (availabilityService.isSlotBlocked(request.getBookingDate(), request.getBookingTime())) {
-            throw new SlotUnavailableException("This time slot is not available. Please choose a different time.");
-        }
-
         Booking booking = Booking.builder()
-                .program(program)
-                .bookingDate(request.getBookingDate())
-                .bookingTime(request.getBookingTime())
-                .playerName(request.getPlayerName())
-                .playerAge(request.getPlayerAge())
-                .parentName(request.getParentName())
-                .email(bookingEmail)
-                .phone(request.getPhone())
-                .experienceLevel(request.getExperienceLevel())
-                .notes(request.getNotes())
                 .paymentStatus(PaymentStatus.PENDING)
                 .bookingStatus(BookingStatus.CONFIRMED)
                 .build();
-
-        Booking saved = bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(applyBookingDetails(
+                booking,
+                request.getProgramId(),
+                request.getBookingDate(),
+                request.getBookingTime(),
+                request.getPlayerName(),
+                request.getPlayerAge(),
+                request.getParentName(),
+                bookingEmail,
+                request.getPhone(),
+                request.getExperienceLevel(),
+                request.getNotes(),
+                null
+        ));
         BookingResponse response = toResponse(saved);
         boolean confirmationEmailAvailable = emailService.sendBookingConfirmation(response);
         response.setConfirmationEmailAvailable(confirmationEmailAvailable);
         auditLogService.log(bookingEmail, "CREATE", "Booking", saved.getId(),
-                "Booked " + program.getName() + " on " + request.getBookingDate() + " at " + request.getBookingTime());
+                "Booked " + saved.getProgram().getName() + " on " + request.getBookingDate() + " at " + request.getBookingTime());
         return response;
+    }
+
+    @Transactional
+    public BookingResponse createAdminBooking(AdminBookingRequest request, String actorEmail) {
+        Booking booking = Booking.builder()
+                .paymentStatus(PaymentStatus.PENDING)
+                .bookingStatus(BookingStatus.CONFIRMED)
+                .build();
+        Booking saved = bookingRepository.save(applyBookingDetails(
+                booking,
+                request.getProgramId(),
+                request.getBookingDate(),
+                request.getBookingTime(),
+                request.getPlayerName(),
+                request.getPlayerAge(),
+                request.getParentName(),
+                request.getEmail(),
+                request.getPhone(),
+                request.getExperienceLevel(),
+                request.getNotes(),
+                null
+        ));
+        BookingResponse response = toResponse(saved);
+        response.setConfirmationEmailAvailable(emailService.sendBookingConfirmation(response));
+        auditLogService.log(actorEmail, "CREATE", "Booking", saved.getId(),
+                "Admin created booking for " + saved.getEmail() + " in " + saved.getProgram().getName());
+        return response;
+    }
+
+    @Transactional
+    public BookingResponse updateBooking(Long id, AdminBookingRequest request, String actorEmail) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", id));
+        Booking saved = bookingRepository.save(applyBookingDetails(
+                booking,
+                request.getProgramId(),
+                request.getBookingDate(),
+                request.getBookingTime(),
+                request.getPlayerName(),
+                request.getPlayerAge(),
+                request.getParentName(),
+                request.getEmail(),
+                request.getPhone(),
+                request.getExperienceLevel(),
+                request.getNotes(),
+                id
+        ));
+        auditLogService.log(actorEmail, "UPDATE", "Booking", id,
+                "Admin updated booking for " + saved.getEmail() + " in " + saved.getProgram().getName());
+        return toResponse(saved);
     }
 
     /** Retrieves a booking by database ID. */
@@ -143,8 +189,8 @@ public class BookingService {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", id));
 
-        boolean slotTaken = bookingRepository.existsByProgramIdAndBookingDateAndBookingTimeAndBookingStatusNot(
-                booking.getProgram().getId(), req.getNewDate(), req.getNewTime(), BookingStatus.CANCELLED
+        boolean slotTaken = bookingRepository.existsByProgramIdAndBookingDateAndBookingTimeAndBookingStatusNotAndIdNot(
+                booking.getProgram().getId(), req.getNewDate(), req.getNewTime(), BookingStatus.CANCELLED, id
         );
         if (slotTaken) {
             throw new SlotUnavailableException("The new time slot is already booked.");
@@ -160,6 +206,17 @@ public class BookingService {
         auditLogService.log(actorEmail, "RESCHEDULE", "Booking", id,
                 "Moved from " + oldSlot + " to " + req.getNewDate() + " " + req.getNewTime());
         return response;
+    }
+
+    @Transactional
+    public void deleteBooking(Long id, String actorEmail) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", id));
+        attendanceRecordRepository.deleteByBookingId(id);
+        playerProgressNoteRepository.deleteByBookingId(id);
+        bookingRepository.delete(booking);
+        auditLogService.log(actorEmail, "DELETE", "Booking", id,
+                "Deleted booking for " + booking.getEmail() + " in " + booking.getProgram().getName());
     }
 
     /** Allows a coach to update the status of a session assigned to their email. */
@@ -199,6 +256,7 @@ public class BookingService {
     public BookingResponse toResponse(Booking b) {
         return BookingResponse.builder()
                 .id(b.getId())
+                .programId(b.getProgram().getId())
                 .programName(b.getProgram().getName())
                 .programSlug(b.getProgram().getSlug())
                 .bookingDate(b.getBookingDate())
@@ -216,6 +274,54 @@ public class BookingService {
                 .confirmationEmailAvailable(emailService.isEmailDeliveryAvailable())
                 .createdAt(b.getCreatedAt())
                 .build();
+    }
+
+    private Booking applyBookingDetails(
+            Booking booking,
+            Long programId,
+            LocalDate bookingDate,
+            String bookingTime,
+            String playerName,
+            String playerAge,
+            String parentName,
+            String email,
+            String phone,
+            String experienceLevel,
+            String notes,
+            Long currentBookingId
+    ) {
+        Program program = programService.getProgramEntityById(programId);
+        boolean slotChanged = currentBookingId == null
+                || !programId.equals(booking.getProgram().getId())
+                || !bookingDate.equals(booking.getBookingDate())
+                || !bookingTime.equals(booking.getBookingTime());
+        if (slotChanged) {
+            boolean slotTaken = currentBookingId == null
+                    ? bookingRepository.existsByProgramIdAndBookingDateAndBookingTimeAndBookingStatusNot(
+                            programId, bookingDate, bookingTime, BookingStatus.CANCELLED
+                    )
+                    : bookingRepository.existsByProgramIdAndBookingDateAndBookingTimeAndBookingStatusNotAndIdNot(
+                            programId, bookingDate, bookingTime, BookingStatus.CANCELLED, currentBookingId
+                    );
+            if (slotTaken) {
+                throw new SlotUnavailableException("This time slot is already booked. Please choose a different time.");
+            }
+            if (availabilityService.isSlotBlocked(bookingDate, bookingTime)) {
+                throw new SlotUnavailableException("This time slot is not available. Please choose a different time.");
+            }
+        }
+
+        booking.setProgram(program);
+        booking.setBookingDate(bookingDate);
+        booking.setBookingTime(bookingTime);
+        booking.setPlayerName(playerName);
+        booking.setPlayerAge(playerAge);
+        booking.setParentName(parentName);
+        booking.setEmail(normalizeEmail(email));
+        booking.setPhone(phone);
+        booking.setExperienceLevel(experienceLevel);
+        booking.setNotes(notes);
+        return booking;
     }
 
     private void ensureCoachOwnsBooking(Booking booking, String coachEmail) {

@@ -47,6 +47,14 @@ public class WaiverController {
         return ResponseEntity.ok(waiverService.updateTemplate(id, request, user.getUsername()));
     }
 
+    @DeleteMapping("/api/admin/waivers/templates/{id}")
+    public ResponseEntity<Void> deleteTemplate(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails user) {
+        waiverService.deleteTemplate(id, user.getUsername());
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/api/waivers/sign")
     public ResponseEntity<SignedWaiverResponse> signWaiver(
             @RequestBody SignWaiverRequest request,

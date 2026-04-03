@@ -1,6 +1,6 @@
 package com.kanteelite.training.controller.admin;
 
-import com.kanteelite.training.dto.request.BookingRequest;
+import com.kanteelite.training.dto.request.AdminBookingRequest;
 import com.kanteelite.training.dto.request.RescheduleRequest;
 import com.kanteelite.training.dto.response.ApiResponse;
 import com.kanteelite.training.dto.response.BookingResponse;
@@ -26,8 +26,11 @@ public class AdminBookingController {
     private final BookingService bookingService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<BookingResponse>> createBooking(@Valid @RequestBody BookingRequest request) {
-        BookingResponse booking = bookingService.createBooking(request);
+    public ResponseEntity<ApiResponse<BookingResponse>> createBooking(
+            @Valid @RequestBody AdminBookingRequest request,
+            @AuthenticationPrincipal UserDetails principal) {
+        String actor = principal != null ? principal.getUsername() : "admin";
+        BookingResponse booking = bookingService.createAdminBooking(request, actor);
         return ResponseEntity.ok(ApiResponse.success("Booking created successfully.", booking));
     }
 
@@ -46,6 +49,16 @@ public class AdminBookingController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<BookingResponse>> getBooking(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(bookingService.getById(id)));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<BookingResponse>> updateBooking(
+            @PathVariable Long id,
+            @Valid @RequestBody AdminBookingRequest request,
+            @AuthenticationPrincipal UserDetails principal) {
+        String actor = principal != null ? principal.getUsername() : "admin";
+        return ResponseEntity.ok(ApiResponse.success("Booking updated successfully.",
+                bookingService.updateBooking(id, request, actor)));
     }
 
     @PatchMapping("/{id}/status")
@@ -67,6 +80,15 @@ public class AdminBookingController {
         String actor = principal != null ? principal.getUsername() : "admin";
         return ResponseEntity.ok(ApiResponse.success("Booking rescheduled.",
                 bookingService.reschedule(id, request, actor)));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBooking(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails principal) {
+        String actor = principal != null ? principal.getUsername() : "admin";
+        bookingService.deleteBooking(id, actor);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/export.csv")

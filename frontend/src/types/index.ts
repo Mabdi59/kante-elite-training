@@ -129,6 +129,7 @@ export interface Testimonial {
 
 export interface Booking {
   id: number
+  programId: number
   programName: string
   programSlug: string
   bookingDate: string

@@ -66,6 +66,15 @@ public class WaiverService {
     }
 
     @Transactional
+    public void deleteTemplate(Long id, String actorEmail) {
+        WaiverTemplate template = templateRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("WaiverTemplate", id));
+        signedWaiverRepository.deleteByTemplateId(id);
+        templateRepository.delete(template);
+        auditLogService.log(actorEmail, "DELETE", "WaiverTemplate", id, "Deleted waiver: " + template.getTitle());
+    }
+
+    @Transactional
     public SignedWaiverResponse signWaiver(SignWaiverRequest request, String userEmail, String userName, String ipAddress) {
         WaiverTemplate template = templateRepository.findById(request.getTemplateId())
                 .orElseThrow(() -> new ResourceNotFoundException("WaiverTemplate", request.getTemplateId()));

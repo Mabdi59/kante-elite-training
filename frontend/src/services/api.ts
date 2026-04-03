@@ -450,6 +450,15 @@ export const createAdminBooking = async (data: BookingFormData): Promise<Booking
   return res.data.data!
 }
 
+export const updateAdminBooking = async (id: number, data: BookingFormData): Promise<Booking> => {
+  const res = await api.put<ApiResponse<Booking>>(`/admin/bookings/${id}`, data)
+  return res.data.data!
+}
+
+export const deleteAdminBooking = async (id: number): Promise<void> => {
+  await api.delete(`/admin/bookings/${id}`)
+}
+
 export const updateBookingStatus = async (id: number, status: string): Promise<Booking> => {
   const res = await api.patch<ApiResponse<Booking>>(`/admin/bookings/${id}/status`, { status })
   return res.data.data!

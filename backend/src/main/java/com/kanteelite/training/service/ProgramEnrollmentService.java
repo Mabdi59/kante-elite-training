@@ -6,14 +6,17 @@ import com.kanteelite.training.entity.Program;
 import com.kanteelite.training.entity.ProgramEnrollment;
 import com.kanteelite.training.enums.EnrollmentStatus;
 import com.kanteelite.training.enums.PaymentStatus;
+import com.kanteelite.training.enums.ScheduleType;
 import com.kanteelite.training.exception.ResourceNotFoundException;
 import com.kanteelite.training.repository.ProgramEnrollmentRepository;
 import com.kanteelite.training.repository.ProgramRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -28,23 +31,11 @@ public class ProgramEnrollmentService {
     public ProgramEnrollmentResponse enroll(ProgramEnrollmentRequest request, String enrolledBy) {
         Program program = programRepository.findById(request.getProgramId())
                 .orElseThrow(() -> new ResourceNotFoundException("Program", request.getProgramId()));
-
-        if (enrollmentRepository.existsByProgramIdAndPlayerEmailIgnoreCase(
-                request.getProgramId(), request.getPlayerEmail())) {
-            throw new IllegalArgumentException("Player is already enrolled in this program.");
-        }
+        validateDuplicateEnrollment(request.getProgramId(), request.getPlayerEmail(), null);
 
         ProgramEnrollment enrollment = ProgramEnrollment.builder()
-                .program(program)
-                .playerEmail(request.getPlayerEmail().trim().toLowerCase())
-                .playerName(request.getPlayerName())
-                .parentEmail(request.getParentEmail())
-                .startDate(request.getStartDate())
-                .endDate(request.getEndDate())
-                .scheduleType(request.getScheduleType())
-                .notes(request.getNotes())
-                .enrolledBy(enrolledBy)
                 .build();
+        applyEnrollmentDetails(enrollment, request, enrolledBy);
 
         ProgramEnrollment saved = enrollmentRepository.save(enrollment);
         auditLogService.log(enrolledBy, "ENROLL", "ProgramEnrollment", saved.getId(),
@@ -69,7 +60,9 @@ public class ProgramEnrollmentService {
 
     @Transactional(readOnly = true)
     public List<ProgramEnrollmentResponse> getAllEnrollments() {
-        return enrollmentRepository.findAll().stream().map(this::toResponse).toList();
+        return enrollmentRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt")).stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @Transactional
@@ -92,6 +85,32 @@ public class ProgramEnrollmentService {
         return toResponse(saved);
     }
 
+    @Transactional
+    public ProgramEnrollmentResponse updateEnrollment(Long id, ProgramEnrollmentRequest request, String actorEmail) {
+        ProgramEnrollment enrollment = enrollmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("ProgramEnrollment", id));
+        validateDuplicateEnrollment(request.getProgramId(), request.getPlayerEmail(), id);
+        applyEnrollmentDetails(enrollment, request, enrollment.getEnrolledBy());
+        ProgramEnrollment saved = enrollmentRepository.save(enrollment);
+        auditLogService.log(actorEmail, "UPDATE", "ProgramEnrollment", id,
+                "Updated enrollment for " + saved.getPlayerEmail() + " in " + saved.getProgram().getName());
+        return toResponse(saved);
+    }
+
+    @Transactional
+    public ProgramEnrollmentResponse createAdminEnrollment(ProgramEnrollmentRequest request, String actorEmail) {
+        return enroll(request, actorEmail);
+    }
+
+    @Transactional
+    public void deleteEnrollment(Long id, String actorEmail) {
+        ProgramEnrollment enrollment = enrollmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("ProgramEnrollment", id));
+        enrollmentRepository.delete(enrollment);
+        auditLogService.log(actorEmail, "DELETE", "ProgramEnrollment", id,
+                "Deleted enrollment for " + enrollment.getPlayerEmail() + " in " + enrollment.getProgram().getName());
+    }
+
     public ProgramEnrollmentResponse toResponse(ProgramEnrollment e) {
         return ProgramEnrollmentResponse.builder()
                 .id(e.getId())
@@ -109,5 +128,31 @@ public class ProgramEnrollmentService {
                 .enrolledBy(e.getEnrolledBy())
                 .createdAt(e.getCreatedAt())
                 .build();
+    }
+
+    private void applyEnrollmentDetails(ProgramEnrollment enrollment, ProgramEnrollmentRequest request, String enrolledBy) {
+        Program program = programRepository.findById(request.getProgramId())
+                .orElseThrow(() -> new ResourceNotFoundException("Program", request.getProgramId()));
+        enrollment.setProgram(program);
+        enrollment.setPlayerEmail(normalizeEmail(request.getPlayerEmail()));
+        enrollment.setPlayerName(request.getPlayerName());
+        enrollment.setParentEmail(normalizeEmail(request.getParentEmail()));
+        enrollment.setStartDate(request.getStartDate());
+        enrollment.setEndDate(request.getEndDate());
+        enrollment.setScheduleType(request.getScheduleType() == null ? ScheduleType.ONE_TIME : request.getScheduleType());
+        enrollment.setNotes(request.getNotes());
+        enrollment.setEnrolledBy(enrolledBy);
+    }
+
+    private void validateDuplicateEnrollment(Long programId, String playerEmail, Long currentEnrollmentId) {
+        enrollmentRepository.findByProgramIdAndPlayerEmailIgnoreCase(programId, playerEmail)
+                .filter(existing -> currentEnrollmentId == null || !existing.getId().equals(currentEnrollmentId))
+                .ifPresent(existing -> {
+                    throw new IllegalArgumentException("Player is already enrolled in this program.");
+                });
+    }
+
+    private String normalizeEmail(String email) {
+        return email == null || email.isBlank() ? null : email.trim().toLowerCase(Locale.ROOT);
     }
 }

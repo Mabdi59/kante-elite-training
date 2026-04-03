@@ -23,6 +23,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
         Long programId, LocalDate date, String time, com.kanteelite.training.enums.BookingStatus status
     );
 
+    boolean existsByProgramIdAndBookingDateAndBookingTimeAndBookingStatusNotAndIdNot(
+        Long programId, LocalDate date, String time, com.kanteelite.training.enums.BookingStatus status, Long id
+    );
+
     @Query("SELECT b FROM Booking b JOIN FETCH b.program ORDER BY b.createdAt DESC")
     List<Booking> findAllByOrderByCreatedAtDesc();
 

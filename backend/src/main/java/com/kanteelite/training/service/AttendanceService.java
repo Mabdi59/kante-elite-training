@@ -74,6 +74,15 @@ public class AttendanceService {
         return Map.of("PRESENT", present, "ABSENT", absent, "LATE", late, "TOTAL", present + absent + late);
     }
 
+    @Transactional
+    public void deleteAttendance(Long id, String actorEmail) {
+        AttendanceRecord record = attendanceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("AttendanceRecord", id));
+        attendanceRepository.delete(record);
+        auditLogService.log(actorEmail, "DELETE", "AttendanceRecord", id,
+                "Deleted attendance for " + record.getPlayerEmail() + " on " + record.getSessionDate());
+    }
+
     public AttendanceResponse toResponse(AttendanceRecord r) {
         return AttendanceResponse.builder()
                 .id(r.getId())

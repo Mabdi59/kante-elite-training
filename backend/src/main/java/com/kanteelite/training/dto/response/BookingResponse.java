@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 public class BookingResponse {
     private Long id;
+    private Long programId;
     private String programName;
     private String programSlug;
     private LocalDate bookingDate;

@@ -26,4 +26,5 @@ public interface PlayerProgressNoteRepository extends JpaRepository<PlayerProgre
     List<PlayerProgressNote> findVisibleByPlayerUserIdOrEmail(@Param("userId") Long userId, @Param("email") String email);
 
     List<PlayerProgressNote> findByBookingIdOrderByCreatedAtDesc(Long bookingId);
+    void deleteByBookingId(Long bookingId);
 }

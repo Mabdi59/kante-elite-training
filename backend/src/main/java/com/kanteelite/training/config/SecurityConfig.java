@@ -89,6 +89,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/payments/**").permitAll()
                 // Attendance (coach, admin, staff can record; players/parents can read their own)
                 .requestMatchers(HttpMethod.POST, "/api/attendance").hasAnyRole("ADMIN", "STAFF", "COACH")
+                .requestMatchers(HttpMethod.DELETE, "/api/attendance/**").hasAnyRole("ADMIN", "STAFF", "COACH")
                 .requestMatchers(HttpMethod.GET, "/api/attendance/booking/**").hasAnyRole("ADMIN", "STAFF", "COACH")
                 .requestMatchers(HttpMethod.GET, "/api/attendance/range").hasAnyRole("ADMIN", "STAFF", "COACH")
                 .requestMatchers(HttpMethod.GET, "/api/attendance/player/**").authenticated()

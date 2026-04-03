@@ -16,6 +16,7 @@ public interface AttendanceRecordRepository extends JpaRepository<AttendanceReco
     Optional<AttendanceRecord> findByBookingIdAndPlayerEmailIgnoreCase(Long bookingId, String playerEmail);
     List<AttendanceRecord> findBySessionDateBetweenOrderBySessionDateDesc(LocalDate from, LocalDate to);
     long countByPlayerEmailIgnoreCaseAndStatus(String playerEmail, AttendanceStatus status);
+    void deleteByBookingId(Long bookingId);
 
     @Query("SELECT a FROM AttendanceRecord a WHERE a.sessionDate BETWEEN :from AND :to AND (:email IS NULL OR LOWER(a.playerEmail) = LOWER(:email))")
     List<AttendanceRecord> findByDateRangeAndOptionalPlayer(@Param("from") LocalDate from, @Param("to") LocalDate to, @Param("email") String email);

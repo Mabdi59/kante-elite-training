@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import axios from 'axios'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorBanner from '../../components/ErrorBanner'
@@ -7,7 +7,7 @@ interface WaiverTemplate {
   id: number
   title: string
   content: string
-  requiredRoles: string[]
+  requiredRoles: string
   active: boolean
   createdAt: string
 }
@@ -29,18 +29,21 @@ export default function AdminWaiversPage() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [form, setForm] = useState<FormData>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
 
   const token = localStorage.getItem('token')
 
   const fetchTemplates = () => {
     axios
       .get('/api/admin/waivers/templates', { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => setTemplates(r.data ?? []))
+      .then((response) => setTemplates(response.data ?? []))
       .catch(() => setError('Failed to load waiver templates.'))
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { fetchTemplates() }, [token])
+  useEffect(() => {
+    fetchTemplates()
+  }, [token])
 
   const openNew = () => {
     setForm(EMPTY_FORM)
@@ -48,26 +51,29 @@ export default function AdminWaiversPage() {
     setShowForm(true)
   }
 
-  const openEdit = (t: WaiverTemplate) => {
+  const openEdit = (template: WaiverTemplate) => {
     setForm({
-      title: t.title,
-      content: t.content,
-      requiredRoles: (t.requiredRoles ?? []).join(', '),
-      active: t.active,
+      title: template.title,
+      content: template.content,
+      requiredRoles: template.requiredRoles ?? '',
+      active: template.active,
     })
-    setEditingId(t.id)
+    setEditingId(template.id)
     setShowForm(true)
   }
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSave = async (event: React.FormEvent) => {
+    event.preventDefault()
     setSaving(true)
+    setError('')
+
     const payload = {
       title: form.title,
       content: form.content,
-      requiredRoles: form.requiredRoles.split(',').map((r) => r.trim()).filter(Boolean),
+      requiredRoles: form.requiredRoles,
       active: form.active,
     }
+
     try {
       if (editingId) {
         await axios.put(`/api/admin/waivers/templates/${editingId}`, payload, {
@@ -79,6 +85,8 @@ export default function AdminWaiversPage() {
         })
       }
       setShowForm(false)
+      setEditingId(null)
+      setForm(EMPTY_FORM)
       setLoading(true)
       fetchTemplates()
     } catch {
@@ -88,28 +96,66 @@ export default function AdminWaiversPage() {
     }
   }
 
-  const toggleActive = async (t: WaiverTemplate) => {
+  const toggleActive = async (template: WaiverTemplate) => {
     try {
-      await axios.put(`/api/admin/waivers/templates/${t.id}`, { ...t, active: !t.active }, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      setTemplates((prev) => prev.map((tmpl) => tmpl.id === t.id ? { ...tmpl, active: !tmpl.active } : tmpl))
+      await axios.put(
+        `/api/admin/waivers/templates/${template.id}`,
+        {
+          title: template.title,
+          content: template.content,
+          requiredRoles: template.requiredRoles,
+          active: !template.active,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      )
+      setTemplates((prev) =>
+        prev.map((item) => (item.id === template.id ? { ...item, active: !template.active } : item)),
+      )
     } catch {
       setError('Failed to toggle waiver status.')
     }
   }
 
-  if (loading) return <LoadingSpinner label="Loading waiver templates…" />
+  const handleDelete = async (template: WaiverTemplate) => {
+    if (!window.confirm(`Delete "${template.title}"? This will also remove signed records tied to it.`)) {
+      return
+    }
+
+    setDeletingId(template.id)
+    setError('')
+    try {
+      await axios.delete(`/api/admin/waivers/templates/${template.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setTemplates((prev) => prev.filter((item) => item.id !== template.id))
+      if (editingId === template.id) {
+        setShowForm(false)
+        setEditingId(null)
+        setForm(EMPTY_FORM)
+      }
+    } catch {
+      setError('Failed to delete waiver template.')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  if (loading) return <LoadingSpinner label="Loading waiver templates..." />
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-black text-white">Waiver Templates</h1>
-          <p className="mt-1 text-sm text-gray-400">Create and manage waiver templates.</p>
+          <p className="mt-1 text-sm text-gray-400">Create, update, activate, and delete waiver templates.</p>
         </div>
-        <button type="button" onClick={openNew}
-          className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500">
+        <button
+          type="button"
+          onClick={openNew}
+          className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500"
+        >
           + New Waiver
         </button>
       </div>
@@ -118,38 +164,65 @@ export default function AdminWaiversPage() {
 
       {showForm && (
         <div className="rounded-xl border border-white/10 bg-zinc-900 p-5">
-          <h2 className="mb-4 text-base font-bold text-white">
-            {editingId ? 'Edit Waiver' : 'New Waiver'}
-          </h2>
+          <h2 className="mb-4 text-base font-bold text-white">{editingId ? 'Edit Waiver' : 'New Waiver'}</h2>
           <form onSubmit={handleSave} className="space-y-4">
             <div>
               <label className="mb-1 block text-xs font-semibold text-gray-400">Title *</label>
-              <input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })}
-                className="w-full rounded-lg border border-white/10 bg-black px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500" />
+              <input
+                required
+                value={form.title}
+                onChange={(event) => setForm({ ...form, title: event.target.value })}
+                className="w-full rounded-lg border border-white/10 bg-black px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500"
+              />
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-gray-400">Content *</label>
-              <textarea required rows={6} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })}
-                className="w-full rounded-lg border border-white/10 bg-black px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500" />
+              <textarea
+                required
+                rows={6}
+                value={form.content}
+                onChange={(event) => setForm({ ...form, content: event.target.value })}
+                className="w-full rounded-lg border border-white/10 bg-black px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500"
+              />
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-gray-400">Required Roles (comma-separated)</label>
-              <input value={form.requiredRoles} onChange={(e) => setForm({ ...form, requiredRoles: e.target.value })}
+              <input
+                value={form.requiredRoles}
+                onChange={(event) => setForm({ ...form, requiredRoles: event.target.value })}
                 placeholder="PLAYER, PARENT"
-                className="w-full rounded-lg border border-white/10 bg-black px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-green-500" />
+                className="w-full rounded-lg border border-white/10 bg-black px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+              />
             </div>
             <div className="flex items-center gap-3">
-              <input type="checkbox" id="active" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })}
-                className="accent-green-500" />
-              <label htmlFor="active" className="text-sm text-gray-300">Active</label>
+              <input
+                type="checkbox"
+                id="active"
+                checked={form.active}
+                onChange={(event) => setForm({ ...form, active: event.target.checked })}
+                className="accent-green-500"
+              />
+              <label htmlFor="active" className="text-sm text-gray-300">
+                Active
+              </label>
             </div>
-            <div className="flex gap-3">
-              <button type="submit" disabled={saving}
-                className="rounded-lg bg-green-600 px-5 py-2 text-sm font-semibold text-white hover:bg-green-500 disabled:opacity-50">
-                {saving ? 'Saving…' : 'Save'}
+            <div className="flex gap-3 flex-wrap">
+              <button
+                type="submit"
+                disabled={saving}
+                className="rounded-lg bg-green-600 px-5 py-2 text-sm font-semibold text-white hover:bg-green-500 disabled:opacity-50"
+              >
+                {saving ? 'Saving...' : 'Save'}
               </button>
-              <button type="button" onClick={() => setShowForm(false)}
-                className="rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-gray-400 hover:text-white">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowForm(false)
+                  setEditingId(null)
+                  setForm(EMPTY_FORM)
+                }}
+                className="rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-gray-400 hover:text-white"
+              >
                 Cancel
               </button>
             </div>
@@ -163,34 +236,53 @@ export default function AdminWaiversPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {templates.map((t) => (
-            <div key={t.id} className="flex items-start justify-between gap-4 rounded-xl border border-white/10 bg-zinc-900 p-4">
+          {templates.map((template) => (
+            <div
+              key={template.id}
+              className="flex items-start justify-between gap-4 rounded-xl border border-white/10 bg-zinc-900 p-4"
+            >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-sm font-bold text-white">{t.title}</h3>
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                    t.active ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'
-                  }`}>
-                    {t.active ? 'Active' : 'Inactive'}
+                  <h3 className="text-sm font-bold text-white">{template.title}</h3>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                      template.active ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'
+                    }`}
+                  >
+                    {template.active ? 'Active' : 'Inactive'}
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-gray-500">
-                  {t.createdAt ? new Date(t.createdAt).toLocaleDateString() : ''}
-                  {t.requiredRoles?.length > 0 && ` · Roles: ${t.requiredRoles.join(', ')}`}
+                  {template.createdAt ? new Date(template.createdAt).toLocaleDateString() : ''}
+                  {template.requiredRoles?.trim() ? ` - Roles: ${template.requiredRoles}` : ''}
                 </p>
               </div>
-              <div className="flex gap-2 shrink-0">
-                <button type="button" onClick={() => openEdit(t)}
-                  className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/10">
+              <div className="flex gap-2 shrink-0 flex-wrap justify-end">
+                <button
+                  type="button"
+                  onClick={() => openEdit(template)}
+                  className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/10"
+                >
                   Edit
                 </button>
-                <button type="button" onClick={() => toggleActive(t)}
+                <button
+                  type="button"
+                  onClick={() => toggleActive(template)}
                   className={`rounded-lg border px-3 py-1.5 text-xs font-semibold ${
-                    t.active
+                    template.active
                       ? 'border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20'
                       : 'border-green-500/20 bg-green-500/10 text-green-400 hover:bg-green-500/20'
-                  }`}>
-                  {t.active ? 'Deactivate' : 'Activate'}
+                  }`}
+                >
+                  {template.active ? 'Deactivate' : 'Activate'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(template)}
+                  disabled={deletingId === template.id}
+                  className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-400 hover:bg-red-500/20 disabled:opacity-50"
+                >
+                  {deletingId === template.id ? 'Deleting...' : 'Delete'}
                 </button>
               </div>
             </div>
@@ -200,3 +292,5 @@ export default function AdminWaiversPage() {
     </div>
   )
 }
+
+

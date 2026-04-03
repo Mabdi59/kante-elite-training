@@ -39,6 +39,13 @@ public class ProgramEnrollmentController {
         return ResponseEntity.ok(enrollmentService.getAllEnrollments());
     }
 
+    @PostMapping("/api/admin/enrollments")
+    public ResponseEntity<ProgramEnrollmentResponse> createEnrollment(
+            @RequestBody ProgramEnrollmentRequest request,
+            @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(enrollmentService.createAdminEnrollment(request, user.getUsername()));
+    }
+
     @GetMapping("/api/admin/enrollments/program/{programId}")
     public ResponseEntity<List<ProgramEnrollmentResponse>> getByProgram(@PathVariable Long programId) {
         return ResponseEntity.ok(enrollmentService.getEnrollmentsForProgram(programId));
@@ -63,5 +70,21 @@ public class ProgramEnrollmentController {
             @RequestParam PaymentStatus paymentStatus,
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(enrollmentService.updatePaymentStatus(id, paymentStatus, user.getUsername()));
+    }
+
+    @PutMapping("/api/admin/enrollments/{id}")
+    public ResponseEntity<ProgramEnrollmentResponse> updateEnrollment(
+            @PathVariable Long id,
+            @RequestBody ProgramEnrollmentRequest request,
+            @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(enrollmentService.updateEnrollment(id, request, user.getUsername()));
+    }
+
+    @DeleteMapping("/api/admin/enrollments/{id}")
+    public ResponseEntity<Void> deleteEnrollment(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails user) {
+        enrollmentService.deleteEnrollment(id, user.getUsername());
+        return ResponseEntity.noContent().build();
     }
 }

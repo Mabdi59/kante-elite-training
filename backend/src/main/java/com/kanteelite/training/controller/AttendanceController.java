@@ -55,4 +55,12 @@ public class AttendanceController {
             @RequestParam(required = false) String playerEmail) {
         return ResponseEntity.ok(attendanceService.getByDateRange(from, to, playerEmail));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteAttendance(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails user) {
+        attendanceService.deleteAttendance(id, user.getUsername());
+        return ResponseEntity.noContent().build();
+    }
 }

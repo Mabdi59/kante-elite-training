@@ -9,4 +9,5 @@ public interface SignedWaiverRepository extends JpaRepository<SignedWaiver, Long
     List<SignedWaiver> findByUserEmailIgnoreCaseOrderBySignedAtDesc(String userEmail);
     Optional<SignedWaiver> findByTemplateIdAndUserEmailIgnoreCase(Long templateId, String userEmail);
     boolean existsByTemplateIdAndUserEmailIgnoreCase(Long templateId, String userEmail);
+    void deleteByTemplateId(Long templateId);
 }
