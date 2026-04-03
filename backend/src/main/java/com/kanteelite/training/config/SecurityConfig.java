@@ -86,6 +86,31 @@ public class SecurityConfig {
                 .requestMatchers("/api/coach/**").hasAnyRole("ADMIN", "COACH")
                 // Stripe webhook (public)
                 .requestMatchers("/api/payments/**").permitAll()
+                // Attendance (coach, admin, staff can record; players/parents can read their own)
+                .requestMatchers(HttpMethod.POST, "/api/attendance").hasAnyRole("ADMIN", "STAFF", "COACH")
+                .requestMatchers(HttpMethod.GET, "/api/attendance/booking/**").hasAnyRole("ADMIN", "STAFF", "COACH")
+                .requestMatchers(HttpMethod.GET, "/api/attendance/range").hasAnyRole("ADMIN", "STAFF", "COACH")
+                .requestMatchers(HttpMethod.GET, "/api/attendance/player/**").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/attendance/player").authenticated()
+                // Messages (all authenticated users)
+                .requestMatchers("/api/messages/**").authenticated()
+                // Notifications (all authenticated users)
+                .requestMatchers("/api/notifications/**").authenticated()
+                // Waivers
+                .requestMatchers(HttpMethod.GET, "/api/waivers/templates").authenticated()
+                .requestMatchers("/api/waivers/**").authenticated()
+                .requestMatchers("/api/documents/**").authenticated()
+                .requestMatchers("/api/admin/waivers/**").hasRole("ADMIN")
+                .requestMatchers("/api/admin/documents/**").hasAnyRole("ADMIN", "STAFF")
+                // Enrollments
+                .requestMatchers("/api/enrollments/**").authenticated()
+                .requestMatchers("/api/admin/enrollments/**").hasAnyRole("ADMIN", "STAFF")
+                // Calendar
+                .requestMatchers("/api/calendar/**").authenticated()
+                // Search
+                .requestMatchers("/api/search/**").hasAnyRole("ADMIN", "STAFF", "COACH")
+                // Reports
+                .requestMatchers("/api/admin/reports/**").hasRole("ADMIN")
                 // All other requests require authentication
                 .anyRequest().authenticated()
             )
