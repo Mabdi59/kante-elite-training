@@ -101,11 +101,10 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black pt-20 pb-16 px-4">
-      <div className="mx-auto max-w-4xl space-y-6">
-        <h1 className="text-3xl font-black text-white">Messages</h1>
+    <div className="space-y-6 max-w-4xl">
+      <h1 className="text-2xl font-black text-white">Messages</h1>
 
-        {error && <ErrorBanner message={error} />}
+      {error && <ErrorBanner message={error} />}
 
         <div className="flex gap-1 rounded-xl border border-white/10 bg-zinc-900 p-1">
           {(['inbox', 'sent', 'compose'] as Tab[]).map((t) => (
@@ -233,7 +232,6 @@ export default function MessagesPage() {
             )}
           </div>
         )}
-      </div>
     </div>
   )
 }

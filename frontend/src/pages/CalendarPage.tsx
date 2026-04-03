@@ -146,18 +146,17 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black pt-20 pb-16 px-4">
-      <div className="mx-auto max-w-5xl space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <h1 className="text-3xl font-black text-white">Calendar</h1>
-          <button
-            type="button"
-            onClick={() => setShowForm(!showForm)}
-            className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500"
-          >
-            + Add Event
-          </button>
-        </div>
+    <div className="space-y-6 max-w-5xl">
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <h1 className="text-2xl font-black text-white">Calendar</h1>
+        <button
+          type="button"
+          onClick={() => setShowForm(!showForm)}
+          className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500"
+        >
+          + Add Event
+        </button>
+      </div>
 
         {error && <ErrorBanner message={error} />}
 
@@ -316,7 +315,6 @@ export default function CalendarPage() {
             </div>
           </div>
         )}
-      </div>
     </div>
   )
 }

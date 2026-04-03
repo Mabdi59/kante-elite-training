@@ -76,19 +76,14 @@ export default function WaiversPage() {
     }
   }
 
-  if (loading) return (
-    <div className="min-h-screen bg-black pt-20 flex items-center justify-center">
-      <LoadingSpinner label="Loading waivers…" />
-    </div>
-  )
+  if (loading) return <LoadingSpinner label="Loading waivers…" />
 
   return (
-    <div className="min-h-screen bg-black pt-20 pb-16 px-4">
-      <div className="mx-auto max-w-3xl space-y-6">
-        <div>
-          <h1 className="text-3xl font-black text-white">Waivers</h1>
-          <p className="mt-1 text-sm text-gray-400">Review and sign required waivers.</p>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-black text-white">Waivers</h1>
+        <p className="mt-1 text-sm text-gray-400">Review and sign required waivers.</p>
+      </div>
 
         {error && <ErrorBanner message={error} />}
 
@@ -152,7 +147,6 @@ export default function WaiversPage() {
             })}
           </div>
         )}
-      </div>
     </div>
   )
 }
