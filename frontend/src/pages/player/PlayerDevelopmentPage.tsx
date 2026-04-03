@@ -53,7 +53,7 @@ export default function PlayerDevelopmentPage() {
       }
     }
     fetchData()
-  }, [])
+  }, [token])
 
   const attendanceRate = summary.total
     ? Math.round((summary.present / summary.total) * 100)

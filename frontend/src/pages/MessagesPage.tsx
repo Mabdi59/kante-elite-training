@@ -55,7 +55,7 @@ export default function MessagesPage() {
   useEffect(() => {
     fetchMessages(tab)
     setSelected(null)
-  }, [tab])
+  }, [tab, token])
 
   const handleSelect = async (msg: Message) => {
     setSelected(msg)

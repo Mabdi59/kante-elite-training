@@ -57,7 +57,7 @@ export default function AdminSearchPage() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [query])
+  }, [query, token])
 
   return (
     <div className="space-y-6">

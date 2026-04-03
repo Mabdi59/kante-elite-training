@@ -31,7 +31,7 @@ export default function DocumentsPage() {
       .then((r) => setDocuments(r.data ?? []))
       .catch(() => setError('Failed to load documents.'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [token])
 
   if (loading) return (
     <div className="min-h-screen bg-black pt-20 flex items-center justify-center">

@@ -60,7 +60,7 @@ export default function CalendarPage() {
 
   useEffect(() => {
     fetchEvents()
-  }, [year, month])
+  }, [year, month, token])
 
   const prevMonth = () => {
     if (month === 0) { setYear(y => y - 1); setMonth(11) }

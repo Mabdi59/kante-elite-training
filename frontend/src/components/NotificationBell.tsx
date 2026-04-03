@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
 
@@ -20,7 +20,7 @@ export default function NotificationBell() {
 
   const token = localStorage.getItem('token')
 
-  const fetchCount = async () => {
+  const fetchCount = useCallback(async () => {
     if (!token) return
     try {
       const res = await axios.get('/api/notifications/unread-count', {
@@ -30,14 +30,14 @@ export default function NotificationBell() {
     } catch {
       // silent
     }
-  }
+  }, [token])
 
   useEffect(() => {
     if (!isAuthenticated) return
     fetchCount()
     const interval = setInterval(fetchCount, 60_000)
     return () => clearInterval(interval)
-  }, [isAuthenticated])
+  }, [isAuthenticated, fetchCount])
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

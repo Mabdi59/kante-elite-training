@@ -32,7 +32,7 @@ export default function AdminEnrollmentsPage() {
       .then((r) => setEnrollments(r.data ?? []))
       .catch(() => setError('Failed to load enrollments.'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [token])
 
   const updateStatus = async (id: number, status: string) => {
     setUpdating(id)

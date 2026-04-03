@@ -40,7 +40,7 @@ export default function AdminWaiversPage() {
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { fetchTemplates() }, [])
+  useEffect(() => { fetchTemplates() }, [token])
 
   const openNew = () => {
     setForm(EMPTY_FORM)

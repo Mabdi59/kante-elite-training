@@ -36,7 +36,7 @@ export default function AdminReportsPage() {
       .then((r) => setRevenue(r.data))
       .catch(() => setError('Failed to load revenue report.'))
       .finally(() => setRevLoading(false))
-  }, [])
+  }, [token])
 
   const fetchAttendance = async () => {
     setAttLoading(true)

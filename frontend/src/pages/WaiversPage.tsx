@@ -55,7 +55,7 @@ export default function WaiversPage() {
       }
     }
     fetchAll()
-  }, [])
+  }, [token])
 
   const handleSign = async (templateId: number) => {
     if (!signature.trim()) return

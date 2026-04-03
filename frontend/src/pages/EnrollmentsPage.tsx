@@ -33,7 +33,7 @@ export default function EnrollmentsPage() {
       .then((r) => setEnrollments(r.data ?? []))
       .catch(() => setError('Failed to load enrollments.'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [token])
 
   if (loading) return (
     <div className="min-h-screen bg-black pt-20 flex items-center justify-center">
