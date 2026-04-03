@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import CategoryBadge, { getCategoryLabel } from '../../components/CategoryBadge'
 import EmptyState from '../../components/EmptyState'
 import ErrorBanner from '../../components/ErrorBanner'
 import MediaPostCard from '../../components/MediaPostCard'
@@ -11,7 +12,14 @@ import {
   updateMediaPost,
   updateWebsiteContent,
 } from '../../services/api'
-import type { MediaPost, WebsiteContent } from '../../types'
+import type { MediaCategory, MediaPost, WebsiteContent } from '../../types'
+
+const CATEGORY_OPTIONS: { value: MediaCategory; label: string }[] = [
+  { value: 'TRAINING_PHOTO', label: 'Training Photos' },
+  { value: 'MATCH_HIGHLIGHT', label: 'Match Highlights' },
+  { value: 'SKILL_CLIP', label: 'Skill Clips' },
+  { value: 'TESTIMONIAL', label: 'Testimonials' },
+]
 
 function TextField({
   label,
@@ -133,6 +141,8 @@ export default function AdminContentPage() {
     defaultWebsiteContent.aboutExperiencePoints.join('\n'),
   )
   const [posts, setPosts] = useState<MediaPost[]>([])
+  const [filterCategory, setFilterCategory] = useState<MediaCategory | 'ALL'>('ALL')
+  const [editingCategoryPostId, setEditingCategoryPostId] = useState<number | null>(null)
 
   useEffect(() => {
     setLoading(true)
@@ -158,6 +168,11 @@ export default function AdminContentPage() {
     () => posts.filter((post) => post.featured).length,
     [posts],
   )
+
+  const filteredPosts = useMemo(() => {
+    if (filterCategory === 'ALL') return posts
+    return posts.filter((p) => p.mediaCategory === filterCategory)
+  }, [posts, filterCategory])
 
   const updateContentField = (key: EditableContentField, value: string) => {
     setStatus('')
@@ -228,6 +243,7 @@ export default function AdminContentPage() {
         featured: patch.featured,
         showOnHome: patch.showOnHome,
         showOnAbout: patch.showOnAbout,
+        mediaCategory: patch.mediaCategory,
       })
       const refreshedPosts = await getMediaPosts()
       setPosts(refreshedPosts)
@@ -431,6 +447,25 @@ export default function AdminContentPage() {
             </div>
           </div>
 
+          {posts.length > 0 ? (
+            <div className="mb-6 flex flex-wrap gap-2">
+              {(['ALL', ...CATEGORY_OPTIONS.map((o) => o.value)] as (MediaCategory | 'ALL')[]).map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setFilterCategory(cat)}
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    filterCategory === cat
+                      ? 'bg-cyan-500 text-black'
+                      : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                  }`}
+                >
+                  {cat === 'ALL' ? `All (${posts.length})` : `${getCategoryLabel(cat)} (${posts.filter((p) => p.mediaCategory === cat).length})`}
+                </button>
+              ))}
+            </div>
+          ) : null}
+
           {posts.length === 0 ? (
             <EmptyState
               icon="Media"
@@ -447,8 +482,9 @@ export default function AdminContentPage() {
             />
           ) : (
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 2xl:grid-cols-3">
-              {posts.map((post, index) => {
+              {filteredPosts.map((post, index) => {
                 const isSavingPost = savingPostIds.includes(post.id)
+                const isEditingCategory = editingCategoryPostId === post.id
 
                 return (
                   <div key={post.id} className="rounded-2xl border border-gray-800 bg-black/40 p-4">
@@ -457,6 +493,43 @@ export default function AdminContentPage() {
                       imageLoading={index < 4 ? 'eager' : 'lazy'}
                       imageFetchPriority={index < 2 ? 'high' : 'auto'}
                     />
+                    <div className="mt-3 flex items-center justify-between gap-2">
+                      {post.mediaCategory ? (
+                        <CategoryBadge category={post.mediaCategory} size="sm" />
+                      ) : (
+                        <span className="text-xs text-gray-500">No category</span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setEditingCategoryPostId(isEditingCategory ? null : post.id)}
+                        className="rounded-lg bg-gray-800 px-3 py-1.5 text-xs font-medium text-gray-300 hover:bg-gray-700"
+                      >
+                        {isEditingCategory ? 'Cancel' : 'Edit Category'}
+                      </button>
+                    </div>
+                    {isEditingCategory ? (
+                      <div className="mt-3">
+                        <select
+                          defaultValue={post.mediaCategory ?? ''}
+                          disabled={isSavingPost}
+                          onChange={async (e) => {
+                            const val = e.target.value as MediaCategory
+                            if (val) {
+                              await togglePost(post.id, { mediaCategory: val })
+                              setEditingCategoryPostId(null)
+                            }
+                          }}
+                          className="w-full rounded-xl border border-gray-700 bg-black px-3 py-2 text-sm text-white"
+                        >
+                          <option value="">Select category…</option>
+                          {CATEGORY_OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ) : null}
                     <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                       <ToggleButton
                         badge="Home"

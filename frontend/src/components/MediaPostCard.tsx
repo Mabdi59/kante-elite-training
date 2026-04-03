@@ -1,3 +1,4 @@
+import CategoryBadge from './CategoryBadge'
 import type { MediaPost } from '../types'
 
 interface MediaPostCardProps {
@@ -56,10 +57,13 @@ export default function MediaPostCard({
           />
         )}
 
-        <div className="pointer-events-none absolute left-4 top-4">
+        <div className="pointer-events-none absolute left-4 top-4 flex flex-wrap gap-1.5">
           <span className="rounded-full border border-white/15 bg-black/65 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-white backdrop-blur">
             {post.mediaType}
           </span>
+          {post.mediaCategory ? (
+            <CategoryBadge category={post.mediaCategory} />
+          ) : null}
         </div>
       </div>
 

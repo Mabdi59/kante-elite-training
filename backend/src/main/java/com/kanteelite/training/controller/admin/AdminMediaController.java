@@ -3,6 +3,7 @@ package com.kanteelite.training.controller.admin;
 import com.kanteelite.training.dto.request.MediaPostUpdateRequest;
 import com.kanteelite.training.dto.response.ApiResponse;
 import com.kanteelite.training.dto.response.MediaPostResponse;
+import com.kanteelite.training.enums.MediaCategory;
 import com.kanteelite.training.service.AuditLogService;
 import com.kanteelite.training.service.MediaPostService;
 import jakarta.validation.Valid;
@@ -26,8 +27,17 @@ public class AdminMediaController {
     public ResponseEntity<ApiResponse<MediaPostResponse>> createMediaPost(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "caption", required = false) String caption,
+            @RequestParam(value = "category", required = false) String category,
             @AuthenticationPrincipal UserDetails principal) {
-        MediaPostResponse created = mediaPostService.createPost(file, caption);
+        MediaCategory mediaCategory = null;
+        if (category != null && !category.isBlank()) {
+            try {
+                mediaCategory = MediaCategory.valueOf(category.trim().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid media category: " + category);
+            }
+        }
+        MediaPostResponse created = mediaPostService.createPost(file, caption, mediaCategory);
         String actor = principal != null ? principal.getUsername() : "admin";
         auditLogService.log(actor, "CREATE", "MediaPost", created.getId(), "Uploaded media post.");
         return ResponseEntity.status(HttpStatus.CREATED)
