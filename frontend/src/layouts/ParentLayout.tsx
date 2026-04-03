@@ -6,6 +6,13 @@ const navItems = [
   { path: '/parent', label: 'Dashboard', icon: 'D' },
   { path: '/parent/bookings', label: 'Bookings', icon: 'B' },
   { path: '/parent/players', label: 'Players', icon: 'P' },
+  { path: '/parent/development', label: 'Development', icon: '↑' },
+  { path: '/parent/messages', label: 'Messages', icon: '✉' },
+  { path: '/parent/calendar', label: 'Calendar', icon: '◻' },
+  { path: '/parent/enrollments', label: 'Enrollments', icon: 'E' },
+  { path: '/parent/waivers', label: 'Waivers', icon: 'W' },
+  { path: '/parent/documents', label: 'Documents', icon: '↓' },
+  { path: '/parent/payments', label: 'Payments', icon: '$' },
 ]
 
 export default function ParentLayout({ children }: { children: ReactNode }) {

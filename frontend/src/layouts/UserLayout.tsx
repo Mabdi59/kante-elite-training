@@ -6,6 +6,12 @@ const navItems = [
   { path: '/user', label: 'Dashboard', icon: 'D' },
   { path: '/user/bookings', label: 'Bookings', icon: 'B' },
   { path: '/user/players', label: 'Players', icon: 'P' },
+  { path: '/user/messages', label: 'Messages', icon: '✉' },
+  { path: '/user/calendar', label: 'Calendar', icon: '◻' },
+  { path: '/user/enrollments', label: 'Enrollments', icon: 'E' },
+  { path: '/user/waivers', label: 'Waivers', icon: 'W' },
+  { path: '/user/documents', label: 'Documents', icon: '↓' },
+  { path: '/user/payments', label: 'Payments', icon: '$' },
 ]
 
 export default function UserLayout({ children }: { children: ReactNode }) {

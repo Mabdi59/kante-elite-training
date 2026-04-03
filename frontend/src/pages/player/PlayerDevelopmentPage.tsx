@@ -19,9 +19,29 @@ interface Summary {
   late: number
 }
 
+interface ProgressNote {
+  id: number
+  coachName: string
+  sessionDate: string
+  noteType: string
+  title: string
+  content: string
+  rating: number | null
+}
+
+const NOTE_TYPE_COLORS: Record<string, string> = {
+  GENERAL: 'bg-gray-700/40 text-gray-300',
+  TECHNICAL: 'bg-blue-500/20 text-blue-400',
+  TACTICAL: 'bg-purple-500/20 text-purple-400',
+  PHYSICAL: 'bg-orange-500/20 text-orange-400',
+  MENTAL: 'bg-pink-500/20 text-pink-400',
+  MILESTONE: 'bg-green-500/20 text-green-400',
+}
+
 export default function PlayerDevelopmentPage() {
   const [records, setRecords] = useState<AttendanceRecord[]>([])
   const [summary, setSummary] = useState<Summary>({ total: 0, present: 0, absent: 0, late: 0 })
+  const [notes, setNotes] = useState<ProgressNote[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -30,12 +50,14 @@ export default function PlayerDevelopmentPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [recRes, sumRes] = await Promise.all([
+        const [recRes, sumRes, notesRes] = await Promise.all([
           axios.get('/api/attendance/player', { headers: { Authorization: `Bearer ${token}` } }),
           axios.get('/api/attendance/player/summary', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: null })),
+          axios.get('/api/player/progress-notes', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] })),
         ])
         const recs: AttendanceRecord[] = recRes.data ?? []
         setRecords(recs)
+        setNotes(notesRes.data ?? [])
 
         if (sumRes.data) {
           setSummary(sumRes.data)
@@ -65,7 +87,7 @@ export default function PlayerDevelopmentPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-black text-white">My Development</h1>
-        <p className="mt-1 text-sm text-gray-400">Track your attendance and progress.</p>
+        <p className="mt-1 text-sm text-gray-400">Track your attendance and progress notes from coaches.</p>
       </div>
 
       {error && <ErrorBanner message={error} />}
@@ -116,6 +138,35 @@ export default function PlayerDevelopmentPage() {
           </div>
         )}
       </div>
+
+      <div>
+        <h2 className="mb-3 text-lg font-bold text-white">Development Notes from Coaches</h2>
+        {notes.length === 0 ? (
+          <div className="rounded-xl border border-white/10 bg-zinc-900 p-8 text-center text-gray-400">
+            No development notes yet.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {notes.map((note) => (
+              <div key={note.id} className="rounded-xl border border-white/10 bg-zinc-900 p-4">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${NOTE_TYPE_COLORS[note.noteType] ?? NOTE_TYPE_COLORS.GENERAL}`}>
+                    {note.noteType}
+                  </span>
+                  <span className="text-gray-400 text-xs">{note.sessionDate}</span>
+                  <span className="text-gray-500 text-xs">by {note.coachName}</span>
+                  {note.rating && (
+                    <span className="text-yellow-400 text-xs">{'★'.repeat(note.rating)}{'☆'.repeat(5 - note.rating)}</span>
+                  )}
+                </div>
+                {note.title && <p className="text-white font-semibold text-sm mb-1">{note.title}</p>}
+                <p className="text-gray-300 text-sm leading-relaxed">{note.content}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
+

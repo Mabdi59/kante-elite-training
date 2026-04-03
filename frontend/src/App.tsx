@@ -96,6 +96,11 @@ const AdminReportsPage = lazy(() => import('./pages/admin/AdminReportsPage'))
 const AdminWaiversPage = lazy(() => import('./pages/admin/AdminWaiversPage'))
 const AdminSearchPage = lazy(() => import('./pages/admin/AdminSearchPage'))
 
+// Phase 6 pages
+const PaymentHistoryPage = lazy(() => import('./pages/PaymentHistoryPage'))
+const CoachProgressNotesPage = lazy(() => import('./pages/coach/CoachProgressNotesPage'))
+const FaqPage = lazy(() => import('./pages/FaqPage'))
+
 function PageLoader() {
   return (
     <div className="min-h-screen bg-black flex items-center justify-center">
@@ -741,6 +746,163 @@ export default function App() {
                   <MainLayout>
                     <EnrollmentsPage />
                   </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Phase 6 routes */}
+            <Route path="/faq" element={<MainLayout><FaqPage /></MainLayout>} />
+
+            <Route
+              path="/coach/notes"
+              element={
+                <ProtectedRoute requireRole="COACH">
+                  <CoachPanelLayout>
+                    <CoachProgressNotesPage />
+                  </CoachPanelLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/user/messages"
+              element={
+                <ProtectedRoute requireRole="USER">
+                  <UserLayout>
+                    <MessagesPage />
+                  </UserLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/user/calendar"
+              element={
+                <ProtectedRoute requireRole="USER">
+                  <UserLayout>
+                    <CalendarPage />
+                  </UserLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/user/waivers"
+              element={
+                <ProtectedRoute requireRole="USER">
+                  <UserLayout>
+                    <WaiversPage />
+                  </UserLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/user/documents"
+              element={
+                <ProtectedRoute requireRole="USER">
+                  <UserLayout>
+                    <DocumentsPage />
+                  </UserLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/user/enrollments"
+              element={
+                <ProtectedRoute requireRole="USER">
+                  <UserLayout>
+                    <EnrollmentsPage />
+                  </UserLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/user/payments"
+              element={
+                <ProtectedRoute requireRole="USER">
+                  <UserLayout>
+                    <PaymentHistoryPage />
+                  </UserLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/parent/messages"
+              element={
+                <ProtectedRoute requireRole="PARENT">
+                  <ParentLayout>
+                    <MessagesPage />
+                  </ParentLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/parent/calendar"
+              element={
+                <ProtectedRoute requireRole="PARENT">
+                  <ParentLayout>
+                    <CalendarPage />
+                  </ParentLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/parent/waivers"
+              element={
+                <ProtectedRoute requireRole="PARENT">
+                  <ParentLayout>
+                    <WaiversPage />
+                  </ParentLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/parent/documents"
+              element={
+                <ProtectedRoute requireRole="PARENT">
+                  <ParentLayout>
+                    <DocumentsPage />
+                  </ParentLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/parent/enrollments"
+              element={
+                <ProtectedRoute requireRole="PARENT">
+                  <ParentLayout>
+                    <EnrollmentsPage />
+                  </ParentLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/parent/payments"
+              element={
+                <ProtectedRoute requireRole="PARENT">
+                  <ParentLayout>
+                    <PaymentHistoryPage />
+                  </ParentLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/player/calendar"
+              element={
+                <ProtectedRoute requireRole="PLAYER">
+                  <PlayerLayout>
+                    <CalendarPage />
+                  </PlayerLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/player/payments"
+              element={
+                <ProtectedRoute requireRole="PLAYER">
+                  <PlayerLayout>
+                    <PaymentHistoryPage />
+                  </PlayerLayout>
                 </ProtectedRoute>
               }
             />

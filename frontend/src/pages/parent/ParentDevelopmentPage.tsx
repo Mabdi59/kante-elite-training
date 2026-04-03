@@ -26,11 +26,31 @@ interface SignedWaiver {
   signedAt: string
 }
 
+interface ProgressNote {
+  id: number
+  coachName: string
+  sessionDate: string
+  noteType: string
+  title: string
+  content: string
+  rating: number | null
+}
+
+const NOTE_TYPE_COLORS: Record<string, string> = {
+  GENERAL: 'bg-gray-700/40 text-gray-300',
+  TECHNICAL: 'bg-blue-500/20 text-blue-400',
+  TACTICAL: 'bg-purple-500/20 text-purple-400',
+  PHYSICAL: 'bg-orange-500/20 text-orange-400',
+  MENTAL: 'bg-pink-500/20 text-pink-400',
+  MILESTONE: 'bg-green-500/20 text-green-400',
+}
+
 export default function ParentDevelopmentPage() {
   const [playerEmail, setPlayerEmail] = useState('')
   const [records, setRecords] = useState<AttendanceRecord[]>([])
   const [enrollments, setEnrollments] = useState<Enrollment[]>([])
   const [waivers, setWaivers] = useState<SignedWaiver[]>([])
+  const [progressNotes, setProgressNotes] = useState<ProgressNote[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [searched, setSearched] = useState(false)
@@ -43,7 +63,7 @@ export default function ParentDevelopmentPage() {
     setLoading(true)
     setError('')
     try {
-      const [attRes, enrollRes, waiversRes] = await Promise.all([
+      const [attRes, enrollRes, waiversRes, notesRes] = await Promise.all([
         axios.get(`/api/attendance/range?playerEmail=${encodeURIComponent(playerEmail)}`, {
           headers: { Authorization: `Bearer ${token}` },
         }).catch(() => ({ data: [] })),
@@ -51,10 +71,14 @@ export default function ParentDevelopmentPage() {
           .catch(() => ({ data: [] })),
         axios.get('/api/waivers/my-signed', { headers: { Authorization: `Bearer ${token}` } })
           .catch(() => ({ data: [] })),
+        axios.get(`/api/parent/progress-notes/${encodeURIComponent(playerEmail)}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => ({ data: [] })),
       ])
       setRecords(attRes.data ?? [])
       setEnrollments(enrollRes.data ?? [])
       setWaivers(waiversRes.data ?? [])
+      setProgressNotes(notesRes.data ?? [])
       setSearched(true)
     } catch {
       setError('Failed to load player data.')
@@ -71,7 +95,7 @@ export default function ParentDevelopmentPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-black text-white">Player Development</h1>
-        <p className="mt-1 text-sm text-gray-400">Look up your child's progress.</p>
+        <p className="mt-1 text-sm text-gray-400">Look up your child's attendance and development notes.</p>
       </div>
 
       {error && <ErrorBanner message={error} />}
@@ -126,6 +150,32 @@ export default function ParentDevelopmentPage() {
                       : r.status === 'ABSENT' ? 'bg-red-500/20 text-red-400'
                       : 'bg-yellow-500/20 text-yellow-400'
                     }`}>{r.status}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <h2 className="mb-3 text-base font-bold text-white">Development Notes from Coach</h2>
+            {progressNotes.length === 0 ? (
+              <p className="text-sm text-gray-400">No development notes yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {progressNotes.map((note) => (
+                  <div key={note.id} className="rounded-xl border border-white/10 bg-zinc-900 p-4">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${NOTE_TYPE_COLORS[note.noteType] ?? NOTE_TYPE_COLORS.GENERAL}`}>
+                        {note.noteType}
+                      </span>
+                      <span className="text-gray-400 text-xs">{note.sessionDate}</span>
+                      <span className="text-gray-500 text-xs">by {note.coachName}</span>
+                      {note.rating && (
+                        <span className="text-yellow-400 text-xs">{'★'.repeat(note.rating)}{'☆'.repeat(5 - note.rating)}</span>
+                      )}
+                    </div>
+                    {note.title && <p className="text-white font-semibold text-sm mb-1">{note.title}</p>}
+                    <p className="text-gray-300 text-sm leading-relaxed">{note.content}</p>
                   </div>
                 ))}
               </div>

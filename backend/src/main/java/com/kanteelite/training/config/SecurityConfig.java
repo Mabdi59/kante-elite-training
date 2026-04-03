@@ -106,12 +106,19 @@ public class SecurityConfig {
                 // Enrollments
                 .requestMatchers("/api/enrollments/**").authenticated()
                 .requestMatchers("/api/admin/enrollments/**").hasAnyRole("ADMIN", "STAFF")
-                // Calendar
+                // Calendar (iCal endpoint is public)
+                .requestMatchers(HttpMethod.GET, "/api/calendar/*.ics").permitAll()
                 .requestMatchers("/api/calendar/**").authenticated()
                 // Search
                 .requestMatchers("/api/search/**").hasAnyRole("ADMIN", "STAFF", "COACH")
                 // Reports
                 .requestMatchers("/api/admin/reports/**").hasRole("ADMIN")
+                // Progress notes
+                .requestMatchers("/api/coach/progress-notes/**").hasAnyRole("ADMIN", "COACH")
+                .requestMatchers(HttpMethod.GET, "/api/player/progress-notes").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/parent/progress-notes/**").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/players/*/progress-notes").hasAnyRole("ADMIN", "STAFF", "COACH")
+                .requestMatchers(HttpMethod.GET, "/api/bookings/*/progress-notes").hasAnyRole("ADMIN", "STAFF", "COACH")
                 // All other requests require authentication
                 .anyRequest().authenticated()
             )
