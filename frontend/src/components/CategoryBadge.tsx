@@ -1,12 +1,5 @@
 import type { MediaCategory } from '../types'
 
-export const CATEGORY_OPTIONS: { value: MediaCategory; label: string }[] = [
-  { value: 'TRAINING_PHOTO', label: 'Training Photos' },
-  { value: 'MATCH_HIGHLIGHT', label: 'Match Highlights' },
-  { value: 'SKILL_CLIP', label: 'Skill Clips' },
-  { value: 'TESTIMONIAL', label: 'Testimonials' },
-]
-
 const CATEGORY_CONFIG: Record<
   MediaCategory,
   { label: string; colorClass: string }
@@ -28,6 +21,10 @@ const CATEGORY_CONFIG: Record<
     colorClass: 'border-purple-500/30 bg-purple-500/10 text-purple-300',
   },
 }
+
+export const CATEGORY_OPTIONS: { value: MediaCategory; label: string }[] = (
+  Object.entries(CATEGORY_CONFIG) as [MediaCategory, { label: string; colorClass: string }][]
+).map(([value, config]) => ({ value, label: config.label }))
 
 interface CategoryBadgeProps {
   category?: MediaCategory | null
