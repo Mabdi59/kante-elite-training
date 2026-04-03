@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import CategoryBadge, { getCategoryLabel } from '../../components/CategoryBadge'
+import CategoryBadge, { CATEGORY_OPTIONS, getCategoryLabel } from '../../components/CategoryBadge'
 import EmptyState from '../../components/EmptyState'
 import ErrorBanner from '../../components/ErrorBanner'
 import MediaPostCard from '../../components/MediaPostCard'
@@ -13,13 +13,6 @@ import {
   updateWebsiteContent,
 } from '../../services/api'
 import type { MediaCategory, MediaPost, WebsiteContent } from '../../types'
-
-const CATEGORY_OPTIONS: { value: MediaCategory; label: string }[] = [
-  { value: 'TRAINING_PHOTO', label: 'Training Photos' },
-  { value: 'MATCH_HIGHLIGHT', label: 'Match Highlights' },
-  { value: 'SKILL_CLIP', label: 'Skill Clips' },
-  { value: 'TESTIMONIAL', label: 'Testimonials' },
-]
 
 function TextField({
   label,

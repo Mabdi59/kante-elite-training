@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import CategoryBadge, { getCategoryLabel } from '../components/CategoryBadge'
+import { getCategoryLabel } from '../components/CategoryBadge'
 import CTASection from '../components/CTASection'
 import EmptyState from '../components/EmptyState'
 import MediaLightbox from '../components/MediaLightbox'

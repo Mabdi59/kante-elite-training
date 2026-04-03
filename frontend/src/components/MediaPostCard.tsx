@@ -44,7 +44,6 @@ export default function MediaPostCard({
             controls
             playsInline
             preload="metadata"
-            muted={false}
             className="h-full w-full object-cover"
           />
         ) : (

@@ -1,5 +1,12 @@
 import type { MediaCategory } from '../types'
 
+export const CATEGORY_OPTIONS: { value: MediaCategory; label: string }[] = [
+  { value: 'TRAINING_PHOTO', label: 'Training Photos' },
+  { value: 'MATCH_HIGHLIGHT', label: 'Match Highlights' },
+  { value: 'SKILL_CLIP', label: 'Skill Clips' },
+  { value: 'TESTIMONIAL', label: 'Testimonials' },
+]
+
 const CATEGORY_CONFIG: Record<
   MediaCategory,
   { label: string; colorClass: string }

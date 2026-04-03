@@ -2,7 +2,7 @@ import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState 
 import { Link } from 'react-router-dom'
 import { createMediaPost, deleteMediaPost, getMediaPosts } from '../../services/api'
 import type { MediaCategory, MediaPost, MediaType } from '../../types'
-import CategoryBadge, { getCategoryLabel } from '../../components/CategoryBadge'
+import CategoryBadge, { CATEGORY_OPTIONS, getCategoryLabel } from '../../components/CategoryBadge'
 import ErrorBanner from '../../components/ErrorBanner'
 import EmptyState from '../../components/EmptyState'
 import MediaPostCard from '../../components/MediaPostCard'
@@ -11,13 +11,6 @@ import PageSkeleton from '../../components/PageSkeleton'
 const MAX_MEDIA_FILE_SIZE = 20 * 1024 * 1024
 const ALLOWED_MEDIA_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4']
 const MAX_CAPTION_LENGTH = 500
-
-const CATEGORY_OPTIONS: { value: MediaCategory; label: string }[] = [
-  { value: 'TRAINING_PHOTO', label: 'Training Photos' },
-  { value: 'MATCH_HIGHLIGHT', label: 'Match Highlights' },
-  { value: 'SKILL_CLIP', label: 'Skill Clips' },
-  { value: 'TESTIMONIAL', label: 'Testimonials' },
-]
 
 type FilterCategory = MediaCategory | 'ALL'
 
