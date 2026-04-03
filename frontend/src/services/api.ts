@@ -47,6 +47,12 @@ import type {
   StandingEntry,
   WebsiteContent,
   WebsiteContentFormData,
+  FamilyListItem,
+  FamilyDetail,
+  FamilyOnboardingRequest,
+  BookingSeriesRequest,
+  BookingSeriesPreviewItem,
+  BookingSeries,
 } from '../types'
 
 const configuredApiUrl = (import.meta.env.VITE_API_URL ?? '').trim()
@@ -1164,3 +1170,63 @@ export const getStaffPlayers = async (): Promise<PlayerProfile[]> => {
 }
 
 export default api
+
+// ── Admin Families ──────────────────────────────────────────────────
+export const getAdminFamilies = async (): Promise<FamilyListItem[]> => {
+  const res = await api.get<ApiResponse<FamilyListItem[]>>('/admin/families')
+  return res.data.data ?? []
+}
+
+export const onboardFamily = async (data: FamilyOnboardingRequest): Promise<FamilyDetail> => {
+  const res = await api.post<ApiResponse<FamilyDetail>>('/admin/families/onboard', data)
+  return res.data.data!
+}
+
+export const getAdminFamily = async (parentUserId: number): Promise<FamilyDetail> => {
+  const res = await api.get<ApiResponse<FamilyDetail>>(`/admin/families/${parentUserId}`)
+  return res.data.data!
+}
+
+export const updateAdminFamily = async (parentUserId: number, data: FamilyOnboardingRequest): Promise<FamilyDetail> => {
+  const res = await api.put<ApiResponse<FamilyDetail>>(`/admin/families/${parentUserId}`, data)
+  return res.data.data!
+}
+
+// ── Admin Recurring Schedules ────────────────────────────────────────
+export const previewBookingSeries = async (data: BookingSeriesRequest): Promise<BookingSeriesPreviewItem[]> => {
+  const res = await api.post<ApiResponse<BookingSeriesPreviewItem[]>>('/admin/recurring-schedules/preview', data)
+  return res.data.data ?? []
+}
+
+export const createBookingSeries = async (data: BookingSeriesRequest): Promise<BookingSeries> => {
+  const res = await api.post<ApiResponse<BookingSeries>>('/admin/recurring-schedules', data)
+  return res.data.data!
+}
+
+export const getAdminBookingSeries = async (): Promise<BookingSeries[]> => {
+  const res = await api.get<ApiResponse<BookingSeries[]>>('/admin/recurring-schedules')
+  return res.data.data ?? []
+}
+
+export const getBookingSeriesById = async (id: number): Promise<BookingSeries> => {
+  const res = await api.get<ApiResponse<BookingSeries>>(`/admin/recurring-schedules/${id}`)
+  return res.data.data!
+}
+
+export const deleteBookingSeries = async (id: number): Promise<void> => {
+  await api.delete(`/admin/recurring-schedules/${id}`)
+}
+
+export const cancelFutureSessions = async (id: number, fromDate: string): Promise<void> => {
+  await api.post(`/admin/recurring-schedules/${id}/cancel-future`, { fromDate })
+}
+
+export const cancelSeriesSession = async (bookingId: number): Promise<void> => {
+  await api.delete(`/admin/recurring-schedules/sessions/${bookingId}`)
+}
+
+// ── Coach Weekly Schedule ────────────────────────────────────────────
+export const getCoachWeekSchedule = async (startDate: string): Promise<Booking[]> => {
+  const res = await api.get<ApiResponse<Booking[]>>(`/coach/schedule/week?startDate=${startDate}`)
+  return res.data.data ?? []
+}

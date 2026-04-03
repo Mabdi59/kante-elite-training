@@ -19,4 +19,6 @@ public interface PlayerProfileRepository extends JpaRepository<PlayerProfile, Lo
     boolean existsByParentUserIdAndActiveTrue(Long parentUserId);
     long countByActiveTrue();
     void deleteByParentUserId(Long parentUserId);
+    long countByParentUserId(Long parentUserId);
+    List<PlayerProfile> findByParentUserIdOrderByNameAsc(Long parentUserId);
 }

@@ -75,6 +75,18 @@ public class Booking {
     @Column(name = "stripe_session_id", unique = true, length = 255)
     private String stripeSessionId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "series_id")
+    private BookingSeries series;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "player_profile_id")
+    private PlayerProfile playerProfile;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "coach_user_id")
+    private User coachUser;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

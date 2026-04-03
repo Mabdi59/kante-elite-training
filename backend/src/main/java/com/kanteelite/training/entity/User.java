@@ -40,4 +40,10 @@ public class User {
 
     @Column(name = "ical_feed_token", length = 64, unique = true)
     private String icalFeedToken;
+
+    @Column(length = 30)
+    private String phone;
+
+    @Column(name = "emergency_contact", length = 255)
+    private String emergencyContact;
 }

@@ -95,6 +95,11 @@ const AdminEnrollmentsPage = lazy(() => import('./pages/admin/AdminEnrollmentsPa
 const AdminReportsPage = lazy(() => import('./pages/admin/AdminReportsPage'))
 const AdminWaiversPage = lazy(() => import('./pages/admin/AdminWaiversPage'))
 const AdminSearchPage = lazy(() => import('./pages/admin/AdminSearchPage'))
+const AdminFamiliesPage = lazy(() => import('./pages/admin/AdminFamiliesPage'))
+const AdminFamilyOnboardingPage = lazy(() => import('./pages/admin/AdminFamilyOnboardingPage'))
+const AdminFamilyDetailPage = lazy(() => import('./pages/admin/AdminFamilyDetailPage'))
+const AdminRecurringSchedulePage = lazy(() => import('./pages/admin/AdminRecurringSchedulePage'))
+const AdminRecurringScheduleNewPage = lazy(() => import('./pages/admin/AdminRecurringScheduleNewPage'))
 
 // Phase 6 pages
 const PaymentHistoryPage = lazy(() => import('./pages/PaymentHistoryPage'))
@@ -661,6 +666,56 @@ export default function App() {
                 <ProtectedRoute requireAdmin>
                   <AdminLayout>
                     <AdminSearchPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/families"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminFamiliesPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/families/onboard"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminFamilyOnboardingPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/families/:id"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminFamilyDetailPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/recurring-schedules"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminRecurringSchedulePage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/recurring-schedules/new"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminRecurringScheduleNewPage />
                   </AdminLayout>
                 </ProtectedRoute>
               }

@@ -211,6 +211,29 @@ function AuditIcon() {
 }
 
 
+function FamilyIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="9" cy="7" r="2.5" />
+      <path d="M4 19a5 5 0 0 1 10 0" />
+      <circle cx="17" cy="9" r="2" />
+      <path d="M15 19a4 4 0 0 1 5-3.87" />
+    </svg>
+  )
+}
+
+function ScheduleIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M8 2v4M16 2v4" />
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M3 10h18" />
+      <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
+    </svg>
+  )
+}
+
+
 const navSections: NavSection[] = [
   {
     title: 'Overview',
@@ -235,6 +258,13 @@ const navSections: NavSection[] = [
       { path: '/admin/events', label: 'Events', icon: <EventIcon /> },
       { path: '/admin/tournaments', label: 'Tournaments', icon: <TrophyIcon /> },
       { path: '/admin/availability', label: 'Availability', icon: <AvailabilityIcon /> },
+    ],
+  },
+  {
+    title: 'Academy Operations',
+    items: [
+      { path: '/admin/families', label: 'Families', icon: <FamilyIcon /> },
+      { path: '/admin/recurring-schedules', label: 'Recurring Schedules', icon: <ScheduleIcon /> },
     ],
   },
   {

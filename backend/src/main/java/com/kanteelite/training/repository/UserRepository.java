@@ -18,6 +18,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     long countByRole(UserRole role);
     Optional<User> findByIcalFeedToken(String icalFeedToken);
 
+    List<User> findByRoleOrderByNameAsc(UserRole role);
+
     @Query("SELECT u FROM User u WHERE LOWER(u.email) LIKE LOWER(CONCAT('%', :q, '%')) OR LOWER(u.name) LIKE LOWER(CONCAT('%', :q, '%')) ORDER BY u.name ASC")
     List<User> searchByQuery(@Param("q") String q, org.springframework.data.domain.Pageable pageable);
 }
