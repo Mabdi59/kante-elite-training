@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getCategoryLabel } from '../components/CategoryBadge'
+import { CATEGORY_OPTIONS, getCategoryLabel } from '../components/CategoryBadge'
 import CTASection from '../components/CTASection'
 import EmptyState from '../components/EmptyState'
 import MediaLightbox from '../components/MediaLightbox'
@@ -13,10 +13,7 @@ type FilterCategory = MediaCategory | 'ALL'
 
 const CATEGORY_TABS: { value: FilterCategory; label: string }[] = [
   { value: 'ALL', label: 'All' },
-  { value: 'TRAINING_PHOTO', label: 'Training Photos' },
-  { value: 'MATCH_HIGHLIGHT', label: 'Match Highlights' },
-  { value: 'SKILL_CLIP', label: 'Skill Clips' },
-  { value: 'TESTIMONIAL', label: 'Testimonials' },
+  ...CATEGORY_OPTIONS,
 ]
 
 export default function MediaPage() {
