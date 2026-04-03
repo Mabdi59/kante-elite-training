@@ -61,9 +61,9 @@ export default function FaqPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black pt-20">
       {/* Hero */}
-      <section className="py-20 px-4 text-center border-b border-gray-900">
+      <section className="pt-8 pb-16 px-4 text-center border-b border-gray-900">
         <p className="text-green-400 text-sm font-semibold uppercase tracking-widest mb-3">Help Center</p>
         <h1 className="text-4xl md:text-5xl font-black text-white mb-4">
           Frequently Asked Questions
