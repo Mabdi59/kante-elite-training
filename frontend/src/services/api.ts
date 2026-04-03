@@ -1218,7 +1218,7 @@ export const deleteBookingSeries = async (id: number): Promise<void> => {
 }
 
 export const cancelFutureSessions = async (id: number, fromDate: string): Promise<void> => {
-  await api.post(`/admin/recurring-schedules/${id}/cancel-future?fromDate=${fromDate}`)
+  await api.post(`/admin/recurring-schedules/${id}/cancel-future`, { fromDate })
 }
 
 export const cancelSeriesSession = async (bookingId: number): Promise<void> => {
