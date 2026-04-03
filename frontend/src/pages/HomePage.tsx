@@ -14,6 +14,7 @@ import TestimonialCard from '../components/TestimonialCard'
 import EventCard from '../components/EventCard'
 import CTASection from '../components/CTASection'
 import MediaPostCard from '../components/MediaPostCard'
+import MediaLightbox from '../components/MediaLightbox'
 import { defaultWebsiteContent } from '../content/defaultWebsiteContent'
 
 const stats = [
@@ -87,6 +88,7 @@ export default function HomePage() {
   const [mediaPosts, setMediaPosts] = useState<MediaPost[]>([])
   const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [siteContent, setSiteContent] = useState<WebsiteContent>(defaultWebsiteContent)
+  const [activeMediaIndex, setActiveMediaIndex] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -138,7 +140,7 @@ export default function HomePage() {
 
   return (
     <div>
-      <section className="relative min-h-[50vh] bg-black flex items-center px-4 overflow-hidden">
+      <section className="relative flex min-h-[50vh] items-center overflow-hidden bg-black px-4">
         {heroMedia ? (
           <div className="absolute inset-0">
             {heroMedia.mediaType === 'VIDEO' ? (
@@ -154,11 +156,12 @@ export default function HomePage() {
               <img
                 src={heroMedia.mediaUrl}
                 alt={heroMedia.caption?.trim() || siteContent.homeHeadline || 'Kante Elite highlight'}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-cover animate-hero-zoom"
               />
             )}
             <div className="absolute inset-0 bg-black/65" />
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(120,53,15,0.55)_0%,_transparent_68%)]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/75" />
           </div>
         ) : (
           <>
@@ -170,18 +173,18 @@ export default function HomePage() {
         <div className="absolute top-1/4 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-1/4 left-10 w-64 h-64 bg-amber-900/20 rounded-full blur-2xl pointer-events-none" />
 
-        <div className="relative max-w-7xl mx-auto w-full pt-20 pb-12">
-          <div className="max-w-3xl">
+        <div className="page-shell relative w-full pb-12 pt-20 sm:pt-24">
+          <div className="max-w-3xl animate-fade-up">
             <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-6">
               <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
               {siteContent.homeBadge || defaultWebsiteContent.homeBadge}
             </div>
 
-            <h1 className="text-white font-black text-5xl md:text-6xl lg:text-7xl leading-[1.05] mb-6">
+            <h1 className="mb-6 text-4xl font-black leading-[1.05] text-white sm:text-5xl md:text-6xl lg:text-7xl">
               {siteContent.homeHeadline || defaultWebsiteContent.homeHeadline}
             </h1>
 
-            <p className="text-gray-300 text-lg md:text-xl leading-relaxed mb-4 max-w-xl">
+            <p className="mb-4 max-w-xl text-base leading-relaxed text-gray-300 sm:text-lg md:text-xl">
               {siteContent.homeDescription || defaultWebsiteContent.homeDescription}
             </p>
 
@@ -193,25 +196,25 @@ export default function HomePage() {
               ))}
             </div>
 
-            <div className="flex flex-wrap gap-4">
-              <Link to="/book" className="btn-primary text-base px-10 py-4 gap-2">
+            <div className="button-stack-mobile">
+              <Link to="/book" className="btn-primary w-full gap-2 px-6 py-3 text-sm sm:w-auto sm:px-8 sm:text-base">
                 Book Your First Session
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
               </Link>
-              <Link to="/training" className="btn-secondary text-base px-10 py-4">
+              <Link to="/training" className="btn-secondary w-full px-6 py-3 text-sm sm:w-auto sm:px-8 sm:text-base">
                 View Programs
               </Link>
-              <Link to="/tournaments" className="btn-secondary text-base px-10 py-4">
+              <Link to="/tournaments" className="btn-secondary w-full px-6 py-3 text-sm sm:w-auto sm:px-8 sm:text-base">
                 View Tournaments
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-10 pt-10 border-t border-[#222]">
+            <div className="mt-10 grid grid-cols-2 gap-4 border-t border-[#222] pt-8 sm:gap-6 md:grid-cols-4 md:pt-10">
               {stats.map((stat) => (
                 <div key={stat.label}>
-                  <p className="gradient-text font-black text-3xl md:text-4xl">{stat.value}</p>
+                  <p className="gradient-text text-2xl font-black sm:text-3xl md:text-4xl">{stat.value}</p>
                   <p className="text-gray-400 text-sm mt-1">{stat.label}</p>
                 </div>
               ))}
@@ -320,15 +323,15 @@ export default function HomePage() {
 
       {(loading || events.length > 0) && (
         <section className="bg-black py-16 px-4">
-          <div className="max-w-7xl mx-auto">
+          <div className="page-shell">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
               <div>
                 <span className="section-label">Upcoming</span>
-                <h2 className="text-white font-black text-4xl md:text-5xl">
+                <h2 className="text-3xl font-black text-white sm:text-4xl md:text-5xl">
                   Camps & <span className="gradient-text">Events</span>
                 </h2>
               </div>
-              <Link to="/events" className="btn-secondary text-sm whitespace-nowrap self-start md:self-end">
+              <Link to="/events" className="btn-secondary w-full text-sm self-start md:w-auto md:self-end">
                 View All Events
               </Link>
             </div>
@@ -351,18 +354,18 @@ export default function HomePage() {
 
       {(loading || tournaments.length > 0) && (
         <section className="bg-[#0a0a0a] py-16 px-4 border-t border-[#1a1a1a]">
-          <div className="max-w-7xl mx-auto">
+          <div className="page-shell">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
               <div>
                 <span className="section-label">Tournament Registration</span>
-                <h2 className="text-white font-black text-4xl md:text-5xl">
+                <h2 className="text-3xl font-black text-white sm:text-4xl md:text-5xl">
                   Join Upcoming <span className="gradient-text">Tournaments</span>
                 </h2>
                 <p className="text-gray-400 mt-4 max-w-xl text-sm leading-relaxed">
                   New tournaments appear here as soon as they are added. Public registration stays simple so teams can review details and sign up fast.
                 </p>
               </div>
-              <Link to="/tournaments" className="btn-secondary text-sm whitespace-nowrap self-start md:self-end">
+              <Link to="/tournaments" className="btn-secondary w-full text-sm self-start md:w-auto md:self-end">
                 See All Tournaments
               </Link>
             </div>
@@ -416,10 +419,10 @@ export default function HomePage() {
                         ) : null}
                       </div>
 
-                      <div className="flex gap-3">
+                      <div className="flex flex-col gap-3 sm:flex-row">
                         <Link
                           to={`/tournaments/${tournament.id}/register`}
-                          className={`flex-1 text-center font-bold py-2.5 rounded-xl text-sm transition-colors ${
+                          className={`flex-1 rounded-xl py-3 text-center text-sm font-bold transition-colors ${
                             canRegister
                               ? 'bg-green-500 hover:bg-green-400 text-black'
                               : 'bg-gray-800 text-gray-500 pointer-events-none'
@@ -429,7 +432,7 @@ export default function HomePage() {
                         </Link>
                         <Link
                           to="/tournaments"
-                          className="flex-1 text-center btn-secondary text-sm py-2.5"
+                          className="btn-secondary flex-1 py-3 text-center text-sm"
                         >
                           Details
                         </Link>
@@ -444,18 +447,18 @@ export default function HomePage() {
       )}
 
       <section className="bg-black py-16 px-4 border-t border-[#1a1a1a]">
-        <div className="max-w-7xl mx-auto">
+        <div className="page-shell">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
             <div>
               <span className="section-label">{siteContent.homeHighlightsTitle || defaultWebsiteContent.homeHighlightsTitle}</span>
-              <h2 className="text-white font-black text-4xl md:text-5xl">
+              <h2 className="text-3xl font-black text-white sm:text-4xl md:text-5xl">
                 Training Moments <span className="gradient-text">Worth Seeing</span>
               </h2>
               <p className="text-gray-400 mt-4 max-w-xl text-sm leading-relaxed">
                 {siteContent.homeHighlightsDescription || defaultWebsiteContent.homeHighlightsDescription}
               </p>
             </div>
-            <Link to="/media" className="btn-secondary text-sm whitespace-nowrap self-start md:self-end">
+            <Link to="/media" className="btn-secondary w-full text-sm self-start md:w-auto md:self-end">
               View All Highlights
             </Link>
           </div>
@@ -468,10 +471,15 @@ export default function HomePage() {
             </div>
           ) : homeMediaPosts.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-              {homeMediaPosts.map((post) => (
-                <Link key={post.id} to="/media" className="block h-full">
+              {homeMediaPosts.map((post, index) => (
+                <button
+                  key={post.id}
+                  type="button"
+                  onClick={() => setActiveMediaIndex(index)}
+                  className="block h-full w-full text-left"
+                >
                   <MediaPostCard post={post} className="h-full transition-colors hover:border-amber-500/30" />
-                </Link>
+                </button>
               ))}
             </div>
           ) : (
@@ -489,10 +497,10 @@ export default function HomePage() {
       </section>
 
       <section className="bg-[#0a0a0a] py-16 px-4 border-t border-[#1a1a1a]">
-        <div className="max-w-7xl mx-auto">
+        <div className="page-shell">
           <div className="text-center mb-10">
             <span className="section-label">Real Results</span>
-            <h2 className="text-white font-black text-4xl md:text-5xl text-balance">
+            <h2 className="text-balance text-3xl font-black text-white sm:text-4xl md:text-5xl">
               What Columbus Families <span className="gradient-text">Are Saying</span>
             </h2>
             <p className="text-gray-400 mt-4 max-w-lg mx-auto text-sm">
@@ -523,16 +531,25 @@ export default function HomePage() {
       </section>
 
       <section className="bg-black py-16 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div className="page-shell">
+          <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
             {coachFeatureMedia ? (
-              <div className="order-2 lg:order-1">
+              <button
+                type="button"
+                onClick={() => {
+                  const coachMediaIndex = homeMediaPosts.findIndex((post) => post.id === coachFeatureMedia.id)
+                  if (coachMediaIndex >= 0) {
+                    setActiveMediaIndex(coachMediaIndex)
+                  }
+                }}
+                className="order-2 text-left lg:order-1"
+              >
                 <MediaPostCard
                   post={coachFeatureMedia}
                   aspectClassName="aspect-[5/4]"
                   showDate={false}
                 />
-              </div>
+              </button>
             ) : null}
             <div className={`${coachFeatureMedia ? 'hidden' : 'flex'} bg-[#111] rounded-2xl h-96 lg:h-auto min-h-80 items-center justify-center relative overflow-hidden order-2 lg:order-1 border border-[#1e1e1e]`}>
               <div className="absolute inset-0 bg-gradient-to-br from-amber-500/8 to-transparent" />
@@ -545,7 +562,7 @@ export default function HomePage() {
             </div>
             <div className="order-1 lg:order-2">
               <span className="section-label">The Coach</span>
-              <h2 className="text-white font-black text-4xl mb-5">
+              <h2 className="mb-5 text-3xl font-black text-white sm:text-4xl">
                 Meet <span className="gradient-text">{siteContent.aboutHeroTitle || defaultWebsiteContent.aboutHeroTitle}</span>
               </h2>
               <div className="space-y-4 text-gray-400 leading-relaxed text-sm">
@@ -556,7 +573,7 @@ export default function HomePage() {
                   {siteContent.aboutBody || defaultWebsiteContent.aboutBody}
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-3 mt-6 mb-8">
+              <div className="mb-8 mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {(siteContent.aboutExperiencePoints?.length
                   ? siteContent.aboutExperiencePoints
                   : defaultWebsiteContent.aboutExperiencePoints
@@ -567,7 +584,7 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
-              <Link to="/about" className="btn-secondary text-sm">
+              <Link to="/about" className="btn-secondary w-full text-sm sm:w-auto">
                 Coach Kante&apos;s Full Story
               </Link>
             </div>
@@ -656,6 +673,13 @@ export default function HomePage() {
         primaryLabel="Book Your First Session"
         secondaryLabel="Learn About Programs"
         secondaryHref="/training"
+      />
+
+      <MediaLightbox
+        posts={homeMediaPosts}
+        activeIndex={activeMediaIndex}
+        onClose={() => setActiveMediaIndex(null)}
+        onSelect={setActiveMediaIndex}
       />
     </div>
   )

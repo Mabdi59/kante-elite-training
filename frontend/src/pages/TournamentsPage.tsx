@@ -133,15 +133,15 @@ export default function TournamentsPage() {
   })
 
   return (
-    <div className="min-h-screen bg-black py-20 px-4">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-black px-4 py-20">
+      <div className="page-shell max-w-6xl">
         <div className="text-center mb-12">
-          <h1 className="text-white text-5xl font-black mb-4">TOURNAMENTS</h1>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+          <h1 className="mb-4 text-3xl font-black text-white sm:text-4xl md:text-5xl">TOURNAMENTS</h1>
+          <p className="mx-auto max-w-2xl text-base text-gray-400 sm:text-lg">
             Public registration is open. Review the details, choose your tournament, and register your team in a few minutes.
           </p>
           {!loading && tournaments.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mt-8">
+            <div className="mx-auto mt-8 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
                 <p className="text-gray-400 text-sm mb-2">Available Now</p>
                 <p className="text-3xl font-black text-green-400">{openTournaments.length}</p>
@@ -159,7 +159,7 @@ export default function TournamentsPage() {
         </div>
 
         {!loading && tournaments.length > 0 && (
-          <div className="flex gap-2 justify-center flex-wrap mb-10">
+          <div className="mb-10 flex flex-wrap justify-center gap-2">
             <button
               onClick={() => setFilterStatus('')}
               className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors ${!filterStatus ? 'bg-white text-black border-white' : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}
@@ -189,7 +189,7 @@ export default function TournamentsPage() {
             <p className="text-sm">Check back soon for upcoming events.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
             {filtered.map((t) => (
               <TournamentCard key={t.id} tournament={t} />
             ))}

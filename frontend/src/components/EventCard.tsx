@@ -26,7 +26,7 @@ export default function EventCard({ event }: EventCardProps) {
 
   return (
     <div className={`card flex flex-col transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/30 ${isSoldOut ? 'opacity-75' : ''}`}>
-      <div className="p-6 flex-1">
+      <div className="flex-1 p-5 sm:p-6">
         <div className="flex items-start justify-between gap-3 mb-4">
           <div>
             {event.type && (
@@ -68,14 +68,14 @@ export default function EventCard({ event }: EventCardProps) {
         </div>
       </div>
 
-      <div className="px-6 pb-6 flex items-center justify-between border-t border-[#222] pt-4">
+      <div className="flex flex-col gap-3 border-t border-[#222] px-5 pb-5 pt-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:pb-6">
         <span className="text-amber-500 font-black text-xl">
           ${event.price.toFixed(0)}
         </span>
         {isSoldOut ? (
           <span className="text-gray-500 text-sm font-bold">Registration Closed</span>
         ) : (
-          <Link to="/book" className="btn-primary text-sm px-5 py-2">
+          <Link to="/book" className="btn-primary w-full px-5 py-2 text-sm sm:w-auto">
             Register Now
           </Link>
         )}

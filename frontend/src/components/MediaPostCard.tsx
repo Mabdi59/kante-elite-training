@@ -31,7 +31,7 @@ export default function MediaPostCard({
   const hasCaption = Boolean(post.caption?.trim())
 
   return (
-    <article className={`overflow-hidden rounded-2xl border border-[#222] bg-[#111] ${className}`}>
+    <article className={`flex h-full flex-col overflow-hidden rounded-2xl border border-[#222] bg-[#111] transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/30 active:scale-[0.99] ${className}`}>
       <div className={`relative overflow-hidden bg-black ${aspectClassName}`}>
         {post.mediaType === 'VIDEO' ? (
           <video
@@ -59,14 +59,14 @@ export default function MediaPostCard({
       </div>
 
       {(showCaption || showDate) && (
-        <div className="space-y-3 p-4">
+        <div className="flex flex-1 flex-col space-y-3 p-4">
           {showDate ? (
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-400">
               {formatMediaDate(post.createdAt)}
             </p>
           ) : null}
           {showCaption ? (
-            <p className="whitespace-pre-line break-words text-sm leading-relaxed text-gray-300 overflow-hidden">
+            <p className="overflow-hidden whitespace-pre-line break-words text-sm leading-relaxed text-gray-300 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:4]">
               {hasCaption ? post.caption : 'Training highlight from Kante Elite.'}
             </p>
           ) : null}

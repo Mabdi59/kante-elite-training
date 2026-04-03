@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   addAdminEventParticipant,
   createEvent,
@@ -136,6 +137,7 @@ function formatSchedule(startAt?: string, endAt?: string, startDate?: string, en
 }
 
 export default function AdminEventsWorkspacePage() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [events, setEvents] = useState<Event[]>([])
   const [users, setUsers] = useState<AdminUser[]>([])
   const [players, setPlayers] = useState<PlayerProfile[]>([])
@@ -225,6 +227,12 @@ export default function AdminEventsWorkspacePage() {
     setSaveError('')
     setParticipantError('')
   }
+
+  useEffect(() => {
+    if (searchParams.get('create') !== '1') return
+    openCreate()
+    setSearchParams({}, { replace: true })
+  }, [searchParams, setSearchParams])
 
   const openEvent = (eventId: number) => {
     setCreatingNew(false)

@@ -24,7 +24,7 @@ export default function TestimonialCard({ testimonial }: TestimonialCardProps) {
   const palette = INITIALS_PALETTE[testimonial.id % INITIALS_PALETTE.length]
 
   return (
-    <div className="card-hover p-7 flex flex-col h-full relative overflow-hidden">
+    <div className="card-hover relative flex h-full flex-col overflow-hidden p-5 sm:p-7">
       {/* Decorative quote mark */}
       <div
         className="absolute top-4 right-5 text-7xl leading-none text-amber-500/10 select-none pointer-events-none font-serif"
@@ -43,7 +43,7 @@ export default function TestimonialCard({ testimonial }: TestimonialCardProps) {
       </div>
 
       {/* Quote */}
-      <blockquote className="text-gray-300 text-sm leading-relaxed flex-1 mb-6 relative z-10">
+      <blockquote className="relative z-10 mb-6 flex-1 text-sm leading-relaxed text-gray-300">
         &ldquo;{testimonial.quote}&rdquo;
       </blockquote>
 

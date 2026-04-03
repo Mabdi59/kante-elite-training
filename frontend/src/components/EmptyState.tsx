@@ -7,11 +7,13 @@ interface Props {
 
 export default function EmptyState({ icon = '📭', title, description, action }: Props) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-      <div className="text-5xl mb-4">{icon}</div>
-      <h3 className="text-white font-semibold text-lg mb-2">{title}</h3>
-      {description && <p className="text-gray-500 text-sm max-w-sm mb-6">{description}</p>}
-      {action && <div>{action}</div>}
+    <div className="animate-fade-in flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#2a2a2a] bg-[#0f0f0f] px-5 py-12 text-center sm:px-8">
+      <div className="mb-4 inline-flex min-h-11 items-center justify-center rounded-full border border-amber-500/20 bg-amber-500/10 px-4 text-xs font-bold uppercase tracking-[0.2em] text-amber-400">
+        {icon}
+      </div>
+      <h3 className="mb-2 text-lg font-semibold text-white sm:text-xl">{title}</h3>
+      {description ? <p className="mb-6 max-w-md text-sm leading-relaxed text-gray-400">{description}</p> : null}
+      {action ? <div className="w-full sm:w-auto">{action}</div> : null}
     </div>
   )
 }

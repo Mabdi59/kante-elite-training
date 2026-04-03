@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
@@ -33,6 +34,11 @@ export default function Navbar() {
                 : user?.role === 'USER'
                   ? '/user'
                   : '/account'
+  const currentLabel =
+    location.pathname === '/'
+      ? 'Home'
+      : navLinks.find((link) => location.pathname === link.href || location.pathname.startsWith(`${link.href}/`))?.label ??
+        'Kante Elite'
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -42,30 +48,42 @@ export default function Navbar() {
 
   useEffect(() => {
     setMenuOpen(false)
-  }, [location])
+  }, [location.pathname])
+
+  useEffect(() => {
+    if (!menuOpen) return
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [menuOpen])
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-black/95 backdrop-blur-sm border-b border-[#222]' : 'bg-transparent'
+      className={`fixed inset-x-0 top-0 z-50 border-b border-[#222] bg-black/95 backdrop-blur-sm transition-all duration-300 ${
+        scrolled ? '' : 'lg:border-transparent lg:bg-transparent lg:backdrop-blur-0'
       }`}
     >
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16 md:h-20">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 group">
+      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 md:h-20">
+        <Link to="/" className="flex min-w-0 items-center gap-3">
           <span className="text-2xl">⚽</span>
-          <div>
-            <span className="text-white font-black text-base md:text-lg tracking-tight leading-none block">
+          <div className="min-w-0">
+            <span className="block truncate text-sm font-black leading-none tracking-tight text-white sm:text-base md:text-lg">
               KANTE ELITE
             </span>
-            <span className="text-amber-500 text-[10px] tracking-widest uppercase leading-none font-semibold">
+            <span className="block text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-500">
               Training
+            </span>
+            <span className="mt-1 block text-[11px] font-medium text-gray-500 lg:hidden">
+              {currentLabel}
             </span>
           </div>
         </Link>
 
-        {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden items-center gap-6 lg:flex xl:gap-8">
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -81,112 +99,155 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* CTA + auth */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden items-center gap-3 lg:flex">
           {isAuthenticated ? (
             <>
               {isAdmin && (
-                <Link to="/admin" className="text-sm text-green-400 hover:text-green-300 font-semibold">
+                <Link to="/admin" className="text-sm font-semibold text-green-400 hover:text-green-300">
                   Admin
                 </Link>
               )}
               {isCoach && !isAdmin && (
-                <Link to="/coach" className="text-sm text-blue-400 hover:text-blue-300 font-semibold">
+                <Link to="/coach" className="text-sm font-semibold text-blue-400 hover:text-blue-300">
                   Coach
                 </Link>
               )}
-              <Link to={portalPath} className="text-sm text-gray-300 hover:text-white font-semibold">
-                {user?.name?.split(' ')[0]}
+              <Link to={portalPath} className="text-sm font-semibold text-gray-300 hover:text-white">
+                {user?.name?.split(' ')[0] || 'Account'}
               </Link>
               <button
+                type="button"
                 onClick={logoutUser}
-                className="text-sm text-gray-500 hover:text-gray-300 font-semibold transition-colors"
+                className="text-sm font-semibold text-gray-500 transition-colors hover:text-gray-300"
               >
                 Sign out
               </button>
             </>
           ) : (
-            <Link to="/login" className="text-sm text-gray-300 hover:text-white font-semibold">
+            <Link to="/login" className="text-sm font-semibold text-gray-300 hover:text-white">
               Login
             </Link>
           )}
-          <Link to="/book" className="btn-primary text-sm px-6 py-2.5">
+          <Link to="/book" className="btn-primary px-6 py-2.5 text-sm">
             Book Now
           </Link>
         </div>
 
-        {/* Mobile hamburger */}
         <button
-          className="md:hidden text-white p-2 -mr-2"
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Toggle menu"
+          type="button"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-black/30 text-white lg:hidden"
+          onClick={() => setMenuOpen(true)}
+          aria-label="Open menu"
         >
-          <div className="w-6 flex flex-col gap-1.5">
-            <span
-              className={`block h-0.5 bg-white transition-all duration-300 ${
-                menuOpen ? 'rotate-45 translate-y-2' : ''
-              }`}
-            />
-            <span
-              className={`block h-0.5 bg-white transition-all duration-300 ${
-                menuOpen ? 'opacity-0' : ''
-              }`}
-            />
-            <span
-              className={`block h-0.5 bg-white transition-all duration-300 ${
-                menuOpen ? '-rotate-45 -translate-y-2' : ''
-              }`}
-            />
-          </div>
+          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M4 7h16" />
+            <path d="M4 12h16" />
+            <path d="M4 17h16" />
+          </svg>
         </button>
       </nav>
 
-      {/* Mobile menu */}
-      {menuOpen && (
-        <div className="md:hidden bg-black/98 border-t border-[#222] px-4 py-6 flex flex-col gap-5">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              to={link.href}
-              className={`text-lg font-bold transition-colors ${
-                location.pathname === link.href ? 'text-amber-500' : 'text-white'
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-          {isAuthenticated ? (
-            <>
-              <Link to={portalPath} className="text-lg font-bold text-white">
-                My Account
+      {menuOpen ? createPortal((
+        <div
+          className="fixed inset-0 z-[1000] isolate h-[100dvh] w-screen overflow-y-auto bg-black lg:hidden animate-fade-in"
+          style={{ backgroundColor: '#050505', backdropFilter: 'blur(12px)' }}
+        >
+          <div className="absolute inset-0 bg-black" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(245,158,11,0.08),_transparent_28%)]" />
+          <button
+            type="button"
+            aria-label="Close menu overlay"
+            onClick={() => setMenuOpen(false)}
+            className="absolute inset-0"
+          />
+
+          <button
+            type="button"
+            onClick={() => setMenuOpen(false)}
+            className="fixed right-5 top-6 z-10 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white backdrop-blur sm:right-6"
+            aria-label="Close menu"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="m6 6 12 12" />
+              <path d="m18 6-12 12" />
+            </svg>
+          </button>
+
+          <div className="relative z-10 flex min-h-[100dvh] flex-col overflow-y-auto bg-[#050505] px-5 pb-8 pt-6 sm:px-6 animate-slide-in-right">
+            <div className="mb-8 flex items-start justify-between gap-4 pr-16">
+              <div className="max-w-[16rem]">
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-amber-500">Menu</p>
+                <p className="mt-3 text-2xl font-black leading-tight text-white">Explore Kante Elite</p>
+                <p className="mt-2 text-sm leading-relaxed text-gray-400">
+                  Training, tournaments, media, and your account, all in one place.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-1 flex-col gap-3">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  className={`rounded-2xl border px-4 py-4 text-base font-semibold transition-all duration-200 ${
+                    location.pathname === link.href
+                      ? 'border-amber-500/30 bg-amber-500/10 text-amber-400'
+                      : 'border-white/10 bg-white/[0.03] text-white hover:border-white/20 hover:bg-white/[0.06]'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+
+            <div className="mt-8 flex flex-col gap-3 border-t border-white/10 pt-6">
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    to={portalPath}
+                    className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-base font-semibold text-white"
+                  >
+                    My Account
+                  </Link>
+                  {isAdmin ? (
+                    <Link
+                      to="/admin"
+                      className="rounded-2xl border border-green-500/20 bg-green-500/10 px-4 py-4 text-base font-semibold text-green-400"
+                    >
+                      Admin Panel
+                    </Link>
+                  ) : null}
+                  {isCoach && !isAdmin ? (
+                    <Link
+                      to="/coach"
+                      className="rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-4 text-base font-semibold text-blue-400"
+                    >
+                      Coach Panel
+                    </Link>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={logoutUser}
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-left text-base font-semibold text-red-400"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/login"
+                  className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-base font-semibold text-white"
+                >
+                  Login
+                </Link>
+              )}
+              <Link to="/book" className="btn-primary w-full justify-center text-center">
+                Book a Session
               </Link>
-              {isAdmin && (
-                <Link to="/admin" className="text-lg font-bold text-green-400">
-                  Admin Panel
-                </Link>
-              )}
-              {isCoach && !isAdmin && (
-                <Link to="/coach" className="text-lg font-bold text-blue-400">
-                  Coach Panel
-                </Link>
-              )}
-              <button
-                onClick={logoutUser}
-                className="text-left text-lg font-bold text-red-400"
-              >
-                Sign Out
-              </button>
-            </>
-          ) : (
-            <Link to="/login" className="text-lg font-bold text-gray-300">
-              Login
-            </Link>
-          )}
-          <Link to="/book" className="btn-primary text-center mt-2">
-            Book a Session
-          </Link>
+            </div>
+          </div>
         </div>
-      )}
+      ), document.body) : null}
     </header>
   )
 }

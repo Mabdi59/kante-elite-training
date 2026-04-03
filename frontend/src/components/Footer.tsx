@@ -11,25 +11,25 @@ const footerLinks = [
 
 export default function Footer() {
   return (
-    <footer className="bg-[#0a0a0a] border-t border-[#1a1a1a]">
-      <div className="bg-black border-b border-[#1a1a1a] py-10 px-4 text-center">
+    <footer className="border-t border-[#1a1a1a] bg-[#0a0a0a] pb-24 md:pb-0">
+      <div className="border-b border-[#1a1a1a] bg-black px-4 py-10 text-center">
         <p className="section-label">Ready to Start?</p>
-        <h2 className="text-white font-black text-2xl md:text-3xl mb-6">
+        <h2 className="mb-6 text-2xl font-black text-white md:text-3xl">
           How fast can your child improve? <span className="text-amber-500">Find out.</span>
         </h2>
-        <div className="flex flex-wrap gap-3 justify-center">
-          <Link to="/book" className="btn-primary">
+        <div className="mx-auto flex max-w-md flex-col gap-3 sm:max-w-none sm:flex-row sm:flex-wrap sm:justify-center">
+          <Link to="/book" className="btn-primary w-full sm:w-auto">
             Book a Session
           </Link>
-          <Link to="/training" className="btn-secondary">
+          <Link to="/training" className="btn-secondary w-full sm:w-auto">
             View Programs
           </Link>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 grid grid-cols-1 md:grid-cols-3 gap-10">
+      <div className="page-shell grid grid-cols-1 gap-10 px-4 py-10 md:grid-cols-3">
         <div>
-          <div className="flex items-center gap-2 mb-4">
+          <div className="mb-4 flex items-center gap-2">
             <span className="text-2xl">⚽</span>
             <div>
               <span className="text-white font-black text-lg leading-none block">KANTE ELITE</span>
@@ -44,7 +44,7 @@ export default function Footer() {
         </div>
 
         <div>
-          <h4 className="text-white font-bold text-sm uppercase tracking-widest mb-4">Quick Links</h4>
+          <h4 className="mb-4 text-sm font-bold uppercase tracking-widest text-white">Quick Links</h4>
           <ul className="space-y-2">
             {footerLinks.map((link) => (
               <li key={link.href}>
@@ -60,7 +60,7 @@ export default function Footer() {
         </div>
 
         <div>
-          <h4 className="text-white font-bold text-sm uppercase tracking-widest mb-4">Contact</h4>
+          <h4 className="mb-4 text-sm font-bold uppercase tracking-widest text-white">Contact</h4>
           <ul className="space-y-3 text-sm text-gray-400">
             <li className="flex items-start gap-2">
               <span className="text-amber-500 mt-0.5">📍</span>

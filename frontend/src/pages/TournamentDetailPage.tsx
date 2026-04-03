@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getPublicTournamentView } from '../services/api'
 import type { StandingEntry, TournamentMatch, TournamentWorkflow, TournamentWorkflowTeam } from '../types'
-import LoadingSpinner from '../components/LoadingSpinner'
+import PageSkeleton from '../components/PageSkeleton'
 import StatusBadge from '../components/StatusBadge'
 
 type Tab = 'overview' | 'teams' | 'schedule' | 'standings' | 'bracket'
@@ -38,7 +38,7 @@ export default function TournamentDetailPage() {
       : []),
   ]
 
-  if (loading) return <LoadingSpinner label="Loading tournament..." />
+  if (loading) return <PageSkeleton titleWidthClassName="w-64" count={4} />
 
   if (error || !data) {
     return (
@@ -59,7 +59,7 @@ export default function TournamentDetailPage() {
   const canRegister = spotsLeft > 0 && t.status !== 'COMPLETED' && t.status !== 'CANCELLED' && !isDeadlinePassed
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="bg-black pb-32 sm:pb-36 md:pb-16">
       {/* Hero / header */}
       <div className="bg-gray-950 border-b border-gray-800 py-12 px-4">
         <div className="max-w-5xl mx-auto">
@@ -84,16 +84,16 @@ export default function TournamentDetailPage() {
               <h1 className="text-white text-4xl font-black mb-2">{t.name}</h1>
               <p className="text-gray-400">{t.location}</p>
             </div>
-            <div className="shrink-0">
+            <div className="w-full shrink-0 md:w-auto">
               {canRegister ? (
                 <Link
                   to={`/tournaments/${t.id}/register`}
-                  className="block bg-green-500 hover:bg-green-400 text-black font-bold px-6 py-3 rounded-xl text-sm transition-colors"
+                  className="block w-full rounded-xl bg-green-500 px-6 py-3 text-center text-sm font-bold text-black transition-colors hover:bg-green-400 md:w-auto"
                 >
                   Register Team
                 </Link>
               ) : (
-                <div className="bg-gray-800 text-gray-500 font-semibold px-6 py-3 rounded-xl text-sm text-center">
+                <div className="w-full rounded-xl bg-gray-800 px-6 py-3 text-center text-sm font-semibold text-gray-500 md:w-auto">
                   {t.status === 'COMPLETED' ? 'Tournament Ended' : t.status === 'CANCELLED' ? 'Cancelled' : isDeadlinePassed ? 'Registration Closed' : 'Team Spots Full'}
                 </div>
               )}
@@ -124,17 +124,20 @@ export default function TournamentDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-800 px-4 sticky top-0 bg-black z-10">
-        <div className="max-w-5xl mx-auto flex gap-1 overflow-x-auto">
+      <div className="sticky top-16 z-20 border-b border-gray-800 bg-black/95 px-4 backdrop-blur md:top-20">
+        <div
+          className="mx-auto flex max-w-5xl gap-2 overflow-x-auto overflow-y-visible py-2 whitespace-nowrap overscroll-x-contain"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           {tabs.map((tabItem) => (
             <button
               key={tabItem.key}
               type="button"
               onClick={() => setTab(tabItem.key)}
-              className={`px-5 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${
+              className={`min-h-11 whitespace-nowrap rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
                 tab === tabItem.key
-                  ? 'border-cyan-500 text-white'
-                  : 'border-transparent text-gray-500 hover:text-gray-300'
+                  ? 'bg-cyan-500/10 text-white'
+                  : 'text-gray-500 hover:bg-gray-900 hover:text-gray-300'
               }`}
             >
               {tabItem.label}
@@ -144,7 +147,7 @@ export default function TournamentDetailPage() {
       </div>
 
       {/* Tab content */}
-      <div className="max-w-5xl mx-auto px-4 py-10">
+      <div className="max-w-5xl mx-auto px-4 py-8 sm:py-10">
         {tab === 'overview' && <OverviewTab tournament={t} />}
         {tab === 'teams' && <TeamsTab teams={data.teams} />}
         {tab === 'schedule' && <ScheduleTab matches={data.matches} />}
@@ -220,7 +223,7 @@ function OverviewTab({ tournament: t }: { tournament: TournamentWorkflow['tourna
           ]
             .filter(([, v]) => v)
             .map(([label, value]) => (
-              <div key={label} className="flex justify-between items-center px-5 py-3">
+              <div key={label} className="flex flex-col gap-1 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-gray-500 text-sm">{label}</span>
                 <span className="text-white text-sm font-medium">{value}</span>
               </div>
@@ -338,24 +341,25 @@ function ScheduleTab({ matches }: { matches: TournamentMatch[] }) {
 function MatchRow({ match: m }: { match: TournamentMatch }) {
   const isFinal = m.status === 'FINAL'
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-      <div className="flex items-center gap-4 flex-wrap">
+    <div className="rounded-2xl border border-gray-800 bg-gray-900 p-4 sm:p-5">
+      <div className="flex flex-col gap-4">
         {/* Teams + score */}
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <span className="text-white font-semibold text-sm truncate flex-1 text-right">{m.homeTeamName ?? 'TBD'}</span>
-          <div className={`shrink-0 px-3 py-1 rounded-lg text-sm font-black tabular-nums ${isFinal ? 'bg-cyan-500/10 text-cyan-300' : 'bg-gray-800 text-gray-400'}`}>
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-2xl border border-gray-800 bg-black/30 p-3 sm:p-4">
+          <span className="truncate text-right text-sm font-semibold text-white sm:text-base">{m.homeTeamName ?? 'TBD'}</span>
+          <div className={`rounded-xl px-4 py-3 text-center text-xl font-black tabular-nums sm:text-2xl ${isFinal ? 'bg-cyan-500/10 text-cyan-300' : 'bg-gray-800 text-gray-400'}`}>
+            <div className="mb-1 text-[10px] uppercase tracking-[0.18em] sm:text-xs">{isFinal ? 'Final' : 'Match'}</div>
             {isFinal ? `${m.homeScore ?? 0} – ${m.awayScore ?? 0}` : 'vs'}
           </div>
-          <span className="text-white font-semibold text-sm truncate flex-1">{m.awayTeamName ?? 'TBD'}</span>
+          <span className="truncate text-sm font-semibold text-white sm:text-base">{m.awayTeamName ?? 'TBD'}</span>
         </div>
         {/* Meta */}
-        <div className="flex items-center gap-3 shrink-0 flex-wrap text-xs text-gray-500">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 sm:text-sm">
           {m.roundName && <span>{m.roundName}</span>}
           {m.matchDate && <span>{formatDate(m.matchDate)}</span>}
           {m.kickoffTime && <span>{m.kickoffTime.slice(0, 5)}</span>}
           {m.venue && <span>{m.venue}</span>}
           {m.fieldName && <span>· {m.fieldName}</span>}
-          <StatusBadge status={m.status} />
+          <StatusBadge status={m.status} className="w-full justify-center sm:w-auto" />
         </div>
       </div>
     </div>
@@ -469,10 +473,13 @@ function BracketTab({ matches }: { matches: TournamentMatch[] }) {
   return (
     <div>
       <p className="text-gray-500 text-sm mb-6">Knockout bracket — winners advance from left to right.</p>
-      <div className="w-full overflow-x-auto pb-4">
-        <div className="flex gap-8 items-start" style={{ minWidth: 'max-content' }}>
+      <div
+        className="-mx-4 overflow-x-auto overflow-y-visible px-4 pb-4 overscroll-x-contain snap-x snap-mandatory sm:mx-0 sm:px-0"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
+        <div className="flex min-w-max items-start gap-6 pr-4 sm:gap-8 sm:pr-0">
           {(rounds as [string, TournamentMatch[]][]).map(([roundName, roundMatches]) => (
-            <div key={roundName} className="flex flex-col w-[220px] shrink-0">
+            <div key={roundName} className="flex w-[220px] shrink-0 snap-start flex-col">
               <h3 className={`text-xs font-bold uppercase tracking-widest text-center mb-3 ${roundName === 'Final' ? 'text-yellow-400' : roundName === 'Third Place' ? 'text-gray-400' : 'text-cyan-400'}`}>
                 {roundName === 'Final' ? '🏆 ' : ''}{roundName}
               </h3>

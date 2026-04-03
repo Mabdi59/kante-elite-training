@@ -22,7 +22,7 @@ export default function ProgramCard({ program, featured = false, variant = 'defa
             ⚡ Most Popular
           </div>
         )}
-        <div className="p-6 flex flex-col flex-1">
+        <div className="flex flex-1 flex-col p-5 sm:p-6">
           <div className="text-4xl mb-4">{program.icon}</div>
           <p className="text-amber-500 font-black text-xl mb-1">{program.priceLabel}</p>
           <h3 className="text-white font-black text-lg mb-2 leading-tight">{program.name}</h3>
@@ -35,10 +35,7 @@ export default function ProgramCard({ program, featured = false, variant = 'defa
             </p>
           )}
           <p className="text-gray-400 text-sm leading-relaxed flex-1">{program.shortDescription}</p>
-          <Link
-            to={bookHref}
-            className="btn-primary text-sm text-center mt-5"
-          >
+          <Link to={bookHref} className="btn-primary mt-5 w-full text-center text-sm">
             Book Your Session
           </Link>
         </div>
@@ -64,7 +61,7 @@ export default function ProgramCard({ program, featured = false, variant = 'defa
         <span className="text-7xl relative z-10">{program.icon}</span>
       </div>
 
-      <div className="p-6 flex flex-col flex-1">
+      <div className="flex flex-1 flex-col p-5 sm:p-6">
         <div className="flex items-start justify-between gap-3 mb-2">
           <h3 className="text-white font-black text-xl leading-tight">{program.name}</h3>
           <span className="text-amber-500 font-black text-lg whitespace-nowrap">{program.priceLabel}</span>
@@ -94,7 +91,7 @@ export default function ProgramCard({ program, featured = false, variant = 'defa
           </ul>
         )}
 
-        <Link to={bookHref} className="btn-primary text-center text-sm mt-auto">
+        <Link to={bookHref} className="btn-primary mt-auto w-full text-center text-sm">
           Book Your Session
         </Link>
       </div>

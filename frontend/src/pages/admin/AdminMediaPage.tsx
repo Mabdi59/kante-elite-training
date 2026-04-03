@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom'
 import { createMediaPost, deleteMediaPost, getMediaPosts } from '../../services/api'
 import type { MediaPost, MediaType } from '../../types'
 import ErrorBanner from '../../components/ErrorBanner'
-import LoadingSpinner from '../../components/LoadingSpinner'
 import EmptyState from '../../components/EmptyState'
 import MediaPostCard from '../../components/MediaPostCard'
+import PageSkeleton from '../../components/PageSkeleton'
 
 const MAX_MEDIA_FILE_SIZE = 20 * 1024 * 1024
 const ALLOWED_MEDIA_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4']
@@ -112,9 +112,11 @@ export default function AdminMediaPage() {
       setPosts((prev) => [created, ...prev])
       resetForm()
     } catch (err: unknown) {
+      const response = (err as { response?: { status?: number; data?: { error?: string } } })?.response
       const message =
-        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        'Could not upload this media post.'
+        response?.status === 413
+          ? 'This file is too large to upload. Please keep media files at 20 MB or smaller.'
+          : response?.data?.error ?? 'Could not upload this media post.'
       setError(message)
     } finally {
       setUploading(false)
@@ -138,12 +140,16 @@ export default function AdminMediaPage() {
     }
   }
 
+  if (loading) {
+    return <PageSkeleton titleWidthClassName="w-48" count={6} />
+  }
+
   return (
     <div>
-      <div className="sticky top-0 z-20 -mx-8 mb-6 border-b border-gray-900 bg-gray-950/95 px-8 py-4 backdrop-blur">
+      <div className="panel-header">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-black text-white">Media</h1>
+            <h1 className="text-2xl font-black text-white sm:text-3xl">Media</h1>
             <p className="mt-1 text-sm text-gray-400">
               Upload photos and videos to keep the public feed fresh with training highlights.
             </p>
@@ -160,7 +166,7 @@ export default function AdminMediaPage() {
         </div>
       ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[420px_minmax(0,1fr)]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
         <div className="space-y-6">
           <form onSubmit={handleSubmit} className="rounded-xl border border-gray-800 bg-gray-900 p-6">
             <div className="mb-5">
@@ -228,20 +234,23 @@ export default function AdminMediaPage() {
               </div>
             </div>
 
-            <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
               <button
                 type="button"
                 onClick={resetForm}
-                className="rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700"
+                className="w-full rounded-lg bg-gray-800 px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-700 sm:w-auto"
               >
                 Clear
               </button>
               <button
                 type="submit"
                 disabled={!selectedFile || uploading}
-                className="rounded-lg bg-cyan-500 px-5 py-2.5 text-sm font-bold text-black transition-colors hover:bg-cyan-400 disabled:opacity-50"
+                className="w-full rounded-lg bg-cyan-500 px-5 py-3 text-sm font-bold text-black transition-colors hover:bg-cyan-400 disabled:opacity-50 sm:w-auto"
               >
-                {uploading ? 'Posting...' : 'Post to Feed'}
+                <span className="inline-flex items-center gap-2">
+                  {uploading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-black/20 border-t-black" /> : null}
+                  {uploading ? 'Posting...' : 'Post to Feed'}
+                </span>
               </button>
             </div>
           </form>
@@ -266,7 +275,7 @@ export default function AdminMediaPage() {
 
         <div className="space-y-6">
           <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-xl font-bold text-white">Published Feed</h2>
                 <p className="mt-1 text-sm text-gray-400">
@@ -275,20 +284,18 @@ export default function AdminMediaPage() {
               </div>
               <Link
                 to="/admin/content"
-                className="rounded-lg bg-gray-800 px-4 py-2 text-sm font-semibold text-gray-200 hover:bg-gray-700"
+                className="w-full rounded-lg bg-gray-800 px-4 py-3 text-center text-sm font-semibold text-gray-200 hover:bg-gray-700 sm:w-auto"
               >
                 Manage Placement
               </Link>
             </div>
           </div>
 
-          {loading ? (
-            <LoadingSpinner label="Loading media posts..." />
-          ) : posts.length === 0 ? (
+          {posts.length === 0 ? (
             <EmptyState
               icon="Feed"
               title="No posts yet"
-              description="Upload your first highlight to start building the public media feed."
+              description="Upload your first training clip or event moment to start building the public highlight feed."
               action={
                 <button
                   type="button"
@@ -309,7 +316,7 @@ export default function AdminMediaPage() {
                       type="button"
                       disabled={deletingId === post.id}
                       onClick={() => setPostPendingDelete(post)}
-                      className="rounded-lg bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+                      className="w-full rounded-lg bg-red-500/10 px-4 py-3 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50 sm:w-auto"
                     >
                       {deletingId === post.id ? 'Deleting...' : 'Delete Post'}
                     </button>
@@ -338,11 +345,11 @@ export default function AdminMediaPage() {
               {postPendingDelete.caption?.trim() || 'Untitled media post'}
             </div>
 
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={() => setPostPendingDelete(null)}
-                className="rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700"
+                className="w-full rounded-lg bg-gray-800 px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-700 sm:w-auto"
               >
                 Cancel
               </button>
@@ -350,7 +357,7 @@ export default function AdminMediaPage() {
                 type="button"
                 disabled={deletingId === postPendingDelete.id}
                 onClick={() => handleDelete(postPendingDelete)}
-                className="rounded-lg bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-400 disabled:opacity-50"
+                className="w-full rounded-lg bg-red-500 px-4 py-3 text-sm font-bold text-white hover:bg-red-400 disabled:opacity-50 sm:w-auto"
               >
                 {deletingId === postPendingDelete.id ? 'Deleting...' : 'Delete post'}
               </button>

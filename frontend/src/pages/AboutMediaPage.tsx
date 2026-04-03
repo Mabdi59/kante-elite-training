@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import CTASection from '../components/CTASection'
 import EmptyState from '../components/EmptyState'
+import MediaLightbox from '../components/MediaLightbox'
 import MediaPostCard from '../components/MediaPostCard'
+import PageSkeleton from '../components/PageSkeleton'
 import { defaultWebsiteContent } from '../content/defaultWebsiteContent'
 import { getMediaPosts, getWebsiteContent } from '../services/api'
 import type { MediaPost, WebsiteContent } from '../types'
@@ -9,6 +11,8 @@ import type { MediaPost, WebsiteContent } from '../types'
 export default function AboutMediaPage() {
   const [mediaPosts, setMediaPosts] = useState<MediaPost[]>([])
   const [content, setContent] = useState<WebsiteContent>(defaultWebsiteContent)
+  const [activeMediaIndex, setActiveMediaIndex] = useState<number | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     Promise.allSettled([getMediaPosts(), getWebsiteContent()]).then(([mediaResult, contentResult]) => {
@@ -28,7 +32,7 @@ export default function AboutMediaPage() {
               : defaultWebsiteContent.aboutExperiencePoints,
         })
       }
-    })
+    }).finally(() => setLoading(false))
   }, [])
 
   const aboutMediaPosts = useMemo(
@@ -51,9 +55,19 @@ export default function AboutMediaPage() {
     [aboutDisplayPosts, heroPost],
   )
 
+  if (loading) {
+    return (
+      <div className="bg-black pt-20">
+        <div className="page-shell py-10">
+          <PageSkeleton titleWidthClassName="w-72" count={4} />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="bg-black pt-20">
-      <section className="relative overflow-hidden px-4 py-20">
+      <section className="relative overflow-hidden px-4 py-16 sm:py-20">
         {heroPost ? (
           <div className="absolute inset-0">
             {heroPost.mediaType === 'VIDEO' ? (
@@ -69,11 +83,12 @@ export default function AboutMediaPage() {
               <img
                 src={heroPost.mediaUrl}
                 alt={heroPost.caption?.trim() || content.aboutHeroTitle || 'Kante Elite training banner'}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-cover animate-hero-zoom"
               />
             )}
             <div className="absolute inset-0 bg-black/60" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.32),_transparent_42%)]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/80" />
           </div>
         ) : (
           <>
@@ -82,16 +97,16 @@ export default function AboutMediaPage() {
           </>
         )}
 
-        <div className="relative mx-auto max-w-7xl">
-          <div className="max-w-3xl">
+        <div className="page-shell relative">
+          <div className="max-w-3xl animate-fade-up">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-amber-400">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
               {content.aboutBadge || defaultWebsiteContent.aboutBadge}
             </div>
-            <h1 className="text-4xl font-black text-white md:text-5xl lg:text-6xl">
+            <h1 className="text-3xl font-black text-white sm:text-4xl md:text-5xl lg:text-6xl">
               {content.aboutHeroTitle || defaultWebsiteContent.aboutHeroTitle}
             </h1>
-            <p className="mt-4 max-w-2xl text-lg leading-relaxed text-gray-200">
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-gray-200 sm:text-lg">
               {content.aboutHeroDescription || defaultWebsiteContent.aboutHeroDescription}
             </p>
             <div className="mt-8 inline-flex rounded-full border border-white/10 bg-black/35 px-4 py-2 text-sm font-semibold text-white backdrop-blur">
@@ -102,10 +117,10 @@ export default function AboutMediaPage() {
       </section>
 
       <section className="bg-black px-4 py-16">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="page-shell grid grid-cols-1 items-center gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
           <div>
             <span className="section-label">{content.aboutBadge || defaultWebsiteContent.aboutBadge}</span>
-            <h2 className="mb-4 text-4xl font-black text-white">
+            <h2 className="mb-4 text-3xl font-black text-white sm:text-4xl">
               {content.aboutHeadline || defaultWebsiteContent.aboutHeadline}
             </h2>
             <div className="space-y-4 text-sm leading-relaxed text-gray-400">
@@ -115,11 +130,17 @@ export default function AboutMediaPage() {
           </div>
 
           {galleryPosts[0] ? (
-            <MediaPostCard
-              post={galleryPosts[0]}
-              aspectClassName="aspect-[5/4]"
-              showDate={false}
-            />
+            <button
+              type="button"
+              onClick={() => setActiveMediaIndex(0)}
+              className="block w-full text-left"
+            >
+              <MediaPostCard
+                post={galleryPosts[0]}
+                aspectClassName="aspect-[5/4]"
+                showDate={false}
+              />
+            </button>
           ) : (
             <div className="rounded-2xl border border-[#222] bg-[#111] p-8">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-400">
@@ -134,12 +155,12 @@ export default function AboutMediaPage() {
       </section>
 
       <section className="border-y border-[#1a1a1a] bg-[#0a0a0a] px-4 py-16">
-        <div className="mx-auto max-w-6xl">
+        <div className="page-shell max-w-6xl">
           <div className="mb-8 text-center">
             <span className="section-label">
               {content.aboutExperienceTitle || defaultWebsiteContent.aboutExperienceTitle}
             </span>
-            <h2 className="mb-4 text-4xl font-black text-white md:text-5xl">
+            <h2 className="mb-4 text-3xl font-black text-white sm:text-4xl md:text-5xl">
               {content.aboutExperienceTitle || defaultWebsiteContent.aboutExperienceTitle}
             </h2>
             <p className="mx-auto max-w-2xl text-sm leading-relaxed text-gray-400">
@@ -147,7 +168,7 @@ export default function AboutMediaPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-[#222] bg-[#1a1a1a] p-8">
+          <div className="rounded-2xl border border-[#222] bg-[#1a1a1a] p-5 sm:p-8">
             <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {(content.aboutExperiencePoints?.length
                 ? content.aboutExperiencePoints
@@ -167,11 +188,11 @@ export default function AboutMediaPage() {
       </section>
 
       <section className="bg-black px-4 py-16">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div className="page-shell">
+          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
               <span className="section-label">{content.aboutGalleryTitle || defaultWebsiteContent.aboutGalleryTitle}</span>
-              <h2 className="text-4xl font-black text-white md:text-5xl">
+              <h2 className="text-3xl font-black text-white sm:text-4xl md:text-5xl">
                 {content.aboutGalleryTitle || defaultWebsiteContent.aboutGalleryTitle}
               </h2>
             </div>
@@ -181,9 +202,16 @@ export default function AboutMediaPage() {
           </div>
 
           {galleryPosts.length > 0 ? (
-            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-              {galleryPosts.map((post) => (
-                <MediaPostCard key={post.id} post={post} />
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {galleryPosts.map((post, index) => (
+                <button
+                  key={post.id}
+                  type="button"
+                  onClick={() => setActiveMediaIndex(index)}
+                  className="block w-full text-left"
+                >
+                  <MediaPostCard post={post} />
+                </button>
               ))}
             </div>
           ) : (
@@ -200,6 +228,13 @@ export default function AboutMediaPage() {
         title="Train With Confidence"
         subtitle="Book a session with a coach who brings real playing experience and a clear plan for development."
         urgencyLine="Limited spots available each week"
+      />
+
+      <MediaLightbox
+        posts={galleryPosts}
+        activeIndex={activeMediaIndex}
+        onClose={() => setActiveMediaIndex(null)}
+        onSelect={setActiveMediaIndex}
       />
     </div>
   )

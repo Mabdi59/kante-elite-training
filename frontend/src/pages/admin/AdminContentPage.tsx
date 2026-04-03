@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import EmptyState from '../../components/EmptyState'
 import ErrorBanner from '../../components/ErrorBanner'
-import LoadingSpinner from '../../components/LoadingSpinner'
 import MediaPostCard from '../../components/MediaPostCard'
+import PageSkeleton from '../../components/PageSkeleton'
 import { defaultWebsiteContent } from '../../content/defaultWebsiteContent'
 import {
   getAdminWebsiteContent,
@@ -88,7 +88,7 @@ function ToggleButton({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className={`rounded-full px-3 py-2 text-xs font-semibold transition-colors ${
+      className={`w-full rounded-2xl px-3 py-2 text-left text-xs font-semibold transition-colors sm:w-auto sm:rounded-full ${
         active
           ? 'bg-cyan-500 text-black'
           : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
@@ -242,28 +242,28 @@ export default function AdminContentPage() {
   }
 
   if (loading) {
-    return <LoadingSpinner label="Loading website content..." />
+    return <PageSkeleton titleWidthClassName="w-56" count={4} />
   }
 
   return (
     <div>
-      <div className="sticky top-0 z-20 -mx-8 mb-6 border-b border-gray-900 bg-gray-950/95 px-8 py-4 backdrop-blur">
+      <div className="panel-header">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-black text-white">Content</h1>
+            <h1 className="text-2xl font-black text-white sm:text-3xl">Content</h1>
             <p className="mt-1 text-sm text-gray-400">
               Control homepage copy, about page content, and where each media post appears.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Link to="/admin/media" className="rounded-lg bg-gray-800 px-4 py-2 text-sm font-semibold text-gray-200 hover:bg-gray-700">
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
+            <Link to="/admin/media" className="w-full rounded-lg bg-gray-800 px-4 py-3 text-center text-sm font-semibold text-gray-200 hover:bg-gray-700 sm:w-auto">
               Upload Media
             </Link>
             <button
               type="button"
               onClick={saveContent}
               disabled={saving}
-              className="rounded-lg bg-cyan-500 px-5 py-2.5 text-sm font-bold text-black hover:bg-cyan-400 disabled:opacity-50"
+              className="w-full rounded-lg bg-cyan-500 px-5 py-3 text-sm font-bold text-black hover:bg-cyan-400 disabled:opacity-50 sm:w-auto"
             >
               {saving ? 'Saving...' : 'Save Content'}
             </button>
@@ -415,7 +415,7 @@ export default function AdminContentPage() {
         </section>
 
         <section className="rounded-2xl border border-gray-800 bg-gray-900 p-6">
-          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <div className="mb-6 flex flex-col gap-4 md:flex-row md:flex-wrap md:items-end md:justify-between">
             <div>
               <span className="section-label">Media Placement</span>
               <h2 className="text-2xl font-black text-white">Choose what appears on each page</h2>
@@ -453,7 +453,7 @@ export default function AdminContentPage() {
                 return (
                   <div key={post.id} className="rounded-2xl border border-gray-800 bg-black/40 p-4">
                     <MediaPostCard post={post} />
-                    <div className="mt-4 flex flex-wrap gap-2">
+                    <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                       <ToggleButton
                         badge="Home"
                         label={post.showOnHome ? 'Showing on Home Page' : 'Show on Home Page'}

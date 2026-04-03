@@ -817,12 +817,13 @@ export default function AdminTournamentWorkflowPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+      <div className="panel-header">
+        <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <Link to="/admin/tournaments" className="text-sm text-cyan-400 hover:text-cyan-300">
             Back to tournaments
           </Link>
-          <h1 className="text-white text-3xl font-black mt-2">
+          <h1 className="mt-2 text-2xl font-black text-white sm:text-3xl">
             {workflow?.tournament.name ?? 'New Tournament Workflow'}
           </h1>
           <p className="text-gray-400 text-sm mt-2 max-w-2xl">
@@ -831,6 +832,7 @@ export default function AdminTournamentWorkflowPage() {
           </p>
         </div>
         {workflow?.tournament ? <StatusBadge status={workflow.tournament.status} /> : null}
+      </div>
       </div>
 
       {error ? <ErrorBanner message={error} onDismiss={() => setError('')} /> : null}
@@ -849,14 +851,14 @@ export default function AdminTournamentWorkflowPage() {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-3">
+      <div className="flex gap-3 overflow-x-auto pb-2 md:grid md:grid-cols-2 xl:grid-cols-7">
         {WORKFLOW_STEPS.map((step) => (
           <button
             key={step.key}
             type="button"
             disabled={!tournamentId && step.key !== 'details'}
             onClick={() => setStep(step.key)}
-            className={`rounded-xl border px-4 py-4 text-left transition-colors ${
+            className={`min-w-[220px] rounded-xl border px-4 py-4 text-left transition-colors md:min-w-0 ${
               currentStep === step.key
                 ? 'border-cyan-500 bg-cyan-500/10'
                 : 'border-gray-800 bg-gray-900 hover:border-gray-700'
@@ -868,7 +870,7 @@ export default function AdminTournamentWorkflowPage() {
         ))}
       </div>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-5">
+      <div className="space-y-5 rounded-2xl border border-gray-800 bg-gray-900 p-4 sm:p-6">
         {currentStep === 'details' ? (
           <>
             <h2 className="text-white font-black text-2xl">Tournament Details</h2>
@@ -943,7 +945,7 @@ export default function AdminTournamentWorkflowPage() {
                 <textarea className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm min-h-[110px]" placeholder="Notes for staff and coaches (not shown publicly)." value={tournamentForm.notes} onChange={(e) => setTournamentForm((prev) => ({ ...prev, notes: e.target.value }))} />
               </div>
             </div>
-            <button type="button" onClick={() => saveTournament('teams')} disabled={saving} className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-5 py-2.5 rounded-lg text-sm disabled:opacity-50">
+            <button type="button" onClick={() => saveTournament('teams')} disabled={saving} className="w-full rounded-lg bg-cyan-500 px-5 py-3 text-sm font-bold text-black hover:bg-cyan-400 disabled:opacity-50 sm:w-auto">
               {saving ? 'Saving...' : tournamentId ? 'Save and Continue' : 'Create Tournament'}
             </button>
           </>
@@ -1029,8 +1031,8 @@ export default function AdminTournamentWorkflowPage() {
                       <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Payment status</label>
                       <select className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" value={registrationForm.paymentStatus} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, paymentStatus: e.target.value }))}>{PAYMENT_STATUSES.map((status) => <option key={status}>{status}</option>)}</select>
                     </div>
-                    <div className="md:col-span-2 flex gap-3">
-                      <button type="button" onClick={saveRegistration} disabled={saving || !singleTeamFormValid} className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-4 py-2 rounded-lg text-sm disabled:opacity-50">{saving ? 'Saving...' : editingRegistrationId ? 'Save Team' : 'Create Team'}</button>
+                    <div className="md:col-span-2 flex flex-col gap-3 sm:flex-row">
+                      <button type="button" onClick={saveRegistration} disabled={saving || !singleTeamFormValid} className="w-full rounded-lg bg-cyan-500 px-4 py-3 text-sm font-bold text-black hover:bg-cyan-400 disabled:opacity-50 sm:w-auto">{saving ? 'Saving...' : editingRegistrationId ? 'Save Team' : 'Create Team'}</button>
                       <button
                         type="button"
                         onClick={() => {
@@ -1038,7 +1040,7 @@ export default function AdminTournamentWorkflowPage() {
                           setTeamFormMode('single')
                           setBulkTeamText('')
                         }}
-                        className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"
+                        className="w-full rounded-lg bg-gray-800 px-4 py-3 text-sm text-white hover:bg-gray-700 sm:w-auto"
                       >
                         Close
                       </button>
@@ -1068,15 +1070,15 @@ export default function AdminTournamentWorkflowPage() {
                         One team per line. Format: <span className="text-gray-300">Team Name, Captain Name, Contact Email</span> or <span className="text-gray-300">Team Name, Captain Name, Contact Email, Phone, Club Name</span>.
                       </p>
                     </div>
-                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                       <div className="text-sm text-gray-400">
                         <span className="text-white font-semibold">{bulkTeamsPreview.valid.length}</span> valid team{bulkTeamsPreview.valid.length === 1 ? '' : 's'} ready
                         {bulkTeamsPreview.invalid.length ? (
                           <span className="text-amber-400">, {bulkTeamsPreview.invalid.length} invalid line{bulkTeamsPreview.invalid.length === 1 ? '' : 's'}</span>
                         ) : null}
                       </div>
-                      <div className="flex gap-3">
-                        <button type="button" onClick={saveBulkRegistrations} disabled={creatingBulkTeams || bulkTeamsPreview.valid.length === 0} className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-4 py-2 rounded-lg text-sm disabled:opacity-50">
+                      <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                        <button type="button" onClick={saveBulkRegistrations} disabled={creatingBulkTeams || bulkTeamsPreview.valid.length === 0} className="w-full rounded-lg bg-cyan-500 px-4 py-3 text-sm font-bold text-black hover:bg-cyan-400 disabled:opacity-50 sm:w-auto">
                           {creatingBulkTeams ? 'Creating...' : `Add ${bulkTeamsPreview.valid.length} Teams`}
                         </button>
                         <button
@@ -1086,7 +1088,7 @@ export default function AdminTournamentWorkflowPage() {
                             setTeamFormMode('single')
                             setBulkTeamText('')
                           }}
-                          className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"
+                          className="w-full rounded-lg bg-gray-800 px-4 py-3 text-sm text-white hover:bg-gray-700 sm:w-auto"
                         >
                           Close
                         </button>
@@ -1159,16 +1161,16 @@ export default function AdminTournamentWorkflowPage() {
                             value={bulkImportText}
                             onChange={(e) => setBulkImportText(e.target.value)}
                           />
-                          <div className="flex gap-3">
+                          <div className="flex flex-col gap-3 sm:flex-row">
                             <button
                               type="button"
                               onClick={runBulkImport}
                               disabled={importingBulk || !bulkImportText.trim()}
-                              className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-4 py-2 rounded-lg text-sm disabled:opacity-50"
+                              className="w-full rounded-lg bg-cyan-500 px-4 py-3 text-sm font-bold text-black hover:bg-cyan-400 disabled:opacity-50 sm:w-auto"
                             >
                               {importingBulk ? 'Importing...' : `Import ${bulkImportText.split('\n').filter((l) => l.trim()).length} Players`}
                             </button>
-                            <button type="button" onClick={() => { setShowBulkImport(false); setBulkImportText('') }} className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm">Cancel</button>
+                            <button type="button" onClick={() => { setShowBulkImport(false); setBulkImportText('') }} className="w-full rounded-lg bg-gray-800 px-4 py-3 text-sm text-white hover:bg-gray-700 sm:w-auto">Cancel</button>
                           </div>
                         </div>
                       ) : null}
@@ -1179,9 +1181,9 @@ export default function AdminTournamentWorkflowPage() {
                         <input className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Position" value={playerForm.position ?? ''} onChange={(e) => setPlayerForm((prev) => ({ ...prev, position: e.target.value }))} />
                         <label className="flex items-center gap-3 text-gray-300 text-sm"><input type="checkbox" checked={Boolean(playerForm.captain)} onChange={(e) => setPlayerForm((prev) => ({ ...prev, captain: e.target.checked }))} /> Team captain</label>
                         <textarea className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm min-h-[100px] md:col-span-2" placeholder="Notes" value={playerForm.notes ?? ''} onChange={(e) => setPlayerForm((prev) => ({ ...prev, notes: e.target.value }))} />
-                        <div className="md:col-span-2 flex gap-3">
-                          <button type="button" onClick={savePlayer} disabled={saving} className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-4 py-2 rounded-lg text-sm disabled:opacity-50">{saving ? 'Saving...' : editingPlayer ? 'Save Player' : 'Add Player'}</button>
-                          <button type="button" onClick={() => { setPlayerForm(emptyPlayerForm()); setEditingPlayer(null) }} className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm">Clear</button>
+                        <div className="md:col-span-2 flex flex-col gap-3 sm:flex-row">
+                          <button type="button" onClick={savePlayer} disabled={saving} className="w-full rounded-lg bg-cyan-500 px-4 py-3 text-sm font-bold text-black hover:bg-cyan-400 disabled:opacity-50 sm:w-auto">{saving ? 'Saving...' : editingPlayer ? 'Save Player' : 'Add Player'}</button>
+                          <button type="button" onClick={() => { setPlayerForm(emptyPlayerForm()); setEditingPlayer(null) }} className="w-full rounded-lg bg-gray-800 px-4 py-3 text-sm text-white hover:bg-gray-700 sm:w-auto">Clear</button>
                         </div>
                       </div>
                       {selectedTeam.players.length === 0 ? <EmptyState title="No players added yet" description="Add players above or use Paste Import for multiple players at once." /> : (
@@ -1321,7 +1323,7 @@ export default function AdminTournamentWorkflowPage() {
                 <label htmlFor="thirdPlace" className="text-gray-300 text-sm cursor-pointer">Enable third place match</label>
               </div>
             </div>
-            <button type="button" onClick={saveFormat} disabled={saving} className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-5 py-2.5 rounded-lg text-sm disabled:opacity-50">
+            <button type="button" onClick={saveFormat} disabled={saving} className="w-full rounded-lg bg-cyan-500 px-5 py-3 text-sm font-bold text-black hover:bg-cyan-400 disabled:opacity-50 sm:w-auto">
               {saving ? 'Saving...' : 'Save Format'}
             </button>
           </>
@@ -1341,7 +1343,7 @@ export default function AdminTournamentWorkflowPage() {
                   <p className="text-gray-400 text-sm mt-1">Auto Build generates a single-elimination bracket. Teams must be an even number for this to work.</p>
                 )}
               </div>
-              <div className="flex gap-3">
+              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
                 <button
                   type="button"
                   onClick={async () => {
@@ -1357,7 +1359,7 @@ export default function AdminTournamentWorkflowPage() {
                     }
                     await loadWorkflow(tournamentId)
                   }}
-                  className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-4 py-2 rounded-lg text-sm"
+                  className="w-full rounded-lg bg-cyan-500 px-4 py-3 text-sm font-bold text-black hover:bg-cyan-400 sm:w-auto"
                 >
                   Auto Build Schedule
                 </button>
@@ -1375,7 +1377,7 @@ export default function AdminTournamentWorkflowPage() {
                         setError((err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Could not seed the knockout bracket.')
                       }
                     }}
-                    className="bg-amber-500 hover:bg-amber-400 text-black font-bold px-4 py-2 rounded-lg text-sm"
+                    className="w-full rounded-lg bg-amber-500 px-4 py-3 text-sm font-bold text-black hover:bg-amber-400 sm:w-auto"
                   >
                     Seed Knockout Bracket
                   </button>
@@ -1387,7 +1389,7 @@ export default function AdminTournamentWorkflowPage() {
                     setEditingMatch(null)
                     setShowMatchForm(true)
                   }}
-                  className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"
+                  className="w-full rounded-lg bg-gray-800 px-4 py-3 text-sm text-white hover:bg-gray-700 sm:w-auto"
                 >
                   Manual Match
                 </button>
@@ -1406,9 +1408,9 @@ export default function AdminTournamentWorkflowPage() {
                 <input className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Field name" value={matchForm.fieldName ?? ''} onChange={(e) => setMatchForm((prev) => ({ ...prev, fieldName: e.target.value }))} />
                 <select className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" value={matchForm.status} onChange={(e) => setMatchForm((prev) => ({ ...prev, status: e.target.value }))}>{MATCH_STATUSES.map((status) => <option key={status}>{status}</option>)}</select>
                 <textarea className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm min-h-[100px] md:col-span-2" placeholder="Notes" value={matchForm.notes ?? ''} onChange={(e) => setMatchForm((prev) => ({ ...prev, notes: e.target.value }))} />
-                <div className="md:col-span-2 flex gap-3">
-                  <button type="button" onClick={saveMatch} disabled={saving} className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-4 py-2 rounded-lg text-sm disabled:opacity-50">{saving ? 'Saving...' : editingMatch ? 'Save Match' : 'Create Match'}</button>
-                  <button type="button" onClick={() => { setShowMatchForm(false); setEditingMatch(null); setMatchForm(emptyMatchForm()) }} className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm">Close</button>
+                <div className="md:col-span-2 flex flex-col gap-3 sm:flex-row">
+                  <button type="button" onClick={saveMatch} disabled={saving} className="w-full rounded-lg bg-cyan-500 px-4 py-3 text-sm font-bold text-black hover:bg-cyan-400 disabled:opacity-50 sm:w-auto">{saving ? 'Saving...' : editingMatch ? 'Save Match' : 'Create Match'}</button>
+                  <button type="button" onClick={() => { setShowMatchForm(false); setEditingMatch(null); setMatchForm(emptyMatchForm()) }} className="w-full rounded-lg bg-gray-800 px-4 py-3 text-sm text-white hover:bg-gray-700 sm:w-auto">Close</button>
                 </div>
               </div>
             ) : null}
@@ -1591,11 +1593,11 @@ export default function AdminTournamentWorkflowPage() {
         ) : null}
 
 
-        <div className="flex items-center justify-between pt-2 border-t border-gray-800">
+        <div className="flex flex-col gap-3 border-t border-gray-800 pt-4 sm:flex-row sm:items-center sm:justify-between">
           <button
             type="button"
             onClick={() => setStep(previousStep)}
-            className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"
+            className="w-full rounded-lg bg-gray-800 px-4 py-3 text-sm text-white hover:bg-gray-700 sm:w-auto"
           >
             Back
           </button>
@@ -1603,7 +1605,7 @@ export default function AdminTournamentWorkflowPage() {
             type="button"
             onClick={() => setStep(nextStep)}
             disabled={!tournamentId && currentStep === 'details'}
-            className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-4 py-2 rounded-lg text-sm disabled:opacity-50"
+            className="w-full rounded-lg bg-cyan-500 px-4 py-3 text-sm font-bold text-black hover:bg-cyan-400 disabled:opacity-50 sm:w-auto"
           >
             Next
           </button>
@@ -1627,7 +1629,45 @@ function StandingsTable({ standings }: { standings: StandingEntry[] }) {
       {Object.entries(groups).map(([groupName, rows]) => (
         <div key={groupName}>
           <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-3">{groupName}</div>
-          <div className="overflow-x-auto rounded-xl border border-gray-800">
+          <div className="space-y-3 md:hidden">
+            {rows.map((row) => (
+              <div key={row.teamId} className="rounded-xl border border-gray-800 bg-gray-950 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                      Position {row.position}
+                    </p>
+                    <p className="mt-1 text-base font-semibold text-white">{row.teamName}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Points</p>
+                    <p className="text-2xl font-black text-white">{row.points}</p>
+                  </div>
+                </div>
+                <div className="mt-4 grid grid-cols-3 gap-3 text-sm text-gray-300">
+                  <div className="rounded-lg bg-black px-3 py-2">
+                    <p className="text-xs uppercase tracking-[0.18em] text-gray-500">Played</p>
+                    <p className="mt-1 font-semibold text-white">{row.played}</p>
+                  </div>
+                  <div className="rounded-lg bg-black px-3 py-2">
+                    <p className="text-xs uppercase tracking-[0.18em] text-gray-500">W-D-L</p>
+                    <p className="mt-1 font-semibold text-white">{row.won}-{row.drawn}-{row.lost}</p>
+                  </div>
+                  <div className="rounded-lg bg-black px-3 py-2">
+                    <p className="text-xs uppercase tracking-[0.18em] text-gray-500">Goals</p>
+                    <p className="mt-1 font-semibold text-white">{row.goalsFor}-{row.goalsAgainst}</p>
+                  </div>
+                </div>
+                <div className="mt-3 rounded-lg bg-black px-3 py-2 text-sm">
+                  <span className="text-gray-500">Goal difference </span>
+                  <span className={`font-semibold ${row.goalDifference > 0 ? 'text-green-400' : row.goalDifference < 0 ? 'text-red-400' : 'text-gray-300'}`}>
+                    {row.goalDifference > 0 ? `+${row.goalDifference}` : row.goalDifference}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="hidden overflow-x-auto rounded-xl border border-gray-800 md:block">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-800 bg-gray-950">

@@ -215,7 +215,7 @@ export default function AdminSidebarNav({ pathname }: { pathname: string }) {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                  className={`flex min-h-11 items-center gap-3 rounded-lg px-3 py-3 text-sm transition-colors ${
                     isActive
                       ? 'bg-green-500/10 text-green-400 font-medium'
                       : 'text-gray-400 hover:text-white hover:bg-gray-800'
