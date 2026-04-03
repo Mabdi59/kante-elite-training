@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import NotificationBell from './NotificationBell'
 
 const navLinks = [
   { href: '/training', label: 'Programs' },
@@ -115,6 +116,7 @@ export default function Navbar() {
               <Link to={portalPath} className="text-sm font-semibold text-gray-300 hover:text-white">
                 {user?.name?.split(' ')[0] || 'Account'}
               </Link>
+              <NotificationBell />
               <button
                 type="button"
                 onClick={logoutUser}

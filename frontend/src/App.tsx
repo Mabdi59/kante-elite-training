@@ -81,6 +81,21 @@ const CaptainDashboardPage = lazy(() => import('./pages/captain/CaptainDashboard
 const CaptainTournamentsPage = lazy(() => import('./pages/captain/CaptainTournamentsPage'))
 const CaptainRegistrationsPage = lazy(() => import('./pages/captain/CaptainRegistrationsPage'))
 
+// New CRM pages
+const MessagesPage = lazy(() => import('./pages/MessagesPage'))
+const WaiversPage = lazy(() => import('./pages/WaiversPage'))
+const DocumentsPage = lazy(() => import('./pages/DocumentsPage'))
+const CalendarPage = lazy(() => import('./pages/CalendarPage'))
+const EnrollmentsPage = lazy(() => import('./pages/EnrollmentsPage'))
+const CoachAttendancePage = lazy(() => import('./pages/coach/CoachAttendancePage'))
+const PlayerDevelopmentPage = lazy(() => import('./pages/player/PlayerDevelopmentPage'))
+const ParentDevelopmentPage = lazy(() => import('./pages/parent/ParentDevelopmentPage'))
+const AdminAttendancePage = lazy(() => import('./pages/admin/AdminAttendancePage'))
+const AdminEnrollmentsPage = lazy(() => import('./pages/admin/AdminEnrollmentsPage'))
+const AdminReportsPage = lazy(() => import('./pages/admin/AdminReportsPage'))
+const AdminWaiversPage = lazy(() => import('./pages/admin/AdminWaiversPage'))
+const AdminSearchPage = lazy(() => import('./pages/admin/AdminSearchPage'))
+
 function PageLoader() {
   return (
     <div className="min-h-screen bg-black flex items-center justify-center">
@@ -592,6 +607,140 @@ export default function App() {
                   <AdminLayout>
                     <AdminAuditLogsPage />
                   </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/attendance"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminAttendancePage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/enrollments"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminEnrollmentsPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/reports"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminReportsPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/waivers"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminWaiversPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/search"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminSearchPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/coach/attendance"
+              element={
+                <ProtectedRoute requireRole="COACH">
+                  <CoachPanelLayout>
+                    <CoachAttendancePage />
+                  </CoachPanelLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/player/development"
+              element={
+                <ProtectedRoute requireRole="PLAYER">
+                  <PlayerLayout>
+                    <PlayerDevelopmentPage />
+                  </PlayerLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/parent/development"
+              element={
+                <ProtectedRoute requireRole="PARENT">
+                  <ParentLayout>
+                    <ParentDevelopmentPage />
+                  </ParentLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/messages"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <MessagesPage />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/waivers"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <WaiversPage />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/documents"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <DocumentsPage />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/calendar"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <CalendarPage />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/enrollments"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <EnrollmentsPage />
+                  </MainLayout>
                 </ProtectedRoute>
               }
             />
