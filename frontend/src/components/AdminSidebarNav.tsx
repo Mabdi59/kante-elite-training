@@ -149,6 +149,55 @@ function UsersIcon() {
   )
 }
 
+function SearchIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="11" cy="11" r="7" />
+      <path d="m21 21-4.35-4.35" />
+    </svg>
+  )
+}
+
+function ReportsIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M18 20V10" />
+      <path d="M12 20V4" />
+      <path d="M6 20v-6" />
+    </svg>
+  )
+}
+
+function AttendanceIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="m9 11 3 3L22 4" />
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+    </svg>
+  )
+}
+
+function EnrollmentIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="9" cy="8" r="3" />
+      <path d="M4 20a5 5 0 0 1 10 0" />
+      <path d="M19 8v6" />
+      <path d="M16 11h6" />
+    </svg>
+  )
+}
+
+function WaiverIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+      <path d="M14 2v6h6" />
+      <path d="M8 15l2 2 4-4" />
+    </svg>
+  )
+}
+
 function AuditIcon() {
   return (
     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -160,6 +209,7 @@ function AuditIcon() {
     </svg>
   )
 }
+
 
 const navSections: NavSection[] = [
   {
@@ -174,6 +224,8 @@ const navSections: NavSection[] = [
       { path: '/admin/media', label: 'Media', icon: <MediaIcon /> },
       { path: '/admin/testimonials', label: 'Testimonials', icon: <QuoteIcon /> },
       { path: '/admin/messages', label: 'Messages', icon: <MessageIcon /> },
+      { path: '/admin/search', label: 'Search', icon: <SearchIcon /> },
+      { path: '/admin/reports', label: 'Reports', icon: <ReportsIcon /> },
     ],
   },
   {
@@ -190,6 +242,9 @@ const navSections: NavSection[] = [
     items: [
       { path: '/admin/coaches', label: 'Coaches', icon: <CoachIcon /> },
       { path: '/admin/players', label: 'Players', icon: <PlayersIcon /> },
+      { path: '/admin/attendance', label: 'Attendance', icon: <AttendanceIcon /> },
+      { path: '/admin/enrollments', label: 'Enrollments', icon: <EnrollmentIcon /> },
+      { path: '/admin/waivers', label: 'Waivers', icon: <WaiverIcon /> },
       { path: '/admin/users', label: 'Users', icon: <UsersIcon /> },
       { path: '/admin/audit-logs', label: 'Audit Logs', icon: <AuditIcon /> },
     ],

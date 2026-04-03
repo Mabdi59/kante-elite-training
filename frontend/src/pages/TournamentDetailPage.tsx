@@ -59,7 +59,7 @@ export default function TournamentDetailPage() {
   const canRegister = spotsLeft > 0 && t.status !== 'COMPLETED' && t.status !== 'CANCELLED' && !isDeadlinePassed
 
   return (
-    <div className="bg-black pb-32 sm:pb-36 md:pb-16">
+    <div className="bg-black pt-20 pb-32 sm:pb-36 md:pb-16">
       {/* Hero / header */}
       <div className="bg-gray-950 border-b border-gray-800 py-12 px-4">
         <div className="max-w-5xl mx-auto">

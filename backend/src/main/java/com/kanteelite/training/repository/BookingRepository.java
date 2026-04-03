@@ -30,4 +30,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByEmailIgnoreCaseOrderByCreatedAtDesc(@Param("email") String email);
 
     long countByBookingStatus(BookingStatus status);
+
+    @Query("SELECT b FROM Booking b JOIN FETCH b.program WHERE LOWER(b.playerName) LIKE LOWER(CONCAT('%', :q, '%')) OR LOWER(b.email) LIKE LOWER(CONCAT('%', :q, '%')) OR LOWER(COALESCE(b.parentName, '')) LIKE LOWER(CONCAT('%', :q, '%')) ORDER BY b.createdAt DESC")
+    List<Booking> searchByQuery(@Param("q") String q, org.springframework.data.domain.Pageable pageable);
 }

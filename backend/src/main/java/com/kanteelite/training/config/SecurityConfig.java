@@ -84,8 +84,41 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/coach/public").permitAll()
                 // Coach authenticated endpoints
                 .requestMatchers("/api/coach/**").hasAnyRole("ADMIN", "COACH")
-                // Stripe webhook (public)
+                // Stripe webhook (public); /api/payments/my requires authentication
+                .requestMatchers(HttpMethod.GET, "/api/payments/my").authenticated()
                 .requestMatchers("/api/payments/**").permitAll()
+                // Attendance (coach, admin, staff can record; players/parents can read their own)
+                .requestMatchers(HttpMethod.POST, "/api/attendance").hasAnyRole("ADMIN", "STAFF", "COACH")
+                .requestMatchers(HttpMethod.GET, "/api/attendance/booking/**").hasAnyRole("ADMIN", "STAFF", "COACH")
+                .requestMatchers(HttpMethod.GET, "/api/attendance/range").hasAnyRole("ADMIN", "STAFF", "COACH")
+                .requestMatchers(HttpMethod.GET, "/api/attendance/player/**").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/attendance/player").authenticated()
+                // Messages (all authenticated users)
+                .requestMatchers("/api/messages/**").authenticated()
+                // Notifications (all authenticated users)
+                .requestMatchers("/api/notifications/**").authenticated()
+                // Waivers
+                .requestMatchers(HttpMethod.GET, "/api/waivers/templates").authenticated()
+                .requestMatchers("/api/waivers/**").authenticated()
+                .requestMatchers("/api/documents/**").authenticated()
+                .requestMatchers("/api/admin/waivers/**").hasRole("ADMIN")
+                .requestMatchers("/api/admin/documents/**").hasAnyRole("ADMIN", "STAFF")
+                // Enrollments
+                .requestMatchers("/api/enrollments/**").authenticated()
+                .requestMatchers("/api/admin/enrollments/**").hasAnyRole("ADMIN", "STAFF")
+                // Calendar (iCal endpoint uses opaque token, not guessable email)
+                .requestMatchers(HttpMethod.GET, "/api/calendar/ical/*.ics").permitAll()
+                .requestMatchers("/api/calendar/**").authenticated()
+                // Search
+                .requestMatchers("/api/search/**").hasAnyRole("ADMIN", "STAFF", "COACH")
+                // Reports
+                .requestMatchers("/api/admin/reports/**").hasRole("ADMIN")
+                // Progress notes
+                .requestMatchers("/api/coach/progress-notes/**").hasAnyRole("ADMIN", "COACH")
+                .requestMatchers(HttpMethod.GET, "/api/player/progress-notes").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/parent/progress-notes/**").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/players/*/progress-notes").hasAnyRole("ADMIN", "STAFF", "COACH")
+                .requestMatchers(HttpMethod.GET, "/api/bookings/*/progress-notes").hasAnyRole("ADMIN", "STAFF", "COACH")
                 // All other requests require authentication
                 .anyRequest().authenticated()
             )

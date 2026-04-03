@@ -17,9 +17,11 @@ import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
+import com.stripe.model.Refund;
 import com.stripe.model.StripeObject;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
+import com.stripe.param.RefundCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -191,6 +193,26 @@ public class StripePaymentService {
         } catch (Exception e) {
             log.error("Failed to create booking from webhook for session {}: {}", sessionId, e.getMessage(), e);
             throw new RuntimeException("Failed to process booking from webhook", e);
+        }
+    }
+
+    /**
+     * Issues a full Stripe refund for the given session ID.
+     * The caller is responsible for validating state and persisting changes.
+     */
+    public void refundPayment(String stripeSessionId) {
+        if (stripeSecretKey == null || stripeSecretKey.isBlank()) {
+            throw new PaymentConfigurationException(
+                    "Stripe is not configured on the backend. Set STRIPE_SECRET_KEY and try again."
+            );
+        }
+        Stripe.apiKey = stripeSecretKey;
+        try {
+            Session session = Session.retrieve(stripeSessionId);
+            String paymentIntentId = session.getPaymentIntent();
+            Refund.create(RefundCreateParams.builder().setPaymentIntent(paymentIntentId).build());
+        } catch (StripeException e) {
+            throw new PaymentProviderException("Stripe refund failed.", e);
         }
     }
 

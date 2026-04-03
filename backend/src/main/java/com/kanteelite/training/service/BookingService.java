@@ -202,6 +202,7 @@ public class BookingService {
                 .notes(b.getNotes())
                 .paymentStatus(b.getPaymentStatus())
                 .bookingStatus(b.getBookingStatus())
+                .stripeSessionId(b.getStripeSessionId())
                 .createdAt(b.getCreatedAt())
                 .build();
     }

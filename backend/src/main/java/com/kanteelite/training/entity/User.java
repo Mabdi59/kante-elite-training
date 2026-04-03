@@ -37,4 +37,7 @@ public class User {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "ical_feed_token", length = 64, unique = true)
+    private String icalFeedToken;
 }
