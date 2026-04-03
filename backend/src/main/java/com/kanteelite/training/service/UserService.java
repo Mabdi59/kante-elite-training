@@ -104,7 +104,8 @@ public class UserService {
     }
 
     @Transactional
-    public void forgotPassword(ForgotPasswordRequest request) {
+    public boolean forgotPassword(ForgotPasswordRequest request) {
+        boolean emailDeliveryAvailable = emailService.isEmailDeliveryAvailable();
         // Always return 200 to avoid user enumeration
         userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
             // Invalidate old tokens
@@ -124,6 +125,7 @@ public class UserService {
                 log.warn("Failed to send password reset email to {}: {}", user.getEmail(), e.getMessage());
             }
         });
+        return emailDeliveryAvailable;
     }
 
     @Transactional

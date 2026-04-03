@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import NotificationBell from '../components/NotificationBell'
 
 export interface PortalNavItem {
   path: string
@@ -140,16 +141,19 @@ export default function PortalLayout({
             {portalLabel}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setMobileNavOpen(true)}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-800 bg-gray-900 text-white"
-          aria-label="Open portal menu"
-        >
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <path d="M4 7h16" /><path d="M4 12h16" /><path d="M4 17h16" />
-          </svg>
-        </button>
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <button
+            type="button"
+            onClick={() => setMobileNavOpen(true)}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-800 bg-gray-900 text-white"
+            aria-label="Open portal menu"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M4 7h16" /><path d="M4 12h16" /><path d="M4 17h16" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Mobile overlay */}
@@ -173,6 +177,9 @@ export default function PortalLayout({
 
       {/* Main content */}
       <main className="flex-1 min-w-0 overflow-auto">
+        <div className="hidden border-b border-gray-800 bg-gray-950/90 px-6 py-3 lg:flex lg:items-center lg:justify-end">
+          <NotificationBell />
+        </div>
         <div className="p-4 sm:p-6 lg:p-8">{children}</div>
       </main>
     </div>

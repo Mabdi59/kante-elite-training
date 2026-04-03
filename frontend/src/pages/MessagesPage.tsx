@@ -19,6 +19,7 @@ interface Message {
 }
 
 export default function MessagesPage() {
+  const supportEmail = 'kanteelitetraining@gmail.com'
   const [tab, setTab] = useState<Tab>('inbox')
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
@@ -26,7 +27,7 @@ export default function MessagesPage() {
   const [selected, setSelected] = useState<Message | null>(null)
 
   // Compose state
-  const [recipientEmail, setRecipientEmail] = useState('')
+  const [recipientEmail, setRecipientEmail] = useState(supportEmail)
   const [subject, setSubject] = useState('')
   const [body, setBody] = useState('')
   const [parentId, setParentId] = useState<number | undefined>()
@@ -89,7 +90,7 @@ export default function MessagesPage() {
         { headers: { Authorization: `Bearer ${token}` } },
       )
       setSendSuccess(true)
-      setRecipientEmail('')
+      setRecipientEmail(supportEmail)
       setSubject('')
       setBody('')
       setParentId(undefined)
@@ -137,6 +138,7 @@ export default function MessagesPage() {
                   required
                   value={recipientEmail}
                   onChange={(e) => setRecipientEmail(e.target.value)}
+                  placeholder={supportEmail}
                   className="w-full rounded-lg border border-white/10 bg-black px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                 />
               </div>

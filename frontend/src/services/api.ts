@@ -12,6 +12,7 @@ import type {
   ContactFormData,
   AuthResponse,
   UserRole,
+  ForgotPasswordResult,
   Tournament,
   TournamentMatch,
   TournamentMatchFormData,
@@ -204,6 +205,11 @@ export const createBooking = async (formData: BookingFormData): Promise<Booking>
   return res.data.data
 }
 
+export const getMyPayments = async (): Promise<Booking[]> => {
+  const res = await api.get<ApiResponse<Booking[]>>('/payments/my')
+  return Array.isArray(res.data.data) ? res.data.data : []
+}
+
 // ─── Contact ──────────────────────────────────────────────────────────────────
 
 export const submitContact = async (data: ContactFormData): Promise<string> => {
@@ -255,9 +261,14 @@ export const logoutApi = async (refreshToken: string): Promise<void> => {
   await api.post('/auth/logout', { refreshToken })
 }
 
-export const forgotPassword = async (email: string): Promise<string> => {
-  const res = await api.post<ApiResponse<null>>('/auth/forgot-password', { email })
-  return res.data.message ?? 'If that email is registered, a reset link has been sent.'
+export const forgotPassword = async (email: string): Promise<ForgotPasswordResult> => {
+  const res = await api.post<ApiResponse<boolean>>('/auth/forgot-password', { email })
+  return {
+    message:
+      res.data.message ??
+      'If that email is registered, a reset link has been sent.',
+    emailDeliveryAvailable: res.data.data === true,
+  }
 }
 
 export const resetPassword = async (token: string, newPassword: string): Promise<string> => {
@@ -428,6 +439,11 @@ export const getAdminBookings = async (params?: {
 }): Promise<Booking[]> => {
   const res = await api.get<ApiResponse<Booking[]>>('/admin/bookings', { params })
   return res.data.data ?? []
+}
+
+export const createAdminBooking = async (data: BookingFormData): Promise<Booking> => {
+  const res = await api.post<ApiResponse<Booking>>('/admin/bookings', data)
+  return res.data.data!
 }
 
 export const updateBookingStatus = async (id: number, status: string): Promise<Booking> => {

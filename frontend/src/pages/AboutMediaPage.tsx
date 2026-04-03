@@ -45,10 +45,7 @@ export default function AboutMediaPage() {
     [aboutMediaPosts],
   )
 
-  const heroPost =
-    aboutDisplayPosts.find((post) => post.featured) ??
-    mediaPosts[0] ??
-    null
+  const heroPost = mediaPosts.find((post) => post.featured) ?? null
 
   const galleryPosts = useMemo(
     () => aboutDisplayPosts.filter((post) => post.id !== heroPost?.id).slice(0, 11),
@@ -83,6 +80,8 @@ export default function AboutMediaPage() {
               <img
                 src={heroPost.mediaUrl}
                 alt={heroPost.caption?.trim() || content.aboutHeroTitle || 'Kante Elite training banner'}
+                loading="eager"
+                fetchPriority="high"
                 className="h-full w-full object-cover animate-hero-zoom"
               />
             )}
@@ -139,6 +138,8 @@ export default function AboutMediaPage() {
                 post={galleryPosts[0]}
                 aspectClassName="aspect-[5/4]"
                 showDate={false}
+                imageLoading="eager"
+                imageFetchPriority="high"
               />
             </button>
           ) : (
@@ -210,7 +211,11 @@ export default function AboutMediaPage() {
                   onClick={() => setActiveMediaIndex(index)}
                   className="block w-full text-left"
                 >
-                  <MediaPostCard post={post} />
+                  <MediaPostCard
+                    post={post}
+                    imageLoading={index < 4 ? 'eager' : 'lazy'}
+                    imageFetchPriority={index < 2 ? 'high' : 'auto'}
+                  />
                 </button>
               ))}
             </div>

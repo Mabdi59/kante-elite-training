@@ -6,6 +6,8 @@ interface MediaPostCardProps {
   aspectClassName?: string
   showCaption?: boolean
   showDate?: boolean
+  imageLoading?: 'eager' | 'lazy'
+  imageFetchPriority?: 'auto' | 'high' | 'low'
 }
 
 function formatMediaDate(value: string) {
@@ -27,6 +29,8 @@ export default function MediaPostCard({
   aspectClassName = 'aspect-video',
   showCaption = true,
   showDate = true,
+  imageLoading = 'lazy',
+  imageFetchPriority = 'auto',
 }: MediaPostCardProps) {
   const hasCaption = Boolean(post.caption?.trim())
 
@@ -46,7 +50,8 @@ export default function MediaPostCard({
           <img
             src={post.mediaUrl}
             alt={post.caption?.trim() || 'Kante Elite highlight'}
-            loading="lazy"
+            loading={imageLoading}
+            fetchPriority={imageFetchPriority}
             className="h-full w-full object-cover"
           />
         )}

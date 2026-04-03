@@ -27,6 +27,7 @@ public class BookingService {
     private final EmailService emailService;
     private final AvailabilityService availabilityService;
     private final AuditLogService auditLogService;
+    private final NotificationService notificationService;
 
     /**
      * Creates a booking directly without payment.
@@ -72,7 +73,8 @@ public class BookingService {
 
         Booking saved = bookingRepository.save(booking);
         BookingResponse response = toResponse(saved);
-        emailService.sendBookingConfirmation(response);
+        boolean confirmationEmailAvailable = emailService.sendBookingConfirmation(response);
+        response.setConfirmationEmailAvailable(confirmationEmailAvailable);
         auditLogService.log(bookingEmail, "CREATE", "Booking", saved.getId(),
                 "Booked " + program.getName() + " on " + request.getBookingDate() + " at " + request.getBookingTime());
         return response;
@@ -105,11 +107,16 @@ public class BookingService {
     public BookingResponse updateStatus(Long id, String bookingStatus, String actorEmail) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", id));
-        String old = booking.getBookingStatus().name();
-        booking.setBookingStatus(BookingStatus.valueOf(bookingStatus));
-        BookingResponse response = toResponse(bookingRepository.save(booking));
+        BookingStatus previousStatus = booking.getBookingStatus();
+        BookingStatus nextStatus = BookingStatus.valueOf(bookingStatus);
+
+        booking.setBookingStatus(nextStatus);
+        Booking saved = bookingRepository.save(booking);
+        notifyBookingCreatorOfStatusChange(saved, previousStatus, nextStatus);
+
+        BookingResponse response = toResponse(saved);
         auditLogService.log(actorEmail, "UPDATE_STATUS", "Booking", id,
-                "Status changed from " + old + " to " + bookingStatus);
+                "Status changed from " + previousStatus.name() + " to " + nextStatus.name());
         return response;
     }
 
@@ -169,11 +176,14 @@ public class BookingService {
             throw new IllegalArgumentException("Coaches can only set status to CONFIRMED, COMPLETED, or CANCELLED.");
         }
 
-        String oldStatus = booking.getBookingStatus().name();
+        BookingStatus previousStatus = booking.getBookingStatus();
         booking.setBookingStatus(nextStatus);
-        BookingResponse response = toResponse(bookingRepository.save(booking));
+        Booking saved = bookingRepository.save(booking);
+        notifyBookingCreatorOfStatusChange(saved, previousStatus, nextStatus);
+
+        BookingResponse response = toResponse(saved);
         auditLogService.log(coachEmail, "COACH_UPDATE_STATUS", "Booking", id,
-                "Coach changed status from " + oldStatus + " to " + bookingStatus);
+                "Coach changed status from " + previousStatus.name() + " to " + nextStatus.name());
         return response;
     }
 
@@ -203,6 +213,7 @@ public class BookingService {
                 .paymentStatus(b.getPaymentStatus())
                 .bookingStatus(b.getBookingStatus())
                 .stripeSessionId(b.getStripeSessionId())
+                .confirmationEmailAvailable(emailService.isEmailDeliveryAvailable())
                 .createdAt(b.getCreatedAt())
                 .build();
     }
@@ -215,5 +226,46 @@ public class BookingService {
 
     private String normalizeEmail(String email) {
         return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private void notifyBookingCreatorOfStatusChange(Booking booking, BookingStatus previousStatus, BookingStatus nextStatus) {
+        if (previousStatus == nextStatus) {
+            return;
+        }
+
+        switch (nextStatus) {
+            case CONFIRMED, CANCELLED -> {
+                BookingResponse response = toResponse(booking);
+                notificationService.send(
+                        booking.getEmail(),
+                        "BOOKING_STATUS",
+                        bookingStatusTitle(nextStatus),
+                        bookingStatusBody(booking, nextStatus),
+                        "Booking",
+                        booking.getId()
+                );
+                emailService.sendBookingStatusUpdate(response);
+            }
+            default -> {
+                // no-op
+            }
+        }
+    }
+
+    private String bookingStatusTitle(BookingStatus status) {
+        return switch (status) {
+            case CONFIRMED -> "Booking confirmed";
+            case CANCELLED -> "Booking cancelled";
+            default -> "Booking updated";
+        };
+    }
+
+    private String bookingStatusBody(Booking booking, BookingStatus status) {
+        String sessionLabel = booking.getProgram().getName() + " on " + booking.getBookingDate() + " at " + booking.getBookingTime();
+        return switch (status) {
+            case CONFIRMED -> "Your booking for " + sessionLabel + " has been confirmed.";
+            case CANCELLED -> "Your booking for " + sessionLabel + " has been cancelled.";
+            default -> "Your booking for " + sessionLabel + " has been updated.";
+        };
     }
 }

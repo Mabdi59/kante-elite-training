@@ -130,7 +130,7 @@ export default function HomePage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const heroMedia = mediaPosts[0] ?? null
+  const heroMedia = mediaPosts.find((post) => post.featured) ?? null
   const homeMediaPosts = mediaPosts.filter((post) => post.showOnHome).slice(0, 6)
   const coachFeatureMedia =
     homeMediaPosts.find((post) => post.id !== heroMedia?.id) ??
@@ -156,6 +156,8 @@ export default function HomePage() {
               <img
                 src={heroMedia.mediaUrl}
                 alt={heroMedia.caption?.trim() || siteContent.homeHeadline || 'Kante Elite highlight'}
+                loading="eager"
+                fetchPriority="high"
                 className="h-full w-full object-cover animate-hero-zoom"
               />
             )}
@@ -478,7 +480,12 @@ export default function HomePage() {
                   onClick={() => setActiveMediaIndex(index)}
                   className="block h-full w-full text-left"
                 >
-                  <MediaPostCard post={post} className="h-full transition-colors hover:border-amber-500/30" />
+                  <MediaPostCard
+                    post={post}
+                    className="h-full transition-colors hover:border-amber-500/30"
+                    imageLoading={index < 3 ? 'eager' : 'lazy'}
+                    imageFetchPriority={index < 2 ? 'high' : 'auto'}
+                  />
                 </button>
               ))}
             </div>
@@ -548,6 +555,8 @@ export default function HomePage() {
                   post={coachFeatureMedia}
                   aspectClassName="aspect-[5/4]"
                   showDate={false}
+                  imageLoading="eager"
+                  imageFetchPriority="high"
                 />
               </button>
             ) : null}

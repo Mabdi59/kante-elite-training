@@ -26,10 +26,10 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
 
-    @Value("${app.email.from:noreply@kanteelitetraining.com}")
+    @Value("${app.email.from:kanteelitetraining@gmail.com}")
     private String fromAddress;
 
-    @Value("${app.email.admin:admin@kanteelitetraining.com}")
+    @Value("${app.email.admin:kanteelitetraining@gmail.com}")
     private String adminEmail;
 
     @Value("${app.email.enabled:false}")
@@ -40,14 +40,18 @@ public class EmailService {
         this.templateEngine = templateEngine;
     }
 
-    public void sendBookingConfirmation(BookingResponse booking) {
+    public boolean isEmailDeliveryAvailable() {
+        return emailEnabled && mailSender != null;
+    }
+
+    public boolean sendBookingConfirmation(BookingResponse booking) {
         if (!emailEnabled) {
             log.info("Email disabled — skipping booking confirmation for {}", booking.getEmail());
-            return;
+            return false;
         }
         if (mailSender == null) {
             log.warn("Email enabled but JavaMailSender is not configured; skipping booking confirmation for {}", booking.getEmail());
-            return;
+            return false;
         }
         try {
             Context ctx = new Context();
@@ -64,19 +68,46 @@ public class EmailService {
 
             mailSender.send(message);
             log.info("Booking confirmation sent to {}", booking.getEmail());
+            return true;
         } catch (Exception e) {
             log.error("Failed to send booking confirmation to {}: {}", booking.getEmail(), e.getMessage());
+            return false;
         }
     }
 
-    public void sendPasswordResetEmail(String toEmail, String name, String resetToken) {
+    public boolean sendBookingStatusUpdate(BookingResponse booking) {
+        if (!emailEnabled) {
+            log.info("Email disabled â€” skipping booking status email for {}", booking.getEmail());
+            return false;
+        }
+        if (mailSender == null) {
+            log.warn("Email enabled but JavaMailSender is not configured; skipping booking status email for {}", booking.getEmail());
+            return false;
+        }
+        try {
+            Context ctx = new Context();
+            ctx.setVariable("booking", booking);
+            ctx.setVariable("statusLabel", bookingStatusLabel(booking));
+            ctx.setVariable("statusMessage", bookingStatusMessage(booking));
+
+            String htmlBody = templateEngine.process("email/booking-status-update", ctx);
+            sendHtmlEmail(booking.getEmail(), bookingStatusEmailSubject(booking), htmlBody, null);
+            log.info("Booking status email sent to {} for booking {}", booking.getEmail(), booking.getId());
+            return true;
+        } catch (Exception e) {
+            log.error("Failed to send booking status email to {}: {}", booking.getEmail(), e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean sendPasswordResetEmail(String toEmail, String name, String resetToken) {
         if (!emailEnabled) {
             log.info("Email disabled — skipping password reset email for {}", toEmail);
-            return;
+            return false;
         }
         if (mailSender == null) {
             log.warn("Email enabled but JavaMailSender not configured; skipping password reset for {}", toEmail);
-            return;
+            return false;
         }
         try {
             Context ctx = new Context();
@@ -94,8 +125,10 @@ public class EmailService {
 
             mailSender.send(message);
             log.info("Password reset email sent to {}", toEmail);
+            return true;
         } catch (Exception e) {
             log.error("Failed to send password reset email to {}: {}", toEmail, e.getMessage());
+            return false;
         }
     }
 
@@ -198,5 +231,29 @@ public class EmailService {
         helper.setSubject(subject);
         helper.setText(htmlBody, true);
         mailSender.send(message);
+    }
+
+    private String bookingStatusEmailSubject(BookingResponse booking) {
+        return switch (booking.getBookingStatus()) {
+            case CONFIRMED -> "Booking Confirmed â€” Kante Elite Training";
+            case CANCELLED -> "Booking Cancelled â€” Kante Elite Training";
+            default -> "Booking Updated â€” Kante Elite Training";
+        };
+    }
+
+    private String bookingStatusLabel(BookingResponse booking) {
+        return switch (booking.getBookingStatus()) {
+            case CONFIRMED -> "Booking Confirmed";
+            case CANCELLED -> "Booking Cancelled";
+            default -> "Booking Updated";
+        };
+    }
+
+    private String bookingStatusMessage(BookingResponse booking) {
+        return switch (booking.getBookingStatus()) {
+            case CONFIRMED -> "Your session is confirmed and ready to go.";
+            case CANCELLED -> "Your session has been cancelled. If you still want to train, contact us and we will help you rebook.";
+            default -> "Your booking details have been updated.";
+        };
     }
 }

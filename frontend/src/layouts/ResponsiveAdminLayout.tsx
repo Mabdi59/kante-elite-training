@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AdminSidebarNav from '../components/AdminSidebarNav'
 import AdminQuickActionFab from '../components/AdminQuickActionFab'
+import NotificationBell from '../components/NotificationBell'
 import { useAuth } from '../context/AuthContext'
 
 export default function ResponsiveAdminLayout({ children }: { children: ReactNode }) {
@@ -31,18 +32,21 @@ export default function ResponsiveAdminLayout({ children }: { children: ReactNod
             Admin Panel
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setMobileNavOpen(true)}
-          className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-gray-800 bg-gray-900 text-white"
-          aria-label="Open admin menu"
-        >
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <path d="M4 7h16" />
-            <path d="M4 12h16" />
-            <path d="M4 17h16" />
-          </svg>
-        </button>
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <button
+            type="button"
+            onClick={() => setMobileNavOpen(true)}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-gray-800 bg-gray-900 text-white"
+            aria-label="Open admin menu"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M4 7h16" />
+              <path d="M4 12h16" />
+              <path d="M4 17h16" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {mobileNavOpen ? (
@@ -99,6 +103,9 @@ export default function ResponsiveAdminLayout({ children }: { children: ReactNod
       </aside>
 
       <main className="min-w-0 flex-1 overflow-x-hidden">
+        <div className="hidden border-b border-gray-800 bg-gray-950/90 px-6 py-3 lg:flex lg:items-center lg:justify-end">
+          <NotificationBell />
+        </div>
         <div className="panel-shell">{children}</div>
       </main>
 

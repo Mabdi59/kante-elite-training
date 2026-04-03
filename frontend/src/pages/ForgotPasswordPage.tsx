@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { forgotPassword } from '../services/api'
+import type { ForgotPasswordResult } from '../types'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [result, setResult] = useState<ForgotPasswordResult | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -13,7 +15,8 @@ export default function ForgotPasswordPage() {
     setError('')
     setLoading(true)
     try {
-      await forgotPassword(email)
+      const nextResult = await forgotPassword(email)
+      setResult(nextResult)
       setSubmitted(true)
     } catch {
       setError('Something went wrong. Please try again.')
@@ -27,25 +30,36 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="text-2xl font-black text-white tracking-wider">
-            KANTÉ ELITE
+            KANTE ELITE
           </Link>
           <h1 className="text-white text-3xl font-black mt-6 mb-2">Forgot Password</h1>
-          <p className="text-gray-400">Enter your email and we'll send a reset link.</p>
+          <p className="text-gray-400">Enter your email and we will guide you through the next step.</p>
         </div>
 
         {submitted ? (
           <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6 text-center">
-            <div className="text-4xl mb-3">✅</div>
-            <p className="text-green-400 font-semibold mb-2">Check your email</p>
-            <p className="text-gray-400 text-sm">
-              If that email is registered, we've sent a password reset token. Check your inbox.
+            <div className="text-4xl mb-3">OK</div>
+            <p className="text-green-400 font-semibold mb-2">
+              {result?.emailDeliveryAvailable ? 'Check your email' : 'Password reset help'}
             </p>
-            <Link
-              to="/reset-password"
-              className="inline-block mt-4 text-green-400 underline text-sm"
-            >
-              Enter your reset code
-            </Link>
+            <p className="text-gray-400 text-sm">
+              {result?.message ?? 'If that email is registered, a reset link has been sent.'}
+            </p>
+            {result?.emailDeliveryAvailable ? (
+              <Link
+                to="/reset-password"
+                className="inline-block mt-4 text-green-400 underline text-sm"
+              >
+                Enter your reset code
+              </Link>
+            ) : (
+              <Link
+                to="/contact"
+                className="inline-block mt-4 text-green-400 underline text-sm"
+              >
+                Contact support
+              </Link>
+            )}
           </div>
         ) : (
           <form
@@ -75,7 +89,7 @@ export default function ForgotPasswordPage() {
               disabled={loading}
               className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Sending…' : 'Send reset link'}
+              {loading ? 'Sending...' : 'Send reset link'}
             </button>
 
             <p className="text-center text-gray-500 text-sm">

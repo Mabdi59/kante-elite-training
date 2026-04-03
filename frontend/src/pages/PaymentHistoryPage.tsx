@@ -1,20 +1,7 @@
 import { useEffect, useState } from 'react'
-import axios from 'axios'
 import LoadingSpinner from '../components/LoadingSpinner'
-
-interface Booking {
-  id: number
-  programName: string
-  bookingDate: string
-  bookingTime: string
-  paymentStatus: string
-  bookingStatus: string
-  amountPaid?: number
-  stripeSessionId?: string
-  createdAt: string
-  playerName: string
-  email: string
-}
+import { getMyPayments } from '../services/api'
+import type { Booking } from '../types'
 
 const PAYMENT_COLORS: Record<string, string> = {
   PAID: 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -32,12 +19,8 @@ export default function PaymentHistoryPage() {
   const [filter, setFilter] = useState<string>('ALL')
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    axios
-      .get<Booking[]>('/api/payments/my', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => setBookings(res.data))
+    getMyPayments()
+      .then((payments) => setBookings(Array.isArray(payments) ? payments : []))
       .catch(() => setError('Failed to load payment history.'))
       .finally(() => setLoading(false))
   }, [])

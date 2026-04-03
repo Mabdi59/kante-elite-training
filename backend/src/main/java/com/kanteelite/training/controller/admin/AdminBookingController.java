@@ -1,5 +1,6 @@
 package com.kanteelite.training.controller.admin;
 
+import com.kanteelite.training.dto.request.BookingRequest;
 import com.kanteelite.training.dto.request.RescheduleRequest;
 import com.kanteelite.training.dto.response.ApiResponse;
 import com.kanteelite.training.dto.response.BookingResponse;
@@ -23,6 +24,12 @@ import java.util.Map;
 public class AdminBookingController {
 
     private final BookingService bookingService;
+
+    @PostMapping
+    public ResponseEntity<ApiResponse<BookingResponse>> createBooking(@Valid @RequestBody BookingRequest request) {
+        BookingResponse booking = bookingService.createBooking(request);
+        return ResponseEntity.ok(ApiResponse.success("Booking created successfully.", booking));
+    }
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<BookingResponse>>> getAllBookings(

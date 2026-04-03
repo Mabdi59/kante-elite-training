@@ -69,7 +69,7 @@ export default function ContactPage() {
             </h2>
             <div className="space-y-6">
               {[
-                { icon: '📧', label: 'Email', value: 'info@kanteelitetraining.com', href: 'mailto:info@kanteelitetraining.com' },
+                { icon: '📧', label: 'Email', value: 'kanteelitetraining@gmail.com', href: 'mailto:kanteelitetraining@gmail.com' },
                 { icon: '📱', label: 'Phone', value: '(614) 555-0100', href: 'tel:+16145550100' },
                 { icon: '📍', label: 'Location', value: 'Columbus, Ohio', href: undefined },
                 { icon: '⏰', label: 'Response Time', value: 'Within 24 hours', href: undefined },
@@ -241,3 +241,4 @@ export default function ContactPage() {
     </div>
   )
 }
+

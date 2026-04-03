@@ -25,8 +25,11 @@ public class BookingController {
             @AuthenticationPrincipal UserDetails principal) {
         BookingResponse booking = bookingService.createBooking(
                 request, principal != null ? principal.getUsername() : null);
+        String message = booking.isConfirmationEmailAvailable()
+                ? "Booking confirmed successfully. A confirmation email has been sent."
+                : "Booking confirmed successfully. Email confirmations are not available right now.";
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Booking confirmed successfully.", booking));
+                .body(ApiResponse.success(message, booking));
     }
 
     @GetMapping("/{id}")

@@ -420,7 +420,7 @@ export default function AdminContentPage() {
               <span className="section-label">Media Placement</span>
               <h2 className="text-2xl font-black text-white">Choose what appears on each page</h2>
               <p className="mt-2 text-sm text-gray-400">
-                Featured media becomes the hero background on Home and About. Home and About sections only show posts enabled here.
+                Featured media becomes the hero background on Home and About. If nothing is featured, the site keeps the default hero instead of switching to the newest upload.
               </p>
               <p className="mt-2 text-xs font-medium uppercase tracking-[0.18em] text-amber-400">
                 Only one featured hero is active at a time.
@@ -447,12 +447,16 @@ export default function AdminContentPage() {
             />
           ) : (
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 2xl:grid-cols-3">
-              {posts.map((post) => {
+              {posts.map((post, index) => {
                 const isSavingPost = savingPostIds.includes(post.id)
 
                 return (
                   <div key={post.id} className="rounded-2xl border border-gray-800 bg-black/40 p-4">
-                    <MediaPostCard post={post} />
+                    <MediaPostCard
+                      post={post}
+                      imageLoading={index < 4 ? 'eager' : 'lazy'}
+                      imageFetchPriority={index < 2 ? 'high' : 'auto'}
+                    />
                     <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                       <ToggleButton
                         badge="Home"

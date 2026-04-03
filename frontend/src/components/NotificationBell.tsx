@@ -4,9 +4,10 @@ import { useAuth } from '../context/AuthContext'
 
 interface Notification {
   id: number
-  message: string
   type: string
-  read: boolean
+  title?: string
+  body?: string
+  readStatus: boolean
   createdAt: string
 }
 
@@ -135,7 +136,12 @@ export default function NotificationBell() {
               notifications.map((n) => (
                 <div key={n.id} className="flex items-start gap-3 border-b border-white/5 px-4 py-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-200 leading-snug">{n.message}</p>
+                    <p className="text-sm font-medium text-gray-100 leading-snug">
+                      {n.title || 'Notification'}
+                    </p>
+                    {n.body ? (
+                      <p className="mt-1 text-sm text-gray-300 leading-snug">{n.body}</p>
+                    ) : null}
                     <p className="mt-1 text-xs text-gray-500">
                       {new Date(n.createdAt).toLocaleDateString()}
                     </p>

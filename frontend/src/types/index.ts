@@ -139,7 +139,14 @@ export interface Booking {
   notes?: string
   paymentStatus: string
   bookingStatus: string
+  stripeSessionId?: string
+  confirmationEmailAvailable?: boolean
   createdAt: string
+}
+
+export interface ForgotPasswordResult {
+  message: string
+  emailDeliveryAvailable: boolean
 }
 
 export interface AvailabilityData {

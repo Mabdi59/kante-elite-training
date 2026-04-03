@@ -56,10 +56,12 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
-        userService.forgotPassword(request);
-        return ResponseEntity.ok(ApiResponse.success(
-                "If that email is registered, a reset link has been sent.", null));
+    public ResponseEntity<ApiResponse<Boolean>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        boolean emailDeliveryAvailable = userService.forgotPassword(request);
+        String message = emailDeliveryAvailable
+                ? "If that email is registered, a reset link has been sent."
+                : "Password reset email is not available right now. Please contact support for help resetting your password.";
+        return ResponseEntity.ok(ApiResponse.success(message, emailDeliveryAvailable));
     }
 
     @PostMapping("/reset-password")

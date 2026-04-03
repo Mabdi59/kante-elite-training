@@ -22,6 +22,8 @@ export default function BookingSuccessPage() {
   const [booking, setBooking] = useState<Booking | null>(locationBooking)
   const [loading, setLoading] = useState(locationBooking === null)
   const [error, setError] = useState('')
+  const [showHomeButton, setShowHomeButton] = useState(false)
+  const confirmationEmailAvailable = booking?.confirmationEmailAvailable === true
   const portalPath =
     user?.role === 'ADMIN'
       ? '/admin'
@@ -73,7 +75,7 @@ export default function BookingSuccessPage() {
         })
         .catch(() =>
           setError(
-            'We could not retrieve your booking details right now. Please check your email for confirmation or contact us directly.',
+            'We could not retrieve your booking details right now. Please contact us directly if you need help confirming your booking.',
           ),
         )
         .finally(() => setLoading(false))
@@ -83,6 +85,16 @@ export default function BookingSuccessPage() {
     setError('No booking confirmation was found.')
     setLoading(false)
   }, [bookingId, locationBooking])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowHomeButton(window.scrollY > 320)
+    }
+
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   if (loading) {
     return (
@@ -106,7 +118,7 @@ export default function BookingSuccessPage() {
           <h2 className="text-white font-black text-2xl mb-3">Booking Details Unavailable</h2>
           <p className="text-gray-400 text-sm mb-6 leading-relaxed">{error}</p>
           <p className="text-gray-500 text-xs mb-6">
-            If your booking was submitted, a confirmation email was sent to your inbox. If you do not see it within a few minutes, check your spam folder or contact us.
+            If your booking was submitted, the confirmation details should still appear in your portal. If anything looks off, contact us and we will help you confirm the session.
           </p>
           <div className="flex flex-col gap-3">
             <Link to="/contact" className="btn-primary text-center">
@@ -158,9 +170,15 @@ export default function BookingSuccessPage() {
           <p className="text-gray-300 text-lg max-w-md mx-auto leading-relaxed">
             Your session is officially on the calendar.
           </p>
-          <p className="text-gray-400 text-sm mt-2">
-            A confirmation email has been sent to <strong className="text-white">{booking.email}</strong>.
-          </p>
+          {confirmationEmailAvailable ? (
+            <p className="text-gray-400 text-sm mt-2">
+              A confirmation email has been sent to <strong className="text-white">{booking.email}</strong>.
+            </p>
+          ) : (
+            <p className="text-amber-300 text-sm mt-2">
+              Email confirmations are not available right now. Your booking details are saved below.
+            </p>
+          )}
         </div>
 
         <div className="card mb-6 overflow-hidden">
@@ -230,13 +248,26 @@ export default function BookingSuccessPage() {
         </div>
 
         <p className="text-gray-600 text-xs text-center">
-          Need to reschedule? Reply to your confirmation email or{' '}
+          Need to reschedule? Contact us{' '}
           <Link to="/contact" className="text-amber-500 hover:underline">
-            contact us
+            here
           </Link>{' '}
           at least 24 hours before your session.
         </p>
       </div>
+
+      {showHomeButton ? (
+        <Link
+          to="/"
+          className="fixed bottom-5 right-4 z-40 inline-flex min-h-11 items-center gap-2 rounded-full border border-amber-500/30 bg-[#111111]/95 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-black/30 transition hover:-translate-y-0.5 hover:border-amber-400 hover:text-amber-300 sm:bottom-8 sm:right-8"
+          aria-label="Back to homepage"
+        >
+          <span className="text-amber-400">¦</span>
+          Home
+        </Link>
+      ) : null}
     </div>
   )
 }
+
+

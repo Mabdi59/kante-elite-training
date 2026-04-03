@@ -69,10 +69,10 @@ export default function Footer() {
             <li className="flex items-start gap-2">
               <span className="text-amber-500 mt-0.5">📧</span>
               <a
-                href="mailto:info@kanteelitetraining.com"
+                href="mailto:kanteelitetraining@gmail.com"
                 className="hover:text-amber-400 transition-colors"
               >
-                info@kanteelitetraining.com
+                kanteelitetraining@gmail.com
               </a>
             </li>
             <li className="flex items-start gap-2">

@@ -264,7 +264,11 @@ export default function AdminMediaPage() {
             </div>
 
             {previewPost ? (
-              <MediaPostCard post={previewPost} />
+              <MediaPostCard
+                post={previewPost}
+                imageLoading="eager"
+                imageFetchPriority="high"
+              />
             ) : (
               <div className="rounded-2xl border border-dashed border-gray-700 bg-black px-4 py-14 text-center text-sm text-gray-500">
                 Select a file to preview how your post will appear in the public feed.
@@ -308,9 +312,13 @@ export default function AdminMediaPage() {
             />
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-              {posts.map((post) => (
+              {posts.map((post, index) => (
                 <div key={post.id} className="space-y-3">
-                  <MediaPostCard post={post} />
+                  <MediaPostCard
+                    post={post}
+                    imageLoading={index < 4 ? 'eager' : 'lazy'}
+                    imageFetchPriority={index < 2 ? 'high' : 'auto'}
+                  />
                   <div className="flex justify-end">
                     <button
                       type="button"

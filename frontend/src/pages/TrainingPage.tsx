@@ -20,7 +20,7 @@ const faqs = [
   },
   {
     q: 'What if I need to cancel or reschedule?',
-    a: 'Please give at least 24 hours notice if you need to cancel or reschedule. Reply to your confirmation email or use the contact form.',
+    a: 'Please give at least 24 hours notice if you need to cancel or reschedule. Use the contact form and we will help you update your session.',
   },
   {
     q: 'How quickly will I see improvement?',
