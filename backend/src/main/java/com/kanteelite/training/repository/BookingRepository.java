@@ -37,4 +37,23 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query("SELECT b FROM Booking b JOIN FETCH b.program WHERE LOWER(b.playerName) LIKE LOWER(CONCAT('%', :q, '%')) OR LOWER(b.email) LIKE LOWER(CONCAT('%', :q, '%')) OR LOWER(COALESCE(b.parentName, '')) LIKE LOWER(CONCAT('%', :q, '%')) ORDER BY b.createdAt DESC")
     List<Booking> searchByQuery(@Param("q") String q, org.springframework.data.domain.Pageable pageable);
+
+    List<Booking> findBySeriesIdOrderByBookingDateAsc(Long seriesId);
+
+    List<Booking> findByPlayerProfileIdOrderByBookingDateDesc(Long playerProfileId);
+
+    long countByEmailIgnoreCase(String email);
+
+    List<Booking> findByCoachUserIdOrderByBookingDateAsc(Long coachUserId);
+
+    boolean existsByCoachUserIdAndBookingDateAndBookingTimeAndBookingStatusNot(
+        Long coachUserId, LocalDate date, String time, BookingStatus status
+    );
+
+    @Query("SELECT b FROM Booking b JOIN FETCH b.program WHERE b.coachUser.id = :coachUserId AND b.bookingDate BETWEEN :startDate AND :endDate ORDER BY b.bookingDate ASC, b.bookingTime ASC")
+    List<Booking> findByCoachUserIdAndDateRange(
+        @Param("coachUserId") Long coachUserId,
+        @Param("startDate") LocalDate startDate,
+        @Param("endDate") LocalDate endDate
+    );
 }
