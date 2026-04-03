@@ -593,3 +593,120 @@ export interface WebsiteContentFormData {
   aboutExperienceDescription?: string
   aboutExperiencePoints?: string[]
 }
+
+// ─── Family & Recurring Schedule Types ───────────────────────────────────────
+
+export interface FamilyListItem {
+  id: number
+  name: string
+  email: string
+  phone?: string
+  createdAt: string
+  playerCount: number
+  upcomingSessionCount: number
+}
+
+export interface FamilyPlayerSummary {
+  id: number
+  name: string
+  age?: number
+  skillLevel?: string
+  preferredPosition?: string
+  active: boolean
+}
+
+export interface FamilyRecentBooking {
+  id: number
+  date: string
+  time: string
+  programName: string
+  status: string
+  playerName: string
+}
+
+export interface BookingSeriesPlayerSummary {
+  id: number
+  name: string
+  parentUserEmail: string
+}
+
+export interface BookingSeries {
+  id: number
+  coachUserId?: number
+  coachName?: string
+  programId?: number
+  programName?: string
+  title?: string
+  startDate: string
+  endDate?: string
+  weekdays: string
+  bookingTime: string
+  durationMinutes?: number
+  notes?: string
+  active: boolean
+  createdAt: string
+  players: BookingSeriesPlayerSummary[]
+  totalSessions: number
+  completedSessions: number
+  upcomingSessions: number
+}
+
+export interface FamilyDetail {
+  parentId: number
+  parentName: string
+  parentEmail: string
+  parentPhone?: string
+  emergencyContact?: string
+  players: FamilyPlayerSummary[]
+  activeSeries: BookingSeries[]
+  totalBookings: number
+  upcomingBookings: number
+  completedBookings: number
+  recentBookings: FamilyRecentBooking[]
+}
+
+export interface BookingSeriesPreviewItem {
+  date: string
+  dayOfWeek: string
+  bookingTime: string
+  coachName?: string
+  programName?: string
+  conflict: boolean
+  conflictReason?: string
+}
+
+export interface BookingSeriesRequest {
+  coachUserId?: number
+  programId: number
+  playerProfileIds: number[]
+  title?: string
+  startDate: string
+  endDate?: string
+  numberOfWeeks?: number
+  weekdays: string
+  bookingTime: string
+  durationMinutes?: number
+  notes?: string
+}
+
+export interface PlayerOnboardingEntry {
+  name: string
+  dateOfBirth?: string
+  age?: number
+  skillLevel?: string
+  preferredPosition?: string
+  notes?: string
+  active?: boolean
+}
+
+export interface FamilyOnboardingRequest {
+  existingParentUserId?: number
+  parentName?: string
+  parentEmail?: string
+  parentPhone?: string
+  parentRole?: string
+  parentNotes?: string
+  emergencyContact?: string
+  parentPassword?: string
+  players: PlayerOnboardingEntry[]
+}

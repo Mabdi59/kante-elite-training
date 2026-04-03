@@ -127,6 +127,34 @@ export default function ParentDashboardPage() {
           </div>
         )}
       </section>
+
+      <section className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-white text-xl font-bold">Recurring Training Schedule</h2>
+          <Link to="/calendar" className="text-green-400 hover:text-green-300 text-sm">
+            View Full Calendar
+          </Link>
+        </div>
+        <div className="flex flex-col items-center justify-center py-6 text-center gap-3">
+          <div className="h-12 w-12 rounded-full bg-gray-800 flex items-center justify-center">
+            <svg className="h-6 w-6 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M8 2v4M16 2v4" />
+              <rect x="3" y="5" width="18" height="16" rx="2" />
+              <path d="M3 10h18" />
+              <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
+            </svg>
+          </div>
+          <p className="text-gray-400 text-sm max-w-xs">
+            Your recurring training schedules will appear here once set up by your academy.
+          </p>
+          <Link
+            to="/calendar"
+            className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+          >
+            View Calendar
+          </Link>
+        </div>
+      </section>
     </div>
   )
 }
