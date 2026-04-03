@@ -1,5 +1,6 @@
 package com.kanteelite.training.entity;
 
+import com.kanteelite.training.enums.MediaCategory;
 import com.kanteelite.training.enums.MediaType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -41,6 +42,10 @@ public class MediaPost {
     @Builder.Default
     @Column(name = "show_on_about", nullable = false)
     private boolean showOnAbout = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "media_category", length = 30)
+    private MediaCategory mediaCategory;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

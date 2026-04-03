@@ -1,5 +1,6 @@
 package com.kanteelite.training.dto.request;
 
+import com.kanteelite.training.enums.MediaCategory;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -14,4 +15,6 @@ public class MediaPostUpdateRequest {
     private Boolean showOnHome;
 
     private Boolean showOnAbout;
+
+    private MediaCategory mediaCategory;
 }

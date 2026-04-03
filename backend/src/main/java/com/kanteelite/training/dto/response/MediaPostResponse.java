@@ -1,5 +1,6 @@
 package com.kanteelite.training.dto.response;
 
+import com.kanteelite.training.enums.MediaCategory;
 import com.kanteelite.training.enums.MediaType;
 import lombok.Builder;
 import lombok.Data;
@@ -16,5 +17,6 @@ public class MediaPostResponse {
     private boolean featured;
     private boolean showOnHome;
     private boolean showOnAbout;
+    private MediaCategory mediaCategory;
     private LocalDateTime createdAt;
 }

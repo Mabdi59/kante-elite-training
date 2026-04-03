@@ -80,6 +80,8 @@ export interface Event {
 
 export type MediaType = 'IMAGE' | 'VIDEO'
 
+export type MediaCategory = 'TRAINING_PHOTO' | 'MATCH_HIGHLIGHT' | 'SKILL_CLIP' | 'TESTIMONIAL'
+
 export interface MediaPost {
   id: number
   mediaUrl: string
@@ -88,6 +90,7 @@ export interface MediaPost {
   featured: boolean
   showOnHome: boolean
   showOnAbout: boolean
+  mediaCategory?: MediaCategory
   createdAt: string
 }
 
@@ -567,6 +570,7 @@ export interface MediaPostUpdateFormData {
   featured?: boolean
   showOnHome?: boolean
   showOnAbout?: boolean
+  mediaCategory?: MediaCategory
 }
 
 export interface WebsiteContentFormData {

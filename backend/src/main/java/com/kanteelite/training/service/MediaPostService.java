@@ -3,6 +3,7 @@ package com.kanteelite.training.service;
 import com.kanteelite.training.dto.request.MediaPostUpdateRequest;
 import com.kanteelite.training.dto.response.MediaPostResponse;
 import com.kanteelite.training.entity.MediaPost;
+import com.kanteelite.training.enums.MediaCategory;
 import com.kanteelite.training.exception.ResourceNotFoundException;
 import com.kanteelite.training.repository.MediaPostRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,15 +27,15 @@ public class MediaPostService {
     private final MediaStorageService mediaStorageService;
 
     @Transactional(readOnly = true)
-    public List<MediaPostResponse> getPublicFeed() {
-        return mediaPostRepository.findAllForDisplay()
-                .stream()
-                .map(this::toResponse)
-                .toList();
+    public List<MediaPostResponse> getPublicFeed(MediaCategory category) {
+        List<MediaPost> posts = (category != null)
+                ? mediaPostRepository.findByCategoryForDisplay(category)
+                : mediaPostRepository.findAllForDisplay();
+        return posts.stream().map(this::toResponse).toList();
     }
 
     @Transactional
-    public MediaPostResponse createPost(MultipartFile file, String caption) {
+    public MediaPostResponse createPost(MultipartFile file, String caption, MediaCategory category) {
         if (StringUtils.hasText(caption) && caption.trim().length() > 500) {
             throw new IllegalArgumentException("Caption must be 500 characters or less.");
         }
@@ -52,6 +53,7 @@ public class MediaPostService {
                     .mediaUrl(storedMedia.getPublicUrl())
                     .mediaType(storedMedia.getMediaType())
                     .caption(StringUtils.hasText(caption) ? caption.trim() : null)
+                    .mediaCategory(category)
                     .build());
             return toResponse(saved);
         } catch (RuntimeException ex) {
@@ -84,6 +86,9 @@ public class MediaPostService {
         if (request.getShowOnAbout() != null) {
             mediaPost.setShowOnAbout(request.getShowOnAbout());
         }
+        if (request.getMediaCategory() != null) {
+            mediaPost.setMediaCategory(request.getMediaCategory());
+        }
 
         return toResponse(mediaPostRepository.save(mediaPost));
     }
@@ -110,6 +115,7 @@ public class MediaPostService {
                 .featured(mediaPost.isFeatured())
                 .showOnHome(mediaPost.isShowOnHome())
                 .showOnAbout(mediaPost.isShowOnAbout())
+                .mediaCategory(mediaPost.getMediaCategory())
                 .createdAt(mediaPost.getCreatedAt())
                 .build();
     }

@@ -42,6 +42,7 @@ import type {
   ParticipantAssignmentFormData,
   ManagedParticipant,
   MediaPost,
+  MediaCategory,
   MediaPostUpdateFormData,
   StandingEntry,
   WebsiteContent,
@@ -398,10 +399,13 @@ export const getAdminDashboard = async (): Promise<AdminDashboard> => {
   return res.data.data!
 }
 
-export const createMediaPost = async (file: File, caption: string): Promise<MediaPost> => {
+export const createMediaPost = async (file: File, caption: string, category?: MediaCategory): Promise<MediaPost> => {
   const formData = new FormData()
   formData.append('file', file)
   formData.append('caption', caption.trim())
+  if (category) {
+    formData.append('category', category)
+  }
 
   const res = await api.post<ApiResponse<MediaPost>>('/admin/media', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },

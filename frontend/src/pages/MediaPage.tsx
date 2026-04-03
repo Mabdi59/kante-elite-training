@@ -1,18 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { CATEGORY_OPTIONS, getCategoryLabel } from '../components/CategoryBadge'
 import CTASection from '../components/CTASection'
 import EmptyState from '../components/EmptyState'
 import MediaLightbox from '../components/MediaLightbox'
 import MediaPostCard from '../components/MediaPostCard'
 import PageSkeleton from '../components/PageSkeleton'
 import { getMediaPosts } from '../services/api'
-import type { MediaPost } from '../types'
+import type { MediaCategory, MediaPost } from '../types'
+
+type FilterCategory = MediaCategory | 'ALL'
+
+const CATEGORY_TABS: { value: FilterCategory; label: string }[] = [
+  { value: 'ALL', label: 'All' },
+  ...CATEGORY_OPTIONS,
+]
 
 export default function MediaPage() {
   const [posts, setPosts] = useState<MediaPost[]>([])
   const [activeMediaIndex, setActiveMediaIndex] = useState<number | null>(null)
   const [visibleCount, setVisibleCount] = useState(12)
   const [loading, setLoading] = useState(true)
+  const [activeCategory, setActiveCategory] = useState<FilterCategory>('ALL')
 
   useEffect(() => {
     setLoading(true)
@@ -22,7 +31,18 @@ export default function MediaPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const featuredPosts = posts.slice(0, visibleCount)
+  const filteredPosts = useMemo(() => {
+    if (activeCategory === 'ALL') return posts
+    return posts.filter((p) => p.mediaCategory === activeCategory)
+  }, [posts, activeCategory])
+
+  const visiblePosts = filteredPosts.slice(0, visibleCount)
+
+  const handleCategoryChange = (cat: FilterCategory) => {
+    setActiveCategory(cat)
+    setVisibleCount(12)
+    setActiveMediaIndex(null)
+  }
 
   return (
     <div className="min-h-screen bg-black pt-20">
@@ -33,7 +53,7 @@ export default function MediaPage() {
           <div className="max-w-3xl animate-fade-up">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-amber-400">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-              Media
+              Highlights
             </div>
             <h1 className="text-3xl font-black text-white sm:text-4xl md:text-5xl lg:text-6xl">
               Training Highlights and Event Moments
@@ -67,22 +87,68 @@ export default function MediaPage() {
             </p>
           </div>
 
+          <div className="mb-8 flex flex-wrap gap-2">
+            {CATEGORY_TABS.map((tab) => {
+              const count =
+                tab.value === 'ALL'
+                  ? posts.length
+                  : posts.filter((p) => p.mediaCategory === tab.value).length
+              return (
+                <button
+                  key={tab.value}
+                  type="button"
+                  onClick={() => handleCategoryChange(tab.value)}
+                  className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                    activeCategory === tab.value
+                      ? 'border-amber-500/50 bg-amber-500/10 text-amber-300'
+                      : 'border-gray-700 bg-transparent text-gray-400 hover:border-gray-600 hover:text-gray-300'
+                  }`}
+                >
+                  {tab.label}
+                  <span
+                    className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                      activeCategory === tab.value
+                        ? 'bg-amber-500/20 text-amber-300'
+                        : 'bg-gray-800 text-gray-500'
+                    }`}
+                  >
+                    {count}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+
           {loading ? (
             <PageSkeleton titleWidthClassName="w-64" count={6} />
-          ) : featuredPosts.length === 0 ? (
+          ) : visiblePosts.length === 0 ? (
             <EmptyState
               icon="Media"
-              title="No highlights posted yet"
-              description="Fresh training clips, event moments, and player highlights will show up here once they are published."
+              title={activeCategory === 'ALL' ? 'No highlights posted yet' : `No ${getCategoryLabel(activeCategory as MediaCategory)} yet`}
+              description={
+                activeCategory === 'ALL'
+                  ? 'Fresh training clips, event moments, and player highlights will show up here once they are published.'
+                  : 'Nothing in this category yet. Check back soon or explore another category.'
+              }
               action={
-                <Link to="/training" className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-black hover:bg-amber-400">
-                  Explore programs while you check back
-                </Link>
+                activeCategory !== 'ALL' ? (
+                  <button
+                    type="button"
+                    onClick={() => handleCategoryChange('ALL')}
+                    className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-black hover:bg-amber-400"
+                  >
+                    View all highlights
+                  </button>
+                ) : (
+                  <Link to="/training" className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-black hover:bg-amber-400">
+                    Explore programs while you check back
+                  </Link>
+                )
               }
             />
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-              {featuredPosts.map((post, index) => (
+              {visiblePosts.map((post, index) => (
                 <button
                   key={post.id}
                   type="button"
@@ -99,7 +165,7 @@ export default function MediaPage() {
             </div>
           )}
 
-          {!loading && posts.length > featuredPosts.length ? (
+          {!loading && filteredPosts.length > visiblePosts.length ? (
             <div className="mt-8 text-center">
               <button
                 type="button"
@@ -123,7 +189,7 @@ export default function MediaPage() {
       />
 
       <MediaLightbox
-        posts={featuredPosts}
+        posts={visiblePosts}
         activeIndex={activeMediaIndex}
         onClose={() => setActiveMediaIndex(null)}
         onSelect={setActiveMediaIndex}

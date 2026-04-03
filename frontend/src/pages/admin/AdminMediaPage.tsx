@@ -1,7 +1,8 @@
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { createMediaPost, deleteMediaPost, getMediaPosts } from '../../services/api'
-import type { MediaPost, MediaType } from '../../types'
+import type { MediaCategory, MediaPost, MediaType } from '../../types'
+import CategoryBadge, { CATEGORY_OPTIONS, getCategoryLabel } from '../../components/CategoryBadge'
 import ErrorBanner from '../../components/ErrorBanner'
 import EmptyState from '../../components/EmptyState'
 import MediaPostCard from '../../components/MediaPostCard'
@@ -10,6 +11,8 @@ import PageSkeleton from '../../components/PageSkeleton'
 const MAX_MEDIA_FILE_SIZE = 20 * 1024 * 1024
 const ALLOWED_MEDIA_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4']
 const MAX_CAPTION_LENGTH = 500
+
+type FilterCategory = MediaCategory | 'ALL'
 
 function getPreviewType(file: File): MediaType {
   return file.type.startsWith('video/') ? 'VIDEO' : 'IMAGE'
@@ -29,6 +32,8 @@ export default function AdminMediaPage() {
   const [fileInputKey, setFileInputKey] = useState(0)
   const [previewUrl, setPreviewUrl] = useState('')
   const [caption, setCaption] = useState('')
+  const [category, setCategory] = useState<MediaCategory | ''>('')
+  const [filterCategory, setFilterCategory] = useState<FilterCategory>('ALL')
   const [error, setError] = useState('')
   const [postPendingDelete, setPostPendingDelete] = useState<MediaPost | null>(null)
 
@@ -61,13 +66,20 @@ export default function AdminMediaPage() {
       featured: false,
       showOnHome: false,
       showOnAbout: false,
+      mediaCategory: category || undefined,
       createdAt: new Date().toISOString(),
     }
-  }, [caption, previewUrl, selectedFile])
+  }, [caption, category, previewUrl, selectedFile])
+
+  const filteredPosts = useMemo(() => {
+    if (filterCategory === 'ALL') return posts
+    return posts.filter((p) => p.mediaCategory === filterCategory)
+  }, [posts, filterCategory])
 
   const resetForm = () => {
     setSelectedFile(null)
     setCaption('')
+    setCategory('')
     setFileInputKey((prev) => prev + 1)
   }
 
@@ -104,11 +116,15 @@ export default function AdminMediaPage() {
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     if (!selectedFile) return
+    if (!category) {
+      setError('Please select a category before posting.')
+      return
+    }
 
     setUploading(true)
     setError('')
     try {
-      const created = await createMediaPost(selectedFile, caption)
+      const created = await createMediaPost(selectedFile, caption, category)
       setPosts((prev) => [created, ...prev])
       resetForm()
     } catch (err: unknown) {
@@ -178,6 +194,25 @@ export default function AdminMediaPage() {
 
             <div className="space-y-4">
               <div>
+                <label className="mb-2 block text-sm text-gray-400">
+                  Category <span className="text-red-400">*</span>
+                </label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value as MediaCategory | '')}
+                  required
+                  className="w-full rounded-xl border border-gray-800 bg-black px-4 py-3 text-sm text-white"
+                >
+                  <option value="">Select a category…</option>
+                  {CATEGORY_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
                 <label className="mb-2 block text-sm text-gray-400">Media File</label>
                 <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-gray-700 bg-black px-6 py-8 text-center transition-colors hover:border-cyan-400/40">
                   <span className="text-sm font-semibold text-white">
@@ -244,7 +279,7 @@ export default function AdminMediaPage() {
               </button>
               <button
                 type="submit"
-                disabled={!selectedFile || uploading}
+                disabled={!selectedFile || !category || uploading}
                 className="w-full rounded-lg bg-cyan-500 px-5 py-3 text-sm font-bold text-black transition-colors hover:bg-cyan-400 disabled:opacity-50 sm:w-auto"
               >
                 <span className="inline-flex items-center gap-2">
@@ -283,7 +318,7 @@ export default function AdminMediaPage() {
               <div>
                 <h2 className="text-xl font-bold text-white">Published Feed</h2>
                 <p className="mt-1 text-sm text-gray-400">
-                  The newest posts appear first on the public media page. Use Content to place them on the homepage and about page.
+                  The newest posts appear first. Use Content to place them on the homepage and about page.
                 </p>
               </div>
               <Link
@@ -293,26 +328,57 @@ export default function AdminMediaPage() {
                 Manage Placement
               </Link>
             </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {(['ALL', ...CATEGORY_OPTIONS.map((o) => o.value)] as FilterCategory[]).map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setFilterCategory(cat)}
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    filterCategory === cat
+                      ? 'bg-cyan-500 text-black'
+                      : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                  }`}
+                >
+                  {cat === 'ALL' ? `All (${posts.length})` : `${getCategoryLabel(cat)} (${posts.filter((p) => p.mediaCategory === cat).length})`}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {posts.length === 0 ? (
+          {filteredPosts.length === 0 ? (
             <EmptyState
               icon="Feed"
-              title="No posts yet"
-              description="Upload your first training clip or event moment to start building the public highlight feed."
+              title={filterCategory === 'ALL' ? 'No posts yet' : `No ${getCategoryLabel(filterCategory as MediaCategory)} posts`}
+              description={
+                filterCategory === 'ALL'
+                  ? 'Upload your first training clip or event moment to start building the public highlight feed.'
+                  : 'No posts in this category yet. Upload a new post and assign it to this category.'
+              }
               action={
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-bold text-black hover:bg-cyan-400"
-                >
-                  Upload your first post
-                </button>
+                filterCategory === 'ALL' ? (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-bold text-black hover:bg-cyan-400"
+                  >
+                    Upload your first post
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setFilterCategory('ALL')}
+                    className="rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700"
+                  >
+                    View all posts
+                  </button>
+                )
               }
             />
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-              {posts.map((post, index) => (
+              {filteredPosts.map((post, index) => (
                 <div key={post.id} className="space-y-3">
                   <MediaPostCard
                     post={post}
@@ -351,6 +417,11 @@ export default function AdminMediaPage() {
 
             <div className="rounded-xl border border-gray-800 bg-black px-4 py-3 text-sm text-gray-300">
               {postPendingDelete.caption?.trim() || 'Untitled media post'}
+              {postPendingDelete.mediaCategory ? (
+                <div className="mt-2">
+                  <CategoryBadge category={postPendingDelete.mediaCategory} />
+                </div>
+              ) : null}
             </div>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
