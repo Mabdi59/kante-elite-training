@@ -129,7 +129,11 @@ public class FamilyService {
 
     private AdminFamiliesListResponse toAdminFamilyListItem(User parent) {
         long playerCount = playerProfileRepository.countByParentUserId(parent.getId());
-        long upcoming = bookingRepository.countByEmailIgnoreCase(parent.getEmail());
+        long upcomingSessionCount = bookingRepository.findByEmailIgnoreCaseOrderByCreatedAtDesc(parent.getEmail())
+                .stream()
+                .filter(b -> b.getBookingDate() != null && !b.getBookingDate().isBefore(LocalDate.now())
+                        && b.getBookingStatus() != BookingStatus.CANCELLED)
+                .count();
         return AdminFamiliesListResponse.builder()
                 .id(parent.getId())
                 .name(parent.getName())
@@ -137,7 +141,7 @@ public class FamilyService {
                 .phone(parent.getPhone())
                 .createdAt(parent.getCreatedAt())
                 .playerCount(playerCount)
-                .upcomingSessionCount(upcoming)
+                .upcomingSessionCount(upcomingSessionCount)
                 .build();
     }
 

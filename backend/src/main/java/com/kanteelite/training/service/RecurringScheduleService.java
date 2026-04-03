@@ -44,6 +44,8 @@ public class RecurringScheduleService {
     private final AuditLogService auditLogService;
     private final NotificationService notificationService;
 
+    private static final int DEFAULT_SERIES_WEEKS = 12;
+
     @Transactional(readOnly = true)
     public List<BookingSeriesPreviewItem> previewSeries(BookingSeriesRequest request) {
         LocalDate endDate = resolveEndDate(request);
@@ -119,6 +121,9 @@ public class RecurringScheduleService {
             program = programRepository.findById(request.getProgramId())
                     .orElseThrow(() -> new ResourceNotFoundException("Program", request.getProgramId()));
         }
+        if (program == null) {
+            throw new IllegalArgumentException("programId is required to create bookings");
+        }
 
         List<PlayerProfile> players = new ArrayList<>();
         if (request.getPlayerProfileIds() != null) {
@@ -146,7 +151,9 @@ public class RecurringScheduleService {
 
         series = bookingSeriesRepository.save(series);
 
-        // Create individual bookings for each session
+        // Create individual bookings for each non-conflicted session.
+        // When multiple players are in the series, create one booking per player per session
+        // so each player has a dedicated booking record. For a single player, it is straightforward.
         List<BookingSeriesPreviewItem> preview = previewSeries(request);
         int created = 0;
         for (BookingSeriesPreviewItem item : preview) {
@@ -154,41 +161,51 @@ public class RecurringScheduleService {
                 log.info("Skipping conflicted session on {} at {}: {}", item.getDate(), item.getBookingTime(), item.getConflictReason());
                 continue;
             }
-            if (program == null) {
-                continue; // Can't create booking without program
+
+            if (players.isEmpty()) {
+                // Create a placeholder booking when no players are linked yet
+                Booking booking = Booking.builder()
+                        .program(program)
+                        .bookingDate(item.getDate())
+                        .bookingTime(item.getBookingTime())
+                        .playerName("TBD")
+                        .email(actorEmail != null ? actorEmail : "")
+                        .phone("")
+                        .paymentStatus(PaymentStatus.PENDING)
+                        .bookingStatus(BookingStatus.CONFIRMED)
+                        .series(series)
+                        .coachUser(coach)
+                        .build();
+                bookingRepository.save(booking);
+                created++;
+            } else {
+                for (PlayerProfile player : players) {
+                    String parentEmail = player.getParentUser().getEmail();
+                    String parentName = player.getParentUser().getName();
+                    String parentPhone = player.getParentUser().getPhone() != null
+                            ? player.getParentUser().getPhone() : "";
+                    String playerAge = player.getAge() != null ? player.getAge().toString() : null;
+
+                    Booking booking = Booking.builder()
+                            .program(program)
+                            .bookingDate(item.getDate())
+                            .bookingTime(item.getBookingTime())
+                            .playerName(player.getName())
+                            .playerAge(playerAge)
+                            .parentName(parentName)
+                            .email(parentEmail)
+                            .phone(parentPhone)
+                            .notes(series.getNotes())
+                            .paymentStatus(PaymentStatus.PENDING)
+                            .bookingStatus(BookingStatus.CONFIRMED)
+                            .series(series)
+                            .playerProfile(player)
+                            .coachUser(coach)
+                            .build();
+                    bookingRepository.save(booking);
+                    created++;
+                }
             }
-
-            // Determine player info from first player if available
-            String playerName = players.isEmpty() ? "TBD" : players.get(0).getName();
-            String playerAge = players.isEmpty() ? null
-                    : (players.get(0).getAge() != null ? players.get(0).getAge().toString() : null);
-            String parentEmail = players.isEmpty() ? (actorEmail != null ? actorEmail : "")
-                    : players.get(0).getParentUser().getEmail();
-            String parentName = players.isEmpty() ? null
-                    : players.get(0).getParentUser().getName();
-            String parentPhone = players.isEmpty() ? ""
-                    : (players.get(0).getParentUser().getPhone() != null
-                            ? players.get(0).getParentUser().getPhone() : "");
-
-            Booking booking = Booking.builder()
-                    .program(program)
-                    .bookingDate(item.getDate())
-                    .bookingTime(item.getBookingTime())
-                    .playerName(playerName)
-                    .playerAge(playerAge)
-                    .parentName(parentName)
-                    .email(parentEmail)
-                    .phone(parentPhone)
-                    .notes(series.getNotes())
-                    .paymentStatus(PaymentStatus.PENDING)
-                    .bookingStatus(BookingStatus.CONFIRMED)
-                    .series(series)
-                    .playerProfile(players.isEmpty() ? null : players.get(0))
-                    .coachUser(coach)
-                    .build();
-
-            bookingRepository.save(booking);
-            created++;
         }
 
         auditLogService.log(actorEmail, "CREATE", "BookingSeries", series.getId(),
@@ -259,7 +276,7 @@ public class RecurringScheduleService {
         if (request.getNumberOfWeeks() != null && request.getNumberOfWeeks() > 0) {
             return request.getStartDate().plusWeeks(request.getNumberOfWeeks()).minusDays(1);
         }
-        return request.getStartDate().plusWeeks(12).minusDays(1);
+        return request.getStartDate().plusWeeks(DEFAULT_SERIES_WEEKS).minusDays(1);
     }
 
     private List<DayOfWeek> parseWeekdays(String weekdays) {
