@@ -6,6 +6,7 @@ import com.kanteelite.training.repository.ProgramRepository;
 import com.kanteelite.training.repository.TournamentRepository;
 import com.kanteelite.training.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,13 +26,17 @@ public class SearchService {
     @Transactional(readOnly = true)
     public Map<String, Object> search(String query) {
         Map<String, Object> results = new HashMap<>();
-        String q = query == null ? "" : query.trim().toLowerCase();
+        String q = query == null ? "" : query.trim();
+        if (q.isBlank()) {
+            results.put("bookings", java.util.List.of());
+            results.put("users", java.util.List.of());
+            results.put("programs", java.util.List.of());
+            results.put("tournaments", java.util.List.of());
+            results.put("coaches", java.util.List.of());
+            return results;
+        }
 
-        results.put("bookings", bookingRepository.findAllByOrderByCreatedAtDesc().stream()
-                .filter(b -> b.getPlayerName().toLowerCase().contains(q)
-                        || b.getEmail().toLowerCase().contains(q)
-                        || (b.getParentName() != null && b.getParentName().toLowerCase().contains(q)))
-                .limit(20)
+        results.put("bookings", bookingRepository.searchByQuery(q, PageRequest.of(0, 20)).stream()
                 .map(b -> Map.of(
                         "id", b.getId(),
                         "type", "booking",
@@ -41,23 +46,17 @@ public class SearchService {
                 ))
                 .toList());
 
-        results.put("users", userRepository.findAll().stream()
-                .filter(u -> u.getEmail().toLowerCase().contains(q)
-                        || (u.getName() != null && u.getName().toLowerCase().contains(q)))
-                .limit(20)
+        results.put("users", userRepository.searchByQuery(q, PageRequest.of(0, 20)).stream()
                 .map(u -> Map.of(
                         "id", u.getId(),
                         "type", "user",
-                        "label", u.getEmail(),
+                        "label", u.getName() != null ? u.getName() : u.getEmail(),
                         "email", u.getEmail(),
                         "role", u.getRole().name()
                 ))
                 .toList());
 
-        results.put("programs", programRepository.findAll().stream()
-                .filter(p -> p.getName().toLowerCase().contains(q)
-                        || (p.getDescription() != null && p.getDescription().toLowerCase().contains(q)))
-                .limit(10)
+        results.put("programs", programRepository.searchByQuery(q, PageRequest.of(0, 10)).stream()
                 .map(p -> Map.of(
                         "id", p.getId(),
                         "type", "program",
@@ -66,9 +65,7 @@ public class SearchService {
                 ))
                 .toList());
 
-        results.put("tournaments", tournamentRepository.findAll().stream()
-                .filter(t -> t.getName() != null && t.getName().toLowerCase().contains(q))
-                .limit(10)
+        results.put("tournaments", tournamentRepository.searchByQuery(q, PageRequest.of(0, 10)).stream()
                 .map(t -> Map.of(
                         "id", t.getId(),
                         "type", "tournament",
@@ -76,15 +73,11 @@ public class SearchService {
                 ))
                 .toList());
 
-        results.put("coaches", coachProfileRepository.findAll().stream()
-                .filter(c -> (c.getUser().getName() != null && c.getUser().getName().toLowerCase().contains(q))
-                        || (c.getBio() != null && c.getBio().toLowerCase().contains(q))
-                        || (c.getSpecialties() != null && c.getSpecialties().toLowerCase().contains(q)))
-                .limit(10)
+        results.put("coaches", coachProfileRepository.searchByQuery(q, PageRequest.of(0, 10)).stream()
                 .map(c -> Map.of(
                         "id", c.getId(),
                         "type", "coach",
-                        "label", c.getUser().getName(),
+                        "label", c.getUser().getName() != null ? c.getUser().getName() : c.getUser().getEmail(),
                         "email", c.getUser().getEmail()
                 ))
                 .toList());

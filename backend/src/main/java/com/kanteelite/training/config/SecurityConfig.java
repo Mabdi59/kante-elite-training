@@ -106,8 +106,8 @@ public class SecurityConfig {
                 // Enrollments
                 .requestMatchers("/api/enrollments/**").authenticated()
                 .requestMatchers("/api/admin/enrollments/**").hasAnyRole("ADMIN", "STAFF")
-                // Calendar (iCal endpoint is public)
-                .requestMatchers(HttpMethod.GET, "/api/calendar/*.ics").permitAll()
+                // Calendar (iCal endpoint uses opaque token, not guessable email)
+                .requestMatchers(HttpMethod.GET, "/api/calendar/ical/*.ics").permitAll()
                 .requestMatchers("/api/calendar/**").authenticated()
                 // Search
                 .requestMatchers("/api/search/**").hasAnyRole("ADMIN", "STAFF", "COACH")

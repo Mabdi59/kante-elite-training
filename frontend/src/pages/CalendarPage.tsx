@@ -33,6 +33,9 @@ export default function CalendarPage() {
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
   const [error, setError] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const [icalToken, setIcalToken] = useState<string | null>(null)
+  const [icalCopied, setIcalCopied] = useState(false)
+  const [icalRegenerating, setIcalRegenerating] = useState(false)
 
   // New event form
   const [newTitle, setNewTitle] = useState('')
@@ -58,9 +61,24 @@ export default function CalendarPage() {
     }
   }
 
+  const fetchIcalToken = async () => {
+    try {
+      const res = await axios.get('/api/calendar/ical-token', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setIcalToken(res.data.token)
+    } catch {
+      // iCal token is non-critical; silently ignore
+    }
+  }
+
   useEffect(() => {
     fetchEvents()
   }, [year, month, token])
+
+  useEffect(() => {
+    fetchIcalToken()
+  }, [token])
 
   const prevMonth = () => {
     if (month === 0) { setYear(y => y - 1); setMonth(11) }
@@ -81,6 +99,32 @@ export default function CalendarPage() {
   }
 
   const selectedEvents = selectedDay ? eventsForDay(selectedDay) : []
+
+  const icalUrl = icalToken
+    ? `${window.location.origin}/api/calendar/ical/${icalToken}.ics`
+    : null
+
+  const copyIcalUrl = () => {
+    if (icalUrl) {
+      navigator.clipboard.writeText(icalUrl)
+      setIcalCopied(true)
+      setTimeout(() => setIcalCopied(false), 2000)
+    }
+  }
+
+  const regenerateIcalToken = async () => {
+    setIcalRegenerating(true)
+    try {
+      const res = await axios.post('/api/calendar/ical-token/regenerate', {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setIcalToken(res.data.token)
+    } catch {
+      setError('Failed to regenerate iCal token.')
+    } finally {
+      setIcalRegenerating(false)
+    }
+  }
 
   const handleAddEvent = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -239,6 +283,39 @@ export default function CalendarPage() {
             </div>
           </div>
         </div>
+
+        {/* iCal subscription */}
+        {icalUrl && (
+          <div className="rounded-xl border border-white/10 bg-zinc-900 p-5">
+            <h3 className="text-sm font-bold text-white mb-1">Subscribe to Calendar</h3>
+            <p className="text-xs text-gray-400 mb-3">
+              Use this private URL to subscribe in Google Calendar, Apple Calendar, or Outlook. Keep it secret.
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              <input
+                readOnly
+                value={icalUrl}
+                className="flex-1 min-w-0 rounded-lg border border-white/10 bg-black px-3 py-2 text-xs text-gray-300 font-mono focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={copyIcalUrl}
+                className="rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-500 shrink-0"
+              >
+                {icalCopied ? 'Copied!' : 'Copy'}
+              </button>
+              <button
+                type="button"
+                onClick={regenerateIcalToken}
+                disabled={icalRegenerating}
+                className="rounded-lg border border-white/10 px-3 py-2 text-xs font-semibold text-gray-400 hover:text-white disabled:opacity-50 shrink-0"
+                title="Regenerate token — this invalidates the old URL"
+              >
+                {icalRegenerating ? '…' : 'Regenerate'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

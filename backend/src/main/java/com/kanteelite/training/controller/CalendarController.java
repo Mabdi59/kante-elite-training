@@ -2,6 +2,8 @@ package com.kanteelite.training.controller;
 
 import com.kanteelite.training.dto.request.CalendarEventRequest;
 import com.kanteelite.training.dto.response.CalendarEventResponse;
+import com.kanteelite.training.entity.User;
+import com.kanteelite.training.repository.UserRepository;
 import com.kanteelite.training.service.CalendarService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -14,6 +16,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/calendar")
@@ -21,6 +25,7 @@ import java.util.List;
 public class CalendarController {
 
     private final CalendarService calendarService;
+    private final UserRepository userRepository;
 
     @GetMapping
     public ResponseEntity<List<CalendarEventResponse>> getMyEvents(
@@ -52,12 +57,55 @@ public class CalendarController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/{userEmail}.ics", produces = "text/calendar")
-    public ResponseEntity<String> exportIcal(@PathVariable String userEmail) {
+    /**
+     * Returns (and lazily generates) the authenticated user's iCal feed token.
+     * The token is opaque and can be rotated via the regenerate endpoint.
+     */
+    @GetMapping("/ical-token")
+    public ResponseEntity<Map<String, String>> getIcalToken(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        if (user.getIcalFeedToken() == null) {
+            user.setIcalFeedToken(UUID.randomUUID().toString().replace("-", ""));
+            userRepository.save(user);
+        }
+        return ResponseEntity.ok(Map.of("token", user.getIcalFeedToken()));
+    }
+
+    /**
+     * Regenerates the iCal feed token, invalidating the old URL.
+     */
+    @PostMapping("/ical-token/regenerate")
+    public ResponseEntity<Map<String, String>> regenerateIcalToken(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        user.setIcalFeedToken(UUID.randomUUID().toString().replace("-", ""));
+        userRepository.save(user);
+        return ResponseEntity.ok(Map.of("token", user.getIcalFeedToken()));
+    }
+
+    /**
+     * Public iCal feed endpoint. Uses an opaque token (not the user's email)
+     * so the URL is not guessable.
+     */
+    @GetMapping(value = "/ical/{token}.ics", produces = "text/calendar")
+    public ResponseEntity<String> exportIcalByToken(@PathVariable String token) {
+        User user = userRepository.findByIcalFeedToken(token)
+                .orElse(null);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
         LocalDateTime from = LocalDateTime.now().minusMonths(1);
         LocalDateTime to = LocalDateTime.now().plusMonths(3);
-        List<CalendarEventResponse> events = calendarService.getEventsForUser(userEmail, from, to);
+        List<CalendarEventResponse> events = calendarService.getEventsForUser(user.getEmail(), from, to);
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=\"kante-academy.ics\"")
+                .body(buildIcal(events));
+    }
 
+    private String buildIcal(List<CalendarEventResponse> events) {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'");
         StringBuilder sb = new StringBuilder();
         sb.append("BEGIN:VCALENDAR\r\n");
@@ -85,10 +133,7 @@ public class CalendarController {
             sb.append("END:VEVENT\r\n");
         }
         sb.append("END:VCALENDAR\r\n");
-
-        return ResponseEntity.ok()
-                .header("Content-Disposition", "attachment; filename=\"kante-academy.ics\"")
-                .body(sb.toString());
+        return sb.toString();
     }
 
     private String escapeIcal(String value) {
