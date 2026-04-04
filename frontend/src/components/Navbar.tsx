@@ -67,6 +67,7 @@ export default function Navbar() {
       className={`fixed inset-x-0 top-0 z-50 border-b border-[#222] bg-black/95 backdrop-blur-sm transition-all duration-300 ${
         scrolled ? '' : 'lg:border-transparent lg:bg-transparent lg:backdrop-blur-0'
       }`}
+      style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 md:h-20">
         <Link to="/" className="flex min-w-0 items-center gap-3">
@@ -166,7 +167,8 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setMenuOpen(false)}
-            className="fixed right-5 top-6 z-10 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white backdrop-blur sm:right-6"
+            className="fixed right-5 z-10 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white backdrop-blur sm:right-6"
+            style={{ top: 'calc(env(safe-area-inset-top) + 1rem)' }}
             aria-label="Close menu"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -175,7 +177,7 @@ export default function Navbar() {
             </svg>
           </button>
 
-          <div className="relative z-10 flex min-h-[100dvh] flex-col overflow-y-auto bg-[#050505] px-5 pb-8 pt-6 sm:px-6 animate-slide-in-right">
+          <div className="relative z-10 flex min-h-[100dvh] flex-col overflow-y-auto bg-[#050505] px-5 pb-8 pt-[calc(env(safe-area-inset-top)+1.25rem)] sm:px-6 animate-slide-in-right">
             <div className="mb-8 flex items-start justify-between gap-4 pr-16">
               <div className="max-w-[16rem]">
                 <p className="text-xs font-black uppercase tracking-[0.22em] text-amber-500">Menu</p>

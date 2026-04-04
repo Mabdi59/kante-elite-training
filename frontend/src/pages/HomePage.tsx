@@ -140,7 +140,7 @@ export default function HomePage() {
 
   return (
     <div>
-      <section className="relative flex min-h-[50vh] items-center overflow-hidden bg-black px-4">
+      <section className="relative flex min-h-[100svh] items-center overflow-hidden bg-black px-4 sm:min-h-[78vh]">
         {heroMedia ? (
           <div className="absolute inset-0">
             {heroMedia.mediaType === 'VIDEO' ? (
@@ -175,45 +175,58 @@ export default function HomePage() {
         <div className="absolute top-1/4 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-1/4 left-10 w-64 h-64 bg-amber-900/20 rounded-full blur-2xl pointer-events-none" />
 
-        <div className="page-shell relative w-full pb-12 pt-20 sm:pt-24">
+        <div className="page-shell relative w-full pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:pb-16 sm:pt-[calc(env(safe-area-inset-top)+6.5rem)]">
           <div className="max-w-3xl animate-fade-up">
             <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-6">
               <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
               {siteContent.homeBadge || defaultWebsiteContent.homeBadge}
             </div>
 
-            <h1 className="mb-6 text-4xl font-black leading-[1.05] text-white sm:text-5xl md:text-6xl lg:text-7xl">
+            <h1 className="mb-5 text-[clamp(2.75rem,11vw,4rem)] font-black leading-[0.98] text-white sm:text-5xl md:text-6xl lg:text-7xl">
               {siteContent.homeHeadline || defaultWebsiteContent.homeHeadline}
             </h1>
 
-            <p className="mb-4 max-w-xl text-base leading-relaxed text-gray-300 sm:text-lg md:text-xl">
+            <p className="mb-5 max-w-xl text-base leading-relaxed text-gray-300 sm:text-lg md:text-xl">
               {siteContent.homeDescription || defaultWebsiteContent.homeDescription}
             </p>
 
-            <div className="flex flex-wrap gap-3 mb-8">
+            <div className="mb-8 grid max-w-2xl grid-cols-2 gap-x-3 gap-y-3 sm:flex sm:flex-wrap sm:gap-4">
               {['USSF and UEFA licensed', 'All skill levels', 'Flexible scheduling', 'Fast booking confirmation'].map((t) => (
-                <span key={t} className="text-gray-400 text-sm font-medium">
-                  {t}
+                <span
+                  key={t}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-sm font-medium text-gray-300 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                  <span>{t}</span>
                 </span>
               ))}
             </div>
 
-            <div className="button-stack-mobile">
-              <Link to="/book" className="btn-primary w-full gap-2 px-6 py-3 text-sm sm:w-auto sm:px-8 sm:text-base">
+            <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
+              <Link
+                to="/book"
+                className="btn-primary col-span-2 w-full gap-2 px-6 py-3.5 text-sm sm:w-auto sm:px-8 sm:text-base"
+              >
                 Book Your First Session
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
               </Link>
-              <Link to="/training" className="btn-secondary w-full px-6 py-3 text-sm sm:w-auto sm:px-8 sm:text-base">
+              <Link
+                to="/training"
+                className="btn-secondary w-full px-4 py-3 text-center text-sm sm:w-auto sm:px-8 sm:text-base"
+              >
                 View Programs
               </Link>
-              <Link to="/tournaments" className="btn-secondary w-full px-6 py-3 text-sm sm:w-auto sm:px-8 sm:text-base">
+              <Link
+                to="/tournaments"
+                className="btn-secondary w-full px-4 py-3 text-center text-sm sm:w-auto sm:px-8 sm:text-base"
+              >
                 View Tournaments
               </Link>
             </div>
 
-            <div className="mt-10 grid grid-cols-2 gap-4 border-t border-[#222] pt-8 sm:gap-6 md:grid-cols-4 md:pt-10">
+            <div className="mt-8 grid grid-cols-2 gap-4 border-t border-[#222] pt-8 sm:mt-10 sm:gap-6 md:grid-cols-4 md:pt-10">
               {stats.map((stat) => (
                 <div key={stat.label}>
                   <p className="gradient-text text-2xl font-black sm:text-3xl md:text-4xl">{stat.value}</p>

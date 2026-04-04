@@ -11,7 +11,7 @@ const footerLinks = [
 
 export default function Footer() {
   return (
-    <footer className="border-t border-[#1a1a1a] bg-[#0a0a0a] pb-24 md:pb-0">
+    <footer className="border-t border-[#1a1a1a] bg-[#0a0a0a] pb-[calc(env(safe-area-inset-bottom)+6.75rem)] md:pb-0">
       <div className="border-b border-[#1a1a1a] bg-black px-4 py-10 text-center">
         <p className="section-label">Ready to Start?</p>
         <h2 className="mb-6 text-2xl font-black text-white md:text-3xl">
