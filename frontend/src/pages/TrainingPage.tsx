@@ -86,6 +86,11 @@ export default function TrainingPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    document.title = 'Soccer Training Programs | Kante Elite Training — Columbus, Ohio'
+    return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
+  }, [])
+
+  useEffect(() => {
     getPrograms()
       .then(setPrograms)
       .catch(() => { /* silenced */ })

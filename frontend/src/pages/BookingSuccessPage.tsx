@@ -262,7 +262,7 @@ export default function BookingSuccessPage() {
           className="fixed bottom-5 right-4 z-40 inline-flex min-h-11 items-center gap-2 rounded-full border border-amber-500/30 bg-[#111111]/95 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-black/30 transition hover:-translate-y-0.5 hover:border-amber-400 hover:text-amber-300 sm:bottom-8 sm:right-8"
           aria-label="Back to homepage"
         >
-          <span className="text-amber-400">¦</span>
+          <span className="text-amber-400">ğŸ </span>
           Home
         </Link>
       ) : null}

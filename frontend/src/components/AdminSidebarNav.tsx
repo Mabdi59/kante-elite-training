@@ -311,13 +311,18 @@ const navEntries: NavEntry[] = [
     ],
   },
   {
+    type: 'link',
+    path: '/admin/tournaments',
+    label: 'Tournaments',
+    icon: <TrophyIcon />,
+  },
+  {
     type: 'group',
     id: 'more',
     label: 'More',
     icon: <MoreIcon />,
     items: [
       { path: '/admin/messages', label: 'Messages', icon: <MessageIcon /> },
-      { path: '/admin/tournaments', label: 'Tournaments', icon: <TrophyIcon /> },
       { path: '/admin/enrollments', label: 'Enrollments', icon: <EnrollmentIcon /> },
       { path: '/admin/waivers', label: 'Waivers', icon: <WaiverIcon /> },
       { path: '/admin/users', label: 'Users', icon: <UsersIcon /> },

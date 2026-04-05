@@ -101,7 +101,7 @@ function BookingSidebar({ program, date, time, playerName }: SidebarProps) {
   const hasAnyDetail = date || time || playerName
 
   return (
-    <aside className="lg:w-72 lg:flex-shrink-0 xl:w-80">
+    <aside className="hidden lg:block lg:w-72 lg:flex-shrink-0 xl:w-80">
       <div className="space-y-4 lg:sticky lg:top-24">
         <div className="bg-[#111] border border-[#222] rounded-2xl overflow-hidden">
           <div className="px-5 py-4 border-b border-[#222] bg-[#161616]">
@@ -236,6 +236,11 @@ export default function BookPage() {
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    document.title = 'Book a Training Session | Kante Elite Training — Columbus, Ohio'
+    return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
+  }, [])
 
   useEffect(() => {
     getPrograms()

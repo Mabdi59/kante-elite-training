@@ -92,6 +92,10 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    document.title = 'Kante Elite Training — Youth Soccer Academy, Columbus Ohio'
+  }, [])
+
+  useEffect(() => {
     Promise.allSettled([
       getPrograms(),
       getFeaturedTestimonials(),
