@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import axios from 'axios'
 
+import api from '../services/api'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorBanner from '../components/ErrorBanner'
 
@@ -34,17 +34,13 @@ export default function MessagesPage() {
   const [sending, setSending] = useState(false)
   const [sendSuccess, setSendSuccess] = useState(false)
 
-  const token = localStorage.getItem('token')
-
   const fetchMessages = async (t: Tab) => {
     if (t === 'compose') return
     setLoading(true)
     setError('')
     try {
-      const endpoint = t === 'inbox' ? '/api/messages/inbox' : '/api/messages/sent'
-      const res = await axios.get(endpoint, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const endpoint = t === 'inbox' ? '/messages/inbox' : '/messages/sent'
+      const res = await api.get(endpoint)
       setMessages(res.data ?? [])
     } catch {
       setError('Failed to load messages.')
@@ -56,15 +52,13 @@ export default function MessagesPage() {
   useEffect(() => {
     fetchMessages(tab)
     setSelected(null)
-  }, [tab, token])
+  }, [tab])
 
   const handleSelect = async (msg: Message) => {
     setSelected(msg)
     if (!msg.read && tab === 'inbox') {
       try {
-        await axios.patch(`/api/messages/${msg.id}/read`, {}, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        await api.patch(`/messages/${msg.id}/read`, {})
         setMessages((prev) => prev.map((m) => (m.id === msg.id ? { ...m, read: true } : m)))
       } catch {
         // silent
@@ -84,11 +78,7 @@ export default function MessagesPage() {
     setSending(true)
     setSendSuccess(false)
     try {
-      await axios.post(
-        '/api/messages',
-        { recipientEmail, subject, body, parentId },
-        { headers: { Authorization: `Bearer ${token}` } },
-      )
+      await api.post('/messages', { recipientEmail, subject, body, parentId })
       setSendSuccess(true)
       setRecipientEmail(supportEmail)
       setSubject('')

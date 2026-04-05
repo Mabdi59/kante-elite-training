@@ -9,7 +9,7 @@ interface FaqItem {
 const FAQS: FaqItem[] = [
   {
     q: 'What age groups do you train?',
-    a: 'We train players from ages 6–18, organized into age-specific groups for optimal development. Each group is tailored to the developmental stage of the players.',
+    a: 'We train players from ages 8 to 18. Each session is tailored to the player\'s age, level, and goals.',
   },
   {
     q: 'How do I book a session?',
@@ -17,23 +17,23 @@ const FAQS: FaqItem[] = [
   },
   {
     q: 'What is your cancellation policy?',
-    a: 'Bookings can be cancelled up to 24 hours before the session for a full refund. Cancellations within 24 hours may not be eligible for a refund. Contact us directly for special circumstances.',
+    a: 'Please give at least 24 hours notice if you need to cancel or reschedule. Reach out through the contact form or by phone and we will help you sort it out.',
   },
   {
     q: 'Do you offer trial sessions?',
-    a: 'Yes! We offer introductory trial sessions for new players so they can experience our training environment. Check our Training page for current availability and pricing.',
+    a: 'Yes. New players can start with a single introductory session before committing to a program. Check the Training page for current options.',
   },
   {
     q: 'How are coaches selected?',
-    a: 'All our coaches are UEFA-qualified or hold equivalent recognized certifications, with extensive experience in youth player development. They undergo background checks and regular professional development.',
+    a: 'Coach Kante brings competitive playing experience from the national team and college level, including Ohio Dominican University. All coaches who work with players are carefully vetted and focused on youth player development.',
   },
   {
     q: 'What should my child bring to sessions?',
-    a: 'Players should bring appropriate football boots (no metal studs on artificial pitches), shin guards (mandatory), a water bottle, and wear comfortable athletic clothing. A ball is provided but players may bring their own.',
+    a: 'Players should bring cleats (no metal studs on turf), shin guards, a water bottle, and athletic clothing. A ball is provided but players can bring their own.',
   },
   {
     q: 'How do tournament registrations work?',
-    a: 'Teams can register through our website. Registration requires team details, a player roster, and payment of the registration fee (with deposit options available). You will receive login credentials to track your registration status.',
+    a: 'Teams can register through our website. Registration requires team details, a player roster, and payment of the registration fee. You will receive login credentials to track your registration status.',
   },
   {
     q: 'Can parents watch training sessions?',
@@ -41,7 +41,7 @@ const FAQS: FaqItem[] = [
   },
   {
     q: 'What is the parent portal?',
-    a: 'The parent portal allows parents to view their child\'s attendance record, development notes from coaches, upcoming sessions, manage bookings, sign required waivers, and access important documents — all in one place.',
+    a: 'The parent portal lets parents view their child\'s attendance record, development notes from coaches, upcoming sessions, manage bookings, sign required waivers, and access important documents, all in one place.',
   },
   {
     q: 'How do I sign a digital waiver?',
