@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import axios from 'axios'
+import api from '../../services/api'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorBanner from '../../components/ErrorBanner'
 
@@ -28,15 +28,13 @@ export default function AdminReportsPage() {
   const [attFrom, setAttFrom] = useState('')
   const [attTo, setAttTo] = useState('')
 
-  const token = localStorage.getItem('token')
-
   useEffect(() => {
-    axios
-      .get('/api/admin/reports/revenue', { headers: { Authorization: `Bearer ${token}` } })
+    api
+      .get('/admin/reports/revenue')
       .then((r) => setRevenue(r.data))
       .catch(() => setError('Failed to load revenue report.'))
       .finally(() => setRevLoading(false))
-  }, [token])
+  }, [])
 
   const fetchAttendance = async () => {
     setAttLoading(true)
@@ -45,9 +43,7 @@ export default function AdminReportsPage() {
       const params = new URLSearchParams()
       if (attFrom) params.set('from', attFrom)
       if (attTo) params.set('to', attTo)
-      const res = await axios.get(`/api/admin/reports/attendance?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const res = await api.get(`/admin/reports/attendance?${params.toString()}`)
       setAttendance(res.data)
     } catch {
       setError('Failed to load attendance report.')

@@ -1,5 +1,5 @@
 ﻿import { useMemo, useState } from 'react'
-import axios from 'axios'
+import api from '../../services/api'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorBanner from '../../components/ErrorBanner'
 
@@ -78,8 +78,6 @@ export default function AdminAttendancePage() {
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<number | null>(null)
 
-  const token = localStorage.getItem('token')
-
   const handleSearch = async () => {
     if (!from || !to) {
       setError('Please choose both a from date and a to date.')
@@ -93,9 +91,7 @@ export default function AdminAttendancePage() {
       if (playerEmail.trim()) {
         params.set('playerEmail', playerEmail.trim())
       }
-      const response = await axios.get(`/api/attendance/range?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const response = await api.get(`/attendance/range?${params.toString()}`)
       setRecords(response.data ?? [])
       setSearched(true)
     } catch {
@@ -135,9 +131,7 @@ export default function AdminAttendancePage() {
         status: form.status,
         coachNotes: form.coachNotes,
       }
-      const response = await axios.post('/api/attendance', payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const response = await api.post('/attendance', payload)
       const saved = response.data as AttendanceRecord
       setRecords((prev) => {
         const exists = prev.some((item) => item.id === saved.id)
@@ -164,9 +158,7 @@ export default function AdminAttendancePage() {
     setDeletingId(record.id)
     setError('')
     try {
-      await axios.delete(`/api/attendance/${record.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      await api.delete(`/attendance/${record.id}`)
       setRecords((prev) => prev.filter((item) => item.id !== record.id))
       if (editingId === record.id) {
         resetForm()

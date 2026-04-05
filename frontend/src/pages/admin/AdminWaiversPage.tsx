@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from 'react'
-import axios from 'axios'
+import api from '../../services/api'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorBanner from '../../components/ErrorBanner'
 
@@ -31,11 +31,9 @@ export default function AdminWaiversPage() {
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<number | null>(null)
 
-  const token = localStorage.getItem('token')
-
   const fetchTemplates = () => {
-    axios
-      .get('/api/admin/waivers/templates', { headers: { Authorization: `Bearer ${token}` } })
+    api
+      .get('/admin/waivers/templates')
       .then((response) => setTemplates(response.data ?? []))
       .catch(() => setError('Failed to load waiver templates.'))
       .finally(() => setLoading(false))
@@ -43,7 +41,7 @@ export default function AdminWaiversPage() {
 
   useEffect(() => {
     fetchTemplates()
-  }, [token])
+  }, [])
 
   const openNew = () => {
     setForm(EMPTY_FORM)
@@ -76,13 +74,9 @@ export default function AdminWaiversPage() {
 
     try {
       if (editingId) {
-        await axios.put(`/api/admin/waivers/templates/${editingId}`, payload, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        await api.put(`/admin/waivers/templates/${editingId}`, payload)
       } else {
-        await axios.post('/api/admin/waivers/templates', payload, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        await api.post('/admin/waivers/templates', payload)
       }
       setShowForm(false)
       setEditingId(null)
@@ -98,16 +92,13 @@ export default function AdminWaiversPage() {
 
   const toggleActive = async (template: WaiverTemplate) => {
     try {
-      await axios.put(
-        `/api/admin/waivers/templates/${template.id}`,
+      await api.put(
+        `/admin/waivers/templates/${template.id}`,
         {
           title: template.title,
           content: template.content,
           requiredRoles: template.requiredRoles,
           active: !template.active,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
         },
       )
       setTemplates((prev) =>
@@ -126,9 +117,7 @@ export default function AdminWaiversPage() {
     setDeletingId(template.id)
     setError('')
     try {
-      await axios.delete(`/api/admin/waivers/templates/${template.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      await api.delete(`/admin/waivers/templates/${template.id}`)
       setTemplates((prev) => prev.filter((item) => item.id !== template.id))
       if (editingId === template.id) {
         setShowForm(false)
