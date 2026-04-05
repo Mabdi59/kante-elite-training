@@ -23,10 +23,11 @@ export default function TournamentDetailPage() {
   }, [id])
 
   useEffect(() => {
-    if (data?.tournament.name) {
-      document.title = `${data.tournament.name} | Kante Elite Training`
-      return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
+    const name = data?.tournament.name
+    if (name) {
+      document.title = `${name} | Kante Elite Training`
     }
+    return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
   }, [data?.tournament.name])
 
   const isKnockout = data?.tournament.formatType === 'KNOCKOUT'

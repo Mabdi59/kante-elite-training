@@ -93,6 +93,7 @@ export default function HomePage() {
 
   useEffect(() => {
     document.title = 'Kante Elite Training — Youth Soccer Academy, Columbus Ohio'
+    return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
   }, [])
 
   useEffect(() => {
