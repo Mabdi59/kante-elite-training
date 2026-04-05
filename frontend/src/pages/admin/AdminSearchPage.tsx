@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import api from '../../services/api'
 
 interface BookingResult {
   id: number
@@ -31,8 +31,6 @@ export default function AdminSearchPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const navigate = useNavigate()
 
-  const token = localStorage.getItem('token')
-
   useEffect(() => {
     if (!query.trim()) {
       setResults(null)
@@ -43,9 +41,7 @@ export default function AdminSearchPage() {
       setLoading(true)
       setError('')
       try {
-        const res = await axios.get(`/api/search?q=${encodeURIComponent(query)}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        const res = await api.get(`/search?q=${encodeURIComponent(query)}`)
         setResults(res.data)
       } catch {
         setError('Search failed. Please try again.')
@@ -57,7 +53,7 @@ export default function AdminSearchPage() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [query, token])
+  }, [query])
 
   return (
     <div className="space-y-6">

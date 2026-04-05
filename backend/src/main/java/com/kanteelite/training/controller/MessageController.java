@@ -2,7 +2,10 @@ package com.kanteelite.training.controller;
 
 import com.kanteelite.training.dto.request.MessageRequest;
 import com.kanteelite.training.dto.response.MessageResponse;
+import com.kanteelite.training.entity.User;
+import com.kanteelite.training.repository.UserRepository;
 import com.kanteelite.training.service.MessageService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,12 +21,17 @@ import java.util.Map;
 public class MessageController {
 
     private final MessageService messageService;
+    private final UserRepository userRepository;
 
     @PostMapping
     public ResponseEntity<MessageResponse> send(
-            @RequestBody MessageRequest request,
+            @Valid @RequestBody MessageRequest request,
             @AuthenticationPrincipal UserDetails user) {
-        return ResponseEntity.ok(messageService.sendMessage(request, user.getUsername(), user.getUsername()));
+        String email = user.getUsername();
+        String name = userRepository.findByEmail(email)
+                .map(User::getName)
+                .orElse(email);
+        return ResponseEntity.ok(messageService.sendMessage(request, email, name));
     }
 
     @GetMapping("/inbox")

@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useSearchParams, Link } from 'react-router-dom'
-import api from '../services/api'
+import api, { getBookingByStripeSession } from '../services/api'
 import type { ApiResponse, Booking } from '../types'
 import { useAuth } from '../context/AuthContext'
 
@@ -18,11 +18,14 @@ export default function BookingSuccessPage() {
   const location = useLocation()
   const [searchParams] = useSearchParams()
   const bookingId = Number(searchParams.get('booking_id'))
+  const stripeSessionId = searchParams.get('session_id') ?? ''
   const locationBooking = (location.state as { booking?: Booking } | null)?.booking ?? null
   const [booking, setBooking] = useState<Booking | null>(locationBooking)
   const [loading, setLoading] = useState(locationBooking === null)
+  const [stripePolling, setStripePolling] = useState(!!stripeSessionId && !locationBooking)
   const [error, setError] = useState('')
   const [showHomeButton, setShowHomeButton] = useState(false)
+  const pollAttemptsRef = useRef(0)
   const confirmationEmailAvailable = booking?.confirmationEmailAvailable === true
   const portalPath =
     user?.role === 'ADMIN'
@@ -57,10 +60,47 @@ export default function BookingSuccessPage() {
               ? 'Back to Admin Panel'
               : ''
 
+  const pollStripeBooking = useCallback(async () => {
+    if (!stripeSessionId) return
+    const MAX_ATTEMPTS = 10
+    const POLL_INTERVAL_MS = 2000
+
+    const attempt = async (): Promise<void> => {
+      if (pollAttemptsRef.current >= MAX_ATTEMPTS) {
+        setStripePolling(false)
+        setLoading(false)
+        // Payment confirmed but booking details still processing — show a friendly state
+        return
+      }
+      pollAttemptsRef.current += 1
+      const found = await getBookingByStripeSession(stripeSessionId)
+      if (found) {
+        setBooking(found)
+        setStripePolling(false)
+        setLoading(false)
+        return
+      }
+      await new Promise<void>((resolve) => setTimeout(resolve, POLL_INTERVAL_MS))
+      return attempt()
+    }
+
+    try {
+      await attempt()
+    } catch {
+      setStripePolling(false)
+      setLoading(false)
+    }
+  }, [stripeSessionId])
+
   useEffect(() => {
     if (locationBooking) {
       setBooking(locationBooking)
       setLoading(false)
+      return
+    }
+
+    if (stripeSessionId) {
+      pollStripeBooking()
       return
     }
 
@@ -84,7 +124,7 @@ export default function BookingSuccessPage() {
 
     setError('No booking confirmation was found.')
     setLoading(false)
-  }, [bookingId, locationBooking])
+  }, [bookingId, locationBooking, pollStripeBooking, stripeSessionId])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -101,8 +141,35 @@ export default function BookingSuccessPage() {
       <div className="min-h-screen bg-black flex items-center justify-center px-4">
         <div className="text-center">
           <div className="w-14 h-14 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin mx-auto mb-6" />
-          <p className="text-white font-bold text-xl">Confirming your booking...</p>
+          <p className="text-white font-bold text-xl">
+            {stripePolling ? 'Payment received! Confirming your booking...' : 'Confirming your booking...'}
+          </p>
           <p className="text-gray-400 text-sm mt-2">Just a moment while we finalize everything.</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Stripe payment confirmed but webhook hasn't yet created the booking — show friendly state
+  if (stripeSessionId && !booking && !error) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center px-4 pt-20">
+        <div className="max-w-md w-full card p-10 text-center">
+          <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span className="text-3xl">✅</span>
+          </div>
+          <h2 className="text-white font-black text-2xl mb-3">Payment Confirmed!</h2>
+          <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+            Your payment was received successfully. Your booking confirmation will be emailed to you shortly. If you don&apos;t see it within a few minutes, please check your spam folder or contact us.
+          </p>
+          <div className="flex flex-col gap-3">
+            <Link to="/contact" className="btn-primary text-center">
+              Contact Coach Kante
+            </Link>
+            <Link to="/" className="btn-secondary text-center">
+              Back to Home
+            </Link>
+          </div>
         </div>
       </div>
     )
@@ -262,7 +329,7 @@ export default function BookingSuccessPage() {
           className="fixed bottom-5 right-4 z-40 inline-flex min-h-11 items-center gap-2 rounded-full border border-amber-500/30 bg-[#111111]/95 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-black/30 transition hover:-translate-y-0.5 hover:border-amber-400 hover:text-amber-300 sm:bottom-8 sm:right-8"
           aria-label="Back to homepage"
         >
-          <span className="text-amber-400">�</span>
+          <span className="text-amber-400">🏠</span>
           Home
         </Link>
       ) : null}

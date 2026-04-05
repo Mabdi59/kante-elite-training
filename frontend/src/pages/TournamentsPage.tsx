@@ -106,6 +106,11 @@ export default function TournamentsPage() {
   const [filterStatus, setFilterStatus] = useState('')
 
   useEffect(() => {
+    document.title = 'Youth Soccer Tournaments | Kante Elite Training — Columbus, Ohio'
+    return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
+  }, [])
+
+  useEffect(() => {
     getTournaments()
       .then(setTournaments)
       .catch(() => { /* silenced */ })

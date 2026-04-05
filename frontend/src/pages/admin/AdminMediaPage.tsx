@@ -1,7 +1,7 @@
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { createMediaPost, deleteMediaPost, getMediaPosts } from '../../services/api'
-import type { MediaCategory, MediaPost, MediaType } from '../../types'
+import { createMediaPost, deleteMediaPost, getMediaPosts, updateMediaPost } from '../../services/api'
+import type { MediaCategory, MediaPost, MediaPostUpdateFormData, MediaType } from '../../types'
 import CategoryBadge, { CATEGORY_OPTIONS, getCategoryLabel } from '../../components/CategoryBadge'
 import ErrorBanner from '../../components/ErrorBanner'
 import EmptyState from '../../components/EmptyState'
@@ -36,6 +36,11 @@ export default function AdminMediaPage() {
   const [filterCategory, setFilterCategory] = useState<FilterCategory>('ALL')
   const [error, setError] = useState('')
   const [postPendingDelete, setPostPendingDelete] = useState<MediaPost | null>(null)
+
+  // Edit state
+  const [editingPost, setEditingPost] = useState<MediaPost | null>(null)
+  const [editForm, setEditForm] = useState<MediaPostUpdateFormData>({})
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     setLoading(true)
@@ -153,6 +158,36 @@ export default function AdminMediaPage() {
       setError(message)
     } finally {
       setDeletingId(null)
+    }
+  }
+
+  const openEdit = (post: MediaPost) => {
+    setEditingPost(post)
+    setEditForm({
+      caption: post.caption ?? '',
+      featured: post.featured,
+      showOnHome: post.showOnHome,
+      showOnAbout: post.showOnAbout,
+      mediaCategory: post.mediaCategory,
+    })
+  }
+
+  const handleSaveEdit = async (event: FormEvent) => {
+    event.preventDefault()
+    if (!editingPost) return
+    setSaving(true)
+    setError('')
+    try {
+      const updated = await updateMediaPost(editingPost.id, editForm)
+      setPosts((prev) => prev.map((item) => (item.id === editingPost.id ? updated : item)))
+      setEditingPost(null)
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        'Could not save changes to this post.'
+      setError(message)
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -385,14 +420,21 @@ export default function AdminMediaPage() {
                     imageLoading={index < 4 ? 'eager' : 'lazy'}
                     imageFetchPriority={index < 2 ? 'high' : 'auto'}
                   />
-                  <div className="flex justify-end">
+                  <div className="flex gap-2 justify-end">
+                    <button
+                      type="button"
+                      onClick={() => openEdit(post)}
+                      className="flex-1 rounded-lg bg-gray-800 px-4 py-3 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700 sm:flex-none"
+                    >
+                      Edit
+                    </button>
                     <button
                       type="button"
                       disabled={deletingId === post.id}
                       onClick={() => setPostPendingDelete(post)}
-                      className="w-full rounded-lg bg-red-500/10 px-4 py-3 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50 sm:w-auto"
+                      className="flex-1 rounded-lg bg-red-500/10 px-4 py-3 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50 sm:flex-none"
                     >
-                      {deletingId === post.id ? 'Deleting...' : 'Delete Post'}
+                      {deletingId === post.id ? 'Deleting...' : 'Delete'}
                     </button>
                   </div>
                 </div>
@@ -441,6 +483,80 @@ export default function AdminMediaPage() {
                 {deletingId === postPendingDelete.id ? 'Deleting...' : 'Delete post'}
               </button>
             </div>
+          </div>
+        </div>
+      ) : null}
+
+      {editingPost ? (
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 px-4 py-8 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-gray-800 bg-gray-900 p-6 shadow-2xl">
+            <div className="mb-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-400">Edit Post</p>
+              <h3 className="mt-2 text-xl font-bold text-white">Update this media post</h3>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              <div>
+                <label className="mb-2 block text-sm text-gray-400">Caption</label>
+                <textarea
+                  rows={4}
+                  maxLength={500}
+                  value={editForm.caption ?? ''}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, caption: e.target.value }))}
+                  className="w-full resize-none rounded-xl border border-gray-800 bg-black px-4 py-3 text-sm text-white"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm text-gray-400">Category</label>
+                <select
+                  value={editForm.mediaCategory ?? ''}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, mediaCategory: (e.target.value as MediaCategory) || undefined }))}
+                  className="w-full rounded-xl border border-gray-800 bg-black px-4 py-3 text-sm text-white"
+                >
+                  <option value="">No category</option>
+                  {CATEGORY_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-3 rounded-xl border border-gray-800 bg-black p-4">
+                <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">Placement</p>
+                {([
+                  { key: 'featured', label: 'Featured (hero image on About page)' },
+                  { key: 'showOnHome', label: 'Show on Homepage highlights' },
+                  { key: 'showOnAbout', label: 'Show in About gallery' },
+                ] as { key: keyof MediaPostUpdateFormData; label: string }[]).map(({ key, label }) => (
+                  <label key={key} className="flex cursor-pointer items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(editForm[key])}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, [key]: e.target.checked }))}
+                      className="h-4 w-4 rounded border-gray-700 accent-cyan-500"
+                    />
+                    <span className="text-sm text-gray-300">{label}</span>
+                  </label>
+                ))}
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setEditingPost(null)}
+                  className="w-full rounded-lg bg-gray-800 px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-700 sm:w-auto"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="w-full rounded-lg bg-cyan-500 px-5 py-3 text-sm font-bold text-black hover:bg-cyan-400 disabled:opacity-50 sm:w-auto"
+                >
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       ) : null}

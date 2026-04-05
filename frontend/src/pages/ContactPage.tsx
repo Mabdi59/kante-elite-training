@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { submitContact } from '../services/api'
 import type { ContactFormData } from '../types'
 import HeroSection from '../components/HeroSection'
@@ -27,6 +27,11 @@ export default function ContactPage() {
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    document.title = 'Contact | Kante Elite Training — Columbus, Ohio'
+    return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
+  }, [])
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -70,7 +75,7 @@ export default function ContactPage() {
             <div className="space-y-6">
               {[
                 { icon: '📧', label: 'Email', value: 'kanteelitetraining@gmail.com', href: 'mailto:kanteelitetraining@gmail.com' },
-                { icon: '📱', label: 'Phone', value: '(614) 555-0100', href: 'tel:+16145550100' },
+                { icon: '📱', label: 'Phone', value: '(614) 285-2317', href: 'tel:+16142852317' },
                 { icon: '📍', label: 'Location', value: 'Columbus, Ohio', href: undefined },
                 { icon: '⏰', label: 'Response Time', value: 'Within 24 hours', href: undefined },
               ].map((item) => (

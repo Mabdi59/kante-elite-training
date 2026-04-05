@@ -23,7 +23,13 @@ export default function PublicTeamRegisterPage() {
       ? '/admin/tournaments'
       : user?.role === 'TEAM_CAPTAIN' || user?.role === 'COACH'
         ? '/captain/registrations'
-        : null
+        : user?.role === 'PARENT'
+          ? '/parent'
+          : user?.role === 'PLAYER'
+            ? '/player'
+            : user?.role === 'USER'
+              ? '/user'
+              : null
 
   useEffect(() => {
     if (!id) {

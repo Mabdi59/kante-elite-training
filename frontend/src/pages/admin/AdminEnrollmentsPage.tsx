@@ -1,5 +1,5 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
-import axios from 'axios'
+import api from '../../services/api'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorBanner from '../../components/ErrorBanner'
 
@@ -75,12 +75,10 @@ export default function AdminEnrollmentsPage() {
   const [saving, setSaving] = useState(false)
   const [workingId, setWorkingId] = useState<number | null>(null)
 
-  const token = localStorage.getItem('token')
-
   useEffect(() => {
     Promise.all([
-      axios.get('/api/admin/enrollments', { headers: { Authorization: `Bearer ${token}` } }),
-      axios.get('/api/programs'),
+      api.get('/admin/enrollments'),
+      api.get('/programs'),
     ])
       .then(([enrollmentResponse, programResponse]) => {
         setEnrollments(enrollmentResponse.data ?? [])
@@ -88,7 +86,7 @@ export default function AdminEnrollmentsPage() {
       })
       .catch(() => setError('Failed to load enrollments.'))
       .finally(() => setLoading(false))
-  }, [token])
+  }, [])
 
   const filtered = useMemo(
     () => (filterStatus ? enrollments.filter((enrollment) => enrollment.status === filterStatus) : enrollments),
@@ -128,14 +126,10 @@ export default function AdminEnrollmentsPage() {
 
     try {
       if (editingId) {
-        const response = await axios.put(`/api/admin/enrollments/${editingId}`, payload, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        const response = await api.put(`/admin/enrollments/${editingId}`, payload)
         setEnrollments((prev) => prev.map((item) => (item.id === editingId ? response.data : item)))
       } else {
-        const response = await axios.post('/api/admin/enrollments', payload, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        const response = await api.post('/admin/enrollments', payload)
         setEnrollments((prev) => [response.data, ...prev])
       }
       resetForm()
@@ -153,9 +147,7 @@ export default function AdminEnrollmentsPage() {
   const updateStatus = async (id: number, status: string) => {
     setWorkingId(id)
     try {
-      const response = await axios.patch(`/api/admin/enrollments/${id}/status?status=${status}`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const response = await api.patch(`/admin/enrollments/${id}/status?status=${status}`, {})
       setEnrollments((prev) => prev.map((item) => (item.id === id ? response.data : item)))
     } catch {
       setError('Failed to update enrollment status.')
@@ -167,9 +159,7 @@ export default function AdminEnrollmentsPage() {
   const updatePayment = async (id: number, paymentStatus: string) => {
     setWorkingId(id)
     try {
-      const response = await axios.patch(`/api/admin/enrollments/${id}/payment?paymentStatus=${paymentStatus}`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const response = await api.patch(`/admin/enrollments/${id}/payment?paymentStatus=${paymentStatus}`, {})
       setEnrollments((prev) => prev.map((item) => (item.id === id ? response.data : item)))
     } catch {
       setError('Failed to update payment status.')
@@ -185,9 +175,7 @@ export default function AdminEnrollmentsPage() {
 
     setWorkingId(enrollment.id)
     try {
-      await axios.delete(`/api/admin/enrollments/${enrollment.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      await api.delete(`/admin/enrollments/${enrollment.id}`)
       setEnrollments((prev) => prev.filter((item) => item.id !== enrollment.id))
       if (editingId === enrollment.id) {
         resetForm()

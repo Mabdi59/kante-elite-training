@@ -24,6 +24,11 @@ export default function MediaPage() {
   const [activeCategory, setActiveCategory] = useState<FilterCategory>('ALL')
 
   useEffect(() => {
+    document.title = 'Media & Highlights | Kante Elite Training — Columbus, Ohio'
+    return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
+  }, [])
+
+  useEffect(() => {
     setLoading(true)
     getMediaPosts()
       .then(setPosts)

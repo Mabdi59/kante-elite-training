@@ -18,10 +18,10 @@ import MediaLightbox from '../components/MediaLightbox'
 import { defaultWebsiteContent } from '../content/defaultWebsiteContent'
 
 const stats = [
-  { value: '200+', label: 'Players Trained' },
-  { value: '10+', label: 'Years Experience' },
+  { value: '100+', label: 'Players Trained' },
+  { value: '5', label: 'Training Programs' },
   { value: '95%', label: 'Would Recommend' },
-  { value: '15+', label: 'College Placements' },
+  { value: 'U8-18+', label: 'Age Groups Served' },
 ]
 
 const audiences = [
@@ -90,6 +90,11 @@ export default function HomePage() {
   const [siteContent, setSiteContent] = useState<WebsiteContent>(defaultWebsiteContent)
   const [activeMediaIndex, setActiveMediaIndex] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    document.title = 'Kante Elite Training — Youth Soccer Academy, Columbus Ohio'
+    return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
+  }, [])
 
   useEffect(() => {
     Promise.allSettled([
@@ -191,7 +196,7 @@ export default function HomePage() {
             </p>
 
             <div className="mb-8 grid max-w-2xl grid-cols-2 gap-x-3 gap-y-3 sm:flex sm:flex-wrap sm:gap-4">
-              {['USSF and UEFA licensed', 'All skill levels', 'Flexible scheduling', 'Fast booking confirmation'].map((t) => (
+              {['Competitive playing background', 'All skill levels', 'Flexible scheduling', 'Fast booking confirmation'].map((t) => (
                 <span
                   key={t}
                   className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-sm font-medium text-gray-300 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"

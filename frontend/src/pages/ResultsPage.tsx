@@ -6,26 +6,26 @@ import TestimonialCard from '../components/TestimonialCard'
 import CTASection from '../components/CTASection'
 
 const achievements = [
-  { icon: '🎓', stat: '15+', label: 'College Scholarship Recipients' },
-  { icon: '⚽', stat: '200+', label: 'Players Trained' },
-  { icon: '🏆', stat: '30+', label: 'ODP Selections' },
-  { icon: '📈', stat: '95%', label: 'Visible Improvement in 8 Weeks' },
+  { icon: '⚽', stat: '100+', label: 'Players Trained' },
+  { icon: '📈', stat: '95%', label: 'Show Clear Improvement' },
+  { icon: '🏙', stat: 'Columbus', label: 'Ohio Based' },
+  { icon: '👥', stat: 'U8-18+', label: 'Age Groups Served' },
 ]
 
 const outcomes = [
   {
     player: 'Jordan W.',
     context: 'U18 Player',
-    result: 'Committed to play Division II soccer',
+    result: 'Earned a starting spot at club level',
     story:
-      'Jordan came to Coach Kante when college scouts were passing him by. After one summer of private training, his first touch, finishing, and confidence improved dramatically.',
+      'Jordan was not getting consistent playing time. After a summer of private sessions focused on his first touch and decision-making, he came back more composed and earned a starting role.',
   },
   {
     player: 'Aisha B.',
     context: 'U16 Player',
-    result: 'Called up for State ODP Program',
+    result: 'Jumped to a higher club team',
     story:
-      'Aisha struggled with first touch under pressure. Coach Kante rebuilt her technique with a clear system. She is now one of the most composed players on her club team.',
+      'Aisha struggled with first touch under pressure. Coach Kante worked on her technique with a clear system. She moved up a level at her club the following season.',
   },
   {
     player: 'Marcus T.',
@@ -39,6 +39,11 @@ const outcomes = [
 export default function ResultsPage() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    document.title = 'Player Results & Success Stories | Kante Elite Training — Columbus, Ohio'
+    return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
+  }, [])
 
   useEffect(() => {
     getTestimonials()
