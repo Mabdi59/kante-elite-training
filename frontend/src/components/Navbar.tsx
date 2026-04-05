@@ -37,7 +37,7 @@ export default function Navbar() {
                   : '/account'
   const currentLabel =
     location.pathname === '/'
-      ? 'Home'
+      ? ''
       : navLinks.find((link) => location.pathname === link.href || location.pathname.startsWith(`${link.href}/`))?.label ??
         'Kante Elite'
 
@@ -79,7 +79,7 @@ export default function Navbar() {
             <span className="block text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-500">
               Training
             </span>
-            <span className="mt-1 block text-[11px] font-medium text-gray-500 lg:hidden">
+            <span className={`mt-1 block text-[11px] font-medium text-gray-500 lg:hidden ${currentLabel ? '' : 'hidden'}`}>
               {currentLabel}
             </span>
           </div>

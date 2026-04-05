@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import api, { getPrograms, getAvailability } from '../services/api'
 import type { ApiResponse, Program, AvailabilityData, BookingFormData, Booking } from '../types'
@@ -101,8 +101,8 @@ function BookingSidebar({ program, date, time, playerName }: SidebarProps) {
   const hasAnyDetail = date || time || playerName
 
   return (
-    <aside className="lg:w-72 xl:w-80 flex-shrink-0">
-      <div className="sticky top-24 space-y-4">
+    <aside className="lg:w-72 lg:flex-shrink-0 xl:w-80">
+      <div className="space-y-4 lg:sticky lg:top-24">
         <div className="bg-[#111] border border-[#222] rounded-2xl overflow-hidden">
           <div className="px-5 py-4 border-b border-[#222] bg-[#161616]">
             <p className="text-amber-500 text-xs font-bold uppercase tracking-widest">Your Booking</p>
@@ -180,15 +180,16 @@ function BookingSidebar({ program, date, time, playerName }: SidebarProps) {
 
 interface FieldProps {
   label: string
+  htmlFor: string
   required?: boolean
   error?: string
   children: React.ReactNode
 }
 
-function Field({ label, required, error, children }: FieldProps) {
+function Field({ label, htmlFor, required, error, children }: FieldProps) {
   return (
     <div>
-      <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
+      <label htmlFor={htmlFor} className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
         {label}
         {required && <span className="text-amber-500 ml-1">*</span>}
       </label>
@@ -222,6 +223,7 @@ export default function BookPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const preselectedProgramId = searchParams.get('program')
+  const topRef = useRef<HTMLDivElement | null>(null)
 
   const [programs, setPrograms] = useState<Program[]>([])
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null)
@@ -274,6 +276,14 @@ export default function BookPage() {
       .catch(() => { /* silenced */ })
       .finally(() => setLoadingSlots(false))
   }, [selectedProgram, form.bookingDate])
+
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    topRef.current?.scrollIntoView({
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+      block: 'start',
+    })
+  }, [step])
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
@@ -378,7 +388,7 @@ export default function BookPage() {
               : ''
 
   return (
-    <div className="min-h-screen bg-black pt-16 pb-16 px-4">
+    <div className="min-h-screen bg-black px-4 pt-20 pb-16 md:pt-24">
       <div className="max-w-7xl mx-auto">
         {portalPath ? (
           <div className="max-w-5xl mx-auto pt-6 mb-2">
@@ -394,23 +404,36 @@ export default function BookPage() {
           </div>
         ) : null}
 
-        <div className="text-center pt-8 mb-8">
+        <div ref={topRef} className="text-center pt-6 mb-8 md:pt-8">
           <span className="section-label">Booking</span>
           <h1 className="text-white font-black text-4xl md:text-5xl">Book a Session</h1>
           <p className="text-gray-400 mt-3 max-w-md mx-auto">
             Select your program, choose a time, and confirm your session in minutes.
           </p>
+          {!portalPath ? (
+            <div className="mt-4 flex justify-center">
+              <Link
+                to="/"
+                className="inline-flex items-center gap-2 text-sm text-gray-400 transition-colors hover:text-white"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+                Not ready yet? Back to Home
+              </Link>
+            </div>
+          ) : null}
         </div>
 
-        <div className={`mb-6 bg-[#111] border border-[#1e1e1e] rounded-2xl px-6 py-4 ${isTwoColumn ? 'max-w-5xl mx-auto' : 'max-w-3xl mx-auto'}`}>
+        <div className={`mb-6 bg-[#111] border border-[#1e1e1e] rounded-2xl px-4 py-4 sm:px-6 ${isTwoColumn ? 'max-w-5xl mx-auto' : 'max-w-3xl mx-auto'}`}>
           <StepIndicator steps={steps} current={step} />
         </div>
 
         <div className={`${isTwoColumn ? 'max-w-5xl' : 'max-w-3xl'} mx-auto`}>
-          <div className={`${isTwoColumn ? 'flex gap-8 items-start' : ''}`}>
+          <div className={`${isTwoColumn ? 'lg:flex lg:gap-8 lg:items-start' : ''}`}>
             <div className="flex-1 min-w-0">
               {step === 1 && (
-                <div className="card p-8">
+                <div className="card p-6 sm:p-8">
                   <h2 className="text-white font-black text-2xl mb-2">Choose Your Program</h2>
                   <p className="text-gray-500 text-sm mb-6">
                     Not sure which to choose? Use the <span className="text-amber-500/80 font-semibold">Best for:</span> label to see who each program fits best.
@@ -430,23 +453,25 @@ export default function BookPage() {
                             setSelectedProgram(program)
                             setStep(2)
                           }}
-                          className="w-full flex items-center justify-between gap-4 bg-[#141414] border border-[#282828] hover:border-amber-500/50 hover:bg-[#1a1500] rounded-xl px-5 py-4 text-left transition-all duration-200 group"
+                          className="w-full rounded-xl border border-[#282828] bg-[#141414] px-5 py-4 text-left transition-all duration-200 group hover:border-amber-500/50 hover:bg-[#1a1500]"
                         >
-                          <div className="flex items-center gap-4">
-                            <span className="text-3xl flex-shrink-0">{program.icon}</span>
-                            <div>
+                          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex items-start gap-4">
+                              <span className="text-3xl flex-shrink-0">{program.icon}</span>
+                              <div className="min-w-0">
                               <p className="text-white font-bold text-sm">{program.name}</p>
                               <p className="text-gray-500 text-xs mt-0.5">{program.shortDescription}</p>
                               {program.whoItsFor && (
                                 <p className="text-amber-500/60 text-xs mt-1 font-medium">Best for: {program.whoItsFor}</p>
                               )}
                             </div>
-                          </div>
-                          <div className="flex items-center gap-3 flex-shrink-0">
-                            <span className="text-amber-500 font-black">{program.priceLabel}</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-600 group-hover:text-amber-500 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                            </svg>
+                            </div>
+                            <div className="flex items-center justify-between gap-3 border-t border-[#242424] pt-3 sm:flex-shrink-0 sm:border-t-0 sm:pt-0">
+                              <span className="text-amber-500 font-black">{program.priceLabel}</span>
+                              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-600 group-hover:text-amber-500 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                              </svg>
+                            </div>
                           </div>
                         </button>
                       ))}
@@ -456,7 +481,7 @@ export default function BookPage() {
               )}
 
               {step === 2 && selectedProgram && (
-                <div className="card p-8">
+                <div className="card p-6 sm:p-8">
                   <button
                     onClick={() => setStep(1)}
                     className="flex items-center gap-1.5 text-gray-500 hover:text-white text-sm mb-6 transition-colors"
@@ -472,8 +497,9 @@ export default function BookPage() {
                     Bookings are first come, first served. Evening and weekend sessions go fastest.
                   </p>
 
-                  <Field label="Select Date" required>
+                  <Field label="Select Date" htmlFor="bookingDate" required>
                     <input
+                      id="bookingDate"
                       type="date"
                       name="bookingDate"
                       className="input-field-default"
@@ -486,11 +512,11 @@ export default function BookPage() {
 
                   {form.bookingDate && (
                     <div className="mt-7">
-                      <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-3">
+                      <p id="available-time-slots-label" className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-3">
                         Available Time Slots <span className="text-amber-500">*</span>
-                      </label>
+                      </p>
                       {loadingSlots ? (
-                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" role="group" aria-labelledby="available-time-slots-label">
                           {[...Array(8)].map((_, i) => (
                             <div key={i} className="skeleton h-10 rounded-lg" />
                           ))}
@@ -534,7 +560,7 @@ export default function BookPage() {
               )}
 
               {step === 3 && selectedProgram && (
-                <div className="card p-8">
+                <div className="card p-6 sm:p-8">
                   <button
                     onClick={() => setStep(2)}
                     className="flex items-center gap-1.5 text-gray-500 hover:text-white text-sm mb-6 transition-colors"
@@ -550,8 +576,9 @@ export default function BookPage() {
 
                   <div className="space-y-5">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <Field label="Player Name" required error={touched.playerName ? fieldErrors.playerName : ''}>
+                      <Field label="Player Name" htmlFor="playerName" required error={touched.playerName ? fieldErrors.playerName : ''}>
                         <input
+                          id="playerName"
                           className={touched.playerName && fieldErrors.playerName ? 'input-field-error' : 'input-field-default'}
                           name="playerName"
                           value={form.playerName}
@@ -561,8 +588,9 @@ export default function BookPage() {
                           autoComplete="name"
                         />
                       </Field>
-                      <Field label="Age Group" required>
+                      <Field label="Age Group" htmlFor="playerAge" required>
                         <select
+                          id="playerAge"
                           className="select-field"
                           name="playerAge"
                           value={form.playerAge}
@@ -578,8 +606,9 @@ export default function BookPage() {
                       </Field>
                     </div>
 
-                    <Field label="Parent / Guardian Name">
+                    <Field label="Parent / Guardian Name" htmlFor="parentName">
                       <input
+                        id="parentName"
                         className="input-field-default"
                         name="parentName"
                         value={form.parentName}
@@ -591,9 +620,10 @@ export default function BookPage() {
                     </Field>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <Field label="Email Address" required error={touched.email ? fieldErrors.email : ''}>
+                      <Field label="Email Address" htmlFor="email" required error={touched.email ? fieldErrors.email : ''}>
                         <>
                           <input
+                            id="email"
                             className={touched.email && fieldErrors.email ? 'input-field-error' : 'input-field-default'}
                             type="email"
                             name="email"
@@ -611,8 +641,9 @@ export default function BookPage() {
                           ) : null}
                         </>
                       </Field>
-                      <Field label="Phone Number" required error={touched.phone ? fieldErrors.phone : ''}>
+                      <Field label="Phone Number" htmlFor="phone" required error={touched.phone ? fieldErrors.phone : ''}>
                         <input
+                          id="phone"
                           className={touched.phone && fieldErrors.phone ? 'input-field-error' : 'input-field-default'}
                           type="tel"
                           name="phone"
@@ -625,8 +656,9 @@ export default function BookPage() {
                       </Field>
                     </div>
 
-                    <Field label="Experience Level">
+                    <Field label="Experience Level" htmlFor="experienceLevel">
                       <select
+                        id="experienceLevel"
                         className="select-field"
                         name="experienceLevel"
                         value={form.experienceLevel}
@@ -641,8 +673,9 @@ export default function BookPage() {
                       </select>
                     </Field>
 
-                    <Field label="Goals or Notes (optional)">
+                    <Field label="Goals or Notes (optional)" htmlFor="notes">
                       <textarea
+                        id="notes"
                         className="textarea-field"
                         rows={3}
                         name="notes"
@@ -666,7 +699,7 @@ export default function BookPage() {
               )}
 
               {step === 4 && selectedProgram && (
-                <div className="card p-8">
+                <div className="card p-6 sm:p-8">
                   <button
                     onClick={() => setStep(3)}
                     className="flex items-center gap-1.5 text-gray-500 hover:text-white text-sm mb-6 transition-colors"

@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /coach
+Disallow: /staff
+Disallow: /parent
+Disallow: /player
+Disallow: /captain
+Disallow: /user
+Disallow: /account
+
+Host: https://kanteelitetraining.com
+Sitemap: https://kanteelitetraining.com/sitemap.xml

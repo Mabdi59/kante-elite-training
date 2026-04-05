@@ -12,6 +12,7 @@ import UserLayout from './layouts/UserLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import ScrollToTop from './components/ScrollToTop'
 import LoadingSpinner from './components/LoadingSpinner'
+import CanonicalMeta from './components/CanonicalMeta'
 
 // Public pages — eagerly loaded for fast initial render
 import HomePage from './pages/HomePage'
@@ -134,6 +135,7 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ScrollToTop />
+        <CanonicalMeta />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route

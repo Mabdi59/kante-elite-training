@@ -431,8 +431,8 @@ export interface CoachProfile {
 
 export interface PlayerProfile {
   id: number
-  parentUserId: number
-  parentUserEmail: string
+  parentUserId?: number
+  parentUserEmail?: string
   name: string
   dateOfBirth?: string
   age?: number
@@ -549,7 +549,7 @@ export interface AdminUserFormData {
 }
 
 export interface AdminPlayerFormData {
-  parentUserId: number
+  parentUserId?: number
   name: string
   dateOfBirth?: string
   age?: number

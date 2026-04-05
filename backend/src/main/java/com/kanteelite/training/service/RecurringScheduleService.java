@@ -180,10 +180,11 @@ public class RecurringScheduleService {
                 created++;
             } else {
                 for (PlayerProfile player : players) {
-                    String parentEmail = player.getParentUser().getEmail();
-                    String parentName = player.getParentUser().getName();
-                    String parentPhone = player.getParentUser().getPhone() != null
-                            ? player.getParentUser().getPhone() : "";
+                    User parentUser = player.getParentUser();
+                    String parentEmail = parentUser != null ? parentUser.getEmail() : "";
+                    String parentName = parentUser != null ? parentUser.getName() : null;
+                    String parentPhone = parentUser != null && parentUser.getPhone() != null
+                            ? parentUser.getPhone() : "";
                     String playerAge = player.getAge() != null ? player.getAge().toString() : null;
 
                     Booking booking = Booking.builder()

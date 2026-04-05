@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import axios from 'axios'
 import ErrorBanner from '../components/ErrorBanner'
+import { useAuth } from '../context/AuthContext'
+import api from '../services/api'
 
 interface CalendarEvent {
   id: number
@@ -10,6 +11,34 @@ interface CalendarEvent {
   end?: string
   type?: string
   color?: string
+}
+
+interface RawCalendarEvent {
+  id?: number
+  title?: string
+  description?: string
+  start?: string
+  end?: string
+  type?: string
+  startAt?: string
+  endAt?: string
+  eventType?: string
+  color?: string
+}
+
+function normalizeCalendarEvent(event: RawCalendarEvent): CalendarEvent | null {
+  const start = event.start ?? event.startAt
+  if (!start) return null
+
+  return {
+    id: event.id ?? 0,
+    title: event.title ?? 'Untitled event',
+    description: event.description,
+    start,
+    end: event.end ?? event.endAt,
+    type: event.type ?? event.eventType,
+    color: event.color,
+  }
 }
 
 function getDaysInMonth(year: number, month: number) {
@@ -26,6 +55,7 @@ const MONTH_NAMES = [
 ]
 
 export default function CalendarPage() {
+  const { isAuthenticated } = useAuth()
   const today = new Date()
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())
@@ -46,26 +76,27 @@ export default function CalendarPage() {
   const [newColor] = useState('#22c55e')
   const [saving, setSaving] = useState(false)
 
-  const token = localStorage.getItem('token')
-
   const fetchEvents = async () => {
+    if (!isAuthenticated) return
     const from = new Date(year, month, 1).toISOString()
     const to = new Date(year, month + 1, 0, 23, 59, 59).toISOString()
     try {
-      const res = await axios.get(`/api/calendar?from=${from}&to=${to}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      setEvents(res.data ?? [])
+      const res = await api.get(`/calendar?from=${from}&to=${to}`)
+      const normalizedEvents = Array.isArray(res.data)
+        ? res.data
+            .map((event: RawCalendarEvent) => normalizeCalendarEvent(event))
+            .filter((event): event is CalendarEvent => event !== null)
+        : []
+      setEvents(normalizedEvents)
     } catch {
       setError('Failed to load calendar events.')
     }
   }
 
   const fetchIcalToken = async () => {
+    if (!isAuthenticated) return
     try {
-      const res = await axios.get('/api/calendar/ical-token', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const res = await api.get('/calendar/ical-token')
       setIcalToken(res.data.token)
     } catch {
       // iCal token is non-critical; silently ignore
@@ -73,12 +104,14 @@ export default function CalendarPage() {
   }
 
   useEffect(() => {
+    if (!isAuthenticated) return
     fetchEvents()
-  }, [year, month, token])
+  }, [year, month, isAuthenticated])
 
   useEffect(() => {
+    if (!isAuthenticated) return
     fetchIcalToken()
-  }, [token])
+  }, [isAuthenticated])
 
   const prevMonth = () => {
     if (month === 0) { setYear(y => y - 1); setMonth(11) }
@@ -95,7 +128,7 @@ export default function CalendarPage() {
 
   const eventsForDay = (day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    return events.filter((e) => e.start.startsWith(dateStr))
+    return events.filter((e) => typeof e.start === 'string' && e.start.startsWith(dateStr))
   }
 
   const selectedEvents = selectedDay ? eventsForDay(selectedDay) : []
@@ -113,11 +146,10 @@ export default function CalendarPage() {
   }
 
   const regenerateIcalToken = async () => {
+    if (!isAuthenticated) return
     setIcalRegenerating(true)
     try {
-      const res = await axios.post('/api/calendar/ical-token/regenerate', {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const res = await api.post('/calendar/ical-token/regenerate', {})
       setIcalToken(res.data.token)
     } catch {
       setError('Failed to regenerate iCal token.')
@@ -128,12 +160,19 @@ export default function CalendarPage() {
 
   const handleAddEvent = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!isAuthenticated) return
     setSaving(true)
     try {
-      await axios.post(
-        '/api/calendar',
-        { title: newTitle, description: newDesc, start: newStart, end: newEnd, type: newType, color: newColor },
-        { headers: { Authorization: `Bearer ${token}` } },
+      await api.post(
+        '/calendar',
+        {
+          title: newTitle,
+          description: newDesc,
+          startAt: newStart,
+          endAt: newEnd || undefined,
+          eventType: newType.trim() ? newType.trim().toUpperCase().replace(/\s+/g, '_') : undefined,
+          color: newColor,
+        },
       )
       setShowForm(false)
       setNewTitle(''); setNewDesc(''); setNewStart(''); setNewEnd(''); setNewType('')

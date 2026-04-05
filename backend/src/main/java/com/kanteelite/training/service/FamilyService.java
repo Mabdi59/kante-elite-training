@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -81,7 +82,7 @@ public class FamilyService {
                 PlayerProfile profile = PlayerProfile.builder()
                         .parentUser(parent)
                         .name(entry.getName())
-                        .age(entry.getAge())
+                        .age(resolveAge(entry.getDateOfBirth(), entry.getAge()))
                         .skillLevel(entry.getSkillLevel())
                         .preferredPosition(entry.getPreferredPosition())
                         .notes(entry.getNotes())
@@ -152,7 +153,7 @@ public class FamilyService {
                 .map(p -> FamilyDetailResponse.PlayerSummary.builder()
                         .id(p.getId())
                         .name(p.getName())
-                        .age(p.getAge())
+                        .age(resolveAge(p.getDateOfBirth() != null ? p.getDateOfBirth().toString() : null, p.getAge()))
                         .skillLevel(p.getSkillLevel())
                         .preferredPosition(p.getPreferredPosition())
                         .active(p.isActive())
@@ -247,5 +248,19 @@ public class FamilyService {
                 .completedSessions(completed)
                 .upcomingSessions(upcoming)
                 .build();
+    }
+
+    private Integer resolveAge(String dateOfBirth, Integer fallbackAge) {
+        if (dateOfBirth == null || dateOfBirth.isBlank()) {
+            return fallbackAge;
+        }
+
+        LocalDate dob = LocalDate.parse(dateOfBirth);
+        LocalDate today = LocalDate.now();
+        if (dob.isAfter(today)) {
+            return fallbackAge;
+        }
+
+        return Period.between(dob, today).getYears();
     }
 }

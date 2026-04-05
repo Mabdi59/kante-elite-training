@@ -173,7 +173,10 @@ export default function AdminEventsWorkspacePage() {
   const filteredPlayers = useMemo(() => players.filter((player) => {
     const term = participantSearch.trim().toLowerCase()
     if (!term) return true
-    return player.name.toLowerCase().includes(term) || player.parentUserEmail.toLowerCase().includes(term)
+    return (
+      player.name.toLowerCase().includes(term) ||
+      (player.parentUserEmail ?? '').toLowerCase().includes(term)
+    )
   }).slice(0, 50), [participantSearch, players])
 
   useEffect(() => {
@@ -804,8 +807,8 @@ export default function AdminEventsWorkspacePage() {
                               >
                                 <option value="">Choose a player</option>
                                 {filteredPlayers.map((player) => (
-                                  <option key={player.id} value={player.id}>
-                                    {player.name} ({player.parentUserEmail})
+                                <option key={player.id} value={player.id}>
+                                    {player.name} ({player.parentUserEmail ?? 'No parent account'})
                                   </option>
                                 ))}
                               </select>

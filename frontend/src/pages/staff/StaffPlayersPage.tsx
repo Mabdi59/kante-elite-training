@@ -22,7 +22,7 @@ export default function StaffPlayersPage() {
     const query = search.toLowerCase()
     return (
       player.name.toLowerCase().includes(query) ||
-      player.parentUserEmail.toLowerCase().includes(query) ||
+      (player.parentUserEmail ?? '').toLowerCase().includes(query) ||
       (player.preferredPosition ?? '').toLowerCase().includes(query)
     )
   })
@@ -67,7 +67,9 @@ export default function StaffPlayersPage() {
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div>
                   <p className="text-white font-semibold">{player.name}</p>
-                  <p className="text-gray-400 text-xs mt-0.5">{player.parentUserEmail}</p>
+                  <p className="text-gray-400 text-xs mt-0.5">
+                    {player.parentUserEmail ?? 'Standalone player'}
+                  </p>
                 </div>
                 <span className={`text-xs ${player.active ? 'text-green-400' : 'text-red-400'}`}>
                   {player.active ? 'Active' : 'Inactive'}

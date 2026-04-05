@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
 
 @Service
@@ -49,7 +51,7 @@ public class PlayerProfileService {
                 .parentUser(parent)
                 .name(req.getName())
                 .dateOfBirth(req.getDateOfBirth())
-                .age(req.getAge())
+                .age(resolveAge(req.getDateOfBirth(), req.getAge()))
                 .skillLevel(req.getSkillLevel())
                 .preferredPosition(req.getPreferredPosition())
                 .notes(req.getNotes())
@@ -59,13 +61,11 @@ public class PlayerProfileService {
 
     @Transactional
     public PlayerProfileResponse createForAdmin(AdminPlayerProfileRequest req) {
-        User parent = userRepository.findById(req.getParentUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", req.getParentUserId()));
         PlayerProfile profile = PlayerProfile.builder()
-                .parentUser(parent)
+                .parentUser(resolveParentUser(req.getParentUserId()))
                 .name(req.getName())
                 .dateOfBirth(req.getDateOfBirth())
-                .age(req.getAge())
+                .age(resolveAge(req.getDateOfBirth(), req.getAge()))
                 .skillLevel(req.getSkillLevel())
                 .preferredPosition(req.getPreferredPosition())
                 .notes(req.getNotes())
@@ -78,12 +78,13 @@ public class PlayerProfileService {
     public PlayerProfileResponse update(Long id, String parentEmail, PlayerProfileRequest req) {
         PlayerProfile profile = playerProfileRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("PlayerProfile", id));
-        if (!profile.getParentUser().getEmail().equalsIgnoreCase(parentEmail)) {
+        if (profile.getParentUser() == null
+                || !profile.getParentUser().getEmail().equalsIgnoreCase(parentEmail)) {
             throw new IllegalArgumentException("You are not authorized to edit this player profile.");
         }
         profile.setName(req.getName());
         profile.setDateOfBirth(req.getDateOfBirth());
-        profile.setAge(req.getAge());
+        profile.setAge(resolveAge(req.getDateOfBirth(), req.getAge()));
         profile.setSkillLevel(req.getSkillLevel());
         profile.setPreferredPosition(req.getPreferredPosition());
         profile.setNotes(req.getNotes());
@@ -94,13 +95,11 @@ public class PlayerProfileService {
     public PlayerProfileResponse updateForAdmin(Long id, AdminPlayerProfileRequest req) {
         PlayerProfile profile = playerProfileRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("PlayerProfile", id));
-        User parent = userRepository.findById(req.getParentUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", req.getParentUserId()));
 
-        profile.setParentUser(parent);
+        profile.setParentUser(resolveParentUser(req.getParentUserId()));
         profile.setName(req.getName());
         profile.setDateOfBirth(req.getDateOfBirth());
-        profile.setAge(req.getAge());
+        profile.setAge(resolveAge(req.getDateOfBirth(), req.getAge()));
         profile.setSkillLevel(req.getSkillLevel());
         profile.setPreferredPosition(req.getPreferredPosition());
         profile.setNotes(req.getNotes());
@@ -114,7 +113,8 @@ public class PlayerProfileService {
     public void delete(Long id, String parentEmail) {
         PlayerProfile profile = playerProfileRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("PlayerProfile", id));
-        if (!profile.getParentUser().getEmail().equalsIgnoreCase(parentEmail)) {
+        if (profile.getParentUser() == null
+                || !profile.getParentUser().getEmail().equalsIgnoreCase(parentEmail)) {
             throw new IllegalArgumentException("You are not authorized to delete this player profile.");
         }
         profile.setActive(false);
@@ -153,16 +153,38 @@ public class PlayerProfileService {
     private PlayerProfileResponse toResponse(PlayerProfile p) {
         return PlayerProfileResponse.builder()
                 .id(p.getId())
-                .parentUserId(p.getParentUser().getId())
-                .parentUserEmail(p.getParentUser().getEmail())
+                .parentUserId(p.getParentUser() != null ? p.getParentUser().getId() : null)
+                .parentUserEmail(p.getParentUser() != null ? p.getParentUser().getEmail() : null)
                 .name(p.getName())
                 .dateOfBirth(p.getDateOfBirth())
-                .age(p.getAge())
+                .age(resolveAge(p.getDateOfBirth(), p.getAge()))
                 .skillLevel(p.getSkillLevel())
                 .preferredPosition(p.getPreferredPosition())
                 .notes(p.getNotes())
                 .active(p.isActive())
                 .createdAt(p.getCreatedAt())
                 .build();
+    }
+
+    private User resolveParentUser(Long parentUserId) {
+        if (parentUserId == null) {
+            return null;
+        }
+
+        return userRepository.findById(parentUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", parentUserId));
+    }
+
+    private Integer resolveAge(LocalDate dateOfBirth, Integer fallbackAge) {
+        if (dateOfBirth == null) {
+            return fallbackAge;
+        }
+
+        LocalDate today = LocalDate.now();
+        if (dateOfBirth.isAfter(today)) {
+            return fallbackAge;
+        }
+
+        return Period.between(dateOfBirth, today).getYears();
     }
 }

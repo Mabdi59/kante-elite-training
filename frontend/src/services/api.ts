@@ -65,89 +65,132 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+const clearStoredSession = (redirectToLogin = false) => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('refreshToken')
+  localStorage.removeItem('user')
+  window.dispatchEvent(new Event('auth-state-changed'))
+
+  if (redirectToLogin && window.location.pathname !== '/login') {
+    window.location.href = '/login'
+  }
+}
+
+const storeAuthSession = (data: AuthResponse) => {
+  localStorage.setItem('token', data.token)
+  localStorage.setItem('refreshToken', data.refreshToken)
+  localStorage.setItem(
+    'user',
+    JSON.stringify({ email: data.email, name: data.name, role: data.role }),
+  )
+  window.dispatchEvent(new Event('auth-state-changed'))
+}
+
+const readJwtExpiry = (token: string): number | null => {
+  try {
+    const [, payload] = token.split('.')
+    if (!payload) return null
+
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=')
+    const decoded = JSON.parse(atob(padded)) as { exp?: number }
+    return typeof decoded.exp === 'number' ? decoded.exp * 1000 : null
+  } catch {
+    return null
+  }
+}
+
+const tokenExpiresSoon = (token: string, skewMs = 30_000) => {
+  const expiry = readJwtExpiry(token)
+  if (!expiry) return false
+  return expiry - Date.now() <= skewMs
+}
+
+let refreshPromise: Promise<string | null> | null = null
+
+const refreshAccessToken = async (): Promise<string | null> => {
+  if (refreshPromise) return refreshPromise
+
+  const storedRefresh = localStorage.getItem('refreshToken')
+  if (!storedRefresh) return null
+
+  refreshPromise = axios
+    .post<ApiResponse<AuthResponse>>(`${normalizedApiBaseUrl}/auth/refresh`, {
+      refreshToken: storedRefresh,
+    })
+    .then((res) => {
+      const data = res.data.data
+      if (!data?.token || !data.refreshToken) {
+        clearStoredSession()
+        return null
+      }
+
+      storeAuthSession(data)
+      return data.token
+    })
+    .catch(() => {
+      clearStoredSession()
+      return null
+    })
+    .finally(() => {
+      refreshPromise = null
+    })
+
+  return refreshPromise
+}
+
 // ─── Auth Request Interceptor ─────────────────────────────────────────────────
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
+api.interceptors.request.use(async (config) => {
+  if (config.url?.includes('/auth/')) return config
+
+  let token = localStorage.getItem('token')
+  const storedRefresh = localStorage.getItem('refreshToken')
+
+  if (token && !storedRefresh && tokenExpiresSoon(token)) {
+    clearStoredSession()
+    token = null
+  }
+
+  if (storedRefresh && (!token || tokenExpiresSoon(token))) {
+    token = await refreshAccessToken()
+  }
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+
   return config
 })
 
 // ─── 401 Response Interceptor (auto-refresh) ─────────────────────────────────
-
-let isRefreshing = false
-let refreshQueue: Array<(token: string) => void> = []
 
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const original = error.config
     const status = error.response?.status
+
     if (
-      (status === 401 || status === 403) &&
-      !original._retry &&
-      !original.url?.includes('/auth/')
+      !original ||
+      original._retry ||
+      original.url?.includes('/auth/') ||
+      (status !== 401 && status !== 403)
     ) {
-      const storedRefresh = localStorage.getItem('refreshToken')
-      if (!storedRefresh) {
-        // No refresh token, clear session
-        localStorage.removeItem('token')
-        localStorage.removeItem('refreshToken')
-        localStorage.removeItem('user')
-        window.dispatchEvent(new Event('auth-state-changed'))
-        window.location.href = '/login'
-        return Promise.reject(error)
-      }
-
-      if (isRefreshing) {
-        // Queue the request until refresh completes
-        return new Promise((resolve) => {
-          refreshQueue.push((newToken) => {
-            original.headers.Authorization = `Bearer ${newToken}`
-            resolve(api(original))
-          })
-        })
-      }
-
-      original._retry = true
-      isRefreshing = true
-
-      try {
-        const res = await axios.post<ApiResponse<AuthResponse>>(
-          `${normalizedApiBaseUrl}/auth/refresh`,
-          {
-          refreshToken: storedRefresh,
-          },
-        )
-        const data = res.data.data!
-        localStorage.setItem('token', data.token)
-        localStorage.setItem('refreshToken', data.refreshToken)
-        localStorage.setItem(
-          'user',
-          JSON.stringify({ email: data.email, name: data.name, role: data.role }),
-        )
-        window.dispatchEvent(new Event('auth-state-changed'))
-
-        // Flush queued requests
-        refreshQueue.forEach((cb) => cb(data.token))
-        refreshQueue = []
-
-        original.headers.Authorization = `Bearer ${data.token}`
-        return api(original)
-      } catch {
-        localStorage.removeItem('token')
-        localStorage.removeItem('refreshToken')
-        localStorage.removeItem('user')
-        window.dispatchEvent(new Event('auth-state-changed'))
-        window.location.href = '/login'
-        return Promise.reject(error)
-      } finally {
-        isRefreshing = false
-      }
+      return Promise.reject(error)
     }
-    return Promise.reject(error)
+
+    original._retry = true
+
+    const newToken = await refreshAccessToken()
+    if (!newToken) {
+      clearStoredSession(true)
+      return Promise.reject(error)
+    }
+
+    original.headers = original.headers ?? {}
+    original.headers.Authorization = `Bearer ${newToken}`
+    return api(original)
   },
 )
 

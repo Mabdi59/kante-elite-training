@@ -11,9 +11,11 @@ import {
 import type { Booking, PlayerProfile, PlayerProfileFormData } from '../types'
 import LoadingSpinner from '../components/LoadingSpinner'
 import StatusBadge from '../components/StatusBadge'
+import { calculateAgeFromDateOfBirth } from '../utils/playerAge'
 
 const emptyPlayerForm: PlayerProfileFormData = {
   name: '',
+  dateOfBirth: '',
   age: undefined,
   skillLevel: '',
   preferredPosition: '',
@@ -59,7 +61,11 @@ export default function AccountPage() {
     e.preventDefault()
     setSavingPlayer(true)
     try {
-      const created = await addPlayerProfile(playerForm)
+      const created = await addPlayerProfile({
+        ...playerForm,
+        dateOfBirth: playerForm.dateOfBirth || undefined,
+        age: calculateAgeFromDateOfBirth(playerForm.dateOfBirth) ?? playerForm.age,
+      })
       setPlayers((prev) => [...prev, created])
       setPlayerForm(emptyPlayerForm)
       setShowAddPlayer(false)
@@ -218,17 +224,32 @@ export default function AccountPage() {
                     />
                   </div>
                   <div>
+                    <label className="block text-gray-400 text-sm mb-1">Date of Birth</label>
+                    <input
+                      type="date"
+                      value={playerForm.dateOfBirth ?? ''}
+                      onChange={(e) =>
+                        setPlayerForm({
+                          ...playerForm,
+                          dateOfBirth: e.target.value,
+                          age: calculateAgeFromDateOfBirth(e.target.value),
+                        })
+                      }
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                    />
+                  </div>
+                  <div>
                     <label className="block text-gray-400 text-sm mb-1">Age</label>
                     <input
                       type="number"
                       min={3}
                       max={25}
-                      value={playerForm.age ?? ''}
-                      onChange={(e) =>
-                        setPlayerForm({ ...playerForm, age: e.target.value ? Number(e.target.value) : undefined })
-                      }
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                      value={calculateAgeFromDateOfBirth(playerForm.dateOfBirth) ?? playerForm.age ?? ''}
+                      readOnly
+                      disabled
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-400 text-sm cursor-not-allowed disabled:opacity-100"
                     />
+                    <p className="mt-1 text-xs text-gray-500">Calculated automatically from date of birth.</p>
                   </div>
                   <div>
                     <label className="block text-gray-400 text-sm mb-1">Skill Level</label>

@@ -221,12 +221,13 @@ public class EventService {
                     .build();
         }
         if (participant.getPlayerProfile() != null) {
+            User parentUser = participant.getPlayerProfile().getParentUser();
             return ManagedParticipantResponse.builder()
                     .id(participant.getId())
                     .playerProfileId(participant.getPlayerProfile().getId())
                     .participantType("PLAYER")
                     .name(participant.getPlayerProfile().getName())
-                    .email(participant.getPlayerProfile().getParentUser().getEmail())
+                    .email(parentUser != null ? parentUser.getEmail() : null)
                     .createdAt(participant.getCreatedAt())
                     .build();
         }

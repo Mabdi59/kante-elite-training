@@ -22,7 +22,7 @@ public class PlayerProfile {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_user_id", nullable = false)
+    @JoinColumn(name = "parent_user_id")
     private User parentUser;
 
     @Column(nullable = false, length = 100)

@@ -11,9 +11,33 @@ import LoadingSpinner from '../../components/LoadingSpinner'
 import EmptyState from '../../components/EmptyState'
 import StatusBadge from '../../components/StatusBadge'
 import ErrorBanner from '../../components/ErrorBanner'
+import { calculateAgeFromDateOfBirth } from '../../utils/playerAge'
+
+const SKILL_LEVEL_OPTIONS = [
+  'Beginner',
+  'Developing',
+  'Intermediate',
+  'Advanced',
+  'Elite',
+]
+
+const PREFERRED_POSITION_OPTIONS = [
+  'Goalkeeper',
+  'Defender',
+  'Center Back',
+  'Full Back',
+  'Wing Back',
+  'Defensive Midfielder',
+  'Central Midfielder',
+  'Attacking Midfielder',
+  'Winger',
+  'Forward',
+  'Striker',
+  'Utility / Multiple Positions',
+]
 
 const emptyForm: AdminPlayerFormData = {
-  parentUserId: 0,
+  parentUserId: undefined,
   name: '',
   dateOfBirth: '',
   age: undefined,
@@ -60,7 +84,7 @@ export default function AdminPlayersPage() {
       parentUserId: player.parentUserId,
       name: player.name,
       dateOfBirth: player.dateOfBirth ?? '',
-      age: player.age,
+      age: calculateAgeFromDateOfBirth(player.dateOfBirth?.toString()) ?? player.age,
       skillLevel: player.skillLevel ?? '',
       preferredPosition: player.preferredPosition ?? '',
       notes: player.notes ?? '',
@@ -85,6 +109,7 @@ export default function AdminPlayersPage() {
       const payload: AdminPlayerFormData = {
         ...form,
         dateOfBirth: form.dateOfBirth || undefined,
+        age: calculateAgeFromDateOfBirth(form.dateOfBirth) ?? form.age,
       }
 
       if (editingPlayer) {
@@ -121,7 +146,7 @@ export default function AdminPlayersPage() {
   const filtered = players.filter(
     (item) =>
       item.name.toLowerCase().includes(search.toLowerCase()) ||
-      item.parentUserEmail.toLowerCase().includes(search.toLowerCase()),
+      (item.parentUserEmail ?? 'standalone').toLowerCase().includes(search.toLowerCase()),
   )
 
   if (loading) return <LoadingSpinner label="Loading players..." />
@@ -162,22 +187,27 @@ export default function AdminPlayersPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-400 text-sm mb-1">Parent User</label>
+              <label className="block text-gray-400 text-sm mb-1">Parent User (Optional)</label>
               <select
-                required
                 value={form.parentUserId || ''}
                 onChange={(e) =>
-                  setForm((prev) => ({ ...prev, parentUserId: Number(e.target.value) }))
+                  setForm((prev) => ({
+                    ...prev,
+                    parentUserId: e.target.value ? Number(e.target.value) : undefined,
+                  }))
                 }
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
               >
-                <option value="">Select a user</option>
+                <option value="">No parent account yet</option>
                 {users.map((user) => (
                   <option key={user.id} value={user.id}>
                     {user.name} ({user.email})
                   </option>
                 ))}
               </select>
+              <p className="mt-1 text-xs text-gray-500">
+                Leave this blank if the player does not have a linked parent account yet.
+              </p>
             </div>
 
             <div>
@@ -195,7 +225,13 @@ export default function AdminPlayersPage() {
               <input
                 type="date"
                 value={form.dateOfBirth ?? ''}
-                onChange={(e) => setForm((prev) => ({ ...prev, dateOfBirth: e.target.value }))}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    dateOfBirth: e.target.value,
+                    age: calculateAgeFromDateOfBirth(e.target.value),
+                  }))
+                }
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
               />
             </div>
@@ -205,35 +241,46 @@ export default function AdminPlayersPage() {
               <input
                 type="number"
                 min={1}
-                value={form.age ?? ''}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    age: e.target.value ? Number(e.target.value) : undefined,
-                  }))
-                }
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                value={calculateAgeFromDateOfBirth(form.dateOfBirth) ?? form.age ?? ''}
+                readOnly
+                disabled
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-400 text-sm cursor-not-allowed disabled:opacity-100"
               />
+              <p className="mt-1 text-xs text-gray-500">Calculated automatically from date of birth.</p>
             </div>
 
             <div>
               <label className="block text-gray-400 text-sm mb-1">Skill Level</label>
-              <input
+              <select
                 value={form.skillLevel ?? ''}
                 onChange={(e) => setForm((prev) => ({ ...prev, skillLevel: e.target.value }))}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
-              />
+              >
+                <option value="">Select skill level</option>
+                {SKILL_LEVEL_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
               <label className="block text-gray-400 text-sm mb-1">Preferred Position</label>
-              <input
+              <select
                 value={form.preferredPosition ?? ''}
                 onChange={(e) =>
                   setForm((prev) => ({ ...prev, preferredPosition: e.target.value }))
                 }
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
-              />
+              >
+                <option value="">Select preferred position</option>
+                {PREFERRED_POSITION_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="md:col-span-2">
@@ -297,7 +344,9 @@ export default function AdminPlayersPage() {
               <div className="flex items-start justify-between mb-3 gap-3">
                 <div>
                   <p className="text-white font-semibold">{item.name}</p>
-                  <p className="text-gray-400 text-xs mt-0.5">{item.parentUserEmail}</p>
+                  <p className="text-gray-400 text-xs mt-0.5">
+                    {item.parentUserEmail ?? 'Standalone player'}
+                  </p>
                 </div>
                 {item.skillLevel ? <StatusBadge status={item.skillLevel} /> : null}
               </div>

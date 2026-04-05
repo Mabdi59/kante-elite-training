@@ -1,11 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { claimTeamCaptainAccess, getTournamentById, registerTeam } from '../services/api'
+import { getTournamentById, registerTeam } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import type { Tournament } from '../types'
 
 export default function PublicTeamRegisterPage() {
-  const { user, loginUser } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const [tournament, setTournament] = useState<Tournament | null>(null)
@@ -17,15 +17,13 @@ export default function PublicTeamRegisterPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [loadingTournament, setLoadingTournament] = useState(true)
-  const [claimingCaptain, setClaimingCaptain] = useState(false)
-  const redirectQuery = id ? `?intent=tournament&requestedRole=TEAM_CAPTAIN&redirect=${encodeURIComponent(`/tournaments/${id}/register`)}` : ''
+  const redirectQuery = id ? `?intent=tournament&redirect=${encodeURIComponent(`/tournaments/${id}/register`)}` : ''
   const portalPath =
     user?.role === 'ADMIN'
       ? '/admin/tournaments'
       : user?.role === 'TEAM_CAPTAIN' || user?.role === 'COACH'
         ? '/captain/registrations'
         : null
-  const canManageTournament = user?.role === 'TEAM_CAPTAIN' || user?.role === 'COACH' || user?.role === 'ADMIN'
 
   useEffect(() => {
     if (!id) {
@@ -55,15 +53,16 @@ export default function PublicTeamRegisterPage() {
         clubName,
         tournamentId: Number(id),
       })
-      if (user?.role === 'ADMIN') {
-        navigate('/admin/tournaments')
+      if (registration.publicAccessUrl) {
+        const publicPath = new URL(registration.publicAccessUrl, window.location.origin)
+        navigate(`${publicPath.pathname}${publicPath.search ? `${publicPath.search}&new=1` : '?new=1'}`)
         return
       }
-      if (registration.id) {
-        navigate(`/captain/registrations?focus=${registration.id}&new=1`)
+      if (registration.guestAccessToken) {
+        navigate(`/tournaments/registration/${registration.guestAccessToken}?new=1`)
         return
       }
-      setError('Registration was created, but we could not open your team portal.')
+      setError('Registration was created, but we could not open your registration dashboard.')
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
@@ -71,22 +70,6 @@ export default function PublicTeamRegisterPage() {
       setError(msg)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const handleClaimCaptainAccess = async () => {
-    setError('')
-    setClaimingCaptain(true)
-    try {
-      const res = await claimTeamCaptainAccess()
-      loginUser(res.token, res.refreshToken, { email: res.email, name: res.name, role: res.role })
-    } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        'We could not switch this account to team captain access.'
-      setError(msg)
-    } finally {
-      setClaimingCaptain(false)
     }
   }
 
@@ -111,7 +94,7 @@ export default function PublicTeamRegisterPage() {
               Register Your Team
             </h1>
             <p className="text-gray-400 text-base leading-relaxed max-w-xl">
-              Sign in with your team account, submit your entry, and manage payment, roster, and updates from your Team Portal.
+              Sign in with any account, submit your entry, and manage payment, roster, and updates from your registration dashboard.
             </p>
 
             {error ? (
@@ -124,31 +107,16 @@ export default function PublicTeamRegisterPage() {
               <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 mt-8 space-y-5">
                 <h2 className="text-white text-2xl font-black">Start With Your Account</h2>
                 <p className="text-gray-400 leading-relaxed">
-                  Create an account or sign in first. We will take you straight into team registration and save everything in your Team Portal.
+                  Create an account or sign in first. We will take you straight into team registration and save everything in your registration dashboard.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Link to={`/register${redirectQuery}`} className="btn-primary text-center">
-                    Create Team Account
+                    Create Account
                   </Link>
                   <Link to={`/login${redirectQuery}`} className="btn-secondary text-center">
                     Sign In
                   </Link>
                 </div>
-              </div>
-            ) : !canManageTournament ? (
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 mt-8 space-y-5">
-                <h2 className="text-white text-2xl font-black">Use This Account for Team Registration</h2>
-                <p className="text-gray-400 leading-relaxed">
-                  Your account is signed in, but it is not set up yet for tournament team management.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleClaimCaptainAccess}
-                  disabled={claimingCaptain}
-                  className="bg-green-500 hover:bg-green-400 disabled:opacity-50 text-black font-bold px-5 py-3 rounded-lg"
-                >
-                  {claimingCaptain ? 'Switching Account...' : 'Continue as Team Captain'}
-                </button>
               </div>
             ) : (
               <form
@@ -249,9 +217,9 @@ export default function PublicTeamRegisterPage() {
                         {tournament.endDate ? ` to ${tournament.endDate}` : ''}
                       </span>
                     </div>
-                    <div className="flex justify-between gap-4">
-                      <span className="text-gray-500">Teams</span>
-                      <span className="text-white text-right">
+                  <div className="flex justify-between gap-4">
+                    <span className="text-gray-500">Teams</span>
+                    <span className="text-white text-right">
                         {tournament.registeredTeams} / {tournament.maxTeams}
                       </span>
                     </div>
@@ -289,7 +257,7 @@ export default function PublicTeamRegisterPage() {
 
                   <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4">
                     <p className="text-green-400 text-sm font-semibold">
-                      Team registration is open. Submit your team details here, then manage everything from your Team Portal.
+                      Team registration is open. Submit your team details here, then manage everything from your registration dashboard.
                     </p>
                   </div>
                 </div>

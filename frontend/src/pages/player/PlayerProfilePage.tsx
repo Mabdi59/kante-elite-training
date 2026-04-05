@@ -7,6 +7,7 @@ import {
 import type { PlayerProfile, PlayerProfileFormData } from '../../types'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorBanner from '../../components/ErrorBanner'
+import { calculateAgeFromDateOfBirth } from '../../utils/playerAge'
 
 const emptyForm: PlayerProfileFormData = {
   name: '',
@@ -32,7 +33,7 @@ export default function PlayerProfilePage() {
           setForm({
             name: data[0].name,
             dateOfBirth: data[0].dateOfBirth ?? '',
-            age: data[0].age,
+            age: calculateAgeFromDateOfBirth(data[0].dateOfBirth?.toString()) ?? data[0].age,
             skillLevel: data[0].skillLevel ?? '',
             preferredPosition: data[0].preferredPosition ?? '',
             notes: data[0].notes ?? '',
@@ -54,6 +55,7 @@ export default function PlayerProfilePage() {
       const payload: PlayerProfileFormData = {
         ...form,
         dateOfBirth: form.dateOfBirth || undefined,
+        age: calculateAgeFromDateOfBirth(form.dateOfBirth) ?? form.age,
       }
 
       const savedProfile = profile
@@ -104,7 +106,13 @@ export default function PlayerProfilePage() {
             <input
               type="date"
               value={form.dateOfBirth ?? ''}
-              onChange={(event) => setForm((current) => ({ ...current, dateOfBirth: event.target.value }))}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  dateOfBirth: event.target.value,
+                  age: calculateAgeFromDateOfBirth(event.target.value),
+                }))
+              }
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
             />
           </div>
@@ -115,15 +123,12 @@ export default function PlayerProfilePage() {
               type="number"
               min={3}
               max={25}
-              value={form.age ?? ''}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  age: event.target.value ? Number(event.target.value) : undefined,
-                }))
-              }
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+              value={calculateAgeFromDateOfBirth(form.dateOfBirth) ?? form.age ?? ''}
+              readOnly
+              disabled
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-400 text-sm cursor-not-allowed disabled:opacity-100"
             />
+            <p className="mt-1 text-xs text-gray-500">Calculated automatically from date of birth.</p>
           </div>
 
           <div>

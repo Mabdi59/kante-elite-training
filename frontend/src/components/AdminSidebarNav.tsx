@@ -1,16 +1,22 @@
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import type { ReactNode } from 'react'
 
-type NavItem = {
+type NavLinkItem = {
   path: string
   label: string
   icon: ReactNode
 }
 
-type NavSection = {
-  title: string
-  items: NavItem[]
+type NavGroup = {
+  id: string
+  label: string
+  icon: ReactNode
+  items: NavLinkItem[]
 }
+
+type NavEntry =
+  | ({ type: 'link' } & NavLinkItem)
+  | ({ type: 'group' } & NavGroup)
 
 function DashboardIcon() {
   return (
@@ -210,6 +216,15 @@ function AuditIcon() {
   )
 }
 
+function MoreIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="12" cy="12" r="1.2" />
+      <circle cx="19" cy="12" r="1.2" />
+      <circle cx="5" cy="12" r="1.2" />
+    </svg>
+  )
+}
 
 function FamilyIcon() {
   return (
@@ -234,86 +249,198 @@ function ScheduleIcon() {
 }
 
 
-const navSections: NavSection[] = [
+const navEntries: NavEntry[] = [
   {
-    title: 'Overview',
-    items: [{ path: '/admin', label: 'Dashboard', icon: <DashboardIcon /> }],
+    type: 'link',
+    path: '/admin',
+    label: 'Dashboard',
+    icon: <DashboardIcon />,
   },
   {
-    title: 'Bookings & Content',
+    type: 'group',
+    id: 'families',
+    label: 'Families',
+    icon: <FamilyIcon />,
     items: [
-      { path: '/admin/bookings', label: 'Bookings', icon: <BookingIcon /> },
-      { path: '/admin/content', label: 'Content', icon: <ContentIcon /> },
-      { path: '/admin/media', label: 'Media', icon: <MediaIcon /> },
-      { path: '/admin/testimonials', label: 'Testimonials', icon: <QuoteIcon /> },
-      { path: '/admin/messages', label: 'Messages', icon: <MessageIcon /> },
-      { path: '/admin/search', label: 'Search', icon: <SearchIcon /> },
-      { path: '/admin/reports', label: 'Reports', icon: <ReportsIcon /> },
+      { path: '/admin/families', label: 'Families', icon: <FamilyIcon /> },
+      { path: '/admin/players', label: 'Players', icon: <PlayersIcon /> },
     ],
   },
   {
-    title: 'Programs & Events',
+    type: 'link',
+    path: '/admin/bookings',
+    label: 'Bookings',
+    icon: <BookingIcon />,
+  },
+  {
+    type: 'group',
+    id: 'schedules',
+    label: 'Schedules',
+    icon: <ScheduleIcon />,
+    items: [
+      { path: '/admin/recurring-schedules', label: 'Recurring Schedules', icon: <ScheduleIcon /> },
+      { path: '/admin/availability', label: 'Availability', icon: <AvailabilityIcon /> },
+      { path: '/admin/attendance', label: 'Attendance', icon: <AttendanceIcon /> },
+    ],
+  },
+  {
+    type: 'link',
+    path: '/admin/coaches',
+    label: 'Coaches',
+    icon: <CoachIcon />,
+  },
+  {
+    type: 'group',
+    id: 'programs',
+    label: 'Programs',
+    icon: <ProgramIcon />,
     items: [
       { path: '/admin/programs', label: 'Programs', icon: <ProgramIcon /> },
       { path: '/admin/events', label: 'Events', icon: <EventIcon /> },
+    ],
+  },
+  {
+    type: 'group',
+    id: 'website',
+    label: 'Website',
+    icon: <ContentIcon />,
+    items: [
+      { path: '/admin/content', label: 'Content', icon: <ContentIcon /> },
+      { path: '/admin/media', label: 'Media', icon: <MediaIcon /> },
+      { path: '/admin/testimonials', label: 'Testimonials', icon: <QuoteIcon /> },
+    ],
+  },
+  {
+    type: 'group',
+    id: 'more',
+    label: 'More',
+    icon: <MoreIcon />,
+    items: [
+      { path: '/admin/messages', label: 'Messages', icon: <MessageIcon /> },
       { path: '/admin/tournaments', label: 'Tournaments', icon: <TrophyIcon /> },
-      { path: '/admin/availability', label: 'Availability', icon: <AvailabilityIcon /> },
-    ],
-  },
-  {
-    title: 'Academy Operations',
-    items: [
-      { path: '/admin/families', label: 'Families', icon: <FamilyIcon /> },
-      { path: '/admin/recurring-schedules', label: 'Recurring Schedules', icon: <ScheduleIcon /> },
-    ],
-  },
-  {
-    title: 'People & System',
-    items: [
-      { path: '/admin/coaches', label: 'Coaches', icon: <CoachIcon /> },
-      { path: '/admin/players', label: 'Players', icon: <PlayersIcon /> },
-      { path: '/admin/attendance', label: 'Attendance', icon: <AttendanceIcon /> },
       { path: '/admin/enrollments', label: 'Enrollments', icon: <EnrollmentIcon /> },
       { path: '/admin/waivers', label: 'Waivers', icon: <WaiverIcon /> },
       { path: '/admin/users', label: 'Users', icon: <UsersIcon /> },
+      { path: '/admin/search', label: 'Search', icon: <SearchIcon /> },
+      { path: '/admin/reports', label: 'Reports', icon: <ReportsIcon /> },
       { path: '/admin/audit-logs', label: 'Audit Logs', icon: <AuditIcon /> },
     ],
   },
 ]
 
-export default function AdminSidebarNav({ pathname }: { pathname: string }) {
-  return (
-    <nav className="flex-1 overflow-y-auto p-4 space-y-6">
-      {navSections.map((section) => (
-        <div key={section.title}>
-          <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
-            {section.title}
-          </p>
-          <div className="space-y-1">
-            {section.items.map((item) => {
-              const isActive =
-                item.path === '/admin'
-                  ? pathname === '/admin'
-                  : pathname.startsWith(item.path)
+function isItemActive(pathname: string, path: string) {
+  return path === '/admin' ? pathname === '/admin' : pathname.startsWith(path)
+}
 
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex min-h-11 items-center gap-3 rounded-lg px-3 py-3 text-sm transition-colors ${
-                    isActive
-                      ? 'bg-green-500/10 text-green-400 font-medium'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                  }`}
+export default function AdminSidebarNav({ pathname }: { pathname: string }) {
+  const activeGroupIds = useMemo(
+    () =>
+      navEntries
+        .filter((entry): entry is Extract<NavEntry, { type: 'group' }> => entry.type === 'group')
+        .filter((group) => group.items.some((item) => isItemActive(pathname, item.path)))
+        .map((group) => group.id),
+    [pathname],
+  )
+
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(activeGroupIds.map((id) => [id, true])),
+  )
+
+  useEffect(() => {
+    setOpenGroups((current) => {
+      const next = { ...current }
+      for (const groupId of activeGroupIds) next[groupId] = true
+      return next
+    })
+  }, [activeGroupIds])
+
+  const toggleGroup = (groupId: string) => {
+    setOpenGroups((current) => ({
+      ...current,
+      [groupId]: !current[groupId],
+    }))
+  }
+
+  return (
+    <nav className="flex-1 overflow-y-auto p-4">
+      <p className="px-3 pb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
+        Admin Navigation
+      </p>
+
+      <div className="space-y-2">
+        {navEntries.map((entry) => {
+          if (entry.type === 'link') {
+            const isActive = isItemActive(pathname, entry.path)
+
+            return (
+              <Link
+                key={entry.path}
+                to={entry.path}
+                className={`flex min-h-11 items-center gap-3 rounded-xl px-3 py-3 text-sm transition-colors ${
+                  isActive
+                    ? 'bg-green-500/10 text-green-400 font-medium'
+                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                }`}
+              >
+                <span className="flex h-4 w-4 items-center justify-center">{entry.icon}</span>
+                <span>{entry.label}</span>
+              </Link>
+            )
+          }
+
+          const groupIsActive = entry.items.some((item) => isItemActive(pathname, item.path))
+          const groupIsOpen = openGroups[entry.id] ?? false
+
+          return (
+            <div key={entry.id} className="rounded-2xl border border-gray-800/80 bg-gray-950/40">
+              <button
+                type="button"
+                onClick={() => toggleGroup(entry.id)}
+                className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm transition-colors ${
+                  groupIsActive
+                    ? 'text-green-400'
+                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                }`}
+              >
+                <span className="flex h-4 w-4 items-center justify-center">{entry.icon}</span>
+                <span className="flex-1 font-medium">{entry.label}</span>
+                <svg
+                  className={`h-4 w-4 transition-transform ${groupIsOpen ? 'rotate-180' : ''}`}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
                 >
-                  <span className="flex h-4 w-4 items-center justify-center">{item.icon}</span>
-                  <span>{item.label}</span>
-                </Link>
-              )
-            })}
-          </div>
-        </div>
-      ))}
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+
+              {groupIsOpen ? (
+                <div className="space-y-1 px-2 pb-2">
+                  {entry.items.map((item) => {
+                    const isActive = isItemActive(pathname, item.path)
+
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        className={`flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
+                          isActive
+                            ? 'bg-green-500/10 text-green-400 font-medium'
+                            : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                        }`}
+                      >
+                        <span className="flex h-4 w-4 items-center justify-center">{item.icon}</span>
+                        <span>{item.label}</span>
+                      </Link>
+                    )
+                  })}
+                </div>
+              ) : null}
+            </div>
+          )
+        })}
+      </div>
     </nav>
   )
 }

@@ -4,6 +4,7 @@ import { getAdminUsers, onboardFamily } from '../../services/api'
 import type { AdminUser, FamilyOnboardingRequest, PlayerOnboardingEntry } from '../../types'
 import ErrorBanner from '../../components/ErrorBanner'
 import LoadingSpinner from '../../components/LoadingSpinner'
+import { calculateAgeFromDateOfBirth } from '../../utils/playerAge'
 
 const SKILL_LEVELS = ['Beginner', 'Intermediate', 'Advanced', 'Elite']
 const POSITIONS = ['Goalkeeper', 'Defender', 'Midfielder', 'Forward', 'Any']
@@ -112,7 +113,7 @@ export default function AdminFamilyOnboardingPage() {
         players: players.map((p) => ({
           ...p,
           dateOfBirth: p.dateOfBirth || undefined,
-          age: p.age || undefined,
+          age: calculateAgeFromDateOfBirth(p.dateOfBirth) ?? p.age ?? undefined,
           skillLevel: p.skillLevel || undefined,
           preferredPosition: p.preferredPosition || undefined,
           notes: p.notes || undefined,
@@ -410,20 +411,24 @@ export default function AdminFamilyOnboardingPage() {
                       <span className="text-gray-400 text-xs font-medium">Age</span>
                       <input
                         type="number"
-                        value={player.age ?? ''}
-                        onChange={(e) => updatePlayer(idx, 'age', e.target.value ? parseInt(e.target.value) : undefined)}
-                        placeholder="Age"
+                        value={calculateAgeFromDateOfBirth(player.dateOfBirth) ?? player.age ?? ''}
+                        readOnly
+                        disabled
                         min={1}
                         max={99}
-                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-green-500"
+                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-400 text-sm cursor-not-allowed disabled:opacity-100"
                       />
+                      <span className="text-gray-500 text-[11px]">Calculated automatically from date of birth.</span>
                     </label>
                     <label className="space-y-1.5">
                       <span className="text-gray-400 text-xs font-medium">Date of Birth</span>
                       <input
                         type="date"
                         value={player.dateOfBirth ?? ''}
-                        onChange={(e) => updatePlayer(idx, 'dateOfBirth', e.target.value)}
+                        onChange={(e) => {
+                          updatePlayer(idx, 'dateOfBirth', e.target.value)
+                          updatePlayer(idx, 'age', calculateAgeFromDateOfBirth(e.target.value))
+                        }}
                         className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-500"
                       />
                     </label>

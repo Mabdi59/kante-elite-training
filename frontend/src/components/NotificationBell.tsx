@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
+import api from '../services/api'
 
 interface Notification {
   id: number
@@ -19,19 +19,15 @@ export default function NotificationBell() {
   const [loading, setLoading] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const token = localStorage.getItem('token')
-
   const fetchCount = useCallback(async () => {
-    if (!token) return
+    if (!isAuthenticated) return
     try {
-      const res = await axios.get('/api/notifications/unread-count', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const res = await api.get('/notifications/unread-count')
       setUnreadCount(res.data?.count ?? res.data ?? 0)
     } catch {
       // silent
     }
-  }, [token])
+  }, [isAuthenticated])
 
   useEffect(() => {
     if (!isAuthenticated) return
@@ -51,12 +47,11 @@ export default function NotificationBell() {
   }, [open])
 
   const handleOpen = async () => {
+    if (!isAuthenticated) return
     if (!open) {
       setLoading(true)
       try {
-        const res = await axios.get('/api/notifications/unread', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        const res = await api.get('/notifications/unread')
         setNotifications(res.data ?? [])
       } catch {
         setNotifications([])
@@ -69,9 +64,7 @@ export default function NotificationBell() {
 
   const markRead = async (id: number) => {
     try {
-      await axios.patch(`/api/notifications/${id}/read`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      await api.patch(`/notifications/${id}/read`, {})
       setNotifications((prev) => prev.filter((n) => n.id !== id))
       setUnreadCount((c) => Math.max(0, c - 1))
     } catch {
@@ -81,9 +74,7 @@ export default function NotificationBell() {
 
   const markAllRead = async () => {
     try {
-      await axios.patch('/api/notifications/read-all', {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      await api.patch('/notifications/read-all', {})
       setNotifications([])
       setUnreadCount(0)
     } catch {
