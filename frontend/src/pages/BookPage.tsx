@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import api, { getPrograms, getAvailability } from '../services/api'
+import api, { createBookingCheckout, getAvailability, getPaymentsEnabled, getPrograms } from '../services/api'
 import type { ApiResponse, Program, AvailabilityData, BookingFormData, Booking } from '../types'
 import { useAuth } from '../context/AuthContext'
 
@@ -236,6 +236,7 @@ export default function BookPage() {
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [paymentsEnabled, setPaymentsEnabled] = useState(false)
 
   useEffect(() => {
     document.title = 'Book a Training Session | Kante Elite Training — Columbus, Ohio'
@@ -243,6 +244,7 @@ export default function BookPage() {
   }, [])
 
   useEffect(() => {
+    getPaymentsEnabled().then(setPaymentsEnabled).catch(() => {})
     getPrograms()
       .then((p) => {
         setPrograms(p)
@@ -333,11 +335,28 @@ export default function BookPage() {
     if (!selectedProgram) return
     setSubmitting(true)
     setError('')
+
+    const payload: BookingFormData = { programId: selectedProgram.id, ...form }
+
+    if (paymentsEnabled) {
+      // Stripe checkout: redirect to hosted Stripe page (supports Apple Pay, Google Pay, card)
+      try {
+        const checkoutUrl = await createBookingCheckout(payload)
+        window.location.href = checkoutUrl
+      } catch (err: unknown) {
+        const message =
+          err && typeof err === 'object' && 'response' in err
+            ? (err as { response?: { data?: { error?: string } } }).response?.data?.error
+            : undefined
+        setError(message ?? 'Could not start checkout. Please try again or contact us.')
+        setSubmitting(false)
+      }
+      return
+    }
+
+    // Direct booking (no payment required)
     try {
-      const res = await api.post<ApiResponse<Booking>>('/bookings', {
-        programId: selectedProgram.id,
-        ...form,
-      })
+      const res = await api.post<ApiResponse<Booking>>('/bookings', payload)
       const booking = res.data.data
       if (!booking) throw new Error('No booking details returned')
       navigate(`/book/success?booking_id=${booking.id}`, { state: { booking } })
@@ -776,7 +795,7 @@ export default function BookPage() {
                         Confirming your booking...
                       </>
                     ) : (
-                      'Confirm Booking'
+                      paymentsEnabled ? 'Continue to Payment' : 'Confirm Booking'
                     )}
                   </button>
 

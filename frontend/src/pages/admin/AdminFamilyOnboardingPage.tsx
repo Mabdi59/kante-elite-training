@@ -291,7 +291,7 @@ export default function AdminFamilyOnboardingPage() {
                       type="tel"
                       value={parentPhone}
                       onChange={(e) => setParentPhone(e.target.value)}
-                      placeholder="+1 (555) 000-0000"
+                      placeholder="+1 (614) 000-0000"
                       className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-green-500"
                     />
                   </label>

@@ -134,6 +134,14 @@ public class BookingService {
         return toResponse(booking);
     }
 
+    /** Returns a booking by its Stripe checkout session ID, or null if not yet created. */
+    @Transactional(readOnly = true)
+    public BookingResponse getByStripeSessionId(String sessionId) {
+        return bookingRepository.findByStripeSessionId(sessionId)
+                .map(this::toResponse)
+                .orElse(null);
+    }
+
     /** Returns all bookings, newest first (admin use). */
     @Transactional(readOnly = true)
     public List<BookingResponse> getAllBookings() {

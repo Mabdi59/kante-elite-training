@@ -37,4 +37,17 @@ public class BookingController {
         BookingResponse booking = bookingService.getById(id);
         return ResponseEntity.ok(ApiResponse.success(booking));
     }
+
+    /**
+     * Used by the Stripe success redirect page to load booking details by Stripe session ID.
+     * The webhook may have a slight processing delay, so the client may need to retry briefly.
+     */
+    @GetMapping("/by-stripe-session/{sessionId}")
+    public ResponseEntity<ApiResponse<BookingResponse>> getByStripeSession(@PathVariable String sessionId) {
+        BookingResponse booking = bookingService.getByStripeSessionId(sessionId);
+        if (booking == null) {
+            return ResponseEntity.ok(ApiResponse.success(null));
+        }
+        return ResponseEntity.ok(ApiResponse.success(booking));
+    }
 }

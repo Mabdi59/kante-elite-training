@@ -242,14 +242,34 @@ When `SPRING_PROFILES_ACTIVE=prod`, the app refuses to start with the default ad
 | `SPRING_MAIL_USERNAME` | SMTP username |
 | `SPRING_MAIL_PASSWORD` | SMTP password |
 
-### Stripe (optional, currently disabled)
+### Stripe Payments (optional, currently disabled)
 
 | Variable | Description |
 |----------|-------------|
-| `STRIPE_SECRET_KEY` | Stripe secret key |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
+| `STRIPE_SECRET_KEY` | Stripe secret key (starts with `sk_live_` in production) |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook endpoint signing secret (`whsec_…`) |
 
-Stripe is disabled by default. To re-enable, set `app.payments.enabled=true` in `application.properties` and supply the keys above.
+Stripe is disabled by default. To activate the full payment flow (including **Apple Pay** and **Google Pay**):
+
+1. **Set these environment variables** in your production environment:
+   ```
+   APP_PAYMENTS_ENABLED=true
+   STRIPE_SECRET_KEY=sk_live_your_key_here
+   STRIPE_WEBHOOK_SECRET=whsec_your_secret_here
+   ```
+
+2. **Register the Stripe webhook endpoint** in the [Stripe Dashboard → Developers → Webhooks](https://dashboard.stripe.com/webhooks):
+   - Endpoint URL: `https://yourdomain.com/api/payments/webhook`
+   - Event to listen for: `checkout.session.completed`
+   - Copy the generated **Signing Secret** into `STRIPE_WEBHOOK_SECRET`
+
+3. **Enable Apple Pay / Google Pay** via Stripe Checkout (no extra code required):
+   - Stripe Checkout automatically presents Apple Pay on Safari/iOS and Google Pay on Chrome when the domain is registered.
+   - In the [Stripe Dashboard → Settings → Payment methods](https://dashboard.stripe.com/settings/payment_methods), enable "Apple Pay" and verify your domain.
+   - For Apple Pay domain verification, Stripe will prompt you to serve a file at `/.well-known/apple-developer-merchantid-domain-association`. If you use the Stripe-hosted Checkout page (which this app does by default), this is handled automatically by Stripe — **no extra file is needed on your server**.
+   - If you switch to Stripe Elements (custom payment form) in the future, you must add the domain verification file manually.
+
+4. **Payment flow when enabled**: The booking page detects `APP_PAYMENTS_ENABLED` via `GET /api/payments/status` and redirects the user to Stripe's hosted checkout page. After payment, Stripe calls the webhook which creates the booking in the database and sends the confirmation email. The success page polls `GET /api/bookings/by-stripe-session/{id}` to display booking details.
 
 ---
 

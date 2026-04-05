@@ -255,6 +255,27 @@ export const createBooking = async (formData: BookingFormData): Promise<Booking>
   return res.data.data
 }
 
+export const getPaymentsEnabled = async (): Promise<boolean> => {
+  try {
+    const res = await api.get<{ enabled: boolean }>('/payments/status')
+    return res.data.enabled === true
+  } catch {
+    return false
+  }
+}
+
+export const createBookingCheckout = async (formData: BookingFormData): Promise<string> => {
+  const res = await api.post<ApiResponse<{ url: string }>>('/payments/checkout', formData)
+  const url = res.data.data?.url
+  if (!url) throw new Error('No checkout URL returned')
+  return url
+}
+
+export const getBookingByStripeSession = async (sessionId: string): Promise<Booking | null> => {
+  const res = await api.get<ApiResponse<Booking>>(`/bookings/by-stripe-session/${sessionId}`)
+  return res.data.data ?? null
+}
+
 export const getMyPayments = async (): Promise<Booking[]> => {
   const res = await api.get<ApiResponse<Booking[]>>('/payments/my')
   return Array.isArray(res.data.data) ? res.data.data : []
