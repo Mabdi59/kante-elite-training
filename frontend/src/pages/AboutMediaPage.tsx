@@ -15,6 +15,11 @@ export default function AboutMediaPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    document.title = 'About | Kante Elite Training — Columbus Youth Soccer Academy'
+    return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
+  }, [])
+
+  useEffect(() => {
     Promise.allSettled([getMediaPosts(), getWebsiteContent()]).then(([mediaResult, contentResult]) => {
       if (mediaResult.status === 'fulfilled') {
         setMediaPosts(mediaResult.value)

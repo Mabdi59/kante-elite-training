@@ -10,6 +10,11 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    document.title = 'Camps & Events | Kante Elite Training — Columbus, Ohio'
+    return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
+  }, [])
+
+  useEffect(() => {
     getEvents()
       .then(setEvents)
       .catch(() => { /* Empty state handles load failures. */ })

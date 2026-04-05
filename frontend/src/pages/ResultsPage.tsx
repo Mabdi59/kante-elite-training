@@ -41,6 +41,11 @@ export default function ResultsPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    document.title = 'Player Results & Success Stories | Kante Elite Training — Columbus, Ohio'
+    return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
+  }, [])
+
+  useEffect(() => {
     getTestimonials()
       .then(setTestimonials)
       .catch(() => { /* Page still works without testimonials. */ })
