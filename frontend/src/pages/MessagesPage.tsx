@@ -58,12 +58,15 @@ export default function MessagesPage() {
     setThread([])
   }, [tab])
 
+  // Handles both `read` (older local field) and `readStatus` (API field name)
+  const isUnread = (msg: Message) => !(msg.read || msg.readStatus)
+
   const handleSelect = async (msg: Message) => {
     setSelected(msg)
     setThread([])
 
-    // Mark as read
-    if (!(msg.read || msg.readStatus) && tab === 'inbox') {
+    // Mark as read if this is an unread inbox message
+    if (isUnread(msg) && tab === 'inbox') {
       try {
         await api.patch(`/messages/${msg.id}/read`, {})
         setMessages((prev) => prev.map((m) => (m.id === msg.id ? { ...m, read: true, readStatus: true } : m)))
@@ -112,8 +115,6 @@ export default function MessagesPage() {
       setSending(false)
     }
   }
-
-  const isUnread = (msg: Message) => !(msg.read || msg.readStatus)
 
   return (
     <div className="space-y-6 max-w-4xl">
