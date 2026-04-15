@@ -9,6 +9,8 @@ const navSections: PortalNavSection[] = [
       { path: '/player/development', label: 'Development', icon: '📈' },
       { path: '/player/calendar', label: 'Calendar', icon: '🗓' },
       { path: '/player/payments', label: 'Payments', icon: '💳' },
+      { path: '/player/messages', label: 'Messages', icon: '✉' },
+      { path: '/player/waivers', label: 'Waivers & Docs', icon: '📄' },
       { path: '/player/profile', label: 'Profile', icon: '👤' },
     ],
   },

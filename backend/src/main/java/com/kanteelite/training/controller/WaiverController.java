@@ -1,5 +1,6 @@
 package com.kanteelite.training.controller;
 
+import jakarta.validation.Valid;
 import com.kanteelite.training.dto.request.SignWaiverRequest;
 import com.kanteelite.training.dto.request.WaiverTemplateRequest;
 import com.kanteelite.training.dto.response.PlayerDocumentResponse;
@@ -34,7 +35,7 @@ public class WaiverController {
 
     @PostMapping("/api/admin/waivers/templates")
     public ResponseEntity<WaiverTemplateResponse> createTemplate(
-            @RequestBody WaiverTemplateRequest request,
+            @Valid @RequestBody WaiverTemplateRequest request,
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(waiverService.createTemplate(request, user.getUsername()));
     }
@@ -42,7 +43,7 @@ public class WaiverController {
     @PutMapping("/api/admin/waivers/templates/{id}")
     public ResponseEntity<WaiverTemplateResponse> updateTemplate(
             @PathVariable Long id,
-            @RequestBody WaiverTemplateRequest request,
+            @Valid @RequestBody WaiverTemplateRequest request,
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(waiverService.updateTemplate(id, request, user.getUsername()));
     }
@@ -57,7 +58,7 @@ public class WaiverController {
 
     @PostMapping("/api/waivers/sign")
     public ResponseEntity<SignedWaiverResponse> signWaiver(
-            @RequestBody SignWaiverRequest request,
+            @Valid @RequestBody SignWaiverRequest request,
             @AuthenticationPrincipal UserDetails user,
             HttpServletRequest httpRequest) {
         String ip = httpRequest.getRemoteAddr();

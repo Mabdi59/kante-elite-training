@@ -1,5 +1,6 @@
 package com.kanteelite.training.controller.admin;
 
+import jakarta.validation.Valid;
 import com.kanteelite.training.dto.request.BookingSeriesRequest;
 import com.kanteelite.training.dto.response.ApiResponse;
 import com.kanteelite.training.dto.response.BookingSeriesPreviewItem;
@@ -25,13 +26,13 @@ public class AdminRecurringScheduleController {
 
     @PostMapping("/preview")
     public ResponseEntity<ApiResponse<List<BookingSeriesPreviewItem>>> previewSeries(
-            @RequestBody BookingSeriesRequest request) {
+            @Valid @RequestBody BookingSeriesRequest request) {
         return ResponseEntity.ok(ApiResponse.success(recurringScheduleService.previewSeries(request)));
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<BookingSeriesResponse>> createSeries(
-            @RequestBody BookingSeriesRequest request,
+            @Valid @RequestBody BookingSeriesRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         String actor = principal != null ? principal.getUsername() : "admin";
         return ResponseEntity.ok(ApiResponse.success("Recurring schedule created.",

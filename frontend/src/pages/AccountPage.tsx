@@ -7,6 +7,7 @@ import {
   getMyPlayers,
   addPlayerProfile,
   removePlayerProfile,
+  changePassword,
 } from '../services/api'
 import type { Booking, PlayerProfile, PlayerProfileFormData } from '../types'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -24,7 +25,7 @@ const emptyPlayerForm: PlayerProfileFormData = {
 
 export default function AccountPage() {
   const { user } = useAuth()
-  const [tab, setTab] = useState<'bookings' | 'players'>('bookings')
+  const [tab, setTab] = useState<'bookings' | 'players' | 'security'>('bookings')
   const [bookings, setBookings] = useState<Booking[]>([])
   const [players, setPlayers] = useState<PlayerProfile[]>([])
   const [loading, setLoading] = useState(true)
@@ -33,6 +34,12 @@ export default function AccountPage() {
   const [showAddPlayer, setShowAddPlayer] = useState(false)
   const [playerForm, setPlayerForm] = useState<PlayerProfileFormData>(emptyPlayerForm)
   const [savingPlayer, setSavingPlayer] = useState(false)
+
+  // Change-password form state
+  const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirm: '' })
+  const [pwError, setPwError] = useState('')
+  const [pwSuccess, setPwSuccess] = useState('')
+  const [savingPw, setSavingPw] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -86,6 +93,31 @@ export default function AccountPage() {
     }
   }
 
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPwError('')
+    setPwSuccess('')
+    if (pwForm.newPassword !== pwForm.confirm) {
+      setPwError('New passwords do not match.')
+      return
+    }
+    if (pwForm.newPassword.length < 8) {
+      setPwError('New password must be at least 8 characters.')
+      return
+    }
+    setSavingPw(true)
+    try {
+      await changePassword(pwForm.currentPassword, pwForm.newPassword)
+      setPwSuccess('Password updated successfully. Other active sessions have been signed out.')
+      setPwForm({ currentPassword: '', newPassword: '', confirm: '' })
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      setPwError(msg ?? 'Could not update password. Please check your current password and try again.')
+    } finally {
+      setSavingPw(false)
+    }
+  }
+
   const now = new Date()
   const upcoming = bookings.filter(
     (b) =>
@@ -126,7 +158,7 @@ export default function AccountPage() {
 
         {/* Tabs */}
         <div className="flex gap-2 mb-8 border-b border-gray-800 pb-0">
-          {(['bookings', 'players'] as const).map((t) => (
+          {(['bookings', 'players', 'security'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -136,7 +168,11 @@ export default function AccountPage() {
                   : 'text-gray-500 border-transparent hover:text-gray-300'
               }`}
             >
-              {t === 'bookings' ? `📅 Bookings (${bookings.length})` : `👦 Players (${players.length})`}
+              {t === 'bookings'
+                ? `📅 Bookings (${bookings.length})`
+                : t === 'players'
+                  ? `👦 Players (${players.length})`
+                  : '🔒 Security'}
             </button>
           ))}
         </div>
@@ -193,7 +229,7 @@ export default function AccountPage() {
               </section>
             )}
           </>
-        ) : (
+        ) : tab === 'players' ? (
           /* Players Tab */
           <section>
             <div className="flex items-center justify-between mb-6">
@@ -344,7 +380,74 @@ export default function AccountPage() {
               </div>
             )}
           </section>
-        )}
+        ) : tab === 'security' ? (
+          <section>
+            <h2 className="text-white text-xl font-bold mb-6">Change Password</h2>
+            <form
+              onSubmit={handleChangePassword}
+              className="bg-gray-900 border border-gray-800 rounded-xl p-6 max-w-md space-y-4"
+            >
+              {pwError && (
+                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-400 text-sm">
+                  {pwError}
+                </div>
+              )}
+              {pwSuccess && (
+                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 text-green-400 text-sm">
+                  {pwSuccess}
+                </div>
+              )}
+              <div>
+                <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
+                  Current Password
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={pwForm.currentPassword}
+                  onChange={(e) => setPwForm((f) => ({ ...f, currentPassword: e.target.value }))}
+                  className="w-full bg-black border border-gray-700 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-green-500"
+                  autoComplete="current-password"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  required
+                  minLength={8}
+                  value={pwForm.newPassword}
+                  onChange={(e) => setPwForm((f) => ({ ...f, newPassword: e.target.value }))}
+                  className="w-full bg-black border border-gray-700 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-green-500"
+                  autoComplete="new-password"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
+                  Confirm New Password
+                </label>
+                <input
+                  type="password"
+                  required
+                  minLength={8}
+                  value={pwForm.confirm}
+                  onChange={(e) => setPwForm((f) => ({ ...f, confirm: e.target.value }))}
+                  className="w-full bg-black border border-gray-700 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-green-500"
+                  autoComplete="new-password"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={savingPw}
+                className="w-full bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition-colors text-sm"
+              >
+                {savingPw ? 'Updating…' : 'Update Password'}
+              </button>
+            </form>
+          </section>
+        ) : null}
       </div>
     </div>
   )

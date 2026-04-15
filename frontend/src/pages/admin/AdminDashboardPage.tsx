@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getAdminDashboard } from '../../services/api'
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+} from 'recharts'
+import { getAdminDashboard, getBookingsOverTime } from '../../services/api'
 import type { AdminDashboard } from '../../types'
 import PageSkeleton from '../../components/PageSkeleton'
 
@@ -8,12 +11,16 @@ const LoadingSpinner = (_props: { label?: string }) => <PageSkeleton titleWidthC
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<AdminDashboard | null>(null)
+  const [chartData, setChartData] = useState<{ date: string; count: number }[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
   useEffect(() => {
-    getAdminDashboard()
-      .then(setStats)
+    Promise.all([getAdminDashboard(), getBookingsOverTime(30)])
+      .then(([dashboardData, timeData]) => {
+        setStats(dashboardData)
+        setChartData(timeData)
+      })
       .catch(() => setError(true))
       .finally(() => setLoading(false))
   }, [])
@@ -44,6 +51,8 @@ export default function AdminDashboardPage() {
   const roleCards = [
     { label: 'Active Coaches', value: stats.totalCoaches ?? 0, color: 'text-blue-400', link: '/admin/coaches' },
     { label: 'Player Profiles', value: stats.totalPlayers ?? 0, color: 'text-green-400', link: '/admin/players' },
+    { label: 'Families', value: stats.totalFamilies ?? 0, color: 'text-emerald-400', link: '/admin/families' },
+    { label: 'Active Series', value: stats.totalActiveSeries ?? 0, color: 'text-teal-400', link: '/admin/recurring-schedules' },
     { label: 'Pending Registrations', value: stats.pendingRegistrations ?? 0, color: 'text-yellow-400', link: '/admin/tournaments' },
     { label: 'Admin Users', value: stats.usersWithRoleAdmin ?? 0, color: 'text-red-400', link: '/admin/users' },
     { label: 'Coach Users', value: stats.usersWithRoleCoach ?? 0, color: 'text-blue-300', link: '/admin/users' },
@@ -97,6 +106,41 @@ export default function AdminDashboardPage() {
           </Link>
         ))}
       </div>
+
+      {chartData.length > 0 && (
+        <div className="mt-10">
+          <h2 className="text-gray-400 text-xs font-semibold uppercase tracking-widest mb-4">
+            Bookings — last 30 days
+          </h2>
+          <div className="rounded-xl border border-gray-800 bg-gray-900 p-5 sm:p-6">
+            <ResponsiveContainer width="100%" height={260}>
+              <LineChart data={chartData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fill: '#6b7280', fontSize: 11 }}
+                  tickFormatter={(v: string) => v.slice(5)}
+                  interval="preserveStartEnd"
+                />
+                <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} allowDecimals={false} />
+                <Tooltip
+                  contentStyle={{ background: '#111827', border: '1px solid #374151', borderRadius: 8 }}
+                  labelStyle={{ color: '#d1d5db' }}
+                  itemStyle={{ color: '#22d3ee' }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="count"
+                  stroke="#22d3ee"
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 4 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

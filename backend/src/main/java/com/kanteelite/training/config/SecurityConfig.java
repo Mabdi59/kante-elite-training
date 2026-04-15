@@ -63,8 +63,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/testimonials/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/availability/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/tournaments/*/registrations").hasAnyRole("ADMIN", "STAFF")
-                // Legacy token-based registration access requires authentication
-                .requestMatchers("/api/tournaments/registrations/access/**").authenticated()
+                // Token-based registration access is public (opaque token acts as credential)
+                .requestMatchers("/api/tournaments/registrations/access/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/tournaments/**").permitAll()
                 // Public write endpoints
                 .requestMatchers(HttpMethod.POST, "/api/bookings").permitAll()

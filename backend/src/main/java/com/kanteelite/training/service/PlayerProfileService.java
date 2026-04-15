@@ -79,7 +79,7 @@ public class PlayerProfileService {
         PlayerProfile profile = playerProfileRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("PlayerProfile", id));
         if (profile.getParentUser() == null
-                || !profile.getParentUser().getEmail().equalsIgnoreCase(parentEmail)) {
+                || !profile.getParentUser().getEmail().equals(parentEmail)) {
             throw new IllegalArgumentException("You are not authorized to edit this player profile.");
         }
         profile.setName(req.getName());
@@ -114,7 +114,7 @@ public class PlayerProfileService {
         PlayerProfile profile = playerProfileRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("PlayerProfile", id));
         if (profile.getParentUser() == null
-                || !profile.getParentUser().getEmail().equalsIgnoreCase(parentEmail)) {
+                || !profile.getParentUser().getEmail().equals(parentEmail)) {
             throw new IllegalArgumentException("You are not authorized to delete this player profile.");
         }
         profile.setActive(false);

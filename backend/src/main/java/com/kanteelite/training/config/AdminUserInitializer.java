@@ -40,6 +40,7 @@ public class AdminUserInitializer implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
+        adminEmail = adminEmail.trim().toLowerCase();
         failFastIfProductionUsesDefaults();
         warnIfUsingDefaults();
         userRepository.findByEmail(adminEmail)

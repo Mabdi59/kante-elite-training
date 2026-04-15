@@ -7,6 +7,9 @@ const navSections: PortalNavSection[] = [
       { path: '/captain', label: 'Dashboard', icon: '📊' },
       { path: '/captain/tournaments', label: 'Tournaments', icon: '🏆' },
       { path: '/captain/registrations', label: 'Registrations', icon: '📋' },
+      { path: '/captain/players', label: 'My Roster', icon: '👦' },
+      { path: '/captain/messages', label: 'Messages', icon: '✉' },
+      { path: '/captain/calendar', label: 'Calendar', icon: '🗓' },
     ],
   },
 ]

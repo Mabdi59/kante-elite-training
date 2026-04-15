@@ -28,6 +28,7 @@ const AboutPage = lazy(() => import('./pages/AboutMediaPage'))
 const ContactPage = lazy(() => import('./pages/ContactPage'))
 const BookPage = lazy(() => import('./pages/BookPage'))
 const BookingSuccessPage = lazy(() => import('./pages/BookingSuccessPage'))
+const PublicAvailabilityPage = lazy(() => import('./pages/PublicAvailabilityPage'))
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
 const AccountPage = lazy(() => import('./pages/AccountPage'))
@@ -81,6 +82,7 @@ const PlayerProfilePage = lazy(() => import('./pages/player/PlayerProfilePage'))
 const CaptainDashboardPage = lazy(() => import('./pages/captain/CaptainDashboardPage'))
 const CaptainTournamentsPage = lazy(() => import('./pages/captain/CaptainTournamentsPage'))
 const CaptainRegistrationsPage = lazy(() => import('./pages/captain/CaptainRegistrationsPage'))
+const CaptainPlayersPage = lazy(() => import('./pages/captain/CaptainPlayersPage'))
 
 // New CRM pages
 const MessagesPage = lazy(() => import('./pages/MessagesPage'))
@@ -101,6 +103,9 @@ const AdminFamilyOnboardingPage = lazy(() => import('./pages/admin/AdminFamilyOn
 const AdminFamilyDetailPage = lazy(() => import('./pages/admin/AdminFamilyDetailPage'))
 const AdminRecurringSchedulePage = lazy(() => import('./pages/admin/AdminRecurringSchedulePage'))
 const AdminRecurringScheduleNewPage = lazy(() => import('./pages/admin/AdminRecurringScheduleNewPage'))
+const AdminWeeklyCalendarPage = lazy(() => import('./pages/admin/AdminWeeklyCalendarPage'))
+
+const AdminPaymentsPage = lazy(() => import('./pages/admin/AdminPaymentsPage'))
 
 // Phase 6 pages
 const PaymentHistoryPage = lazy(() => import('./pages/PaymentHistoryPage'))
@@ -221,6 +226,7 @@ export default function App() {
             />
             <Route path="/book" element={<BookPage />} />
             <Route path="/book/success" element={<BookingSuccessPage />} />
+            <Route path="/sessions" element={<PublicAvailabilityPage />} />
 
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -643,6 +649,16 @@ export default function App() {
               }
             />
             <Route
+              path="/admin/payments"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminPaymentsPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/admin/reports"
               element={
                 <ProtectedRoute requireAdmin>
@@ -718,6 +734,17 @@ export default function App() {
                 <ProtectedRoute requireAdmin>
                   <AdminLayout>
                     <AdminRecurringScheduleNewPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/weekly-calendar"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminWeeklyCalendarPage />
                   </AdminLayout>
                 </ProtectedRoute>
               }
@@ -960,6 +987,124 @@ export default function App() {
                   <PlayerLayout>
                     <PaymentHistoryPage />
                   </PlayerLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/player/waivers"
+              element={
+                <ProtectedRoute requireRole="PLAYER">
+                  <PlayerLayout>
+                    <WaiversPage />
+                  </PlayerLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/player/documents"
+              element={
+                <ProtectedRoute requireRole="PLAYER">
+                  <PlayerLayout>
+                    <DocumentsPage />
+                  </PlayerLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Player – messages */}
+            <Route
+              path="/player/messages"
+              element={
+                <ProtectedRoute requireRole="PLAYER">
+                  <PlayerLayout>
+                    <MessagesPage />
+                  </PlayerLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Staff – calendar / waivers / documents / enrollments / attendance */}
+            <Route
+              path="/staff/calendar"
+              element={
+                <ProtectedRoute requireRoles={['STAFF', 'ADMIN']}>
+                  <StaffLayout>
+                    <CalendarPage />
+                  </StaffLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff/waivers"
+              element={
+                <ProtectedRoute requireRoles={['STAFF', 'ADMIN']}>
+                  <StaffLayout>
+                    <WaiversPage />
+                  </StaffLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff/documents"
+              element={
+                <ProtectedRoute requireRoles={['STAFF', 'ADMIN']}>
+                  <StaffLayout>
+                    <DocumentsPage />
+                  </StaffLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff/enrollments"
+              element={
+                <ProtectedRoute requireRoles={['STAFF', 'ADMIN']}>
+                  <StaffLayout>
+                    <EnrollmentsPage />
+                  </StaffLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff/attendance"
+              element={
+                <ProtectedRoute requireRoles={['STAFF', 'ADMIN']}>
+                  <StaffLayout>
+                    <CoachAttendancePage />
+                  </StaffLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Captain – messages / calendar / players */}
+            <Route
+              path="/captain/messages"
+              element={
+                <ProtectedRoute requireRoles={['TEAM_CAPTAIN', 'COACH']}>
+                  <CaptainLayout>
+                    <MessagesPage />
+                  </CaptainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/captain/calendar"
+              element={
+                <ProtectedRoute requireRoles={['TEAM_CAPTAIN', 'COACH']}>
+                  <CaptainLayout>
+                    <CalendarPage />
+                  </CaptainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/captain/players"
+              element={
+                <ProtectedRoute requireRoles={['TEAM_CAPTAIN', 'COACH']}>
+                  <CaptainLayout>
+                    <CaptainPlayersPage />
+                  </CaptainLayout>
                 </ProtectedRoute>
               }
             />

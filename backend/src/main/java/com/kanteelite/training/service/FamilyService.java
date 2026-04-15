@@ -46,17 +46,20 @@ public class FamilyService {
             parent = userRepository.findById(request.getExistingParentUserId())
                     .orElseThrow(() -> new ResourceNotFoundException("User", request.getExistingParentUserId()));
         } else {
-            if (userRepository.existsByEmail(request.getParentEmail())) {
-                parent = userRepository.findByEmail(request.getParentEmail())
-                        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + request.getParentEmail()));
+            String parentEmail = request.getParentEmail() != null
+                    ? request.getParentEmail().trim().toLowerCase()
+                    : null;
+            if (userRepository.existsByEmail(parentEmail)) {
+                parent = userRepository.findByEmail(parentEmail)
+                        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + parentEmail));
             } else {
                 String rawPassword = request.getParentPassword() != null
                         ? request.getParentPassword()
                         : UUID.randomUUID().toString().substring(0, 12);
-                log.info("Creating new parent user {} with generated password", request.getParentEmail());
+                log.info("Creating new parent user {} with generated password", parentEmail);
                 parent = User.builder()
                         .name(request.getParentName())
-                        .email(request.getParentEmail())
+                        .email(parentEmail)
                         .password(passwordEncoder.encode(rawPassword))
                         .role(UserRole.PARENT)
                         .phone(request.getParentPhone())
@@ -184,14 +187,16 @@ public class FamilyService {
                         .build())
                 .collect(Collectors.toList());
 
-        // Load active series linked to players in this family
-        List<BookingSeries> allSeries = bookingSeriesRepository.findAllByOrderByCreatedAtDesc();
+        // Load active series linked to players in this family (targeted query, no full-table scan)
         List<Long> playerIds = profiles.stream().map(PlayerProfile::getId).collect(Collectors.toList());
-        List<BookingSeriesResponse> seriesResponses = allSeries.stream()
-                .filter(s -> s.isActive() && s.getPlayers().stream()
-                        .anyMatch(p -> playerIds.contains(p.getId())))
-                .map(this::toSeriesResponse)
-                .collect(Collectors.toList());
+        List<BookingSeriesResponse> seriesResponses;
+        if (playerIds.isEmpty()) {
+            seriesResponses = List.of();
+        } else {
+            seriesResponses = bookingSeriesRepository.findActiveSeriesByPlayerIds(playerIds).stream()
+                    .map(this::toSeriesResponse)
+                    .collect(Collectors.toList());
+        }
 
         return FamilyDetailResponse.builder()
                 .parentId(parent.getId())

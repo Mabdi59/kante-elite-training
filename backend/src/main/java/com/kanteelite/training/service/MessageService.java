@@ -5,6 +5,7 @@ import com.kanteelite.training.dto.response.MessageResponse;
 import com.kanteelite.training.entity.Message;
 import com.kanteelite.training.exception.ResourceNotFoundException;
 import com.kanteelite.training.repository.MessageRepository;
+import com.kanteelite.training.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,9 @@ import java.util.List;
 public class MessageService {
 
     private final MessageRepository messageRepository;
+    private final EmailService emailService;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     @Transactional
     public MessageResponse sendMessage(MessageRequest request, String senderEmail, String senderName) {
@@ -34,7 +38,31 @@ public class MessageService {
                 .entityType(request.getEntityType())
                 .entityId(request.getEntityId())
                 .build();
-        return toResponse(messageRepository.save(message));
+        MessageResponse saved = toResponse(messageRepository.save(message));
+
+        // Notify recipient by email
+        String recipientName = userRepository.findByEmail(request.getRecipientEmail().trim())
+                .map(u -> u.getName() != null ? u.getName() : u.getEmail())
+                .orElse(request.getRecipientEmail());
+        emailService.sendMessageReceivedEmail(
+                request.getRecipientEmail().trim().toLowerCase(),
+                recipientName,
+                senderName,
+                request.getSubject(),
+                request.getBody()
+        );
+
+        // In-app notification
+        notificationService.send(
+                request.getRecipientEmail().trim().toLowerCase(),
+                "MESSAGE",
+                "New message from " + senderName,
+                request.getSubject() != null ? request.getSubject() : "(no subject)",
+                "Message",
+                saved.getId()
+        );
+
+        return saved;
     }
 
     @Transactional(readOnly = true)
@@ -64,7 +92,7 @@ public class MessageService {
     public MessageResponse markAsRead(Long id, String readerEmail) {
         Message message = messageRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Message", id));
-        if (message.getRecipientEmail().equalsIgnoreCase(readerEmail)) {
+        if (message.getRecipientEmail().equals(readerEmail)) {
             message.setReadStatus(true);
             return toResponse(messageRepository.save(message));
         }

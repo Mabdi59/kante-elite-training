@@ -1,9 +1,12 @@
 package com.kanteelite.training.controller;
 
+import jakarta.validation.Valid;
 import com.kanteelite.training.dto.request.PlayerProgressNoteRequest;
+import com.kanteelite.training.dto.response.ApiResponse;
 import com.kanteelite.training.dto.response.PlayerProgressNoteResponse;
 import com.kanteelite.training.service.PlayerProgressNoteService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,7 +22,7 @@ public class PlayerProgressNoteController {
 
     @PostMapping("/api/coach/progress-notes")
     public ResponseEntity<PlayerProgressNoteResponse> createNote(
-            @RequestBody PlayerProgressNoteRequest request,
+            @Valid @RequestBody PlayerProgressNoteRequest request,
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(noteService.createNote(request, user.getUsername(), user.getUsername()));
     }
@@ -33,7 +36,7 @@ public class PlayerProgressNoteController {
     @PutMapping("/api/coach/progress-notes/{id}")
     public ResponseEntity<PlayerProgressNoteResponse> updateNote(
             @PathVariable Long id,
-            @RequestBody PlayerProgressNoteRequest request,
+            @Valid @RequestBody PlayerProgressNoteRequest request,
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(noteService.updateNote(id, request, user.getUsername()));
     }
@@ -57,9 +60,29 @@ public class PlayerProgressNoteController {
         return ResponseEntity.ok(noteService.getVisibleNotesForPlayer(user.getUsername()));
     }
 
+    /**
+     * Returns progress notes for a child player that are explicitly marked visible to parents.
+     *
+     * <p>Full parent-child relationship verification requires a {@code playerEmail} or
+     * {@code childUserId} column on {@code PlayerProfile} (schema gap). Until that column
+     * exists, the following partial guards are in place:
+     * <ul>
+     *   <li>Only notes where {@code visibleToParent = true} are returned.</li>
+     *   <li>A caller cannot use this endpoint to access their own notes (they must
+     *       use {@code GET /api/player/progress-notes} instead).</li>
+     * </ul>
+     * TODO: add parent→child email verification once PlayerProfile stores playerEmail/childUserId.
+     */
     @GetMapping("/api/parent/progress-notes/{playerEmail}")
-    public ResponseEntity<List<PlayerProgressNoteResponse>> getChildNotes(@PathVariable String playerEmail) {
-        return ResponseEntity.ok(noteService.getVisibleNotesForPlayer(playerEmail));
+    public ResponseEntity<?> getChildNotes(
+            @PathVariable String playerEmail,
+            @AuthenticationPrincipal UserDetails user) {
+        String normalizedPlayerEmail = playerEmail.trim().toLowerCase();
+        if (user.getUsername().equals(normalizedPlayerEmail)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Players should use GET /api/player/progress-notes to view their own notes."));
+        }
+        return ResponseEntity.ok(noteService.getVisibleNotesForPlayer(normalizedPlayerEmail));
     }
 
     @GetMapping("/api/bookings/{bookingId}/progress-notes")

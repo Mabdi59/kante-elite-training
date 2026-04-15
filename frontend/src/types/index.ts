@@ -360,6 +360,8 @@ export interface AdminDashboard {
   usersWithRoleAdmin: number
   usersWithRoleCoach: number
   usersWithRoleUser: number
+  totalFamilies?: number
+  totalActiveSeries?: number
 }
 
 export interface StaffDashboard {
@@ -387,6 +389,7 @@ export interface AdminUser {
   name: string
   email: string
   role: UserRole
+  phone?: string
   createdAt: string
 }
 

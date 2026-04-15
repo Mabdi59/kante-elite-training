@@ -39,13 +39,14 @@ public class AdminUserService {
 
     @Transactional
     public UserResponse createUser(AdminUserCreateRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
+        String email = request.getEmail().trim().toLowerCase();
+        if (userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Email is already registered.");
         }
 
         User user = User.builder()
                 .name(request.getName())
-                .email(request.getEmail())
+                .email(email)
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole())
                 .build();
@@ -61,12 +62,13 @@ public class AdminUserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", id));
 
-        if (userRepository.existsByEmailAndIdNot(request.getEmail(), id)) {
+        String email = request.getEmail().trim().toLowerCase();
+        if (userRepository.existsByEmailAndIdNot(email, id)) {
             throw new IllegalArgumentException("Email is already registered.");
         }
 
         user.setName(request.getName());
-        user.setEmail(request.getEmail());
+        user.setEmail(email);
         user.setRole(request.getRole());
 
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
@@ -81,9 +83,18 @@ public class AdminUserService {
 
     @Transactional
     public UserResponse updateUserRole(Long id, String role) {
+        if (role == null || role.isBlank()) {
+            throw new IllegalArgumentException("Role is required");
+        }
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", id));
-        user.setRole(UserRole.valueOf(role));
+        UserRole newRole;
+        try {
+            newRole = UserRole.valueOf(role.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("Invalid role: " + role.toUpperCase());
+        }
+        user.setRole(newRole);
         User savedUser = userRepository.save(user);
         ensureCoachProfileIfNeeded(savedUser);
         ensurePlayerProfileIfNeeded(savedUser);
@@ -107,6 +118,7 @@ public class AdminUserService {
                 .name(user.getName())
                 .email(user.getEmail())
                 .role(user.getRole().name())
+                .phone(user.getPhone())
                 .createdAt(user.getCreatedAt())
                 .build();
     }

@@ -10,6 +10,7 @@ import com.kanteelite.training.enums.BookingStatus;
 import com.kanteelite.training.enums.TeamRegistrationStatus;
 import com.kanteelite.training.enums.UserRole;
 import com.kanteelite.training.repository.BookingRepository;
+import com.kanteelite.training.repository.BookingSeriesRepository;
 import com.kanteelite.training.repository.CoachProfileRepository;
 import com.kanteelite.training.repository.ContactMessageRepository;
 import com.kanteelite.training.repository.EventRepository;
@@ -45,6 +46,7 @@ public class AdminController {
     private final CoachProfileRepository coachProfileRepository;
     private final PlayerProfileRepository playerProfileRepository;
     private final TeamRegistrationRepository teamRegistrationRepository;
+    private final BookingSeriesRepository bookingSeriesRepository;
 
     @GetMapping("/dashboard")
     public ResponseEntity<ApiResponse<AdminDashboardResponse>> getDashboard() {
@@ -65,6 +67,8 @@ public class AdminController {
                 .usersWithRoleAdmin(userRepository.countByRole(UserRole.ADMIN))
                 .usersWithRoleCoach(userRepository.countByRole(UserRole.COACH))
                 .usersWithRoleUser(userRepository.countByRole(UserRole.USER))
+                .totalFamilies(userRepository.countByRole(UserRole.PARENT))
+                .totalActiveSeries(bookingSeriesRepository.countByActiveTrue())
                 .build();
         return ResponseEntity.ok(ApiResponse.success(stats));
     }

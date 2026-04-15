@@ -108,7 +108,7 @@ export default function TrainingPage() {
       <section className="bg-black py-16 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
-            <span className="section-label">5 Programs Available</span>
+            <span className="section-label">{programs.length > 0 ? `${programs.length} Programs Available` : 'Training Programs'}</span>
             <h2 className="text-white font-black text-4xl">
               Choose the Right <span className="gradient-text">Fit</span>
             </h2>

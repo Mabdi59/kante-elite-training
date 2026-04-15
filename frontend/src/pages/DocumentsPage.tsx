@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import axios from 'axios'
+import api from '../services/api'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorBanner from '../components/ErrorBanner'
 
@@ -23,15 +23,13 @@ export default function DocumentsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const token = localStorage.getItem('token')
-
   useEffect(() => {
-    axios
-      .get('/api/documents/my', { headers: { Authorization: `Bearer ${token}` } })
+    api
+      .get<Document[]>('/documents/my')
       .then((r) => setDocuments(r.data ?? []))
       .catch(() => setError('Failed to load documents.'))
       .finally(() => setLoading(false))
-  }, [token])
+  }, [])
 
   if (loading) return <LoadingSpinner label="Loading documents…" />
 

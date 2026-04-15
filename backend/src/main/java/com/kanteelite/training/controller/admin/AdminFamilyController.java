@@ -1,5 +1,6 @@
 package com.kanteelite.training.controller.admin;
 
+import jakarta.validation.Valid;
 import com.kanteelite.training.dto.request.FamilyOnboardingRequest;
 import com.kanteelite.training.dto.response.AdminFamiliesListResponse;
 import com.kanteelite.training.dto.response.ApiResponse;
@@ -27,7 +28,7 @@ public class AdminFamilyController {
 
     @PostMapping("/onboard")
     public ResponseEntity<ApiResponse<FamilyDetailResponse>> onboardFamily(
-            @RequestBody FamilyOnboardingRequest request,
+            @Valid @RequestBody FamilyOnboardingRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         String actor = principal != null ? principal.getUsername() : "admin";
         FamilyDetailResponse result = familyService.onboardFamily(request, actor);
@@ -42,7 +43,7 @@ public class AdminFamilyController {
     @PutMapping("/{parentUserId}")
     public ResponseEntity<ApiResponse<FamilyDetailResponse>> updateFamily(
             @PathVariable Long parentUserId,
-            @RequestBody FamilyOnboardingRequest request,
+            @Valid @RequestBody FamilyOnboardingRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         String actor = principal != null ? principal.getUsername() : "admin";
         FamilyDetailResponse result = familyService.updateFamilyParent(parentUserId, request, actor);

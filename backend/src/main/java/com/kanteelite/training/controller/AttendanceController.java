@@ -1,5 +1,6 @@
 package com.kanteelite.training.controller;
 
+import jakarta.validation.Valid;
 import com.kanteelite.training.dto.request.AttendanceRequest;
 import com.kanteelite.training.dto.response.AttendanceResponse;
 import com.kanteelite.training.service.AttendanceService;
@@ -23,7 +24,7 @@ public class AttendanceController {
 
     @PostMapping
     public ResponseEntity<AttendanceResponse> upsertAttendance(
-            @RequestBody AttendanceRequest request,
+            @Valid @RequestBody AttendanceRequest request,
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(attendanceService.upsertAttendance(request, user.getUsername()));
     }

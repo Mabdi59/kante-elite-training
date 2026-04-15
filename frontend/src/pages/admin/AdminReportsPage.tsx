@@ -55,6 +55,20 @@ export default function AdminReportsPage() {
   const attTotal = attendance?.total ?? 0
   const attPct = (n: number) => (attTotal ? Math.round((n / attTotal) * 100) : 0)
 
+  const downloadCsv = async (path: string, filename: string) => {
+    try {
+      const res = await api.get(path, { responseType: 'blob' })
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }))
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      a.click()
+      window.URL.revokeObjectURL(url)
+    } catch {
+      setError('Failed to download CSV.')
+    }
+  }
+
   return (
     <div className="space-y-8">
       <div>
@@ -66,7 +80,16 @@ export default function AdminReportsPage() {
 
       {/* Revenue Section */}
       <section className="space-y-4">
-        <h2 className="text-lg font-bold text-white border-b border-white/10 pb-2">Revenue Summary</h2>
+        <div className="flex items-center justify-between border-b border-white/10 pb-2">
+          <h2 className="text-lg font-bold text-white">Revenue Summary</h2>
+          <button
+            type="button"
+            onClick={() => downloadCsv('/admin/reports/revenue/csv', 'revenue-report.csv')}
+            className="rounded-lg bg-zinc-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-zinc-600"
+          >
+            ⬇ Download CSV
+          </button>
+        </div>
 
         {revLoading ? (
           <LoadingSpinner label="Loading revenue…" />
@@ -144,7 +167,21 @@ export default function AdminReportsPage() {
 
       {/* Attendance Section */}
       <section className="space-y-4">
-        <h2 className="text-lg font-bold text-white border-b border-white/10 pb-2">Attendance Report</h2>
+        <div className="flex items-center justify-between border-b border-white/10 pb-2">
+          <h2 className="text-lg font-bold text-white">Attendance Report</h2>
+          <button
+            type="button"
+            onClick={() => {
+              const params = new URLSearchParams()
+              if (attFrom) params.set('from', attFrom)
+              if (attTo) params.set('to', attTo)
+              downloadCsv(`/admin/reports/attendance/csv?${params.toString()}`, 'attendance-report.csv')
+            }}
+            className="rounded-lg bg-zinc-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-zinc-600"
+          >
+            ⬇ Download CSV
+          </button>
+        </div>
 
         <div className="flex flex-wrap gap-4 items-end">
           <div className="flex flex-col gap-1">

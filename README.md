@@ -21,13 +21,13 @@ Production builds can point at the backend with `VITE_API_URL`, or keep same-ori
 
 | Role | Portal | What they can do |
 |------|--------|-----------------|
-| `ADMIN` | `/admin` | Full access: tournaments, teams, players, schedule, results, standings, users, coaches, bookings, audit logs |
+| `ADMIN` | `/admin` | Full access: tournaments, teams, players, schedule, results, standings, users, coaches, bookings, attendance, enrollments, waivers, search, reports, media, content, family onboarding, recurring schedules |
 | `STAFF` | `/staff` | View and manage bookings, messages, availability, players, tournament details |
-| `COACH` | `/coach` | Manage personal training sessions, availability, coach profile; also accesses captain portal |
+| `COACH` | `/coach` | Manage personal training sessions, availability, coach profile, attendance, player progress notes; also accesses captain portal |
 | `TEAM_CAPTAIN` | `/captain` | Register teams, manage rosters, view registration status, submit payment, manage tournament entries |
-| `PLAYER` | `/player` | View personal training sessions and player profile |
-| `PARENT` | `/parent` | View and book training sessions, manage linked player profiles |
-| `USER` | `/user` | General user: view bookings, manage player profiles |
+| `PLAYER` | `/player` | View personal training sessions, player profile, development notes, calendar, payment history |
+| `PARENT` | `/parent` | Book training sessions, manage linked player profiles, view player development, messages, calendar, waivers, documents, enrollments, payments |
+| `USER` | `/user` | View bookings, manage player profiles, messages, calendar, waivers, documents, enrollments, payments |
 
 Login redirects to the correct portal based on role automatically.
 
@@ -345,4 +345,21 @@ Important:
 | `V15` | Player profiles |
 | `V16` | Tournament + team enrichment (age group, notes) |
 | `V17` | Notification scaffold |
+| `V18` | Team registration public flow enhancements |
+| `V19` | Tournament workflow tables (matches, standings) |
+| `V20` | Group count added to tournaments |
+| `V21` | Program/event scheduling and participants |
+| `V22` | Media posts table |
+| `V23` | Media visibility fields |
+| `V24` | Website content table |
+| `V25` | Attendance records |
+| `V26` | Messages |
+| `V27` | Waiver templates, signed waivers, player documents |
+| `V28` | Program enrollments |
+| `V29` | Calendar events |
+| `V30` | Player progress notes |
+| `V31` | iCal hardening and progress note ID fix |
+| `V32` | Media category field |
+| `V33` | Family onboarding: phone/emergency contact on users, booking series |
+| `V34` | Allow standalone player profiles (parent_user_id nullable) |
 

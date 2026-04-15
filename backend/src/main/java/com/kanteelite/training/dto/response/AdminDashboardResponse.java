@@ -23,4 +23,7 @@ public class AdminDashboardResponse {
     private long usersWithRoleAdmin;
     private long usersWithRoleCoach;
     private long usersWithRoleUser;
+    // Phase 7 additions
+    private long totalFamilies;
+    private long totalActiveSeries;
 }

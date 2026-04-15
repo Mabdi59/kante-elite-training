@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import axios from 'axios'
+import api from '../../services/api'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorBanner from '../../components/ErrorBanner'
 
@@ -45,29 +45,22 @@ export default function PlayerDevelopmentPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const token = localStorage.getItem('token')
-
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [recRes, sumRes, notesRes] = await Promise.all([
-          axios.get('/api/attendance/player', { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get('/api/attendance/player/summary', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: null })),
-          axios.get('/api/player/progress-notes', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] })),
+        const [recRes, notesRes] = await Promise.all([
+          api.get<AttendanceRecord[]>('/attendance/player'),
+          api.get<ProgressNote[]>('/player/progress-notes').catch(() => ({ data: [] as ProgressNote[] })),
         ])
         const recs: AttendanceRecord[] = recRes.data ?? []
         setRecords(recs)
         setNotes(notesRes.data ?? [])
 
-        if (sumRes.data) {
-          setSummary(sumRes.data)
-        } else {
-          const total = recs.length
-          const present = recs.filter(r => r.status === 'PRESENT').length
-          const absent = recs.filter(r => r.status === 'ABSENT').length
-          const late = recs.filter(r => r.status === 'LATE').length
-          setSummary({ total, present, absent, late })
-        }
+        const total = recs.length
+        const present = recs.filter(r => r.status === 'PRESENT').length
+        const absent = recs.filter(r => r.status === 'ABSENT').length
+        const late = recs.filter(r => r.status === 'LATE').length
+        setSummary({ total, present, absent, late })
       } catch {
         setError('Failed to load development data.')
       } finally {
@@ -75,7 +68,7 @@ export default function PlayerDevelopmentPage() {
       }
     }
     fetchData()
-  }, [token])
+  }, [])
 
   const attendanceRate = summary.total
     ? Math.round((summary.present / summary.total) * 100)

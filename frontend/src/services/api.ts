@@ -281,6 +281,16 @@ export const getMyPayments = async (): Promise<Booking[]> => {
   return Array.isArray(res.data.data) ? res.data.data : []
 }
 
+export const getAdminPayments = async (): Promise<Booking[]> => {
+  const res = await api.get<ApiResponse<Booking[]>>('/admin/payments')
+  return Array.isArray(res.data.data) ? res.data.data : []
+}
+
+export const refundAdminBooking = async (bookingId: number): Promise<Booking> => {
+  const res = await api.post<ApiResponse<Booking>>(`/admin/payments/refund/${bookingId}`)
+  return res.data.data as Booking
+}
+
 // ─── Contact ──────────────────────────────────────────────────────────────────
 
 export const submitContact = async (data: ContactFormData): Promise<string> => {
@@ -469,6 +479,11 @@ export const getAdminDashboard = async (): Promise<AdminDashboard> => {
   return res.data.data!
 }
 
+export const getBookingsOverTime = async (days = 30): Promise<{ date: string; count: number }[]> => {
+  const res = await api.get<{ date: string; count: number }[]>(`/admin/reports/bookings-over-time?days=${days}`)
+  return res.data
+}
+
 export const createMediaPost = async (file: File, caption: string, category?: MediaCategory): Promise<MediaPost> => {
   const formData = new FormData()
   formData.append('file', file)
@@ -510,6 +525,8 @@ export const updateWebsiteContent = async (
 export const getAdminBookings = async (params?: {
   status?: string
   date?: string
+  from?: string
+  to?: string
 }): Promise<Booking[]> => {
   const res = await api.get<ApiResponse<Booking[]>>('/admin/bookings', { params })
   return res.data.data ?? []
@@ -1293,4 +1310,9 @@ export const cancelSeriesSession = async (bookingId: number): Promise<void> => {
 export const getCoachWeekSchedule = async (startDate: string): Promise<Booking[]> => {
   const res = await api.get<ApiResponse<Booking[]>>(`/coach/schedule/week?startDate=${startDate}`)
   return res.data.data ?? []
+}
+
+// ── Account: Change Password ─────────────────────────────────────────────────
+export const changePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+  await api.patch('/account/password', { currentPassword, newPassword })
 }
