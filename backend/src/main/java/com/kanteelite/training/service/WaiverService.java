@@ -27,6 +27,7 @@ public class WaiverService {
     private final SignedWaiverRepository signedWaiverRepository;
     private final PlayerDocumentRepository documentRepository;
     private final AuditLogService auditLogService;
+    private final EmailService emailService;
 
     @Transactional(readOnly = true)
     public List<WaiverTemplateResponse> getActiveTemplates() {
@@ -94,6 +95,7 @@ public class WaiverService {
                 .build();
         SignedWaiver saved = signedWaiverRepository.save(signed);
         auditLogService.log(userEmail, "SIGN", "Waiver", template.getId(), "Signed waiver: " + template.getTitle());
+        emailService.sendWaiverSignedEmail(userEmail, userName, template.getTitle());
         return toSignedResponse(saved, template.getTitle());
     }
 

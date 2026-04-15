@@ -103,6 +103,8 @@ const AdminFamilyDetailPage = lazy(() => import('./pages/admin/AdminFamilyDetail
 const AdminRecurringSchedulePage = lazy(() => import('./pages/admin/AdminRecurringSchedulePage'))
 const AdminRecurringScheduleNewPage = lazy(() => import('./pages/admin/AdminRecurringScheduleNewPage'))
 
+const AdminPaymentsPage = lazy(() => import('./pages/admin/AdminPaymentsPage'))
+
 // Phase 6 pages
 const PaymentHistoryPage = lazy(() => import('./pages/PaymentHistoryPage'))
 const CoachProgressNotesPage = lazy(() => import('./pages/coach/CoachProgressNotesPage'))
@@ -640,6 +642,16 @@ export default function App() {
                 <ProtectedRoute requireAdmin>
                   <AdminLayout>
                     <AdminEnrollmentsPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/payments"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminPaymentsPage />
                   </AdminLayout>
                 </ProtectedRoute>
               }

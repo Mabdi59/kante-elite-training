@@ -26,6 +26,7 @@ public class ProgramEnrollmentService {
     private final ProgramRepository programRepository;
     private final AuditLogService auditLogService;
     private final NotificationService notificationService;
+    private final EmailService emailService;
 
     @Transactional
     public ProgramEnrollmentResponse enroll(ProgramEnrollmentRequest request, String enrolledBy) {
@@ -72,6 +73,12 @@ public class ProgramEnrollmentService {
         enrollment.setStatus(status);
         ProgramEnrollment saved = enrollmentRepository.save(enrollment);
         auditLogService.log(actorEmail, "UPDATE_STATUS", "ProgramEnrollment", id, "Status -> " + status);
+        String recipientEmail = saved.getParentEmail() != null ? saved.getParentEmail() : saved.getPlayerEmail();
+        emailService.sendEnrollmentStatusEmail(
+                recipientEmail,
+                saved.getPlayerName() != null ? saved.getPlayerName() : saved.getPlayerEmail(),
+                saved.getProgram().getName(),
+                status.name());
         return toResponse(saved);
     }
 

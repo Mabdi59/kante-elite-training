@@ -325,4 +325,70 @@ public class EmailService {
             default -> "Your booking details have been updated.";
         };
     }
+
+    public void sendEnrollmentStatusEmail(String toEmail, String playerName, String programName, String status) {
+        if (!emailEnabled || mailSender == null) {
+            log.info("Email disabled — skipping enrollment status email for {}", toEmail);
+            return;
+        }
+        if (!StringUtils.hasText(toEmail)) return;
+
+        String subject = "Enrollment " + capitalize(status) + " — Kante Elite Training";
+        String statusMsg = switch (status.toUpperCase()) {
+            case "APPROVED" -> "Your enrollment has been <strong>approved</strong>! You are now officially enrolled.";
+            case "REJECTED" -> "Unfortunately, your enrollment has been <strong>declined</strong>. Please contact us if you have questions.";
+            case "WAITLISTED" -> "You have been added to the <strong>waitlist</strong>. We will contact you if a spot opens up.";
+            default -> "Your enrollment status has been updated to <strong>" + status + "</strong>.";
+        };
+
+        String html = "<html><body style='font-family:sans-serif;color:#222;'>"
+            + "<h2 style='color:#d97706;'>Kante Elite Training</h2>"
+            + "<h3>Enrollment Update: " + escapeHtml(programName) + "</h3>"
+            + "<p>Hi " + escapeHtml(playerName) + ",</p>"
+            + "<p>" + statusMsg + "</p>"
+            + "<p style='color:#555;'>Program: <strong>" + escapeHtml(programName) + "</strong></p>"
+            + "<p style='color:#888;font-size:12px;'>— The Kante Elite Training Team</p>"
+            + "</body></html>";
+
+        try {
+            sendHtmlEmail(toEmail, subject, html, null);
+            log.info("Enrollment status email ({}) sent to {}", status, toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send enrollment email to {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    public void sendWaiverSignedEmail(String toEmail, String userName, String waiverTitle) {
+        if (!emailEnabled || mailSender == null) {
+            log.info("Email disabled — skipping waiver signed email for {}", toEmail);
+            return;
+        }
+        if (!StringUtils.hasText(toEmail)) return;
+
+        String html = "<html><body style='font-family:sans-serif;color:#222;'>"
+            + "<h2 style='color:#d97706;'>Kante Elite Training</h2>"
+            + "<h3>Waiver Signed</h3>"
+            + "<p>Hi " + escapeHtml(userName) + ",</p>"
+            + "<p>You have successfully signed the waiver: <strong>" + escapeHtml(waiverTitle) + "</strong>.</p>"
+            + "<p>A record of your signature has been saved. You can view your signed waivers in your portal.</p>"
+            + "<p style='color:#888;font-size:12px;'>— The Kante Elite Training Team</p>"
+            + "</body></html>";
+
+        try {
+            sendHtmlEmail(toEmail, "Waiver Signed — Kante Elite Training", html, null);
+            log.info("Waiver signed email sent to {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send waiver email to {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    private String capitalize(String s) {
+        if (!StringUtils.hasText(s)) return s;
+        return Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase();
+    }
+
+    private String escapeHtml(String s) {
+        if (s == null) return "";
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+    }
 }

@@ -281,6 +281,16 @@ export const getMyPayments = async (): Promise<Booking[]> => {
   return Array.isArray(res.data.data) ? res.data.data : []
 }
 
+export const getAdminPayments = async (): Promise<Booking[]> => {
+  const res = await api.get<ApiResponse<Booking[]>>('/admin/payments')
+  return Array.isArray(res.data.data) ? res.data.data : []
+}
+
+export const refundAdminBooking = async (bookingId: number): Promise<Booking> => {
+  const res = await api.post<ApiResponse<Booking>>(`/admin/payments/refund/${bookingId}`)
+  return res.data.data as Booking
+}
+
 // ─── Contact ──────────────────────────────────────────────────────────────────
 
 export const submitContact = async (data: ContactFormData): Promise<string> => {

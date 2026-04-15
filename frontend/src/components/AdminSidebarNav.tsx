@@ -226,6 +226,16 @@ function MoreIcon() {
   )
 }
 
+function PaymentIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+      <path d="M2 10h20" />
+      <path d="M6 15h4" />
+    </svg>
+  )
+}
+
 function FamilyIcon() {
   return (
     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -325,6 +335,7 @@ const navEntries: NavEntry[] = [
       { path: '/admin/messages', label: 'Messages', icon: <MessageIcon /> },
       { path: '/admin/enrollments', label: 'Enrollments', icon: <EnrollmentIcon /> },
       { path: '/admin/waivers', label: 'Waivers', icon: <WaiverIcon /> },
+      { path: '/admin/payments', label: 'Payments', icon: <PaymentIcon /> },
       { path: '/admin/users', label: 'Users', icon: <UsersIcon /> },
       { path: '/admin/search', label: 'Search', icon: <SearchIcon /> },
       { path: '/admin/reports', label: 'Reports', icon: <ReportsIcon /> },
