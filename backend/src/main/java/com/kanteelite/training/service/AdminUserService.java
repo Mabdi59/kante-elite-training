@@ -39,13 +39,14 @@ public class AdminUserService {
 
     @Transactional
     public UserResponse createUser(AdminUserCreateRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
+        String email = request.getEmail().trim().toLowerCase();
+        if (userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Email is already registered.");
         }
 
         User user = User.builder()
                 .name(request.getName())
-                .email(request.getEmail())
+                .email(email)
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole())
                 .build();
@@ -61,12 +62,13 @@ public class AdminUserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", id));
 
-        if (userRepository.existsByEmailAndIdNot(request.getEmail(), id)) {
+        String email = request.getEmail().trim().toLowerCase();
+        if (userRepository.existsByEmailAndIdNot(email, id)) {
             throw new IllegalArgumentException("Email is already registered.");
         }
 
         user.setName(request.getName());
-        user.setEmail(request.getEmail());
+        user.setEmail(email);
         user.setRole(request.getRole());
 
         if (request.getPassword() != null && !request.getPassword().isBlank()) {

@@ -48,7 +48,7 @@ public class NotificationService {
     @Transactional
     public void markAsRead(Long id, String userEmail) {
         notificationRepository.findById(id).ifPresent(n -> {
-            if (n.getUserEmail().equalsIgnoreCase(userEmail)) {
+            if (n.getUserEmail().equals(userEmail)) {
                 n.setReadStatus(true);
                 notificationRepository.save(n);
             }

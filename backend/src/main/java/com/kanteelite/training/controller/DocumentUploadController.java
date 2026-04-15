@@ -73,7 +73,7 @@ public class DocumentUploadController {
 
         String targetEmail;
         if (playerEmail != null && !playerEmail.isBlank()) {
-            if (!isPrivileged && !playerEmail.equalsIgnoreCase(user.getUsername())) {
+            if (!isPrivileged && !playerEmail.equals(user.getUsername())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(Map.of("error", "You may only upload documents for yourself."));
             }

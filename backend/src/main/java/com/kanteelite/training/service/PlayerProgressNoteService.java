@@ -64,7 +64,7 @@ public class PlayerProgressNoteService {
     public PlayerProgressNoteResponse updateNote(Long id, PlayerProgressNoteRequest request, String coachEmail) {
         PlayerProgressNote note = noteRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("PlayerProgressNote", id));
-        if (!note.getCoachEmail().equalsIgnoreCase(coachEmail)) {
+        if (!note.getCoachEmail().equals(coachEmail)) {
             throw new IllegalArgumentException("You are not authorized to update this note.");
         }
         note.setTitle(request.getTitle());

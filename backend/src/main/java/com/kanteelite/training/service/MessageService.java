@@ -64,7 +64,7 @@ public class MessageService {
     public MessageResponse markAsRead(Long id, String readerEmail) {
         Message message = messageRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Message", id));
-        if (message.getRecipientEmail().equalsIgnoreCase(readerEmail)) {
+        if (message.getRecipientEmail().equals(readerEmail)) {
             message.setReadStatus(true);
             return toResponse(messageRepository.save(message));
         }

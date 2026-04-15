@@ -46,17 +46,20 @@ public class FamilyService {
             parent = userRepository.findById(request.getExistingParentUserId())
                     .orElseThrow(() -> new ResourceNotFoundException("User", request.getExistingParentUserId()));
         } else {
-            if (userRepository.existsByEmail(request.getParentEmail())) {
-                parent = userRepository.findByEmail(request.getParentEmail())
-                        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + request.getParentEmail()));
+            String parentEmail = request.getParentEmail() != null
+                    ? request.getParentEmail().trim().toLowerCase()
+                    : null;
+            if (userRepository.existsByEmail(parentEmail)) {
+                parent = userRepository.findByEmail(parentEmail)
+                        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + parentEmail));
             } else {
                 String rawPassword = request.getParentPassword() != null
                         ? request.getParentPassword()
                         : UUID.randomUUID().toString().substring(0, 12);
-                log.info("Creating new parent user {} with generated password", request.getParentEmail());
+                log.info("Creating new parent user {} with generated password", parentEmail);
                 parent = User.builder()
                         .name(request.getParentName())
-                        .email(request.getParentEmail())
+                        .email(parentEmail)
                         .password(passwordEncoder.encode(rawPassword))
                         .role(UserRole.PARENT)
                         .phone(request.getParentPhone())

@@ -179,7 +179,7 @@ public class BookingService {
     public BookingResponse cancelOwnBooking(Long id, String userEmail) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", id));
-        if (!booking.getEmail().equalsIgnoreCase(userEmail)) {
+        if (!booking.getEmail().equals(userEmail)) {
             throw new IllegalArgumentException("You are not authorized to cancel this booking.");
         }
         if (booking.getBookingStatus() == BookingStatus.CANCELLED) {
@@ -333,7 +333,7 @@ public class BookingService {
     }
 
     private void ensureCoachOwnsBooking(Booking booking, String coachEmail) {
-        if (!booking.getEmail().equalsIgnoreCase(coachEmail)) {
+        if (!booking.getEmail().equals(coachEmail)) {
             throw new IllegalArgumentException("You are not authorized to manage this session.");
         }
     }
