@@ -122,6 +122,11 @@ public class AdminBookingController {
 
     private String escape(String s) {
         if (s == null) return "";
+        String trimmed = s.trim();
+        if (!trimmed.isEmpty() && (trimmed.charAt(0) == '=' || trimmed.charAt(0) == '+'
+                || trimmed.charAt(0) == '-' || trimmed.charAt(0) == '@')) {
+            s = "'" + trimmed;
+        }
         return s.replace("\"", "\"\"");
     }
 }

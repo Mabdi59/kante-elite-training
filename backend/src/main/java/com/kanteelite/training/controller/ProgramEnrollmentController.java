@@ -123,7 +123,7 @@ public class ProgramEnrollmentController {
         String trimmed = value.trim();
         if (!trimmed.isEmpty() && (trimmed.charAt(0) == '=' || trimmed.charAt(0) == '+'
                 || trimmed.charAt(0) == '-' || trimmed.charAt(0) == '@')) {
-            value = "'" + value;
+            value = "'" + trimmed;
         }
         if (value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r")) {
             return "\"" + value.replace("\"", "\"\"") + "\"";

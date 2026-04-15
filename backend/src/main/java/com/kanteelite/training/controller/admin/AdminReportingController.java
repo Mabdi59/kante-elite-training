@@ -113,7 +113,7 @@ public class AdminReportingController {
         String trimmed = value.trim();
         if (!trimmed.isEmpty() && (trimmed.charAt(0) == '=' || trimmed.charAt(0) == '+' ||
                 trimmed.charAt(0) == '-' || trimmed.charAt(0) == '@')) {
-            value = "'" + value;
+            value = "'" + trimmed;
         }
         // Quote fields containing special characters
         if (value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r")) {
