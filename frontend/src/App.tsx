@@ -28,6 +28,7 @@ const AboutPage = lazy(() => import('./pages/AboutMediaPage'))
 const ContactPage = lazy(() => import('./pages/ContactPage'))
 const BookPage = lazy(() => import('./pages/BookPage'))
 const BookingSuccessPage = lazy(() => import('./pages/BookingSuccessPage'))
+const PublicAvailabilityPage = lazy(() => import('./pages/PublicAvailabilityPage'))
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
 const AccountPage = lazy(() => import('./pages/AccountPage'))
@@ -221,6 +222,7 @@ export default function App() {
             />
             <Route path="/book" element={<BookPage />} />
             <Route path="/book/success" element={<BookingSuccessPage />} />
+            <Route path="/sessions" element={<PublicAvailabilityPage />} />
 
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />

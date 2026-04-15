@@ -139,8 +139,17 @@ export default function PaymentHistoryPage() {
                       {new Date(b.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-3">
-                      {b.paymentStatus === 'PAID' && b.stripeSessionId && (
-                        <span className="text-xs text-gray-500">Stripe</span>
+                      {b.stripeSessionId && (
+                        <button
+                          type="button"
+                          title="Click to copy Stripe session ID"
+                          onClick={() => {
+                            navigator.clipboard.writeText(b.stripeSessionId ?? '').catch(() => {})
+                          }}
+                          className="text-xs text-gray-500 hover:text-gray-300 font-mono truncate max-w-[6rem] block transition-colors"
+                        >
+                          {b.stripeSessionId.slice(0, 8)}…
+                        </button>
                       )}
                     </td>
                   </tr>

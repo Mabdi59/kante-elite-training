@@ -434,7 +434,24 @@ export default function AdminBookingsPage() {
                   </div>
 
                   <div className="flex flex-col items-start sm:items-end gap-3">
-                    <StatusBadge status={booking.bookingStatus} />
+                    <div className="flex flex-wrap gap-2">
+                      <StatusBadge status={booking.bookingStatus} />
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${
+                          booking.paymentStatus === 'PAID'
+                            ? 'bg-green-500/20 text-green-400 border-green-500/30'
+                            : booking.paymentStatus === 'PENDING'
+                              ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+                              : booking.paymentStatus === 'FAILED'
+                                ? 'bg-red-500/20 text-red-400 border-red-500/30'
+                                : booking.paymentStatus === 'REFUNDED'
+                                  ? 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+                                  : 'bg-gray-700/40 text-gray-500 border-gray-700/30'
+                        }`}
+                      >
+                        💳 {booking.paymentStatus}
+                      </span>
+                    </div>
                     <div className="flex gap-2 flex-wrap">
                       <button
                         type="button"
