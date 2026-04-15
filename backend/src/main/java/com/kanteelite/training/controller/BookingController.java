@@ -65,7 +65,7 @@ public class BookingController {
     }
 
     private boolean isOwnerOrPrivileged(UserDetails principal, String bookingEmail) {
-        if (principal.getUsername().equalsIgnoreCase(bookingEmail)) {
+        if (principal.getUsername().equals(bookingEmail)) {
             return true;
         }
         return principal.getAuthorities().stream()
