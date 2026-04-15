@@ -334,11 +334,12 @@ public class EmailService {
         if (!StringUtils.hasText(toEmail)) return;
 
         String subject = "Enrollment " + capitalize(status) + " — Kante Elite Training";
+        String escapedStatus = escapeHtml(status);
         String statusMsg = switch (status.toUpperCase()) {
             case "APPROVED" -> "Your enrollment has been <strong>approved</strong>! You are now officially enrolled.";
             case "REJECTED" -> "Unfortunately, your enrollment has been <strong>declined</strong>. Please contact us if you have questions.";
             case "WAITLISTED" -> "You have been added to the <strong>waitlist</strong>. We will contact you if a spot opens up.";
-            default -> "Your enrollment status has been updated to <strong>" + status + "</strong>.";
+            default -> "Your enrollment status has been updated to <strong>" + escapedStatus + "</strong>.";
         };
 
         String html = "<html><body style='font-family:sans-serif;color:#222;'>"
@@ -389,6 +390,10 @@ public class EmailService {
 
     private String escapeHtml(String s) {
         if (s == null) return "";
-        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+        return s.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
 }
