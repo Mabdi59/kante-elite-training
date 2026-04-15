@@ -77,7 +77,7 @@ public class PlayerProgressNoteController {
     public ResponseEntity<?> getChildNotes(
             @PathVariable String playerEmail,
             @AuthenticationPrincipal UserDetails user) {
-        if (user.getUsername().equalsIgnoreCase(playerEmail)) {
+        if (user.getUsername().equals(playerEmail)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error("Players should use GET /api/player/progress-notes to view their own notes."));
         }
