@@ -1,7 +1,9 @@
-import { useState } from 'react'
-import api from '../../services/api'
+import { useState, useEffect } from 'react'
+import api, { getMyPlayers } from '../../services/api'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorBanner from '../../components/ErrorBanner'
+import { useAuth } from '../../context/AuthContext'
+import type { PlayerProfile } from '../../types'
 
 interface AttendanceRecord {
   id: number
@@ -46,6 +48,9 @@ const NOTE_TYPE_COLORS: Record<string, string> = {
 }
 
 export default function ParentDevelopmentPage() {
+  const { user } = useAuth()
+  const [linkedPlayers, setLinkedPlayers] = useState<PlayerProfile[]>([])
+  const [selectedPlayerId, setSelectedPlayerId] = useState<number | ''>('')
   const [playerEmail, setPlayerEmail] = useState('')
   const [records, setRecords] = useState<AttendanceRecord[]>([])
   const [enrollments, setEnrollments] = useState<Enrollment[]>([])
@@ -54,6 +59,27 @@ export default function ParentDevelopmentPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [searched, setSearched] = useState(false)
+
+  useEffect(() => {
+    getMyPlayers().catch(() => []).then((players) => {
+      setLinkedPlayers(players)
+      if (players.length > 0) {
+        setSelectedPlayerId(players[0].id)
+      }
+    })
+    if (user) {
+      setPlayerEmail(user.email)
+    }
+  }, [user])
+
+  function handlePlayerSelect(e: React.ChangeEvent<HTMLSelectElement>) {
+    const val = e.target.value
+    if (val === '') {
+      setSelectedPlayerId('')
+    } else {
+      setSelectedPlayerId(Number(val))
+    }
+  }
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -96,19 +122,45 @@ export default function ParentDevelopmentPage() {
 
       {error && <ErrorBanner message={error} />}
 
-      <form onSubmit={handleSearch} className="flex gap-3">
-        <input
-          type="email"
-          required
-          value={playerEmail}
-          onChange={(e) => setPlayerEmail(e.target.value)}
-          placeholder="Player email address"
-          className="flex-1 rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-        />
-        <button type="submit" disabled={loading}
-          className="rounded-lg bg-green-600 px-5 py-2 text-sm font-semibold text-white hover:bg-green-500 disabled:opacity-50">
-          {loading ? 'Loading…' : 'Look Up'}
-        </button>
+      <form onSubmit={handleSearch} className="space-y-3">
+        {linkedPlayers.length > 0 && (
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
+              Select Player
+            </label>
+            <select
+              value={selectedPlayerId}
+              onChange={handlePlayerSelect}
+              className="w-full rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500"
+            >
+              {linkedPlayers.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
+            Account Email
+          </label>
+          <div className="flex gap-3">
+            <input
+              type="email"
+              required
+              value={playerEmail}
+              onChange={(e) => setPlayerEmail(e.target.value)}
+              placeholder="Email used when booking sessions"
+              className="flex-1 rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+            />
+            <button type="submit" disabled={loading}
+              className="rounded-lg bg-green-600 px-5 py-2 text-sm font-semibold text-white hover:bg-green-500 disabled:opacity-50">
+              {loading ? 'Loading…' : 'Load Data'}
+            </button>
+          </div>
+          <p className="mt-1 text-xs text-gray-500">
+            Attendance and notes are indexed by the email used when booking each session.
+          </p>
+        </div>
       </form>
 
       {loading && <LoadingSpinner label="Loading player data…" />}

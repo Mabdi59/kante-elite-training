@@ -258,7 +258,9 @@ export default function BookPage() {
           }
         }
       })
-      .catch(() => { /* silenced */ })
+      .catch(() => {
+        setError('Unable to load training programs. Please refresh the page and try again.')
+      })
       .finally(() => setLoadingPrograms(false))
   }, [preselectedProgramId])
 
@@ -280,7 +282,9 @@ export default function BookPage() {
     setAvailability(null)
     getAvailability(selectedProgram.id, form.bookingDate)
       .then(setAvailability)
-      .catch(() => { /* silenced */ })
+      .catch(() => {
+        setError('Unable to load available time slots. Please try a different date or refresh.')
+      })
       .finally(() => setLoadingSlots(false))
   }, [selectedProgram, form.bookingDate])
 
