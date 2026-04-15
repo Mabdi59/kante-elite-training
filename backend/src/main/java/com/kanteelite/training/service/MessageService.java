@@ -18,6 +18,7 @@ public class MessageService {
 
     private final MessageRepository messageRepository;
     private final EmailService emailService;
+    private final NotificationService notificationService;
     private final UserRepository userRepository;
 
     @Transactional
@@ -49,6 +50,16 @@ public class MessageService {
                 senderName,
                 request.getSubject(),
                 request.getBody()
+        );
+
+        // In-app notification
+        notificationService.send(
+                request.getRecipientEmail().trim().toLowerCase(),
+                "MESSAGE",
+                "New message from " + senderName,
+                request.getSubject() != null ? request.getSubject() : "(no subject)",
+                "Message",
+                saved.getId()
         );
 
         return saved;

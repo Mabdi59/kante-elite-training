@@ -24,6 +24,7 @@ public class AttendanceService {
     private final BookingRepository bookingRepository;
     private final AuditLogService auditLogService;
     private final EmailService emailService;
+    private final NotificationService notificationService;
 
     @Transactional
     public AttendanceResponse upsertAttendance(AttendanceRequest request, String recordedBy) {
@@ -54,6 +55,17 @@ public class AttendanceService {
                 booking.getBookingDate() != null ? booking.getBookingDate().toString() : "",
                 request.getStatus() != null ? request.getStatus().name() : "",
                 request.getCoachNotes()
+        );
+
+        // In-app notification
+        String statusLabel = request.getStatus() != null ? request.getStatus().name() : "updated";
+        notificationService.send(
+                request.getPlayerEmail().trim().toLowerCase(),
+                "ATTENDANCE",
+                "Attendance marked: " + statusLabel,
+                booking.getBookingDate() != null ? "Session on " + booking.getBookingDate() : "Session attendance recorded",
+                "AttendanceRecord",
+                saved.getId()
         );
 
         return toResponse(saved);

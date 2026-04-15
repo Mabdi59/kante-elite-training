@@ -109,9 +109,10 @@ public class AdminReportingController {
 
     private String escapeCsvField(String value) {
         if (value == null) return "";
-        // Prefix formula injection characters to prevent spreadsheet formula execution
-        if (!value.isEmpty() && (value.charAt(0) == '=' || value.charAt(0) == '+' ||
-                value.charAt(0) == '-' || value.charAt(0) == '@')) {
+        // Trim before checking for formula injection (handles leading whitespace obfuscation)
+        String trimmed = value.trim();
+        if (!trimmed.isEmpty() && (trimmed.charAt(0) == '=' || trimmed.charAt(0) == '+' ||
+                trimmed.charAt(0) == '-' || trimmed.charAt(0) == '@')) {
             value = "'" + value;
         }
         // Quote fields containing special characters

@@ -186,12 +186,21 @@ export default function AdminBookingsPage() {
             Admin can create, edit, cancel, complete, and delete bookings from one place.
           </p>
         </div>
-        <button
-          onClick={() => (showForm && editingBookingId === null ? resetForm() : openCreate())}
-          className="bg-amber-500 hover:bg-amber-400 text-black font-bold px-4 py-2 rounded-lg text-sm"
-        >
-          {showForm && editingBookingId === null ? 'Close Booking Form' : 'Create Booking'}
-        </button>
+        <div className="flex gap-2 flex-wrap">
+          <a
+            href="/api/admin/bookings/export.csv"
+            download="bookings.csv"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-gray-300 hover:bg-white/10 transition-colors"
+          >
+            ↓ Export CSV
+          </a>
+          <button
+            onClick={() => (showForm && editingBookingId === null ? resetForm() : openCreate())}
+            className="bg-amber-500 hover:bg-amber-400 text-black font-bold px-4 py-2 rounded-lg text-sm"
+          >
+            {showForm && editingBookingId === null ? 'Close Booking Form' : 'Create Booking'}
+          </button>
+        </div>
       </div>
 
       {error ? <ErrorBanner message={error} onDismiss={() => setError('')} /> : null}
