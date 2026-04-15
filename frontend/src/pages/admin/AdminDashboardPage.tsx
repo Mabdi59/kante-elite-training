@@ -44,6 +44,8 @@ export default function AdminDashboardPage() {
   const roleCards = [
     { label: 'Active Coaches', value: stats.totalCoaches ?? 0, color: 'text-blue-400', link: '/admin/coaches' },
     { label: 'Player Profiles', value: stats.totalPlayers ?? 0, color: 'text-green-400', link: '/admin/players' },
+    { label: 'Families', value: stats.totalFamilies ?? 0, color: 'text-emerald-400', link: '/admin/families' },
+    { label: 'Active Series', value: stats.totalActiveSeries ?? 0, color: 'text-teal-400', link: '/admin/recurring-schedules' },
     { label: 'Pending Registrations', value: stats.pendingRegistrations ?? 0, color: 'text-yellow-400', link: '/admin/tournaments' },
     { label: 'Admin Users', value: stats.usersWithRoleAdmin ?? 0, color: 'text-red-400', link: '/admin/users' },
     { label: 'Coach Users', value: stats.usersWithRoleCoach ?? 0, color: 'text-blue-300', link: '/admin/users' },

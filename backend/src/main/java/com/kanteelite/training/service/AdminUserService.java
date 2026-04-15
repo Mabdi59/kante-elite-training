@@ -118,6 +118,7 @@ public class AdminUserService {
                 .name(user.getName())
                 .email(user.getEmail())
                 .role(user.getRole().name())
+                .phone(user.getPhone())
                 .createdAt(user.getCreatedAt())
                 .build();
     }

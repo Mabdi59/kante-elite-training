@@ -266,6 +266,7 @@ export default function AdminUsersPage() {
                 <th className="pb-3 pr-4">ID</th>
                 <th className="pb-3 pr-4">Name</th>
                 <th className="pb-3 pr-4">Email</th>
+                <th className="pb-3 pr-4 hidden md:table-cell">Phone</th>
                 <th className="pb-3 pr-4">Role</th>
                 <th className="pb-3 pr-4">Joined</th>
                 <th className="pb-3">Actions</th>
@@ -277,6 +278,7 @@ export default function AdminUsersPage() {
                   <td className="py-3 pr-4 text-gray-500">#{item.id}</td>
                   <td className="py-3 pr-4 font-medium text-white">{item.name}</td>
                   <td className="py-3 pr-4 text-gray-400">{item.email}</td>
+                  <td className="py-3 pr-4 text-gray-400 hidden md:table-cell">{item.phone ?? '—'}</td>
                   <td className="py-3 pr-4">
                     <div className="flex items-center gap-2">
                       <StatusBadge status={item.role} />
