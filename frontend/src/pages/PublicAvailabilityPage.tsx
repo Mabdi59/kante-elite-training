@@ -226,7 +226,7 @@ export default function PublicAvailabilityPage() {
 
                   {!past && (                    <div className="space-y-1">
                       {openSlots.length === 0 && bookedSlots.length === 0 ? (
-                        <p className="text-gray-600 text-xs text-center">—</p>
+                        <p className="text-gray-600 text-xs text-center">No slots</p>
                       ) : null}
                       {openSlots.map((slot) => (
                         <button

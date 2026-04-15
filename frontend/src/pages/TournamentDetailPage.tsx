@@ -480,7 +480,7 @@ function BracketTab({ matches }: { matches: TournamentMatch[] }) {
 
   return (
     <div>
-      <p className="text-gray-500 text-sm mb-6">Knockout bracket — winners advance from left to right.</p>
+      <p className="text-gray-500 text-sm mb-6">Knockout bracket: winners advance from left to right.</p>
       <div
         className="-mx-4 overflow-x-auto overflow-y-visible px-4 pb-4 overscroll-x-contain snap-x snap-mandatory sm:mx-0 sm:px-0"
         style={{ WebkitOverflowScrolling: 'touch' }}
