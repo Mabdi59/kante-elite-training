@@ -61,12 +61,14 @@ export default function ParentDevelopmentPage() {
   const [searched, setSearched] = useState(false)
 
   useEffect(() => {
-    getMyPlayers().catch(() => []).then((players) => {
-      setLinkedPlayers(players)
-      if (players.length > 0) {
-        setSelectedPlayerId(players[0].id)
-      }
-    })
+    getMyPlayers()
+      .then((players) => {
+        setLinkedPlayers(players)
+        if (players.length > 0) {
+          setSelectedPlayerId(players[0].id)
+        }
+      })
+      .catch(() => {/* Non-critical: player picker remains hidden */})
     if (user) {
       setPlayerEmail(user.email)
     }

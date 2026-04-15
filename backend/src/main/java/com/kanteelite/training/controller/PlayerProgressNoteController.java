@@ -1,6 +1,7 @@
 package com.kanteelite.training.controller;
 
 import com.kanteelite.training.dto.request.PlayerProgressNoteRequest;
+import com.kanteelite.training.dto.response.ApiResponse;
 import com.kanteelite.training.dto.response.PlayerProgressNoteResponse;
 import com.kanteelite.training.service.PlayerProgressNoteService;
 import lombok.RequiredArgsConstructor;
@@ -72,11 +73,12 @@ public class PlayerProgressNoteController {
      * TODO: add parent→child email verification once PlayerProfile stores playerEmail/childUserId.
      */
     @GetMapping("/api/parent/progress-notes/{playerEmail}")
-    public ResponseEntity<List<PlayerProgressNoteResponse>> getChildNotes(
+    public ResponseEntity<?> getChildNotes(
             @PathVariable String playerEmail,
             @AuthenticationPrincipal UserDetails user) {
         if (user.getUsername().equalsIgnoreCase(playerEmail)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Players should use GET /api/player/progress-notes to view their own notes."));
         }
         return ResponseEntity.ok(noteService.getVisibleNotesForPlayer(playerEmail));
     }
