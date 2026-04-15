@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import axios from 'axios'
+import api from '../../services/api'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorBanner from '../../components/ErrorBanner'
 
@@ -55,8 +55,6 @@ export default function ParentDevelopmentPage() {
   const [error, setError] = useState('')
   const [searched, setSearched] = useState(false)
 
-  const token = localStorage.getItem('token')
-
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!playerEmail.trim()) return
@@ -64,16 +62,14 @@ export default function ParentDevelopmentPage() {
     setError('')
     try {
       const [attRes, enrollRes, waiversRes, notesRes] = await Promise.all([
-        axios.get(`/api/attendance/range?playerEmail=${encodeURIComponent(playerEmail)}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }).catch(() => ({ data: [] })),
-        axios.get('/api/enrollments/my', { headers: { Authorization: `Bearer ${token}` } })
-          .catch(() => ({ data: [] })),
-        axios.get('/api/waivers/my-signed', { headers: { Authorization: `Bearer ${token}` } })
-          .catch(() => ({ data: [] })),
-        axios.get(`/api/parent/progress-notes/${encodeURIComponent(playerEmail)}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }).catch(() => ({ data: [] })),
+        api.get<AttendanceRecord[]>(`/attendance/player/${encodeURIComponent(playerEmail)}`)
+          .catch(() => ({ data: [] as AttendanceRecord[] })),
+        api.get<Enrollment[]>('/enrollments/my')
+          .catch(() => ({ data: [] as Enrollment[] })),
+        api.get<SignedWaiver[]>('/waivers/my-signed')
+          .catch(() => ({ data: [] as SignedWaiver[] })),
+        api.get<ProgressNote[]>(`/parent/progress-notes/${encodeURIComponent(playerEmail)}`)
+          .catch(() => ({ data: [] as ProgressNote[] })),
       ])
       setRecords(attRes.data ?? [])
       setEnrollments(enrollRes.data ?? [])

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import axios from 'axios'
+import api from '../services/api'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorBanner from '../components/ErrorBanner'
 
@@ -23,14 +23,10 @@ export default function WaiversPage() {
   const [signature, setSignature] = useState('')
   const [signing, setSigning] = useState<number | null>(null)
 
-  const token = localStorage.getItem('token')
-
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const res = await axios.get('/api/waivers/templates', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        const res = await api.get<WaiverTemplate[]>('/waivers/templates')
         const tmpls: WaiverTemplate[] = res.data ?? []
         setTemplates(tmpls)
 
@@ -38,9 +34,7 @@ export default function WaiversPage() {
         await Promise.all(
           tmpls.map(async (t) => {
             try {
-              const r = await axios.get(`/api/waivers/check/${t.id}`, {
-                headers: { Authorization: `Bearer ${token}` },
-              })
+              const r = await api.get<{ signed: boolean }>(`/waivers/check/${t.id}`)
               statuses[t.id] = r.data?.signed ?? false
             } catch {
               statuses[t.id] = false
@@ -55,17 +49,13 @@ export default function WaiversPage() {
       }
     }
     fetchAll()
-  }, [token])
+  }, [])
 
   const handleSign = async (templateId: number) => {
     if (!signature.trim()) return
     setSigning(templateId)
     try {
-      await axios.post(
-        '/api/waivers/sign',
-        { templateId, signature },
-        { headers: { Authorization: `Bearer ${token}` } },
-      )
+      await api.post('/waivers/sign', { templateId, signature })
       setSignStatus((prev) => ({ ...prev, [templateId]: true }))
       setExpandedId(null)
       setSignature('')

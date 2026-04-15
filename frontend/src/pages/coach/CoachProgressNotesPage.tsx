@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import axios from 'axios'
+import api from '../../services/api'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorBanner from '../../components/ErrorBanner'
 
@@ -63,13 +63,10 @@ export default function CoachProgressNotesPage() {
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState('')
 
-  const token = localStorage.getItem('token')
-  const headers = { Authorization: `Bearer ${token}` }
-
   const loadNotes = () => {
     setLoading(true)
-    axios
-      .get<ProgressNote[]>('/api/coach/progress-notes', { headers })
+    api
+      .get<ProgressNote[]>('/coach/progress-notes')
       .then((res) => setNotes(res.data))
       .catch(() => setError('Failed to load progress notes.'))
       .finally(() => setLoading(false))
@@ -90,10 +87,10 @@ export default function CoachProgressNotesPage() {
     }
     try {
       if (editingId) {
-        await axios.put(`/api/coach/progress-notes/${editingId}`, payload, { headers })
+        await api.put(`/coach/progress-notes/${editingId}`, payload)
         setSuccess('Note updated.')
       } else {
-        await axios.post('/api/coach/progress-notes', payload, { headers })
+        await api.post('/coach/progress-notes', payload)
         setSuccess('Note saved.')
       }
       setForm(EMPTY_FORM)
@@ -127,7 +124,7 @@ export default function CoachProgressNotesPage() {
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this note?')) return
     try {
-      await axios.delete(`/api/coach/progress-notes/${id}`, { headers })
+      await api.delete(`/coach/progress-notes/${id}`)
       setNotes((prev) => prev.filter((n) => n.id !== id))
     } catch {
       setError('Failed to delete note.')

@@ -8,14 +8,20 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/bookings")
 @RequiredArgsConstructor
 public class BookingController {
+
+    private static final Set<String> PRIVILEGED_ROLES = Set.of(
+            "ROLE_ADMIN", "ROLE_STAFF", "ROLE_COACH");
 
     private final BookingService bookingService;
 
@@ -33,13 +39,20 @@ public class BookingController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<BookingResponse>> getBooking(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<BookingResponse>> getBooking(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails principal) {
         BookingResponse booking = bookingService.getById(id);
+        if (principal != null && !isOwnerOrPrivileged(principal, booking.getEmail())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ApiResponse.error("Access denied."));
+        }
         return ResponseEntity.ok(ApiResponse.success(booking));
     }
 
     /**
      * Used by the Stripe success redirect page to load booking details by Stripe session ID.
+     * The Stripe session ID is an opaque random string, making enumeration attacks impractical.
      * The webhook may have a slight processing delay, so the client may need to retry briefly.
      */
     @GetMapping("/by-stripe-session/{sessionId}")
@@ -49,5 +62,14 @@ public class BookingController {
             return ResponseEntity.ok(ApiResponse.success(null));
         }
         return ResponseEntity.ok(ApiResponse.success(booking));
+    }
+
+    private boolean isOwnerOrPrivileged(UserDetails principal, String bookingEmail) {
+        if (principal.getUsername().equalsIgnoreCase(bookingEmail)) {
+            return true;
+        }
+        return principal.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(PRIVILEGED_ROLES::contains);
     }
 }

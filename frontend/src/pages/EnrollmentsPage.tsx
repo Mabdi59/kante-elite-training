@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import axios from 'axios'
+import api from '../services/api'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorBanner from '../components/ErrorBanner'
 
@@ -25,15 +25,13 @@ export default function EnrollmentsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const token = localStorage.getItem('token')
-
   useEffect(() => {
-    axios
-      .get('/api/enrollments/my', { headers: { Authorization: `Bearer ${token}` } })
+    api
+      .get<Enrollment[]>('/enrollments/my')
       .then((r) => setEnrollments(r.data ?? []))
       .catch(() => setError('Failed to load enrollments.'))
       .finally(() => setLoading(false))
-  }, [token])
+  }, [])
 
   if (loading) return <LoadingSpinner label="Loading enrollments…" />
 

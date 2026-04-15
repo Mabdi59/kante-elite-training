@@ -58,7 +58,9 @@ public class PlayerProgressNoteController {
     }
 
     @GetMapping("/api/parent/progress-notes/{playerEmail}")
-    public ResponseEntity<List<PlayerProgressNoteResponse>> getChildNotes(@PathVariable String playerEmail) {
+    public ResponseEntity<List<PlayerProgressNoteResponse>> getChildNotes(
+            @PathVariable String playerEmail,
+            @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(noteService.getVisibleNotesForPlayer(playerEmail));
     }
 

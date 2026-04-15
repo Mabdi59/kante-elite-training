@@ -140,14 +140,7 @@ export default function PaymentHistoryPage() {
                     </td>
                     <td className="px-4 py-3">
                       {b.paymentStatus === 'PAID' && b.stripeSessionId && (
-                        <a
-                          href={`/api/payments/receipt/${b.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-green-400 hover:text-green-300 underline"
-                        >
-                          Receipt
-                        </a>
+                        <span className="text-xs text-gray-500">Stripe</span>
                       )}
                     </td>
                   </tr>

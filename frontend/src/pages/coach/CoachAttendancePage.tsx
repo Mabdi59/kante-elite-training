@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import axios from 'axios'
+import api from '../../services/api'
 import { getMyCoachSessions } from '../../services/api'
 import type { Booking } from '../../types'
 import LoadingSpinner from '../../components/LoadingSpinner'
@@ -22,8 +22,6 @@ export default function CoachAttendancePage() {
   const [attendance, setAttendance] = useState<Record<number, AttendanceRow>>({})
   const [submitting, setSubmitting] = useState<Record<number, boolean>>({})
   const [success, setSuccess] = useState<Record<number, boolean>>({})
-
-  const token = localStorage.getItem('token')
 
   useEffect(() => {
     getMyCoachSessions()
@@ -50,9 +48,7 @@ export default function CoachAttendancePage() {
     if (!row) return
     setSubmitting((prev) => ({ ...prev, [bookingId]: true }))
     try {
-      await axios.post('/api/attendance', row, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      await api.post('/attendance', row)
       setSuccess((prev) => ({ ...prev, [bookingId]: true }))
     } catch {
       setError('Failed to submit attendance for booking ' + bookingId)
