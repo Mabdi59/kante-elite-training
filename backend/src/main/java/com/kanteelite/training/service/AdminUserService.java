@@ -81,9 +81,18 @@ public class AdminUserService {
 
     @Transactional
     public UserResponse updateUserRole(Long id, String role) {
+        if (role == null || role.isBlank()) {
+            throw new IllegalArgumentException("Role is required");
+        }
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", id));
-        user.setRole(UserRole.valueOf(role));
+        UserRole newRole;
+        try {
+            newRole = UserRole.valueOf(role.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("Invalid role: " + role);
+        }
+        user.setRole(newRole);
         User savedUser = userRepository.save(user);
         ensureCoachProfileIfNeeded(savedUser);
         ensurePlayerProfileIfNeeded(savedUser);

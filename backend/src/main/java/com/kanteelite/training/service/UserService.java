@@ -38,13 +38,14 @@ public class UserService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
+        String email = request.getEmail().trim().toLowerCase();
+        if (userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Email is already registered.");
         }
         UserRole role = resolveRequestedPublicRole(request.getRequestedRole());
         User user = User.builder()
-                .name(request.getName())
-                .email(request.getEmail())
+                .name(request.getName().trim())
+                .email(email)
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(role)
                 .build();
@@ -56,7 +57,7 @@ public class UserService {
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findByEmail(request.getEmail().trim().toLowerCase())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid email or password."));
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Invalid email or password.");
@@ -107,7 +108,7 @@ public class UserService {
     public boolean forgotPassword(ForgotPasswordRequest request) {
         boolean emailDeliveryAvailable = emailService.isEmailDeliveryAvailable();
         // Always return 200 to avoid user enumeration
-        userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
+        userRepository.findByEmail(request.getEmail().trim().toLowerCase()).ifPresent(user -> {
             // Invalidate old tokens
             passwordResetTokenRepository.invalidateAllByUserEmail(user.getEmail());
 

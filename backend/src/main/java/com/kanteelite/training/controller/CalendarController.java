@@ -1,5 +1,6 @@
 package com.kanteelite.training.controller;
 
+import jakarta.validation.Valid;
 import com.kanteelite.training.dto.request.CalendarEventRequest;
 import com.kanteelite.training.dto.response.CalendarEventResponse;
 import com.kanteelite.training.entity.User;
@@ -44,7 +45,7 @@ public class CalendarController {
 
     @PostMapping
     public ResponseEntity<CalendarEventResponse> createEvent(
-            @RequestBody CalendarEventRequest request,
+            @Valid @RequestBody CalendarEventRequest request,
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(calendarService.createEvent(request, user.getUsername()));
     }

@@ -1,5 +1,6 @@
 package com.kanteelite.training.controller;
 
+import jakarta.validation.Valid;
 import com.kanteelite.training.dto.request.PlayerProgressNoteRequest;
 import com.kanteelite.training.dto.response.ApiResponse;
 import com.kanteelite.training.dto.response.PlayerProgressNoteResponse;
@@ -21,7 +22,7 @@ public class PlayerProgressNoteController {
 
     @PostMapping("/api/coach/progress-notes")
     public ResponseEntity<PlayerProgressNoteResponse> createNote(
-            @RequestBody PlayerProgressNoteRequest request,
+            @Valid @RequestBody PlayerProgressNoteRequest request,
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(noteService.createNote(request, user.getUsername(), user.getUsername()));
     }
@@ -35,7 +36,7 @@ public class PlayerProgressNoteController {
     @PutMapping("/api/coach/progress-notes/{id}")
     public ResponseEntity<PlayerProgressNoteResponse> updateNote(
             @PathVariable Long id,
-            @RequestBody PlayerProgressNoteRequest request,
+            @Valid @RequestBody PlayerProgressNoteRequest request,
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(noteService.updateNote(id, request, user.getUsername()));
     }

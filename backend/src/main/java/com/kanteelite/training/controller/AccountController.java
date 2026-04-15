@@ -1,5 +1,6 @@
 package com.kanteelite.training.controller;
 
+import jakarta.validation.Valid;
 import com.kanteelite.training.dto.request.PlayerProfileRequest;
 import com.kanteelite.training.dto.response.ApiResponse;
 import com.kanteelite.training.dto.response.BookingResponse;
@@ -51,7 +52,7 @@ public class AccountController {
 
     @PostMapping("/players")
     public ResponseEntity<ApiResponse<PlayerProfileResponse>> addPlayer(
-            @RequestBody PlayerProfileRequest request,
+            @Valid @RequestBody PlayerProfileRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         PlayerProfileResponse created = playerProfileService.create(principal.getUsername(), request);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -61,7 +62,7 @@ public class AccountController {
     @PutMapping("/players/{id}")
     public ResponseEntity<ApiResponse<PlayerProfileResponse>> updatePlayer(
             @PathVariable Long id,
-            @RequestBody PlayerProfileRequest request,
+            @Valid @RequestBody PlayerProfileRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         return ResponseEntity.ok(ApiResponse.success("Player profile updated.",
                 playerProfileService.update(id, principal.getUsername(), request)));

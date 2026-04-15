@@ -1,5 +1,6 @@
 package com.kanteelite.training.controller;
 
+import jakarta.validation.Valid;
 import com.kanteelite.training.dto.request.ProgramEnrollmentRequest;
 import com.kanteelite.training.dto.response.ProgramEnrollmentResponse;
 import com.kanteelite.training.enums.EnrollmentStatus;
@@ -21,7 +22,7 @@ public class ProgramEnrollmentController {
 
     @PostMapping("/api/enrollments")
     public ResponseEntity<ProgramEnrollmentResponse> enroll(
-            @RequestBody ProgramEnrollmentRequest request,
+            @Valid @RequestBody ProgramEnrollmentRequest request,
             @AuthenticationPrincipal UserDetails user) {
         if (request.getPlayerEmail() == null) {
             request.setPlayerEmail(user.getUsername());
@@ -41,7 +42,7 @@ public class ProgramEnrollmentController {
 
     @PostMapping("/api/admin/enrollments")
     public ResponseEntity<ProgramEnrollmentResponse> createEnrollment(
-            @RequestBody ProgramEnrollmentRequest request,
+            @Valid @RequestBody ProgramEnrollmentRequest request,
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(enrollmentService.createAdminEnrollment(request, user.getUsername()));
     }
@@ -75,7 +76,7 @@ public class ProgramEnrollmentController {
     @PutMapping("/api/admin/enrollments/{id}")
     public ResponseEntity<ProgramEnrollmentResponse> updateEnrollment(
             @PathVariable Long id,
-            @RequestBody ProgramEnrollmentRequest request,
+            @Valid @RequestBody ProgramEnrollmentRequest request,
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(enrollmentService.updateEnrollment(id, request, user.getUsername()));
     }
