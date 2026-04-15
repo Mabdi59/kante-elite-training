@@ -92,7 +92,7 @@ public class AdminUserService {
         try {
             newRole = UserRole.valueOf(role.toUpperCase());
         } catch (IllegalArgumentException ex) {
-            throw new IllegalArgumentException("Invalid role: " + role);
+            throw new IllegalArgumentException("Invalid role: " + role.toUpperCase());
         }
         user.setRole(newRole);
         User savedUser = userRepository.save(user);

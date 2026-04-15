@@ -77,11 +77,12 @@ public class PlayerProgressNoteController {
     public ResponseEntity<?> getChildNotes(
             @PathVariable String playerEmail,
             @AuthenticationPrincipal UserDetails user) {
-        if (user.getUsername().equals(playerEmail)) {
+        String normalizedPlayerEmail = playerEmail.trim().toLowerCase();
+        if (user.getUsername().equals(normalizedPlayerEmail)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error("Players should use GET /api/player/progress-notes to view their own notes."));
         }
-        return ResponseEntity.ok(noteService.getVisibleNotesForPlayer(playerEmail));
+        return ResponseEntity.ok(noteService.getVisibleNotesForPlayer(normalizedPlayerEmail));
     }
 
     @GetMapping("/api/bookings/{bookingId}/progress-notes")
