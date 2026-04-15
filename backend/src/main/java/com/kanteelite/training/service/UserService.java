@@ -1,5 +1,6 @@
 package com.kanteelite.training.service;
 
+import com.kanteelite.training.dto.request.ChangePasswordRequest;
 import com.kanteelite.training.dto.request.ForgotPasswordRequest;
 import com.kanteelite.training.dto.request.LoginRequest;
 import com.kanteelite.training.dto.request.RegisterRequest;
@@ -148,6 +149,19 @@ public class UserService {
         passwordResetTokenRepository.save(prt);
         // Revoke all refresh tokens so old sessions are invalidated
         refreshTokenService.revokeAll(user.getEmail());
+    }
+
+    @Transactional
+    public void changePassword(String email, ChangePasswordRequest request) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Current password is incorrect.");
+        }
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        // Revoke all refresh tokens so other active sessions must re-login
+        refreshTokenService.revokeAll(email);
     }
 
     @Transactional(readOnly = true)

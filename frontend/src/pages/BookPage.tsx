@@ -222,7 +222,10 @@ export default function BookPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const preselectedProgramId = searchParams.get('program')
+  // Accept both ?program=slug-or-id (legacy) and ?programId=123 (from /sessions calendar)
+  const preselectedProgramId = searchParams.get('programId') ?? searchParams.get('program')
+  const preselectedDate = searchParams.get('date') ?? ''
+  const preselectedTime = searchParams.get('time') ?? ''
   const topRef = useRef<HTMLDivElement | null>(null)
 
   const [programs, setPrograms] = useState<Program[]>([])
@@ -254,7 +257,19 @@ export default function BookPage() {
           )
           if (found) {
             setSelectedProgram(found)
-            setStep(2)
+            if (preselectedDate && preselectedTime) {
+              setForm((prev) => ({
+                ...prev,
+                bookingDate: preselectedDate,
+                bookingTime: preselectedTime,
+              }))
+              setStep(3)
+            } else if (preselectedDate) {
+              setForm((prev) => ({ ...prev, bookingDate: preselectedDate }))
+              setStep(2)
+            } else {
+              setStep(2)
+            }
           }
         }
       })
@@ -262,7 +277,7 @@ export default function BookPage() {
         setError('Unable to load training programs. Please refresh the page and try again.')
       })
       .finally(() => setLoadingPrograms(false))
-  }, [preselectedProgramId])
+  }, [preselectedProgramId, preselectedDate, preselectedTime])
 
   useEffect(() => {
     if (!user) return

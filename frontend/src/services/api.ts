@@ -1294,3 +1294,8 @@ export const getCoachWeekSchedule = async (startDate: string): Promise<Booking[]
   const res = await api.get<ApiResponse<Booking[]>>(`/coach/schedule/week?startDate=${startDate}`)
   return res.data.data ?? []
 }
+
+// ── Account: Change Password ─────────────────────────────────────────────────
+export const changePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+  await api.patch('/account/password', { currentPassword, newPassword })
+}
