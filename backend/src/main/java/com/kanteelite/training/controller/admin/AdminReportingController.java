@@ -109,7 +109,13 @@ public class AdminReportingController {
 
     private String escapeCsvField(String value) {
         if (value == null) return "";
-        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+        // Prefix formula injection characters to prevent spreadsheet formula execution
+        if (!value.isEmpty() && (value.charAt(0) == '=' || value.charAt(0) == '+' ||
+                value.charAt(0) == '-' || value.charAt(0) == '@')) {
+            value = "'" + value;
+        }
+        // Quote fields containing special characters
+        if (value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r")) {
             return "\"" + value.replace("\"", "\"\"") + "\"";
         }
         return value;
