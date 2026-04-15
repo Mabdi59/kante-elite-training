@@ -23,6 +23,7 @@ public class AttendanceService {
     private final AttendanceRecordRepository attendanceRepository;
     private final BookingRepository bookingRepository;
     private final AuditLogService auditLogService;
+    private final EmailService emailService;
 
     @Transactional
     public AttendanceResponse upsertAttendance(AttendanceRequest request, String recordedBy) {
@@ -45,6 +46,16 @@ public class AttendanceService {
         AttendanceRecord saved = attendanceRepository.save(record);
         auditLogService.log(recordedBy, "UPSERT", "AttendanceRecord", saved.getId(),
                 "Attendance " + request.getStatus() + " for " + request.getPlayerEmail());
+
+        // Notify player by email
+        emailService.sendAttendanceMarkedEmail(
+                request.getPlayerEmail().trim().toLowerCase(),
+                request.getPlayerName() != null ? request.getPlayerName() : request.getPlayerEmail(),
+                booking.getBookingDate() != null ? booking.getBookingDate().toString() : "",
+                request.getStatus() != null ? request.getStatus().name() : "",
+                request.getCoachNotes()
+        );
+
         return toResponse(saved);
     }
 

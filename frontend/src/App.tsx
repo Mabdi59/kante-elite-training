@@ -102,6 +102,7 @@ const AdminFamilyOnboardingPage = lazy(() => import('./pages/admin/AdminFamilyOn
 const AdminFamilyDetailPage = lazy(() => import('./pages/admin/AdminFamilyDetailPage'))
 const AdminRecurringSchedulePage = lazy(() => import('./pages/admin/AdminRecurringSchedulePage'))
 const AdminRecurringScheduleNewPage = lazy(() => import('./pages/admin/AdminRecurringScheduleNewPage'))
+const AdminWeeklyCalendarPage = lazy(() => import('./pages/admin/AdminWeeklyCalendarPage'))
 
 const AdminPaymentsPage = lazy(() => import('./pages/admin/AdminPaymentsPage'))
 
@@ -732,6 +733,17 @@ export default function App() {
                 <ProtectedRoute requireAdmin>
                   <AdminLayout>
                     <AdminRecurringScheduleNewPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/weekly-calendar"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminWeeklyCalendarPage />
                   </AdminLayout>
                 </ProtectedRoute>
               }

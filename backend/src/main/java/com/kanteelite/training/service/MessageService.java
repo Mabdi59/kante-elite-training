@@ -5,6 +5,7 @@ import com.kanteelite.training.dto.response.MessageResponse;
 import com.kanteelite.training.entity.Message;
 import com.kanteelite.training.exception.ResourceNotFoundException;
 import com.kanteelite.training.repository.MessageRepository;
+import com.kanteelite.training.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,8 @@ import java.util.List;
 public class MessageService {
 
     private final MessageRepository messageRepository;
+    private final EmailService emailService;
+    private final UserRepository userRepository;
 
     @Transactional
     public MessageResponse sendMessage(MessageRequest request, String senderEmail, String senderName) {
@@ -34,7 +37,21 @@ public class MessageService {
                 .entityType(request.getEntityType())
                 .entityId(request.getEntityId())
                 .build();
-        return toResponse(messageRepository.save(message));
+        MessageResponse saved = toResponse(messageRepository.save(message));
+
+        // Notify recipient by email
+        String recipientName = userRepository.findByEmail(request.getRecipientEmail().trim())
+                .map(u -> u.getName() != null ? u.getName() : u.getEmail())
+                .orElse(request.getRecipientEmail());
+        emailService.sendMessageReceivedEmail(
+                request.getRecipientEmail().trim().toLowerCase(),
+                recipientName,
+                senderName,
+                request.getSubject(),
+                request.getBody()
+        );
+
+        return saved;
     }
 
     @Transactional(readOnly = true)

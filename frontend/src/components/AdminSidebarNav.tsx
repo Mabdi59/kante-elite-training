@@ -289,6 +289,7 @@ const navEntries: NavEntry[] = [
     icon: <ScheduleIcon />,
     items: [
       { path: '/admin/recurring-schedules', label: 'Recurring Schedules', icon: <ScheduleIcon /> },
+      { path: '/admin/weekly-calendar', label: 'Weekly Calendar', icon: <AttendanceIcon /> },
       { path: '/admin/availability', label: 'Availability', icon: <AvailabilityIcon /> },
       { path: '/admin/attendance', label: 'Attendance', icon: <AttendanceIcon /> },
     ],

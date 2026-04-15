@@ -37,11 +37,15 @@ public class AdminBookingController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<BookingResponse>>> getAllBookings(
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String date) {
+            @RequestParam(required = false) String date,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to) {
         List<BookingResponse> all = bookingService.getAllBookings();
         List<BookingResponse> filtered = all.stream()
                 .filter(b -> status == null || b.getBookingStatus().name().equalsIgnoreCase(status))
                 .filter(b -> date == null || b.getBookingDate().toString().equals(date))
+                .filter(b -> from == null || b.getBookingDate().toString().compareTo(from) >= 0)
+                .filter(b -> to == null || b.getBookingDate().toString().compareTo(to) <= 0)
                 .toList();
         return ResponseEntity.ok(ApiResponse.success(filtered));
     }

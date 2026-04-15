@@ -359,6 +359,72 @@ public class EmailService {
         }
     }
 
+    public void sendMessageReceivedEmail(String toEmail, String recipientName, String senderName, String subject, String bodyPreview) {
+        if (!emailEnabled || mailSender == null) {
+            log.info("Email disabled — skipping message receipt email for {}", toEmail);
+            return;
+        }
+        if (!StringUtils.hasText(toEmail)) return;
+
+        String preview = bodyPreview != null && bodyPreview.length() > 200
+                ? bodyPreview.substring(0, 200) + "…"
+                : (bodyPreview != null ? bodyPreview : "");
+
+        String html = "<html><body style='font-family:sans-serif;color:#222;'>"
+            + "<h2 style='color:#d97706;'>Kante Elite Training</h2>"
+            + "<h3>New Message</h3>"
+            + "<p>Hi " + escapeHtml(recipientName) + ",</p>"
+            + "<p>You have received a new message from <strong>" + escapeHtml(senderName) + "</strong>.</p>"
+            + "<p><strong>Subject:</strong> " + escapeHtml(subject) + "</p>"
+            + "<blockquote style='border-left:3px solid #d97706;margin:8px 0;padding:6px 12px;color:#444;'>"
+            + escapeHtml(preview)
+            + "</blockquote>"
+            + "<p>Log in to your portal to read and reply.</p>"
+            + "<p style='color:#888;font-size:12px;'>— The Kante Elite Training Team</p>"
+            + "</body></html>";
+
+        try {
+            sendHtmlEmail(toEmail, "New Message: " + escapeHtml(subject) + " — Kante Elite Training", html, null);
+            log.info("Message receipt email sent to {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send message receipt email to {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    public void sendAttendanceMarkedEmail(String toEmail, String playerName, String sessionDate, String status, String coachNotes) {
+        if (!emailEnabled || mailSender == null) {
+            log.info("Email disabled — skipping attendance email for {}", toEmail);
+            return;
+        }
+        if (!StringUtils.hasText(toEmail)) return;
+
+        String statusLabel = switch (status.toUpperCase()) {
+            case "PRESENT" -> "✅ Present";
+            case "ABSENT" -> "❌ Absent";
+            case "LATE" -> "⏰ Late";
+            default -> escapeHtml(status);
+        };
+
+        String html = "<html><body style='font-family:sans-serif;color:#222;'>"
+            + "<h2 style='color:#d97706;'>Kante Elite Training</h2>"
+            + "<h3>Attendance Update</h3>"
+            + "<p>Hi " + escapeHtml(playerName) + ",</p>"
+            + "<p>Your attendance for the session on <strong>" + escapeHtml(sessionDate) + "</strong> has been recorded.</p>"
+            + "<p><strong>Status:</strong> " + statusLabel + "</p>"
+            + (StringUtils.hasText(coachNotes)
+                ? "<p><strong>Coach notes:</strong> " + escapeHtml(coachNotes) + "</p>"
+                : "")
+            + "<p style='color:#888;font-size:12px;'>— The Kante Elite Training Team</p>"
+            + "</body></html>";
+
+        try {
+            sendHtmlEmail(toEmail, "Attendance Recorded — " + escapeHtml(sessionDate) + " — Kante Elite Training", html, null);
+            log.info("Attendance email sent to {} for session {}", toEmail, sessionDate);
+        } catch (Exception e) {
+            log.error("Failed to send attendance email to {}: {}", toEmail, e.getMessage());
+        }
+    }
+
     public void sendWaiverSignedEmail(String toEmail, String userName, String waiverTitle) {
         if (!emailEnabled || mailSender == null) {
             log.info("Email disabled — skipping waiver signed email for {}", toEmail);

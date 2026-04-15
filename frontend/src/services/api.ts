@@ -520,6 +520,8 @@ export const updateWebsiteContent = async (
 export const getAdminBookings = async (params?: {
   status?: string
   date?: string
+  from?: string
+  to?: string
 }): Promise<Booking[]> => {
   const res = await api.get<ApiResponse<Booking[]>>('/admin/bookings', { params })
   return res.data.data ?? []
