@@ -26,7 +26,9 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,6 +45,7 @@ public class RecurringScheduleService {
     private final BlockedSlotRepository blockedSlotRepository;
     private final AuditLogService auditLogService;
     private final NotificationService notificationService;
+    private final EmailService emailService;
 
     private static final int DEFAULT_SERIES_WEEKS = 12;
 
@@ -213,8 +216,34 @@ public class RecurringScheduleService {
                 "Created series with " + created + " sessions");
 
         Long savedId = series.getId();
-        return toSeriesResponse(bookingSeriesRepository.findById(savedId)
+        BookingSeriesResponse seriesResponse = toSeriesResponse(bookingSeriesRepository.findById(savedId)
                 .orElseThrow(() -> new ResourceNotFoundException("BookingSeries", savedId)));
+
+        // Collect unique parent emails from linked players and send confirmation email
+        Set<String> parentEmails = new LinkedHashSet<>();
+        for (PlayerProfile player : players) {
+            if (player.getParentUser() != null && player.getParentUser().getEmail() != null
+                    && !player.getParentUser().getEmail().isBlank()) {
+                parentEmails.add(player.getParentUser().getEmail());
+            }
+        }
+        if (parentEmails.isEmpty() && actorEmail != null && !actorEmail.isBlank()) {
+            parentEmails.add(actorEmail);
+        }
+        List<LocalDate> sessionDates = preview.stream()
+                .filter(item -> !item.isConflict())
+                .map(BookingSeriesPreviewItem::getDate)
+                .sorted()
+                .collect(Collectors.toList());
+        for (String email : parentEmails) {
+            try {
+                emailService.sendBookingSeriesConfirmation(email, seriesResponse, sessionDates);
+            } catch (Exception e) {
+                log.warn("Failed to send series confirmation email to {}: {}", email, e.getMessage());
+            }
+        }
+
+        return seriesResponse;
     }
 
     @Transactional(readOnly = true)

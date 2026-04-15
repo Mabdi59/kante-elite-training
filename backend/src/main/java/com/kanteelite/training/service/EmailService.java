@@ -2,6 +2,7 @@ package com.kanteelite.training.service;
 
 import com.kanteelite.training.dto.request.ContactRequest;
 import com.kanteelite.training.dto.response.BookingResponse;
+import com.kanteelite.training.dto.response.BookingSeriesResponse;
 import com.kanteelite.training.dto.response.TeamRegistrationResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ import org.thymeleaf.context.Context;
 
 import jakarta.mail.internet.MimeMessage;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -159,6 +161,73 @@ public class EmailService {
             log.info("Contact notification sent from {}", request.getEmail());
         } catch (Exception e) {
             log.error("Failed to send contact notification: {}", e.getMessage());
+        }
+    }
+
+    public boolean sendSessionReminder(BookingResponse booking) {
+        if (!emailEnabled) {
+            log.info("Email disabled — skipping session reminder for {}", booking.getEmail());
+            return false;
+        }
+        if (mailSender == null) {
+            log.warn("Email enabled but JavaMailSender is not configured; skipping session reminder for {}", booking.getEmail());
+            return false;
+        }
+        try {
+            Context ctx = new Context();
+            ctx.setVariable("booking", booking);
+
+            String htmlBody = templateEngine.process("email/session-reminder", ctx);
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromAddress);
+            helper.setTo(booking.getEmail());
+            helper.setSubject("Reminder: Session Tomorrow — Kante Elite Training");
+            helper.setText(htmlBody, true);
+
+            mailSender.send(message);
+            log.info("Session reminder sent to {} for booking {}", booking.getEmail(), booking.getId());
+            return true;
+        } catch (Exception e) {
+            log.error("Failed to send session reminder to {}: {}", booking.getEmail(), e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean sendBookingSeriesConfirmation(String toEmail, BookingSeriesResponse series, List<LocalDate> sessionDates) {
+        if (!emailEnabled) {
+            log.info("Email disabled — skipping series confirmation for {}", toEmail);
+            return false;
+        }
+        if (mailSender == null) {
+            log.warn("Email enabled but JavaMailSender is not configured; skipping series confirmation for {}", toEmail);
+            return false;
+        }
+        if (!StringUtils.hasText(toEmail)) {
+            log.warn("No email address for series confirmation; skipping.");
+            return false;
+        }
+        try {
+            Context ctx = new Context();
+            ctx.setVariable("series", series);
+            ctx.setVariable("sessionDates", sessionDates);
+
+            String htmlBody = templateEngine.process("email/series-confirmation", ctx);
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromAddress);
+            helper.setTo(toEmail);
+            helper.setSubject("Recurring Schedule Confirmed — Kante Elite Training");
+            helper.setText(htmlBody, true);
+
+            mailSender.send(message);
+            log.info("Series confirmation sent to {} for series {}", toEmail, series.getId());
+            return true;
+        } catch (Exception e) {
+            log.error("Failed to send series confirmation to {}: {}", toEmail, e.getMessage());
+            return false;
         }
     }
 

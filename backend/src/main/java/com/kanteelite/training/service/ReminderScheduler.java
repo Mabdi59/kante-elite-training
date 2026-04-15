@@ -1,5 +1,6 @@
 package com.kanteelite.training.service;
 
+import com.kanteelite.training.dto.response.BookingResponse;
 import com.kanteelite.training.entity.Booking;
 import com.kanteelite.training.enums.BookingStatus;
 import com.kanteelite.training.repository.BookingRepository;
@@ -18,6 +19,7 @@ public class ReminderScheduler {
 
     private final BookingRepository bookingRepository;
     private final NotificationService notificationService;
+    private final EmailService emailService;
 
     @Scheduled(cron = "0 0 8 * * *")
     public void sendSessionReminders() {
@@ -40,6 +42,27 @@ public class ReminderScheduler {
                 log.info("Sent session reminder to {} for booking {}", booking.getEmail(), booking.getId());
             } catch (Exception e) {
                 log.error("Failed to send reminder for booking {}: {}", booking.getId(), e.getMessage());
+            }
+
+            try {
+                BookingResponse response = BookingResponse.builder()
+                        .id(booking.getId())
+                        .programId(booking.getProgram() != null ? booking.getProgram().getId() : null)
+                        .programName(booking.getProgram() != null ? booking.getProgram().getName() : null)
+                        .bookingDate(booking.getBookingDate())
+                        .bookingTime(booking.getBookingTime())
+                        .playerName(booking.getPlayerName())
+                        .playerAge(booking.getPlayerAge())
+                        .parentName(booking.getParentName())
+                        .email(booking.getEmail())
+                        .phone(booking.getPhone())
+                        .bookingStatus(booking.getBookingStatus())
+                        .paymentStatus(booking.getPaymentStatus())
+                        .createdAt(booking.getCreatedAt())
+                        .build();
+                emailService.sendSessionReminder(response);
+            } catch (Exception e) {
+                log.error("Failed to send email reminder for booking {}: {}", booking.getId(), e.getMessage());
             }
         }
     }

@@ -964,6 +964,28 @@ export default function App() {
               }
             />
 
+            <Route
+              path="/player/waivers"
+              element={
+                <ProtectedRoute requireRole="PLAYER">
+                  <PlayerLayout>
+                    <WaiversPage />
+                  </PlayerLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/player/documents"
+              element={
+                <ProtectedRoute requireRole="PLAYER">
+                  <PlayerLayout>
+                    <DocumentsPage />
+                  </PlayerLayout>
+                </ProtectedRoute>
+              }
+            />
+
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
