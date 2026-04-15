@@ -10,6 +10,8 @@ jobs:
   backend:
     name: Backend – compile & test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -31,6 +33,8 @@ jobs:
   frontend:
     name: Frontend – build & test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
