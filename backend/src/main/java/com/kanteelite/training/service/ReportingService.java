@@ -10,8 +10,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -76,5 +79,30 @@ public class ReportingService {
         report.put("byPlayer", byPlayer);
 
         return report;
+    }
+
+    /**
+     * Returns daily booking counts for the last {@code days} days (inclusive).
+     * Each entry has {@code date} (ISO string) and {@code count}.
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getBookingsOverTime(int days) {
+        LocalDate today = LocalDate.now();
+        LocalDate from = today.minusDays(days - 1L);
+
+        // Group bookings by date within range
+        Map<LocalDate, Long> countsByDate = bookingRepository.findAllByOrderByCreatedAtDesc().stream()
+                .filter(b -> !b.getBookingDate().isBefore(from) && !b.getBookingDate().isAfter(today))
+                .collect(Collectors.groupingBy(b -> b.getBookingDate(), LinkedHashMap::new, Collectors.counting()));
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        DateTimeFormatter fmt = DateTimeFormatter.ISO_DATE;
+        for (LocalDate date = from; !date.isAfter(today); date = date.plusDays(1)) {
+            Map<String, Object> point = new LinkedHashMap<>();
+            point.put("date", date.format(fmt));
+            point.put("count", countsByDate.getOrDefault(date, 0L));
+            result.add(point);
+        }
+        return result;
     }
 }

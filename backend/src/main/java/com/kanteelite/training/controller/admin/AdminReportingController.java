@@ -22,6 +22,13 @@ public class AdminReportingController {
 
     private final ReportingService reportingService;
 
+    @GetMapping("/bookings-over-time")
+    public ResponseEntity<List<Map<String, Object>>> bookingsOverTime(
+            @RequestParam(defaultValue = "30") int days) {
+        int clampedDays = Math.max(7, Math.min(days, 365));
+        return ResponseEntity.ok(reportingService.getBookingsOverTime(clampedDays));
+    }
+
     @GetMapping("/revenue")
     public ResponseEntity<Map<String, Object>> revenueReport() {
         return ResponseEntity.ok(reportingService.getRevenueSummary());
