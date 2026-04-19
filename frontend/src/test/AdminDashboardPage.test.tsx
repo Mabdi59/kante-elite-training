@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
 // Mock API calls before importing the page
-vi.mock('../../services/api', () => ({
+vi.mock('../services/api', () => ({
   getAdminDashboard: vi.fn().mockResolvedValue({
     totalBookings: 42,
     confirmedBookings: 30,
@@ -27,7 +27,7 @@ vi.mock('../../services/api', () => ({
   ]),
 }))
 
-import AdminDashboardPage from '../../pages/admin/AdminDashboardPage'
+import AdminDashboardPage from '../pages/admin/AdminDashboardPage'
 
 describe('AdminDashboardPage', () => {
   beforeEach(() => {

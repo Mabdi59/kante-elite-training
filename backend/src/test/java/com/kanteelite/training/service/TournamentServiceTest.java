@@ -100,10 +100,10 @@ class TournamentServiceTest {
 
         List<StandingEntryResponse> standings = tournamentService.computeStandings(1L);
 
-        // Team A: 2W + 1D = 7pts, Team C: 1W + 1D = 4pts, Team B: 1L + 1L = 0pts
+        // Team A: 1W + 1D = 4pts (GD +2), Team C: 1W + 1D = 4pts (GD 0), Team B: 2L = 0pts
         assertThat(standings).hasSize(3);
         assertThat(standings.get(0).getTeamName()).isEqualTo("Team A");
-        assertThat(standings.get(0).getPoints()).isEqualTo(7);
+        assertThat(standings.get(0).getPoints()).isEqualTo(4);
         assertThat(standings.get(0).getPosition()).isEqualTo(1);
 
         assertThat(standings.get(1).getTeamName()).isEqualTo("Team C");

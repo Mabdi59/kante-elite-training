@@ -52,7 +52,7 @@ export default function AdminFamilyOnboardingPage() {
         .catch(() => setError('Could not load users.'))
         .finally(() => setLoadingUsers(false))
     }
-  }, [parentMode])
+  }, [parentMode, existingUsers.length])
 
   const filteredUsers = existingUsers.filter(
     (u) =>
