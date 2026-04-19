@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import ErrorBanner from '../components/ErrorBanner'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
@@ -76,7 +76,7 @@ export default function CalendarPage() {
   const [newColor] = useState('#22c55e')
   const [saving, setSaving] = useState(false)
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     if (!isAuthenticated) return
     const from = new Date(year, month, 1).toISOString()
     const to = new Date(year, month + 1, 0, 23, 59, 59).toISOString()
@@ -91,9 +91,9 @@ export default function CalendarPage() {
     } catch {
       setError('Failed to load calendar events.')
     }
-  }
+  }, [isAuthenticated, year, month])
 
-  const fetchIcalToken = async () => {
+  const fetchIcalToken = useCallback(async () => {
     if (!isAuthenticated) return
     try {
       const res = await api.get('/calendar/ical-token')
@@ -101,17 +101,17 @@ export default function CalendarPage() {
     } catch {
       // iCal token is non-critical; silently ignore
     }
-  }
+  }, [isAuthenticated])
 
   useEffect(() => {
     if (!isAuthenticated) return
     fetchEvents()
-  }, [year, month, isAuthenticated])
+  }, [year, month, isAuthenticated, fetchEvents])
 
   useEffect(() => {
     if (!isAuthenticated) return
     fetchIcalToken()
-  }, [isAuthenticated])
+  }, [isAuthenticated, fetchIcalToken])
 
   const prevMonth = () => {
     if (month === 0) { setYear(y => y - 1); setMonth(11) }

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import type { MediaCategory } from '../types'
 
 const CATEGORY_CONFIG: Record<

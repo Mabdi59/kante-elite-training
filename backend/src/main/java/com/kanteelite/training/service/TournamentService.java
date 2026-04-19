@@ -795,8 +795,8 @@ public class TournamentService {
         List<StandingEntryResponse> result = new ArrayList<>();
         for (List<StandingEntryResponse> group : byGroup.values()) {
             group.sort(Comparator.comparingInt(StandingEntryResponse::getPoints).reversed()
-                    .thenComparingInt(StandingEntryResponse::getGoalDifference).reversed()
-                    .thenComparingInt(StandingEntryResponse::getGoalsFor).reversed()
+                    .thenComparingInt(s -> -s.getGoalDifference())
+                    .thenComparingInt(s -> -s.getGoalsFor())
                     .thenComparing(StandingEntryResponse::getTeamName));
             for (int i = 0; i < group.size(); i++) {
                 group.get(i).setPosition(i + 1);

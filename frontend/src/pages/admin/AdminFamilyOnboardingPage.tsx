@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getAdminUsers, onboardFamily } from '../../services/api'
 import type { AdminUser, FamilyOnboardingRequest, PlayerOnboardingEntry } from '../../types'
@@ -44,8 +44,12 @@ export default function AdminFamilyOnboardingPage() {
   const [error, setError] = useState('')
   const [createdFamilyId, setCreatedFamilyId] = useState<number | null>(null)
 
+  // Track whether existing users have already been fetched to avoid redundant calls
+  const usersFetchedRef = useRef(false)
+
   useEffect(() => {
-    if (parentMode === 'existing' && existingUsers.length === 0) {
+    if (parentMode === 'existing' && !usersFetchedRef.current) {
+      usersFetchedRef.current = true
       setLoadingUsers(true)
       getAdminUsers()
         .then(setExistingUsers)
