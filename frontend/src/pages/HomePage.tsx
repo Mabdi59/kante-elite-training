@@ -635,11 +635,11 @@ export default function HomePage() {
               <div className="absolute inset-0 bg-gradient-to-br from-amber-500/8 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent" />
               <div className="text-center relative z-10 p-8">
-                <div className="w-24 h-24 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-                  </svg>
-                </div>
+                <img
+                  src="/images/Coach.png"
+                  alt="Coach Mohamed Sheik Kante"
+                  className="w-24 h-24 rounded-full object-cover object-top ring-2 ring-amber-500 mx-auto mb-4"
+                />
                 <p className="text-gray-500 text-sm">Coach Kante</p>
                 <p className="text-amber-500 text-xs font-bold uppercase tracking-widest mt-1">Head Coach & Founder</p>
               </div>
