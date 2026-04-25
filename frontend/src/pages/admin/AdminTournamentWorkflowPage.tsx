@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+﻿import { useEffect, useMemo, useRef, useState } from 'react'
 import FormatSelector from '../../components/FormatSelector'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
@@ -777,7 +777,7 @@ export default function AdminTournamentWorkflowPage() {
         setBracketWarning('⚠ Result saved, but bracket advancement was blocked: ' + updated.warning)
       } else if (data.status === 'FINAL') {
         const isKnockout = match.stageName === 'Knockout'
-        showSuccess(isKnockout ? 'Result saved — winner advanced to next round.' : 'Result saved and standings updated.')
+        showSuccess(isKnockout ? 'Result saved | winner advanced to next round.' : 'Result saved and standings updated.')
       }
     } catch (err: unknown) {
       const message =
@@ -1334,7 +1334,7 @@ export default function AdminTournamentWorkflowPage() {
               <div>
                 <h2 className="text-white font-black text-2xl">Schedule</h2>
                 {workflow.tournament.formatType === 'ROUND_ROBIN' && (
-                  <p className="text-gray-400 text-sm mt-1">Auto Build generates round-robin matches — every team plays every other team once.</p>
+                  <p className="text-gray-400 text-sm mt-1">Auto Build generates round-robin matches | every team plays every other team once.</p>
                 )}
                 {workflow.tournament.formatType === 'GROUP_STAGE' && (
                   <p className="text-gray-400 text-sm mt-1">Auto Build generates group-phase matches and placeholder knockout rounds. Fill in knockout teams after groups complete.</p>
@@ -1372,7 +1372,7 @@ export default function AdminTournamentWorkflowPage() {
                       try {
                         await seedTournamentKnockoutBracket(tournamentId)
                         await loadWorkflow(tournamentId)
-                        showSuccess('Knockout bracket seeded — teams placed based on group standings.')
+                        showSuccess('Knockout bracket seeded | teams placed based on group standings.')
                       } catch (err: unknown) {
                         setError((err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Could not seed the knockout bracket.')
                       }
@@ -1546,7 +1546,7 @@ export default function AdminTournamentWorkflowPage() {
                                       </div>
                                       {match.stageName === 'Knockout' && inline.status === 'FINAL' && inline.homeScore !== '' && inline.awayScore !== '' && inline.homeScore === inline.awayScore && (
                                         <div className="text-amber-400 text-xs bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-1.5 w-full text-center">
-                                          ⚠ Knockout matches cannot end in a draw — adjust the score so there is a clear winner.
+                                          ⚠ Knockout matches cannot end in a draw | adjust the score so there is a clear winner.
                                         </div>
                                       )}
                                     </div>
@@ -1578,7 +1578,7 @@ export default function AdminTournamentWorkflowPage() {
               <div className="text-gray-500 text-sm">{workflow.completedMatches} / {workflow.matches.length} matches completed</div>
             </div>
             {workflow.tournament.formatType === 'KNOCKOUT' ? (
-              <EmptyState title="No standings for knockout format" description="Knockout tournaments use a bracket — only match results matter." />
+              <EmptyState title="No standings for knockout format" description="Knockout tournaments use a bracket | only match results matter." />
             ) : (() => {
               const groupStandings = workflow.tournament.formatType === 'GROUP_STAGE'
                 ? (workflow.standings ?? []).filter((s) => s.groupName?.startsWith('Group '))
@@ -1752,8 +1752,8 @@ function AdminBracketView({ matches }: { matches: TournamentMatch[] }) {
             {allFinal
               ? 'All matches complete.'
               : anyFinal
-              ? 'In progress — winners advance automatically when a match is saved as FINAL.'
-              : 'Waiting for results — save a match as FINAL to advance the winner.'}
+              ? 'In progress | winners advance automatically when a match is saved as FINAL.'
+              : 'Waiting for results | save a match as FINAL to advance the winner.'}
           </p>
         </div>
       </div>

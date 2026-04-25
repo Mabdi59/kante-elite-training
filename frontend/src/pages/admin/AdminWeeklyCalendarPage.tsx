@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { getAdminBookings } from '../../services/api'
 import type { Booking } from '../../types'
 import LoadingSpinner from '../../components/LoadingSpinner'
@@ -122,7 +122,7 @@ export default function AdminWeeklyCalendarPage() {
                   </div>
                   <div className="space-y-1.5">
                     {dayBookings.length === 0 ? (
-                      <div className="text-[11px] text-gray-600 px-1">—</div>
+                      <div className="text-[11px] text-gray-600 px-1">|</div>
                     ) : (
                       dayBookings.map((b) => (
                         <div

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getAdminFamily } from '../../services/api'
 import type { FamilyDetail } from '../../types'

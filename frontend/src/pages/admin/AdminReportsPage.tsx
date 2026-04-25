@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import api from '../../services/api'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorBanner from '../../components/ErrorBanner'
@@ -126,7 +126,7 @@ export default function AdminReportsPage() {
                       <tr key={row.programName} className="hover:bg-white/5">
                         <td className="px-4 py-3 text-white">{row.programName}</td>
                         <td className="px-4 py-3 text-gray-300">{row.count}</td>
-                        <td className="px-4 py-3 text-green-400">${row.revenue?.toFixed(2) ?? '—'}</td>
+                        <td className="px-4 py-3 text-green-400">${row.revenue?.toFixed(2) ?? '|'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -152,7 +152,7 @@ export default function AdminReportsPage() {
                       <tr key={row.month} className="hover:bg-white/5">
                         <td className="px-4 py-3 text-white">{row.month}</td>
                         <td className="px-4 py-3 text-gray-300">{row.count}</td>
-                        <td className="px-4 py-3 text-green-400">${row.revenue?.toFixed(2) ?? '—'}</td>
+                        <td className="px-4 py-3 text-green-400">${row.revenue?.toFixed(2) ?? '|'}</td>
                       </tr>
                     ))}
                   </tbody>

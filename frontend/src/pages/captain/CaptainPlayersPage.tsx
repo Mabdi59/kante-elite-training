@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { getCaptainRegistrations } from '../../services/api'
 import type { TeamRegistration } from '../../types'
 import LoadingSpinner from '../../components/LoadingSpinner'

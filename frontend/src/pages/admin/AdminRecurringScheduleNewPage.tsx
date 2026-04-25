@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import {
   getAdminFamilies,
@@ -221,7 +221,7 @@ export default function AdminRecurringScheduleNewPage() {
                 <option value="">Select a family...</option>
                 {families.map((f) => (
                   <option key={f.id} value={f.id}>
-                    {f.name} ({f.email}) — {f.playerCount} player(s)
+                    {f.name} ({f.email}) | {f.playerCount} player(s)
                   </option>
                 ))}
               </select>
@@ -474,7 +474,7 @@ export default function AdminRecurringScheduleNewPage() {
                     <td className="py-2 pr-3 text-gray-300 whitespace-nowrap">{item.date}</td>
                     <td className="py-2 pr-3 text-gray-400 whitespace-nowrap">{item.dayOfWeek}</td>
                     <td className="py-2 pr-3 text-gray-300 whitespace-nowrap">{item.bookingTime}</td>
-                    <td className="py-2 pr-3 text-gray-400">{item.coachName ?? '—'}</td>
+                    <td className="py-2 pr-3 text-gray-400">{item.coachName ?? '|'}</td>
                     <td className="py-2">
                       {item.conflict ? (
                         <span className="text-red-400 text-xs" title={item.conflictReason}>
@@ -494,7 +494,7 @@ export default function AdminRecurringScheduleNewPage() {
             <p className="text-gray-400 text-sm">
               {hasBlockingConflicts
                 ? 'Some sessions have conflicts. You can still create the schedule.'
-                : 'No conflicts — ready to create.'}
+                : 'No conflicts | ready to create.'}
             </p>
             <button
               type="button"

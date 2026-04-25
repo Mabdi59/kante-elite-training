@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -110,7 +110,7 @@ export default function AdminDashboardPage() {
       {chartData.length > 0 && (
         <div className="mt-10">
           <h2 className="text-gray-400 text-xs font-semibold uppercase tracking-widest mb-4">
-            Bookings — last 30 days
+            Bookings | last 30 days
           </h2>
           <div className="rounded-xl border border-gray-800 bg-gray-900 p-5 sm:p-6">
             <ResponsiveContainer width="100%" height={260}>

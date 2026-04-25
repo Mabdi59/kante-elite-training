@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getPrograms, getFeaturedTestimonials } from '../services/api'
 import type { Program, Testimonial } from '../types'
@@ -131,7 +131,7 @@ export default function TrainingPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    document.title = 'Soccer Training Programs | Kante Elite Training — Columbus, Ohio'
+    document.title = 'Training Programs | Kante Elite Training'
     return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
   }, [])
 

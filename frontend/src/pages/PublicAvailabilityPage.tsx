@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+﻿import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAvailability, getPrograms } from '../services/api'
 import type { AvailabilityData, Program } from '../types'

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getPublicTournamentView } from '../services/api'
 import type { StandingEntry, TournamentMatch, TournamentWorkflow, TournamentWorkflowTeam } from '../types'
@@ -172,7 +172,7 @@ export default function TournamentDetailPage() {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatDate(d?: string | null) {
-  if (!d) return '—'
+  if (!d) return '|'
   try {
     // Parse as local date by splitting the date string to avoid UTC offset shifts
     const parts = d.split('-').map(Number)

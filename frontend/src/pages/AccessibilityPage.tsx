@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+﻿import type { ReactNode } from 'react'
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -9,7 +9,7 @@ const BUSINESS_PHONE = '(614) 285-2317'
 
 export default function AccessibilityPage() {
   useEffect(() => {
-    document.title = 'Accessibility Statement — Kante Elite Training'
+    document.title = 'Accessibility Statement | Kante Elite Training'
     return () => { document.title = 'Kante Elite Training' }
   }, [])
 

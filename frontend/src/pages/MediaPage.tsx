@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CATEGORY_OPTIONS, getCategoryLabel } from '../components/CategoryBadge'
 import CTASection from '../components/CTASection'
@@ -24,7 +24,7 @@ export default function MediaPage() {
   const [activeCategory, setActiveCategory] = useState<FilterCategory>('ALL')
 
   useEffect(() => {
-    document.title = 'Media & Highlights | Kante Elite Training — Columbus, Ohio'
+    document.title = 'Media & Highlights | Kante Elite Training'
     return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
   }, [])
 

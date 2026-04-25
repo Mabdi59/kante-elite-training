@@ -214,7 +214,7 @@ export default function AdminEnrollmentsPage() {
             download="enrollments.csv"
             className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-gray-300 hover:bg-white/10 transition-colors"
           >
-            ↓ Export CSV
+            ? Export CSV
           </a>
           <button
             type="button"

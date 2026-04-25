@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { getEvents } from '../services/api'
 import type { Event } from '../types'
 import HeroSection from '../components/HeroSection'
@@ -10,7 +10,7 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    document.title = 'Camps & Events | Kante Elite Training — Columbus, Ohio'
+    document.title = 'Camps & Events | Kante Elite Training'
     return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
   }, [])
 

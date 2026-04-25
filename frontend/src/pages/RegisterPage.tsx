@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react'
+﻿import { useMemo, useState, type FormEvent } from 'react'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { register } from '../services/api'
 import { useAuth } from '../context/AuthContext'

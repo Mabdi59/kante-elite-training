@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { deleteTournament, duplicateTournament, getAdminTournaments } from '../../services/api'
 import type { Tournament } from '../../types'

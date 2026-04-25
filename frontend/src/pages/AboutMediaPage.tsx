@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import CTASection from '../components/CTASection'
 import EmptyState from '../components/EmptyState'
 import MediaLightbox from '../components/MediaLightbox'
@@ -15,7 +15,7 @@ export default function AboutMediaPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    document.title = 'About | Kante Elite Training — Columbus Youth Soccer Academy'
+    document.title = 'About | Kante Elite Training'
     return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
   }, [])
 

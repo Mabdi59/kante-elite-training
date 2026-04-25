@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 interface FaqItem {
@@ -61,7 +61,7 @@ export default function FaqPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
 
   useEffect(() => {
-    document.title = 'FAQ | Kante Elite Training — Columbus Youth Soccer'
+    document.title = 'FAQ | Kante Elite Training'
     return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
   }, [])
 

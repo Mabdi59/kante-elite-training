@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getTournaments } from '../services/api'
 import type { Tournament } from '../types'
@@ -111,7 +111,7 @@ export default function TournamentsPage() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
-    document.title = 'Youth Soccer Tournaments | Kante Elite Training — Columbus, Ohio'
+    document.title = 'Tournaments | Kante Elite Training'
     return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
   }, [])
 
@@ -223,7 +223,7 @@ export default function TournamentsPage() {
           </div>
         )}
 
-        {/* Past tournaments — collapsed by default */}
+        {/* Past tournaments | collapsed by default */}
         {!loading && pastTournaments.length > 0 && (
           <div className="mt-16">
             <button

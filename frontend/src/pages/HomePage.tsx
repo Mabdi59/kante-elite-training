@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   getPrograms,
@@ -93,7 +93,7 @@ export default function HomePage() {
   const [homeFaqOpen, setHomeFaqOpen] = useState<number | null>(null)
 
   useEffect(() => {
-    document.title = 'Kante Elite Training — Youth Soccer Academy, Columbus Ohio'
+    document.title = 'Kante Elite Training | Youth Soccer Academy, Columbus Ohio'
     return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
   }, [])
 

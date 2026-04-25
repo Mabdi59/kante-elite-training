@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { submitContact } from '../services/api'
 import type { ContactFormData } from '../types'
 import HeroSection from '../components/HeroSection'
@@ -29,7 +29,7 @@ export default function ContactPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    document.title = 'Contact | Kante Elite Training — Columbus, Ohio'
+    document.title = 'Contact | Kante Elite Training'
     return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
   }, [])
 

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+﻿import type { ReactNode } from 'react'
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -9,7 +9,7 @@ const BUSINESS_PHONE = '(614) 285-2317'
 
 export default function PrivacyPolicyPage() {
   useEffect(() => {
-    document.title = 'Privacy Policy — Kante Elite Training'
+    document.title = 'Privacy Policy | Kante Elite Training'
     return () => { document.title = 'Kante Elite Training' }
   }, [])
 
@@ -44,12 +44,12 @@ export default function PrivacyPolicyPage() {
           <Section title="1. Information We Collect">
             <p>We collect information you provide directly to us, including:</p>
             <ul>
-              <li><strong>Contact information</strong> — name, email address, phone number</li>
-              <li><strong>Player information</strong> — player name, age, skill level, and training goals</li>
-              <li><strong>Account information</strong> — username and password when you register</li>
-              <li><strong>Booking details</strong> — selected program, preferred date and time, session notes</li>
-              <li><strong>Payment information</strong> — processed securely via Stripe; we do not store card numbers</li>
-              <li><strong>Communications</strong> — messages you send us through the contact form or email</li>
+              <li><strong>Contact information</strong> | name, email address, phone number</li>
+              <li><strong>Player information</strong> | player name, age, skill level, and training goals</li>
+              <li><strong>Account information</strong> | username and password when you register</li>
+              <li><strong>Booking details</strong> | selected program, preferred date and time, session notes</li>
+              <li><strong>Payment information</strong> | processed securely via Stripe; we do not store card numbers</li>
+              <li><strong>Communications</strong> | messages you send us through the contact form or email</li>
             </ul>
             <p className="mt-3">We may also automatically collect technical information such as your browser type, IP address, and pages visited, to help improve site performance.</p>
           </Section>

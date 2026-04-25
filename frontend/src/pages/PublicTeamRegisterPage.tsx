@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+﻿import { useEffect, useState, type FormEvent } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getTournamentById, registerTeam } from '../services/api'
 import { useAuth } from '../context/AuthContext'

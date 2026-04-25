@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { getAuditLogs } from '../../services/api'
 import type { AuditLog } from '../../types'
 import LoadingSpinner from '../../components/LoadingSpinner'

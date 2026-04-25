@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { getAdminPayments, refundAdminBooking } from '../../services/api'
 import type { Booking } from '../../types'
 import LoadingSpinner from '../../components/LoadingSpinner'
@@ -175,7 +175,7 @@ export default function AdminPaymentsPage() {
                         {refundingId === b.id ? 'Refunding…' : 'Refund'}
                       </button>
                     ) : (
-                      <span className="text-gray-600 text-xs">—</span>
+                      <span className="text-gray-600 text-xs">|</span>
                     )}
                   </td>
                 </tr>

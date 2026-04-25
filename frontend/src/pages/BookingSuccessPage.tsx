@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+﻿import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useSearchParams, Link } from 'react-router-dom'
 import api, { getBookingByStripeSession } from '../services/api'
 import type { ApiResponse, Booking } from '../types'
@@ -69,7 +69,7 @@ export default function BookingSuccessPage() {
       if (pollAttemptsRef.current >= MAX_ATTEMPTS) {
         setStripePolling(false)
         setLoading(false)
-        // Payment confirmed but booking details still processing — show a friendly state
+        // Payment confirmed but booking details still processing | show a friendly state
         return
       }
       pollAttemptsRef.current += 1
@@ -150,7 +150,7 @@ export default function BookingSuccessPage() {
     )
   }
 
-  // Stripe payment confirmed but webhook hasn't yet created the booking — show friendly state
+  // Stripe payment confirmed but webhook hasn't yet created the booking | show friendly state
   if (stripeSessionId && !booking && !error) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center px-4 pt-20">

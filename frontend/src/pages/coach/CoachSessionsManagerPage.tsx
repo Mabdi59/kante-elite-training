@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+﻿import { useEffect, useState, useCallback } from 'react'
 import {
   getMyCoachSessions,
   rescheduleCoachSession,
@@ -263,7 +263,7 @@ export default function CoachSessionsManagerPage() {
                       </span>
                     </div>
                     {daySessions.length === 0 ? (
-                      <p className="text-gray-700 text-xs text-center mt-4">—</p>
+                      <p className="text-gray-700 text-xs text-center mt-4">|</p>
                     ) : (
                       <div className="space-y-1.5">
                         {daySessions.map((s) => (

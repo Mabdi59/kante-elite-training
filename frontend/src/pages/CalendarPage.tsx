@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+﻿import { useCallback, useEffect, useState } from 'react'
 import ErrorBanner from '../components/ErrorBanner'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
@@ -347,7 +347,7 @@ export default function CalendarPage() {
                 onClick={regenerateIcalToken}
                 disabled={icalRegenerating}
                 className="btn-secondary text-xs px-3 py-2 shrink-0 disabled:opacity-50"
-                title="Regenerate token — this invalidates the old URL"
+                title="Regenerate token | this invalidates the old URL"
               >
                 {icalRegenerating ? '…' : 'Regenerate'}
               </button>

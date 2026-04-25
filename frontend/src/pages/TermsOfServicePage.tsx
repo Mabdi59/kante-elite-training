@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+﻿import type { ReactNode } from 'react'
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -9,7 +9,7 @@ const BUSINESS_PHONE = '(614) 285-2317'
 
 export default function TermsOfServicePage() {
   useEffect(() => {
-    document.title = 'Terms of Service — Kante Elite Training'
+    document.title = 'Terms of Service | Kante Elite Training'
     return () => { document.title = 'Kante Elite Training' }
   }, [])
 
@@ -98,7 +98,7 @@ export default function TermsOfServicePage() {
 
           <Section title="8. Intellectual Property">
             <p>
-              All content on this website — including text, graphics, logos, training materials, and media — is the property of {BUSINESS_NAME} and may not be reproduced, distributed, or used without express written permission.
+              All content on this website | including text, graphics, logos, training materials, and media | is the property of {BUSINESS_NAME} and may not be reproduced, distributed, or used without express written permission.
             </p>
           </Section>
 

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+﻿import type { ReactNode } from 'react'
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -8,7 +8,7 @@ const BUSINESS_EMAIL = 'kanteelitetraining@gmail.com'
 
 export default function CookiePolicyPage() {
   useEffect(() => {
-    document.title = 'Cookie Policy — Kante Elite Training'
+    document.title = 'Cookie Policy | Kante Elite Training'
     return () => { document.title = 'Kante Elite Training' }
   }, [])
 
@@ -52,7 +52,7 @@ export default function CookiePolicyPage() {
                 type="Essential"
                 color="blue"
                 examples="Authentication token, session identifier"
-                purpose="Required for core site functionality — keeping you signed in, securing your session, and enabling booking. These cannot be disabled."
+                purpose="Required for core site functionality | keeping you signed in, securing your session, and enabling booking. These cannot be disabled."
                 canDisable={false}
               />
               <CookieRow
@@ -76,7 +76,7 @@ export default function CookiePolicyPage() {
             <p>We may use limited third-party services that set their own cookies:</p>
             <ul>
               <li>
-                <strong className="text-white">Stripe</strong> — Our payment processor may use cookies to enable secure payment sessions. See <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:text-amber-400">Stripe&apos;s Privacy Policy</a>.
+                <strong className="text-white">Stripe</strong> | Our payment processor may use cookies to enable secure payment sessions. See <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:text-amber-400">Stripe&apos;s Privacy Policy</a>.
               </li>
             </ul>
             <p>We do not use advertising or tracking cookies, and we do not share cookie data with advertisers.</p>

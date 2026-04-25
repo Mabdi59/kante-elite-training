@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+﻿import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import api, { createBookingCheckout, getAvailability, getPaymentsEnabled, getPrograms } from '../services/api'
 import type { ApiResponse, Program, AvailabilityData, BookingFormData, Booking } from '../types'
@@ -242,7 +242,7 @@ export default function BookPage() {
   const [paymentsEnabled, setPaymentsEnabled] = useState(false)
 
   useEffect(() => {
-    document.title = 'Book a Training Session | Kante Elite Training — Columbus, Ohio'
+    document.title = 'Book a Session | Kante Elite Training'
     return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
   }, [])
 
