@@ -71,14 +71,14 @@ export default function Navbar() {
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 md:h-20">
-        <Link to="/" className="flex min-w-0 items-center gap-3">
+        <Link to="/" className="flex shrink-0 items-center gap-3">
           <img
             src="/images/464169962_1489362111765457_2497551385302895846_n.jpg"
             alt="Kante Elite Training logo"
-            className="h-10 w-10 shrink-0 rounded-full object-cover"
+            className="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-amber-500"
           />
-          <div className="min-w-0">
-            <span className="block truncate text-sm font-black leading-none tracking-tight text-white sm:text-base md:text-lg">
+          <div>
+            <span className="block text-sm font-black leading-none tracking-tight text-white sm:text-base md:text-lg">
               KANTE ELITE
             </span>
             <span className="block text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-500">
