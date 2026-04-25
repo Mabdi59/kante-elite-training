@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { getTournaments } from '../services/api'
 import type { Tournament } from '../types'
 import StatusBadge from '../components/StatusBadge'
+import CTASection from '../components/CTASection'
 
 function TournamentCard({ tournament: t }: { tournament: Tournament }) {
   const spotsLeft = t.maxTeams - t.registeredTeams
@@ -209,6 +210,15 @@ export default function TournamentsPage() {
           </div>
         )}
       </div>
+      <CTASection
+        title="Train With the Best, Compete With Confidence"
+        subtitle="Kante Elite Training prepares players for competitive environments. Join a program and step onto the pitch ready."
+        primaryLabel="Book a Session"
+        primaryHref="/book"
+        secondaryLabel="View Programs"
+        secondaryHref="/training"
+        urgencyLine="Now Enrolling"
+      />
     </div>
   )
 }

@@ -223,7 +223,7 @@ export default function App() {
                 </MainLayout>
               }
             />
-            <Route path="/tournaments/:id/register" element={<PublicTeamRegisterPage />} />
+            <Route path="/tournaments/:id/register" element={<MainLayout><PublicTeamRegisterPage /></MainLayout>} />
             <Route
               path="/tournaments/registration/:token"
               element={
