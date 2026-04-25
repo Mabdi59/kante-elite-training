@@ -138,7 +138,7 @@ export default function MediaPage() {
                 >
                   <MediaPostCard
                     post={post}
-                    imageLoading={index < 4 ? 'eager' : 'lazy'}
+                    imageLoading={index < 8 ? 'eager' : 'lazy'}
                     imageFetchPriority={index < 2 ? 'high' : 'auto'}
                   />
                 </button>
