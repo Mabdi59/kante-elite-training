@@ -85,7 +85,7 @@ export default function PlayerProfilePage() {
 
       {error ? <ErrorBanner message={error} onDismiss={() => setError('')} /> : null}
 
-      <form onSubmit={handleSave} className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+      <form onSubmit={handleSave} className="bg-[#111] border border-[#222] rounded-xl p-6 space-y-4">
         <h2 className="text-white text-xl font-bold">
           {profile ? 'Update Your Profile' : 'Set Up Your Profile'}
         </h2>
@@ -97,7 +97,7 @@ export default function PlayerProfilePage() {
               required
               value={form.name}
               onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+              className="input-field-default"
             />
           </div>
 
@@ -113,7 +113,7 @@ export default function PlayerProfilePage() {
                   age: calculateAgeFromDateOfBirth(event.target.value),
                 }))
               }
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+              className="input-field-default"
             />
           </div>
 
@@ -126,7 +126,7 @@ export default function PlayerProfilePage() {
               value={calculateAgeFromDateOfBirth(form.dateOfBirth) ?? form.age ?? ''}
               readOnly
               disabled
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-400 text-sm cursor-not-allowed disabled:opacity-100"
+              className="input-field-default text-gray-400 cursor-not-allowed disabled:opacity-100"
             />
             <p className="mt-1 text-xs text-gray-500">Calculated automatically from date of birth.</p>
           </div>
@@ -136,7 +136,7 @@ export default function PlayerProfilePage() {
             <select
               value={form.skillLevel ?? ''}
               onChange={(event) => setForm((current) => ({ ...current, skillLevel: event.target.value }))}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+              className="input-field-default"
             >
               <option value="">Select level</option>
               <option value="BEGINNER">BEGINNER</option>
@@ -153,7 +153,7 @@ export default function PlayerProfilePage() {
               onChange={(event) =>
                 setForm((current) => ({ ...current, preferredPosition: event.target.value }))
               }
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+              className="input-field-default"
               placeholder="Example: Midfielder"
             />
           </div>
@@ -164,7 +164,7 @@ export default function PlayerProfilePage() {
               rows={4}
               value={form.notes ?? ''}
               onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm resize-none"
+              className="input-field-default resize-none"
               placeholder="Share anything that will help guide your training."
             />
           </div>
@@ -174,7 +174,7 @@ export default function PlayerProfilePage() {
           <button
             type="submit"
             disabled={saving}
-            className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-5 py-2 rounded-lg text-sm disabled:opacity-50"
+            className="btn-primary disabled:opacity-50"
           >
             {saving ? 'Saving...' : profile ? 'Save Changes' : 'Create Profile'}
           </button>

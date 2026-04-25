@@ -131,7 +131,7 @@ export default function AccountPage() {
   return (
     <div className="min-h-screen bg-black">
       {/* Header */}
-      <div className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+      <div className="bg-[#0d0d0d] border-b border-[#1a1a1a] px-6 py-4 flex items-center justify-between">
         <Link to="/" className="text-xl font-black text-white tracking-wider">
           KANTÉ ELITE
         </Link>
@@ -145,7 +145,7 @@ export default function AccountPage() {
         <div className="mb-8">
           <h1 className="text-white text-4xl font-black mb-1">My Account</h1>
           <p className="text-gray-400">
-            Welcome back, <span className="text-green-400 font-semibold">{user?.name}</span>
+            Welcome back, <span className="text-amber-500 font-semibold">{user?.name}</span>
           </p>
           <p className="text-gray-600 text-sm">{user?.email} · {user?.role}</p>
         </div>
@@ -157,14 +157,14 @@ export default function AccountPage() {
         )}
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-8 border-b border-gray-800 pb-0">
+        <div className="flex gap-2 mb-8 border-b border-[#1a1a1a] pb-0">
           {(['bookings', 'players', 'security'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={`px-5 py-2.5 text-sm font-medium -mb-px border-b-2 transition-colors capitalize ${
                 tab === t
-                  ? 'text-green-400 border-green-400'
+                  ? 'text-amber-500 border-amber-500'
                   : 'text-gray-500 border-transparent hover:text-gray-300'
               }`}
             >
@@ -189,7 +189,7 @@ export default function AccountPage() {
                 <span>📅</span> Upcoming Sessions ({upcoming.length})
               </h2>
               {upcoming.length === 0 ? (
-                <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center">
+                <div className="bg-[#111] border border-[#222] rounded-xl p-6 text-center">
                   <p className="text-gray-500 mb-4">No upcoming sessions booked.</p>
                   <Link to="/book" className="btn-primary text-sm">
                     Book a Session
@@ -236,7 +236,7 @@ export default function AccountPage() {
               <h2 className="text-white text-xl font-bold">Player Profiles</h2>
               <button
                 onClick={() => setShowAddPlayer(true)}
-                className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-colors"
+                className="btn-primary text-sm"
               >
                 + Add Player
               </button>
@@ -245,7 +245,7 @@ export default function AccountPage() {
             {showAddPlayer && (
               <form
                 onSubmit={handleAddPlayer}
-                className="bg-gray-900 border border-gray-700 rounded-xl p-6 mb-6 space-y-4"
+                className="bg-[#111] border border-[#222] rounded-xl p-6 mb-6 space-y-4"
               >
                 <h3 className="text-white font-bold">New Player Profile</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -256,7 +256,7 @@ export default function AccountPage() {
                       required
                       value={playerForm.name}
                       onChange={(e) => setPlayerForm({ ...playerForm, name: e.target.value })}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                      className="input-field-default"
                     />
                   </div>
                   <div>
@@ -271,7 +271,7 @@ export default function AccountPage() {
                           age: calculateAgeFromDateOfBirth(e.target.value),
                         })
                       }
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                      className="input-field-default"
                     />
                   </div>
                   <div>
@@ -283,7 +283,7 @@ export default function AccountPage() {
                       value={calculateAgeFromDateOfBirth(playerForm.dateOfBirth) ?? playerForm.age ?? ''}
                       readOnly
                       disabled
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-400 text-sm cursor-not-allowed disabled:opacity-100"
+                      className="input-field-default text-gray-400 cursor-not-allowed disabled:opacity-100"
                     />
                     <p className="mt-1 text-xs text-gray-500">Calculated automatically from date of birth.</p>
                   </div>
@@ -292,7 +292,7 @@ export default function AccountPage() {
                     <select
                       value={playerForm.skillLevel ?? ''}
                       onChange={(e) => setPlayerForm({ ...playerForm, skillLevel: e.target.value })}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                      className="input-field-default"
                     >
                       <option value="">Select level</option>
                       <option>BEGINNER</option>
@@ -309,7 +309,7 @@ export default function AccountPage() {
                       onChange={(e) =>
                         setPlayerForm({ ...playerForm, preferredPosition: e.target.value })
                       }
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                      className="input-field-default"
                       placeholder="e.g. Midfielder"
                     />
                   </div>
@@ -319,7 +319,7 @@ export default function AccountPage() {
                       rows={2}
                       value={playerForm.notes ?? ''}
                       onChange={(e) => setPlayerForm({ ...playerForm, notes: e.target.value })}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm resize-none"
+                      className="input-field-default resize-none"
                     />
                   </div>
                 </div>
@@ -327,14 +327,14 @@ export default function AccountPage() {
                   <button
                     type="submit"
                     disabled={savingPlayer}
-                    className="bg-green-500 hover:bg-green-600 text-white font-semibold px-5 py-2 rounded-lg text-sm disabled:opacity-50"
+                    className="btn-primary text-sm disabled:opacity-50"
                   >
                     {savingPlayer ? 'Saving…' : 'Add Player'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowAddPlayer(false)}
-                    className="bg-gray-700 text-white px-5 py-2 rounded-lg text-sm hover:bg-gray-600"
+                    className="btn-secondary text-sm"
                   >
                     Cancel
                   </button>
@@ -343,13 +343,13 @@ export default function AccountPage() {
             )}
 
             {players.length === 0 ? (
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center">
+              <div className="bg-[#111] border border-[#222] rounded-xl p-6 text-center">
                 <p className="text-gray-500">No player profiles yet. Add your first player!</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {players.map((p) => (
-                  <div key={p.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+                  <div key={p.id} className="bg-[#111] border border-[#222] rounded-xl p-5">
                     <div className="flex items-start justify-between mb-3">
                       <p className="text-white font-semibold text-lg">{p.name}</p>
                       <button
@@ -385,7 +385,7 @@ export default function AccountPage() {
             <h2 className="text-white text-xl font-bold mb-6">Change Password</h2>
             <form
               onSubmit={handleChangePassword}
-              className="bg-gray-900 border border-gray-800 rounded-xl p-6 max-w-md space-y-4"
+              className="bg-[#111] border border-[#222] rounded-xl p-6 max-w-md space-y-4"
             >
               {pwError && (
                 <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-400 text-sm">
@@ -393,7 +393,7 @@ export default function AccountPage() {
                 </div>
               )}
               {pwSuccess && (
-                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 text-green-400 text-sm">
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 text-amber-400 text-sm">
                   {pwSuccess}
                 </div>
               )}
@@ -406,7 +406,7 @@ export default function AccountPage() {
                   required
                   value={pwForm.currentPassword}
                   onChange={(e) => setPwForm((f) => ({ ...f, currentPassword: e.target.value }))}
-                  className="w-full bg-black border border-gray-700 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-green-500"
+                  className="input-field-default"
                   autoComplete="current-password"
                 />
               </div>
@@ -420,7 +420,7 @@ export default function AccountPage() {
                   minLength={8}
                   value={pwForm.newPassword}
                   onChange={(e) => setPwForm((f) => ({ ...f, newPassword: e.target.value }))}
-                  className="w-full bg-black border border-gray-700 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-green-500"
+                  className="input-field-default"
                   autoComplete="new-password"
                 />
               </div>
@@ -434,14 +434,14 @@ export default function AccountPage() {
                   minLength={8}
                   value={pwForm.confirm}
                   onChange={(e) => setPwForm((f) => ({ ...f, confirm: e.target.value }))}
-                  className="w-full bg-black border border-gray-700 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-green-500"
+                  className="input-field-default"
                   autoComplete="new-password"
                 />
               </div>
               <button
                 type="submit"
                 disabled={savingPw}
-                className="w-full bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition-colors text-sm"
+                className="btn-primary w-full justify-center py-3 disabled:opacity-50"
               >
                 {savingPw ? 'Updating…' : 'Update Password'}
               </button>
@@ -495,7 +495,7 @@ function BookingCard({
         )}
         <Link
           to="/book"
-          className="text-sm text-green-400 border border-green-400/30 hover:bg-green-400/10 rounded-lg px-4 py-2 transition-colors"
+          className="text-sm text-amber-500 border border-amber-500/20 hover:bg-amber-500/10 rounded-lg px-4 py-2 transition-colors"
         >
           Book again
         </Link>

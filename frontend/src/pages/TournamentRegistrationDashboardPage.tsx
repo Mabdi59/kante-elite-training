@@ -222,7 +222,7 @@ export default function TournamentRegistrationDashboardPage() {
         ) : null}
 
         {notice ? (
-          <div className="mb-6 bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-green-300 text-sm">
+          <div className="mb-6 bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 text-amber-300 text-sm">
             {notice}
           </div>
         ) : null}
@@ -295,7 +295,7 @@ export default function TournamentRegistrationDashboardPage() {
                   type="button"
                   onClick={handleCheckout}
                   disabled={creatingCheckout}
-                  className="w-full sm:w-auto bg-green-500 hover:bg-green-400 disabled:opacity-50 text-black font-bold px-5 py-3 rounded-lg mb-5"
+                  className="btn-primary w-full sm:w-auto py-3 mb-5 disabled:opacity-50"
                 >
                   {creatingCheckout ? 'Starting Checkout...' : 'Pay Online'}
                 </button>
@@ -309,7 +309,7 @@ export default function TournamentRegistrationDashboardPage() {
                       <select
                         value={paymentMethod}
                         onChange={(event) => setPaymentMethod(event.target.value)}
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white"
+                        className="input-field-default"
                       >
                         {PAYMENT_METHODS.map((method) => (
                           <option key={method} value={method}>
@@ -323,7 +323,7 @@ export default function TournamentRegistrationDashboardPage() {
                       <input
                         value={paymentReference}
                         onChange={(event) => setPaymentReference(event.target.value)}
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white"
+                        className="input-field-default"
                         placeholder="Transaction ID or note"
                       />
                     </div>
@@ -335,7 +335,7 @@ export default function TournamentRegistrationDashboardPage() {
                       rows={3}
                       value={paymentNotes}
                       onChange={(event) => setPaymentNotes(event.target.value)}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white resize-none"
+                      className="input-field-default resize-none"
                       placeholder="Add any details that will help us match your payment."
                     />
                   </div>
@@ -386,7 +386,7 @@ export default function TournamentRegistrationDashboardPage() {
                     rows={6}
                     value={rosterText}
                     onChange={(event) => setRosterText(event.target.value)}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white resize-none"
+                    className="input-field-default resize-none"
                     placeholder="Example: Player names, jersey numbers, positions, or any roster notes."
                   />
                 </div>

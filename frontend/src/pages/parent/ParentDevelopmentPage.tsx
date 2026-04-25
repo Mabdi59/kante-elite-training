@@ -133,7 +133,7 @@ export default function ParentDevelopmentPage() {
             <select
               value={selectedPlayerId}
               onChange={handlePlayerSelect}
-              className="w-full rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500"
+              className="w-full rounded-lg border border-[#222] bg-[#111] px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500"
             >
               {linkedPlayers.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
@@ -152,10 +152,10 @@ export default function ParentDevelopmentPage() {
               value={playerEmail}
               onChange={(e) => setPlayerEmail(e.target.value)}
               placeholder="Email used when booking sessions"
-              className="flex-1 rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+              className="flex-1 rounded-lg border border-[#222] bg-[#111] px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-green-500"
             />
             <button type="submit" disabled={loading}
-              className="rounded-lg bg-green-600 px-5 py-2 text-sm font-semibold text-white hover:bg-green-500 disabled:opacity-50">
+              className="btn-primary disabled:opacity-50">
               {loading ? 'Loading…' : 'Load Data'}
             </button>
           </div>
@@ -176,7 +176,7 @@ export default function ParentDevelopmentPage() {
               { label: 'Absent', value: records.filter(r => r.status === 'ABSENT').length, color: 'text-red-400' },
               { label: 'Attendance Rate', value: `${rate}%`, color: 'text-green-400' },
             ].map((s) => (
-              <div key={s.label} className="rounded-xl border border-white/10 bg-zinc-900 p-4 text-center">
+              <div key={s.label} className="rounded-xl border border-[#222] bg-[#111] p-4 text-center">
                 <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">{s.label}</p>
                 <p className={`mt-2 text-2xl font-black ${s.color}`}>{s.value}</p>
               </div>
@@ -190,7 +190,7 @@ export default function ParentDevelopmentPage() {
             ) : (
               <div className="space-y-2">
                 {records.map((r) => (
-                  <div key={r.id} className="flex items-center justify-between rounded-xl border border-white/10 bg-zinc-900 px-4 py-3">
+                  <div key={r.id} className="flex items-center justify-between rounded-xl border border-[#222] bg-[#111] px-4 py-3">
                     <div>
                       <p className="text-sm font-semibold text-white">{r.programName || `Session #${r.bookingId}`}</p>
                       <p className="text-xs text-gray-500">{r.date}</p>
@@ -213,7 +213,7 @@ export default function ParentDevelopmentPage() {
             ) : (
               <div className="space-y-3">
                 {progressNotes.map((note) => (
-                  <div key={note.id} className="rounded-xl border border-white/10 bg-zinc-900 p-4">
+                  <div key={note.id} className="rounded-xl border border-[#222] bg-[#111] p-4">
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${NOTE_TYPE_COLORS[note.noteType] ?? NOTE_TYPE_COLORS.GENERAL}`}>
                         {note.noteType}
@@ -239,7 +239,7 @@ export default function ParentDevelopmentPage() {
             ) : (
               <div className="space-y-2">
                 {enrollments.map((en) => (
-                  <div key={en.id} className="flex items-center justify-between rounded-xl border border-white/10 bg-zinc-900 px-4 py-3">
+                  <div key={en.id} className="flex items-center justify-between rounded-xl border border-[#222] bg-[#111] px-4 py-3">
                     <div>
                       <p className="text-sm font-semibold text-white">{en.programName}</p>
                       <p className="text-xs text-gray-400">{en.scheduleType}</p>
@@ -262,7 +262,7 @@ export default function ParentDevelopmentPage() {
             ) : (
               <div className="space-y-2">
                 {waivers.map((w) => (
-                  <div key={w.id} className="flex items-center justify-between rounded-xl border border-white/10 bg-zinc-900 px-4 py-3">
+                  <div key={w.id} className="flex items-center justify-between rounded-xl border border-[#222] bg-[#111] px-4 py-3">
                     <p className="text-sm font-semibold text-white">{w.templateTitle}</p>
                     <span className="text-xs text-gray-400">{new Date(w.signedAt).toLocaleDateString()}</span>
                   </div>

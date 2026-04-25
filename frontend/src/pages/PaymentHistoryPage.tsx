@@ -51,10 +51,10 @@ export default function PaymentHistoryPage() {
           {[
             { label: 'Total Bookings', value: bookings.length, color: 'text-white' },
             { label: 'Paid', value: paidCount, color: 'text-green-400' },
-            { label: 'Pending', value: pendingCount, color: 'text-yellow-400' },
+            { label: 'Pending', value: pendingCount, color: 'text-amber-400' },
             { label: 'Refunded', value: refundedCount, color: 'text-gray-400' },
           ].map(s => (
-            <div key={s.label} className="rounded-xl border border-white/10 bg-zinc-900 p-4 text-center">
+            <div key={s.label} className="rounded-xl border border-[#222] bg-[#111] p-4 text-center">
               <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">{s.label}</p>
               <p className={`mt-2 text-2xl font-black ${s.color}`}>{s.value}</p>
             </div>
@@ -63,8 +63,12 @@ export default function PaymentHistoryPage() {
       )}
 
       {!error && bookings.length === 0 && (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">💳</div>
+        <div className="rounded-2xl border border-dashed border-[#2a2a2a] bg-[#0f0f0f] p-12 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-[#111] border border-[#222] flex items-center justify-center mx-auto mb-5">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+            </svg>
+          </div>
           <p className="text-white font-semibold mb-1">No payments yet</p>
           <p className="text-gray-400 text-sm">Your payment history will appear here after you make a booking.</p>
         </div>
@@ -78,10 +82,10 @@ export default function PaymentHistoryPage() {
                 key={f}
                 type="button"
                 onClick={() => setFilter(f)}
-                className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors border ${
                   filter === f
-                    ? 'bg-green-600 text-white'
-                    : 'border border-white/10 text-gray-400 hover:text-white'
+                    ? 'bg-amber-500 text-black border-amber-500'
+                    : 'border-[#333] text-gray-400 hover:text-white hover:border-[#555]'
                 }`}
               >
                 {f}
@@ -89,9 +93,9 @@ export default function PaymentHistoryPage() {
             ))}
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-gray-800">
+          <div className="overflow-x-auto rounded-xl border border-[#222]">
             <table className="w-full text-sm">
-              <thead className="bg-gray-900 border-b border-gray-800">
+              <thead className="bg-[#0d0d0d] border-b border-[#222]">
                 <tr>
                   <th className="text-left px-4 py-3 text-gray-400 font-medium">#</th>
                   <th className="text-left px-4 py-3 text-gray-400 font-medium">Program</th>
@@ -105,7 +109,7 @@ export default function PaymentHistoryPage() {
               </thead>
               <tbody>
                 {filtered.map((b) => (
-                  <tr key={b.id} className="border-b border-gray-800 bg-gray-950 hover:bg-gray-900 transition-colors">
+                  <tr key={b.id} className="border-b border-[#1a1a1a] bg-[#111] hover:bg-[#161616] transition-colors last:border-0">
                     <td className="px-4 py-3 text-gray-500 text-xs">#{b.id}</td>
                     <td className="px-4 py-3 text-white font-medium">{b.programName}</td>
                     <td className="px-4 py-3 text-gray-300">
@@ -126,9 +130,9 @@ export default function PaymentHistoryPage() {
                       <span
                         className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold border ${
                           b.bookingStatus === 'CONFIRMED'
-                            ? 'bg-green-500/20 text-green-400 border-green-500/30'
+                            ? 'bg-green-500/15 text-green-400 border-green-500/20'
                             : b.bookingStatus === 'CANCELLED'
-                            ? 'bg-red-500/20 text-red-400 border-red-500/30'
+                            ? 'bg-red-500/15 text-red-400 border-red-500/20'
                             : 'bg-gray-700/40 text-gray-400 border-gray-700'
                         }`}
                       >

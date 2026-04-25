@@ -43,85 +43,57 @@ export default function PlayerDashboardPage() {
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Link
-            to="/book"
-            className="bg-cyan-500 hover:bg-cyan-400 text-black text-sm font-bold px-4 py-2 rounded-lg"
-          >
-            Book a Session
-          </Link>
-          <Link
-            to="/player/profile"
-            className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg"
-          >
-            Edit Profile
-          </Link>
+          <Link to="/book" className="btn-primary text-sm">Book a Session</Link>
+          <Link to="/player/profile" className="btn-secondary text-sm">Edit Profile</Link>
         </div>
       </div>
 
       {error ? <ErrorBanner message={error} onDismiss={() => setError('')} /> : null}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Link
-          to="/player/sessions"
-          className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-gray-600 transition-colors"
-        >
+        <Link to="/player/sessions" className="bg-[#111] border border-[#222] hover:border-amber-500/30 rounded-xl p-6 transition-all">
           <p className="text-gray-400 text-sm mb-2">Upcoming Sessions</p>
-          <p className="text-4xl font-black text-cyan-400">{upcomingBookings.length}</p>
+          <p className="text-4xl font-black text-amber-500">{upcomingBookings.length}</p>
         </Link>
-        <Link
-          to="/player/profile"
-          className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-gray-600 transition-colors"
-        >
+        <Link to="/player/profile" className="bg-[#111] border border-[#222] hover:border-amber-500/30 rounded-xl p-6 transition-all">
           <p className="text-gray-400 text-sm mb-2">Profile Status</p>
-          <p className="text-4xl font-black text-green-400">{primaryProfile ? 'Ready' : 'Set Up'}</p>
+          <p className="text-4xl font-black text-white">{primaryProfile ? 'Ready' : 'Set Up'}</p>
         </Link>
-        <Link
-          to="/player/sessions"
-          className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-gray-600 transition-colors"
-        >
+        <Link to="/player/sessions" className="bg-[#111] border border-[#222] hover:border-amber-500/30 rounded-xl p-6 transition-all">
           <p className="text-gray-400 text-sm mb-2">Completed Sessions</p>
           <p className="text-4xl font-black text-gray-400">{completedBookings.length}</p>
         </Link>
       </div>
 
-      <section className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <section className="bg-[#111] border border-[#222] rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-white text-xl font-bold">Your Profile</h2>
-          <Link to="/player/profile" className="text-cyan-400 hover:text-cyan-300 text-sm">
-            Manage
-          </Link>
+          <Link to="/player/profile" className="text-amber-500 hover:text-amber-400 text-sm">Manage</Link>
         </div>
 
         {!primaryProfile ? (
           <p className="text-gray-500 text-sm">Set up your player profile to keep your training details organized.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div className="bg-gray-800 rounded-lg p-4">
-              <p className="text-gray-500 mb-1">Player Name</p>
-              <p className="text-white font-medium">{primaryProfile.name}</p>
-            </div>
-            <div className="bg-gray-800 rounded-lg p-4">
-              <p className="text-gray-500 mb-1">Skill Level</p>
-              <p className="text-white font-medium">{primaryProfile.skillLevel || 'Not set'}</p>
-            </div>
-            <div className="bg-gray-800 rounded-lg p-4">
-              <p className="text-gray-500 mb-1">Preferred Position</p>
-              <p className="text-white font-medium">{primaryProfile.preferredPosition || 'Not set'}</p>
-            </div>
-            <div className="bg-gray-800 rounded-lg p-4">
-              <p className="text-gray-500 mb-1">Age</p>
-              <p className="text-white font-medium">{primaryProfile.age ? String(primaryProfile.age) : 'Not set'}</p>
-            </div>
+            {[
+              { label: 'Player Name', value: primaryProfile.name },
+              { label: 'Skill Level', value: primaryProfile.skillLevel || 'Not set' },
+              { label: 'Preferred Position', value: primaryProfile.preferredPosition || 'Not set' },
+              { label: 'Age', value: primaryProfile.age ? String(primaryProfile.age) : 'Not set' },
+            ].map(({ label, value }) => (
+              <div key={label} className="bg-[#1a1a1a] rounded-lg p-4">
+                <p className="text-gray-500 mb-1">{label}</p>
+                <p className="text-white font-medium">{value}</p>
+              </div>
+            ))}
           </div>
         )}
       </section>
 
-      <section className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <section className="bg-[#111] border border-[#222] rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-white text-xl font-bold">Upcoming Sessions</h2>
-          <Link to="/player/sessions" className="text-cyan-400 hover:text-cyan-300 text-sm">
-            View All
-          </Link>
+          <Link to="/player/sessions" className="text-amber-500 hover:text-amber-400 text-sm">View All</Link>
         </div>
 
         {upcomingBookings.length === 0 ? (
@@ -129,15 +101,10 @@ export default function PlayerDashboardPage() {
         ) : (
           <div className="space-y-3">
             {upcomingBookings.slice(0, 5).map((booking) => (
-              <div
-                key={booking.id}
-                className="flex items-center justify-between gap-4 bg-gray-800 rounded-lg p-4"
-              >
+              <div key={booking.id} className="flex items-center justify-between gap-4 bg-[#1a1a1a] rounded-lg p-4">
                 <div>
                   <p className="text-white font-medium">{booking.programName}</p>
-                  <p className="text-gray-400 text-sm">
-                    {booking.bookingDate} at {booking.bookingTime}
-                  </p>
+                  <p className="text-gray-400 text-sm">{booking.bookingDate} at {booking.bookingTime}</p>
                 </div>
                 <StatusBadge status={booking.bookingStatus} />
               </div>

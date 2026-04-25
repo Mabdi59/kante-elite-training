@@ -62,7 +62,7 @@ export default function UserBookingsPage() {
         </div>
         <Link
           to="/book"
-          className="bg-teal-500 hover:bg-teal-400 text-black text-sm font-bold px-4 py-2 rounded-lg"
+          className="btn-primary text-sm"
         >
           Book a Session
         </Link>
@@ -77,8 +77,8 @@ export default function UserBookingsPage() {
             onClick={() => setFilter(value)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors capitalize ${
               filter === value
-                ? 'bg-teal-500 text-black'
-                : 'bg-gray-800 text-gray-400 hover:text-white'
+                ? 'bg-amber-500 text-black'
+                : 'border border-[#333] text-gray-400 hover:text-white'
             }`}
           >
             {value}
@@ -92,7 +92,7 @@ export default function UserBookingsPage() {
           title="No bookings found"
           description={filter === 'upcoming' ? 'You do not have any upcoming sessions yet.' : 'No bookings match this view.'}
           action={
-            <Link to="/book" className="bg-teal-500 text-black font-bold px-5 py-2 rounded-lg text-sm">
+            <Link to="/book" className="btn-primary">
               Book a Session
             </Link>
           }
@@ -104,7 +104,7 @@ export default function UserBookingsPage() {
               booking.bookingStatus !== 'CANCELLED' && booking.bookingStatus !== 'COMPLETED'
 
             return (
-              <div key={booking.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <div key={booking.id} className="bg-[#111] border border-[#222] rounded-xl p-5">
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                   <div>
                     <div className="flex items-center gap-3 mb-2 flex-wrap">
@@ -135,7 +135,7 @@ export default function UserBookingsPage() {
                     ) : null}
                     <Link
                       to="/book"
-                      className="text-sm text-teal-400 border border-teal-400/30 hover:bg-teal-400/10 rounded-lg px-4 py-2"
+                      className="text-sm text-teal-400 border border-teal-400/30 hover:bg-amber-400/10 rounded-lg px-4 py-2"
                     >
                       Book Again
                     </Link>
