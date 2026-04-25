@@ -224,6 +224,17 @@ export default function AdminMediaPage() {
         </div>
       ) : null}
 
+      {/* How it works banner */}
+      <div className="mb-6 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
+        <p className="text-amber-400 font-bold text-sm mb-2">How media works</p>
+        <ul className="space-y-1 text-xs text-gray-400">
+          <li><span className="text-white font-semibold">All uploads</span> → appear on the Media page</li>
+          <li><span className="text-white font-semibold">Show on About</span> → replaces the static coach photos on the About page</li>
+          <li><span className="text-white font-semibold">Show on Home</span> → appears in the homepage highlights section</li>
+          <li><span className="text-white font-semibold">Featured</span> → pinned as the hero banner on the About page</li>
+        </ul>
+      </div>
+
       <div className="grid gap-6 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
         <div className="space-y-6">
           <form onSubmit={handleSubmit} className="rounded-xl border border-gray-800 bg-gray-900 p-6">

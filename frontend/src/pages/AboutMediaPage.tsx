@@ -177,23 +177,40 @@ export default function AboutMediaPage() {
               Coach <span className="gradient-text">Kante</span>
             </h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { src: '/images/Coach.png', alt: 'Coach Kante' },
-              { src: '/images/D26A0694.jpeg', alt: 'Coach Kante on the field' },
-              { src: '/images/D26A0746.jpeg', alt: 'Coach Kante training' },
-              { src: '/images/IMG_3599.jpeg', alt: 'Coach Kante in action' },
-            ].map((photo) => (
-              <div key={photo.src} className="rounded-2xl overflow-hidden aspect-[3/4] bg-[#111] border border-[#1e1e1e]">
-                <img
-                  src={photo.src}
-                  alt={photo.alt}
-                  className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
-                  loading="lazy"
-                />
-              </div>
-            ))}
-          </div>
+
+          {/* Dynamic media from admin (showOnAbout flag) takes priority over static photos */}
+          {galleryPosts.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {galleryPosts.slice(0, 4).map((post, index) => (
+                <button
+                  key={post.id}
+                  type="button"
+                  onClick={() => setActiveMediaIndex(index)}
+                  className="block w-full text-left rounded-2xl overflow-hidden aspect-[3/4] bg-[#111] border border-[#1e1e1e]"
+                >
+                  <MediaPostCard post={post} aspectClassName="aspect-[3/4]" showDate={false} imageLoading="lazy" />
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { src: '/images/Coach.png', alt: 'Coach Kante' },
+                { src: '/images/D26A0694.jpeg', alt: 'Coach Kante on the field' },
+                { src: '/images/D26A0746.jpeg', alt: 'Coach Kante training' },
+                { src: '/images/IMG_3599.jpeg', alt: 'Coach Kante in action' },
+              ].map((photo) => (
+                <div key={photo.src} className="rounded-2xl overflow-hidden aspect-[3/4] bg-[#111] border border-[#1e1e1e]">
+                  <img
+                    src={photo.src}
+                    alt={photo.alt}
+                    className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
