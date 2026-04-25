@@ -62,6 +62,12 @@ export default function CaptainRegistrationsPage() {
     return Number.isNaN(parsed) ? null : parsed
   })()
 
+
+  useEffect(() => {
+    document.title = 'Registrations | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     Promise.all([getCaptainRegistrations(), getTournaments()])
       .then(([registrationData, tournamentData]) => {

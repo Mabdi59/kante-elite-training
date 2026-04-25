@@ -15,6 +15,12 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
+
+  useEffect(() => {
+    document.title = 'Dashboard | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     Promise.all([getAdminDashboard(), getBookingsOverTime(30)])
       .then(([dashboardData, timeData]) => {

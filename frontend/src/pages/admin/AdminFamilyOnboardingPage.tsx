@@ -47,6 +47,12 @@ export default function AdminFamilyOnboardingPage() {
   // Track whether existing users have already been fetched to avoid redundant calls
   const usersFetchedRef = useRef(false)
 
+
+  useEffect(() => {
+    document.title = 'Family Onboarding | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     if (parentMode === 'existing' && !usersFetchedRef.current) {
       usersFetchedRef.current = true

@@ -28,6 +28,12 @@ export default function AdminReportsPage() {
   const [attFrom, setAttFrom] = useState('')
   const [attTo, setAttTo] = useState('')
 
+
+  useEffect(() => {
+    document.title = 'Reports | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     api
       .get('/admin/reports/revenue')

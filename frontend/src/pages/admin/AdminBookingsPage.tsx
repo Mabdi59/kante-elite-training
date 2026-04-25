@@ -60,6 +60,12 @@ export default function AdminBookingsPage() {
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [workingBookingId, setWorkingBookingId] = useState<number | null>(null)
 
+
+  useEffect(() => {
+    document.title = 'Bookings | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     Promise.all([getAdminBookings(), getPrograms()])
       .then(([bookingData, programData]) => {

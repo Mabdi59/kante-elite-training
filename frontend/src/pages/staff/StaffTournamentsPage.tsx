@@ -22,6 +22,12 @@ export default function StaffTournamentsPage() {
   const [registrations, setRegistrations] = useState<TeamRegistration[]>([])
   const [loadingRegistrations, setLoadingRegistrations] = useState(false)
 
+
+  useEffect(() => {
+    document.title = 'Tournaments | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     getStaffTournaments()
       .then(setTournaments)

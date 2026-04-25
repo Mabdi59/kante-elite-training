@@ -12,6 +12,12 @@ export default function CoachProfilePage() {
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
 
+
+  useEffect(() => {
+    document.title = 'My Profile | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     getMyCoachProfile()
       .then((p) => {

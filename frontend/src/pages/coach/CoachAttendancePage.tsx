@@ -23,6 +23,12 @@ export default function CoachAttendancePage() {
   const [submitting, setSubmitting] = useState<Record<number, boolean>>({})
   const [success, setSuccess] = useState<Record<number, boolean>>({})
 
+
+  useEffect(() => {
+    document.title = 'Attendance | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     getMyCoachSessions()
       .then((data) => {

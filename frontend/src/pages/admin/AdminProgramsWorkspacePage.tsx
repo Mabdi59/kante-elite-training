@@ -186,6 +186,12 @@ export default function AdminProgramsWorkspacePage() {
     )
   }).slice(0, 50), [participantSearch, players])
 
+
+  useEffect(() => {
+    document.title = 'Programs | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     setLoading(true)
     Promise.all([getAdminPrograms(), getAdminUsers(), getAdminPlayers()])

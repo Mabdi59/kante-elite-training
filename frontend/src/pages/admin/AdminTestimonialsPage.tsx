@@ -24,6 +24,12 @@ export default function AdminTestimonialsPage() {
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
 
+
+  useEffect(() => {
+    document.title = 'Testimonials | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     getAdminTestimonials()
       .then(setTestimonials)

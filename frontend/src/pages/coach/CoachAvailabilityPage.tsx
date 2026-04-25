@@ -38,6 +38,12 @@ export default function CoachAvailabilityPage() {
   const [blockReason, setBlockReason] = useState('')
   const [savingBlocked, setSavingBlocked] = useState(false)
 
+
+  useEffect(() => {
+    document.title = 'My Availability | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     getCoachAvailabilityRules()
       .then(setRules)

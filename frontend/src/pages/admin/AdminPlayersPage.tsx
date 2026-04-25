@@ -69,6 +69,12 @@ export default function AdminPlayersPage() {
       .finally(() => setLoading(false))
   }
 
+
+  useEffect(() => {
+    document.title = 'Players | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(load, [])
 
   const openCreate = () => {

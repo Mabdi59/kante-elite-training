@@ -22,6 +22,12 @@ export default function AdminAuditLogsPage() {
   const [filterAction, setFilterAction] = useState('')
   const [search, setSearch] = useState('')
 
+
+  useEffect(() => {
+    document.title = 'Audit Logs | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     getAuditLogs()
       .then(setLogs)

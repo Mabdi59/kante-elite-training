@@ -28,6 +28,12 @@ export default function AdminTournamentsPage() {
     }
   }
 
+
+  useEffect(() => {
+    document.title = 'Tournaments | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     void load()
   }, [])

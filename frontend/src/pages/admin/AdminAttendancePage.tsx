@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import api from '../../services/api'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorBanner from '../../components/ErrorBanner'
@@ -77,6 +77,11 @@ export default function AdminAttendancePage() {
   const [form, setForm] = useState<AttendanceForm>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<number | null>(null)
+
+  useEffect(() => {
+    document.title = 'Attendance | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
 
   const handleSearch = async () => {
     if (!from || !to) {

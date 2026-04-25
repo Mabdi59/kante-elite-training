@@ -75,6 +75,12 @@ export default function AdminEnrollmentsPage() {
   const [saving, setSaving] = useState(false)
   const [workingId, setWorkingId] = useState<number | null>(null)
 
+
+  useEffect(() => {
+    document.title = 'Enrollments | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     Promise.all([
       api.get('/admin/enrollments'),

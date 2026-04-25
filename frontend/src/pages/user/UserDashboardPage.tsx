@@ -14,6 +14,12 @@ export default function UserDashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+
+  useEffect(() => {
+    document.title = 'Dashboard | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     Promise.all([getMyBookings(), getMyPlayers()])
       .then(([bookingData, playerData]) => {

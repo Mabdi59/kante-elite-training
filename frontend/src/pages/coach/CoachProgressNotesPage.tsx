@@ -72,6 +72,12 @@ export default function CoachProgressNotesPage() {
       .finally(() => setLoading(false))
   }
 
+
+  useEffect(() => {
+    document.title = 'Progress Notes | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     loadNotes()
   }, [])

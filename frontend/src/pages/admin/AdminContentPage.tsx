@@ -137,6 +137,12 @@ export default function AdminContentPage() {
   const [filterCategory, setFilterCategory] = useState<MediaCategory | 'ALL'>('ALL')
   const [editingCategoryPostId, setEditingCategoryPostId] = useState<number | null>(null)
 
+
+  useEffect(() => {
+    document.title = 'Content | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     setLoading(true)
     Promise.all([getAdminWebsiteContent(), getMediaPosts()])

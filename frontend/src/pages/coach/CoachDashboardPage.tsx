@@ -12,6 +12,12 @@ export default function CoachDashboardPage() {
   const [sessions, setSessions] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
 
+
+  useEffect(() => {
+    document.title = 'Coach Dashboard | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     Promise.all([
       getMyCoachProfile().catch(() => null),

@@ -28,6 +28,12 @@ export default function AdminPaymentsPage() {
   const [filterPayment, setFilterPayment] = useState('')
   const [filterSearch, setFilterSearch] = useState('')
 
+
+  useEffect(() => {
+    document.title = 'Payments | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     getAdminPayments()
       .then(setBookings)

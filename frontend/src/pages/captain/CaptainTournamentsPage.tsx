@@ -32,6 +32,12 @@ export default function CaptainTournamentsPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
+
+  useEffect(() => {
+    document.title = 'Tournaments | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     Promise.all([getTournaments(), getCaptainRegistrations()])
       .then(([tournamentData, registrationData]) => {

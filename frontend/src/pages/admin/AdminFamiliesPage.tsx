@@ -12,6 +12,12 @@ export default function AdminFamiliesPage() {
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
 
+
+  useEffect(() => {
+    document.title = 'Families | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     getAdminFamilies()
       .then(setFamilies)

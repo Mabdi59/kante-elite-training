@@ -31,6 +31,12 @@ export default function AdminSearchPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const navigate = useNavigate()
 
+
+  useEffect(() => {
+    document.title = 'Search | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     if (!query.trim()) {
       setResults(null)

@@ -16,6 +16,12 @@ export default function UserBookingsPage() {
   const [cancellingId, setCancellingId] = useState<number | null>(null)
   const [filter, setFilter] = useState<BookingFilter>('upcoming')
 
+
+  useEffect(() => {
+    document.title = 'My Bookings | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     getMyBookings()
       .then(setBookings)

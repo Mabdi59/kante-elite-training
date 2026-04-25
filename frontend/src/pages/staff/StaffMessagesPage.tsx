@@ -11,6 +11,12 @@ export default function StaffMessagesPage() {
   const [error, setError] = useState('')
   const [filterUnread, setFilterUnread] = useState(false)
 
+
+  useEffect(() => {
+    document.title = 'Messages | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     getStaffMessages()
       .then(setMessages)

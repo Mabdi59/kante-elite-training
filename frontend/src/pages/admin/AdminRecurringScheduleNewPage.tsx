@@ -65,6 +65,12 @@ export default function AdminRecurringScheduleNewPage() {
   const [error, setError] = useState('')
   const [createdId, setCreatedId] = useState<number | null>(null)
 
+
+  useEffect(() => {
+    document.title = 'New Recurring Schedule | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     Promise.all([getAdminFamilies(), getAdminCoaches(), getAdminPrograms()])
       .then(([f, c, p]) => {

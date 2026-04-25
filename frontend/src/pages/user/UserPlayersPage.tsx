@@ -29,6 +29,12 @@ export default function UserPlayersPage() {
   const [form, setForm] = useState<PlayerProfileFormData>(emptyForm)
   const [saving, setSaving] = useState(false)
 
+
+  useEffect(() => {
+    document.title = 'My Players | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     getMyPlayers()
       .then(setPlayers)

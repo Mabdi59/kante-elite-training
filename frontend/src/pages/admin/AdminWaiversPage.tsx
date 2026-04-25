@@ -39,6 +39,12 @@ export default function AdminWaiversPage() {
       .finally(() => setLoading(false))
   }
 
+
+  useEffect(() => {
+    document.title = 'Waivers | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     fetchTemplates()
   }, [])

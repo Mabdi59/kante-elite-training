@@ -34,6 +34,12 @@ export default function AdminCoachesPage() {
       .finally(() => setLoading(false))
   }
 
+
+  useEffect(() => {
+    document.title = 'Coaches | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(load, [])
 
   const eligibleUsers = users.filter((u) => !coaches.some((c) => c.userId === u.id))

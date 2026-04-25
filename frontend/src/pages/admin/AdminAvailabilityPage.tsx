@@ -38,6 +38,12 @@ export default function AdminAvailabilityPage() {
   const [blockReason, setBlockReason] = useState('')
   const [savingBlock, setSavingBlock] = useState(false)
 
+
+  useEffect(() => {
+    document.title = 'Availability | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     getAvailabilityRules()
       .then(setRules)

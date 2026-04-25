@@ -294,6 +294,12 @@ function DatePickerField({ value, onChange }: DatePickerFieldProps) {
   const pickerRef = useRef<HTMLInputElement | null>(null)
   const [displayValue, setDisplayValue] = useState(() => formatIsoDateForDisplay(value))
 
+
+  useEffect(() => {
+    document.title = 'Tournament Workflow | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     setDisplayValue(formatIsoDateForDisplay(value))
   }, [value])

@@ -50,6 +50,12 @@ export default function AdminWeeklyCalendarPage() {
   const from = toISO(weekStart)
   const to = toISO(addDays(weekStart, 6))
 
+
+  useEffect(() => {
+    document.title = 'Weekly Calendar | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     setLoading(true)
     setError('')

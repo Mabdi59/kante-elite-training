@@ -52,6 +52,12 @@ export default function CoachSessionsManagerPage() {
   const [weekSessions, setWeekSessions] = useState<Booking[]>([])
   const [weekLoading, setWeekLoading] = useState(false)
 
+
+  useEffect(() => {
+    document.title = 'Sessions | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     getMyCoachSessions()
       .then(setSessions)

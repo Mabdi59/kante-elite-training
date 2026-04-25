@@ -11,6 +11,12 @@ export default function StaffPlayersPage() {
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
 
+
+  useEffect(() => {
+    document.title = 'Players | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     getStaffPlayers()
       .then(setPlayers)

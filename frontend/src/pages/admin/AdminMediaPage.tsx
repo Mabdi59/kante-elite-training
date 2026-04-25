@@ -42,6 +42,12 @@ export default function AdminMediaPage() {
   const [editForm, setEditForm] = useState<MediaPostUpdateFormData>({})
   const [saving, setSaving] = useState(false)
 
+
+  useEffect(() => {
+    document.title = 'Media | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     setLoading(true)
     getMediaPosts()

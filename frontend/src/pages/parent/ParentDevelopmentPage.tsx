@@ -60,6 +60,12 @@ export default function ParentDevelopmentPage() {
   const [error, setError] = useState('')
   const [searched, setSearched] = useState(false)
 
+
+  useEffect(() => {
+    document.title = 'Player Development | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     getMyPlayers()
       .then((players) => {

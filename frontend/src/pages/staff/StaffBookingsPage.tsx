@@ -49,6 +49,12 @@ export default function StaffBookingsPage() {
   const [newDate, setNewDate] = useState('')
   const [newTime, setNewTime] = useState('')
 
+
+  useEffect(() => {
+    document.title = 'Bookings | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     Promise.all([getStaffBookings(), getPrograms()])
       .then(([bookingData, programData]) => {

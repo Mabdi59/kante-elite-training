@@ -44,6 +44,12 @@ export default function AdminRecurringSchedulePage() {
       .finally(() => setLoading(false))
   }
 
+
+  useEffect(() => {
+    document.title = 'Recurring Schedule | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(load, [])
 
   const handleDelete = async (id: number) => {

@@ -42,6 +42,12 @@ export default function AdminUsersPage() {
       .finally(() => setLoading(false))
   }
 
+
+  useEffect(() => {
+    document.title = 'Users | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(load, [])
 
   const openCreate = () => {

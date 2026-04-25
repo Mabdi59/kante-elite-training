@@ -10,6 +10,12 @@ export default function StaffDashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+
+  useEffect(() => {
+    document.title = 'Staff Dashboard | Kante Elite Training'
+    return () => { document.title = 'Kante Elite Training' }
+  }, [])
+
   useEffect(() => {
     getStaffDashboard()
       .then(setStats)
