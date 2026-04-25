@@ -7,7 +7,7 @@ const CATEGORY_CONFIG: Record<
 > = {
   TRAINING_PHOTO: {
     label: 'Training Photos',
-    colorClass: 'border-cyan-500/30 bg-cyan-500/10 text-cyan-300',
+    colorClass: 'border-amber-500/20 bg-amber-500/10 text-amber-400',
   },
   MATCH_HIGHLIGHT: {
     label: 'Match Highlights',

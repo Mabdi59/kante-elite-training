@@ -248,7 +248,7 @@ export default function AdminAvailabilityPage() {
                   ) : null}
                 </div>
                 <div className="flex gap-2 shrink-0">
-                  <button onClick={() => openRuleEdit(rule)} className="text-cyan-400 hover:text-cyan-300 text-sm">
+                  <button onClick={() => openRuleEdit(rule)} className="text-amber-500 hover:text-amber-400 text-sm">
                     Edit
                   </button>
                   <button onClick={() => handleDeleteRule(rule.id)} className="text-red-400 hover:text-red-300 text-sm">
@@ -328,7 +328,7 @@ export default function AdminAvailabilityPage() {
                   {slot.reason ? <span className="text-gray-500 text-sm italic">{slot.reason}</span> : null}
                 </div>
                 <div className="flex gap-2 shrink-0">
-                  <button onClick={() => openBlockedEdit(slot)} className="text-cyan-400 hover:text-cyan-300 text-sm">
+                  <button onClick={() => openBlockedEdit(slot)} className="text-amber-500 hover:text-amber-400 text-sm">
                     Edit
                   </button>
                   <button onClick={() => handleDeleteBlock(slot.id)} className="text-red-400 hover:text-red-300 text-sm">

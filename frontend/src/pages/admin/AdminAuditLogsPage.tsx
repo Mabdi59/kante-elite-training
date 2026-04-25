@@ -63,7 +63,7 @@ export default function AdminAuditLogsPage() {
           placeholder="Search details or user…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-48 focus:outline-none focus:border-green-500"
+          className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-48 focus:outline-none focus:border-amber-500"
         />
         <select
           value={filterEntity}

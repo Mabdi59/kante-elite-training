@@ -187,12 +187,12 @@ export default function AdminReportsPage() {
           <div className="flex flex-col gap-1">
             <label className="text-xs font-semibold text-gray-400">From</label>
             <input type="date" value={attFrom} onChange={(e) => setAttFrom(e.target.value)}
-              className="rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500" />
+              className="rounded-lg input-field-default" />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-xs font-semibold text-gray-400">To</label>
             <input type="date" value={attTo} onChange={(e) => setAttTo(e.target.value)}
-              className="rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500" />
+              className="rounded-lg input-field-default" />
           </div>
           <button type="button" onClick={fetchAttendance} disabled={attLoading}
             className="rounded-lg bg-green-600 px-5 py-2 text-sm font-semibold text-white hover:bg-green-500 disabled:opacity-50">

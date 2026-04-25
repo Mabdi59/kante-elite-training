@@ -92,7 +92,7 @@ export default function CaptainTournamentsPage() {
         </div>
         <Link
           to="/captain/registrations"
-          className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg"
+          className="bg-[#1a1a1a] hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg"
         >
           View My Registrations
         </Link>
@@ -101,7 +101,7 @@ export default function CaptainTournamentsPage() {
       {error ? <ErrorBanner message={error} onDismiss={() => setError('')} /> : null}
 
       {selectedTournament ? (
-        <form onSubmit={handleSubmit} className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="bg-[#111] border border-[#222] rounded-xl p-6 space-y-4">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
               <h2 className="text-white text-xl font-bold">Register for {selectedTournament.name}</h2>
@@ -125,7 +125,7 @@ export default function CaptainTournamentsPage() {
                 required
                 value={form.teamName}
                 onChange={(event) => setForm((current) => ({ ...current, teamName: event.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-white text-sm"
               />
             </div>
             <div>
@@ -134,7 +134,7 @@ export default function CaptainTournamentsPage() {
                 required
                 value={form.captainName}
                 onChange={(event) => setForm((current) => ({ ...current, captainName: event.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-white text-sm"
               />
             </div>
             <div>
@@ -144,7 +144,7 @@ export default function CaptainTournamentsPage() {
                 required
                 value={form.contactEmail}
                 onChange={(event) => setForm((current) => ({ ...current, contactEmail: event.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-white text-sm"
               />
             </div>
             <div>
@@ -152,7 +152,7 @@ export default function CaptainTournamentsPage() {
               <input
                 value={form.phone ?? ''}
                 onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-white text-sm"
                 placeholder="Optional"
               />
             </div>
@@ -161,7 +161,7 @@ export default function CaptainTournamentsPage() {
               <input
                 value={form.clubName ?? ''}
                 onChange={(event) => setForm((current) => ({ ...current, clubName: event.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-white text-sm"
                 placeholder="Optional"
               />
             </div>
@@ -201,7 +201,7 @@ export default function CaptainTournamentsPage() {
           const ownedCount = registrationCounts[tournament.id] ?? 0
 
           return (
-            <div key={tournament.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <div key={tournament.id} className="bg-[#111] border border-[#222] rounded-xl p-5">
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div>
                   <div className="flex items-center gap-3 flex-wrap">
@@ -221,21 +221,21 @@ export default function CaptainTournamentsPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-sm text-gray-400 mb-4">
-                <div className="bg-gray-800 rounded-lg p-3">
+                <div className="bg-[#1a1a1a] rounded-lg p-3">
                   <p className="text-gray-500 text-xs mb-1">Age Group</p>
                   <p className="text-white">{tournament.ageGroup || 'Open'}</p>
                 </div>
-                <div className="bg-gray-800 rounded-lg p-3">
+                <div className="bg-[#1a1a1a] rounded-lg p-3">
                   <p className="text-gray-500 text-xs mb-1">Division</p>
                   <p className="text-white">{tournament.division || 'Open'}</p>
                 </div>
-                <div className="bg-gray-800 rounded-lg p-3">
+                <div className="bg-[#1a1a1a] rounded-lg p-3">
                   <p className="text-gray-500 text-xs mb-1">Teams</p>
                   <p className="text-white">
                     {tournament.registeredTeams} / {tournament.maxTeams}
                   </p>
                 </div>
-                <div className="bg-gray-800 rounded-lg p-3">
+                <div className="bg-[#1a1a1a] rounded-lg p-3">
                   <p className="text-gray-500 text-xs mb-1">Deadline</p>
                   <p className="text-white">{tournament.registrationDeadline || 'Open'}</p>
                 </div>

@@ -133,7 +133,7 @@ export default function ParentDevelopmentPage() {
             <select
               value={selectedPlayerId}
               onChange={handlePlayerSelect}
-              className="w-full rounded-lg border border-[#222] bg-[#111] px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500"
+              className="w-full rounded-lg border border-[#222] bg-[#111] px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-amber-500"
             >
               {linkedPlayers.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
@@ -152,7 +152,7 @@ export default function ParentDevelopmentPage() {
               value={playerEmail}
               onChange={(e) => setPlayerEmail(e.target.value)}
               placeholder="Email used when booking sessions"
-              className="flex-1 rounded-lg border border-[#222] bg-[#111] px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+              className="flex-1 rounded-lg border border-[#222] bg-[#111] px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
             />
             <button type="submit" disabled={loading}
               className="btn-primary disabled:opacity-50">

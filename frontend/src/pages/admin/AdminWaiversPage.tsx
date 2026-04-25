@@ -161,7 +161,7 @@ export default function AdminWaiversPage() {
                 required
                 value={form.title}
                 onChange={(event) => setForm({ ...form, title: event.target.value })}
-                className="w-full rounded-lg border border-white/10 bg-black px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500"
+                className="w-full input-field-default"
               />
             </div>
             <div>
@@ -171,7 +171,7 @@ export default function AdminWaiversPage() {
                 rows={6}
                 value={form.content}
                 onChange={(event) => setForm({ ...form, content: event.target.value })}
-                className="w-full rounded-lg border border-white/10 bg-black px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500"
+                className="w-full input-field-default"
               />
             </div>
             <div>
@@ -180,7 +180,7 @@ export default function AdminWaiversPage() {
                 value={form.requiredRoles}
                 onChange={(event) => setForm({ ...form, requiredRoles: event.target.value })}
                 placeholder="PLAYER, PARENT"
-                className="w-full rounded-lg border border-white/10 bg-black px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                className="w-full input-field-default"
               />
             </div>
             <div className="flex items-center gap-3">

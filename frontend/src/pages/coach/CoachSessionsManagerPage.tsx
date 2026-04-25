@@ -16,7 +16,7 @@ type ViewMode = 'list' | 'week'
 
 const STATUS_ACTIONS = [
   { label: 'Confirm', value: 'CONFIRMED', tone: 'bg-blue-600 hover:bg-blue-500' },
-  { label: 'Complete', value: 'COMPLETED', tone: 'bg-green-600 hover:bg-green-500' },
+  { label: 'Complete', value: 'COMPLETED', tone: 'bg-amber-500 hover:bg-amber-400' },
   { label: 'Cancel', value: 'CANCELLED', tone: 'bg-red-700 hover:bg-red-600' },
 ] as const
 
@@ -175,7 +175,7 @@ export default function CoachSessionsManagerPage() {
         </div>
         <div className="flex gap-2 flex-wrap">
           {/* View mode */}
-          <div className="flex bg-gray-800 rounded-lg p-1 gap-1">
+          <div className="flex bg-[#1a1a1a] rounded-lg p-1 gap-1">
             <button
               onClick={() => setViewMode('list')}
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
@@ -203,7 +203,7 @@ export default function CoachSessionsManagerPage() {
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors capitalize ${
                     filter === value
                       ? 'bg-blue-500 text-white'
-                      : 'bg-gray-800 text-gray-400 hover:text-white'
+                      : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
                   }`}
                 >
                   {value}
@@ -223,7 +223,7 @@ export default function CoachSessionsManagerPage() {
           <div className="flex items-center gap-4">
             <button
               onClick={prevWeek}
-              className="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-lg transition-colors"
+              className="bg-[#1a1a1a] hover:bg-gray-700 text-white p-2 rounded-lg transition-colors"
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M15 18l-6-6 6-6" />
@@ -232,7 +232,7 @@ export default function CoachSessionsManagerPage() {
             <span className="text-white font-semibold text-sm flex-1 text-center">{weekLabel}</span>
             <button
               onClick={nextWeek}
-              className="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-lg transition-colors"
+              className="bg-[#1a1a1a] hover:bg-gray-700 text-white p-2 rounded-lg transition-colors"
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M9 18l6-6-6-6" />
@@ -250,15 +250,15 @@ export default function CoachSessionsManagerPage() {
                 return (
                   <div
                     key={date}
-                    className={`bg-gray-900 border rounded-xl p-3 min-h-[120px] ${
+                    className={`bg-[#111] border rounded-xl p-3 min-h-[120px] ${
                       isToday ? 'border-green-500/40' : 'border-gray-800'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className={`text-xs font-semibold ${isToday ? 'text-green-400' : 'text-gray-400'}`}>
+                      <span className={`text-xs font-semibold ${isToday ? 'text-amber-500' : 'text-gray-400'}`}>
                         {label}
                       </span>
-                      <span className={`text-xs ${isToday ? 'text-green-400' : 'text-gray-600'}`}>
+                      <span className={`text-xs ${isToday ? 'text-amber-500' : 'text-gray-600'}`}>
                         {new Date(date + 'T12:00:00').getDate()}
                       </span>
                     </div>
@@ -270,7 +270,7 @@ export default function CoachSessionsManagerPage() {
                           <button
                             key={s.id}
                             onClick={() => setSelectedSession(selectedSession?.id === s.id ? null : s)}
-                            className={`w-full text-left bg-gray-800 hover:bg-gray-700 rounded-lg p-2 transition-colors ${
+                            className={`w-full text-left bg-[#1a1a1a] hover:bg-gray-700 rounded-lg p-2 transition-colors ${
                               selectedSession?.id === s.id ? 'ring-1 ring-green-500' : ''
                             }`}
                           >
@@ -289,7 +289,7 @@ export default function CoachSessionsManagerPage() {
 
           {/* Session detail panel */}
           {selectedSession && (
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+            <div className="bg-[#111] border border-[#222] rounded-xl p-5 space-y-4">
               <div className="flex items-start justify-between">
                 <h3 className="text-white font-semibold">Session Detail</h3>
                 <button
@@ -354,14 +354,14 @@ export default function CoachSessionsManagerPage() {
                 return (
                   <div
                     key={session.id}
-                    className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4"
+                    className="bg-[#111] border border-[#222] rounded-xl p-5 space-y-4"
                   >
                     <div className="flex items-start justify-between gap-4 flex-wrap">
                       <div className="flex-1 min-w-[16rem]">
                         <div className="flex items-center gap-3 mb-2 flex-wrap">
                           <p className="text-white font-semibold">{session.playerName}</p>
                           {session.playerAge ? (
-                            <span className="text-gray-500 text-xs bg-gray-800 px-2 py-0.5 rounded-full">
+                            <span className="text-gray-500 text-xs bg-[#1a1a1a] px-2 py-0.5 rounded-full">
                               Age {session.playerAge}
                             </span>
                           ) : null}
@@ -383,7 +383,7 @@ export default function CoachSessionsManagerPage() {
                         <StatusBadge status={session.bookingStatus} />
                         <button
                           onClick={() => (isEditing ? closeReschedule() : openReschedule(session))}
-                          className="text-cyan-400 hover:text-cyan-300 text-sm font-medium"
+                          className="text-amber-500 hover:text-amber-400 text-sm font-medium"
                         >
                           {isEditing ? 'Close Reschedule' : 'Reschedule'}
                         </button>
@@ -404,24 +404,24 @@ export default function CoachSessionsManagerPage() {
                     </div>
 
                     {isEditing ? (
-                      <div className="bg-gray-800 rounded-xl p-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+                      <div className="bg-[#1a1a1a] rounded-xl p-4 grid grid-cols-1 md:grid-cols-4 gap-3">
                         <input
                           type="date"
                           value={newDate}
                           onChange={(event) => setNewDate(event.target.value)}
-                          className="bg-gray-900 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
+                          className="bg-[#111] border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
                         />
                         <input
                           type="text"
                           value={newTime}
                           onChange={(event) => setNewTime(event.target.value)}
                           placeholder="New time"
-                          className="bg-gray-900 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
+                          className="bg-[#111] border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
                         />
                         <button
                           onClick={() => handleReschedule(session.id)}
                           disabled={isWorking}
-                          className="bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50"
+                          className="bg-amber-500 hover:bg-amber-400 text-white rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50"
                         >
                           {isWorking ? 'Saving...' : 'Save New Time'}
                         </button>

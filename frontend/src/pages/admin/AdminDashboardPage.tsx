@@ -43,7 +43,7 @@ export default function AdminDashboardPage() {
     { label: 'Cancelled', value: stats.cancelledBookings, color: 'text-red-400', link: '/admin/bookings' },
     { label: 'Programs (Active / Total)', value: `${stats.activePrograms} / ${stats.totalPrograms}`, color: 'text-purple-400', link: '/admin/programs' },
     { label: 'Events', value: stats.totalEvents, color: 'text-orange-400', link: '/admin/events' },
-    { label: 'Tournaments', value: stats.totalTournaments, color: 'text-cyan-400', link: '/admin/tournaments' },
+    { label: 'Tournaments', value: stats.totalTournaments, color: 'text-amber-500', link: '/admin/tournaments' },
     { label: 'Unread Messages', value: stats.unreadMessages, color: 'text-pink-400', link: '/admin/messages' },
     { label: 'Total Users', value: stats.totalUsers, color: 'text-indigo-400', link: '/admin/users' },
   ]
@@ -52,7 +52,7 @@ export default function AdminDashboardPage() {
     { label: 'Active Coaches', value: stats.totalCoaches ?? 0, color: 'text-blue-400', link: '/admin/coaches' },
     { label: 'Player Profiles', value: stats.totalPlayers ?? 0, color: 'text-green-400', link: '/admin/players' },
     { label: 'Families', value: stats.totalFamilies ?? 0, color: 'text-emerald-400', link: '/admin/families' },
-    { label: 'Active Series', value: stats.totalActiveSeries ?? 0, color: 'text-teal-400', link: '/admin/recurring-schedules' },
+    { label: 'Active Series', value: stats.totalActiveSeries ?? 0, color: 'text-amber-500', link: '/admin/recurring-schedules' },
     { label: 'Pending Registrations', value: stats.pendingRegistrations ?? 0, color: 'text-yellow-400', link: '/admin/tournaments' },
     { label: 'Admin Users', value: stats.usersWithRoleAdmin ?? 0, color: 'text-red-400', link: '/admin/users' },
     { label: 'Coach Users', value: stats.usersWithRoleCoach ?? 0, color: 'text-blue-300', link: '/admin/users' },
@@ -67,7 +67,7 @@ export default function AdminDashboardPage() {
           Track bookings, roles, and platform activity across every admin area.
         </p>
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <Link to="/admin/media" className="w-full rounded-xl bg-cyan-500 px-4 py-3 text-center text-sm font-bold text-black hover:bg-cyan-400 sm:w-auto">
+          <Link to="/admin/media" className="w-full rounded-xl bg-amber-500 px-4 py-3 text-center text-sm font-bold text-black hover:bg-amber-400 sm:w-auto">
             Add Post
           </Link>
           <Link to="/admin/programs?create=1" className="w-full rounded-xl bg-gray-800 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-gray-700 sm:w-auto">

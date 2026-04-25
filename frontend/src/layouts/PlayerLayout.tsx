@@ -19,8 +19,8 @@ const navSections: PortalNavSection[] = [
 export default function PlayerLayout({ children }: { children: ReactNode }) {
   return (
     <PortalLayout
-      accentClass="text-cyan-400"
-      activeBgClass="bg-cyan-500/10"
+      accentClass="text-amber-500"
+      activeBgClass="bg-amber-500/10"
       portalLabel="Player Portal"
       navSections={navSections}
       rootPath="/player"

@@ -64,7 +64,7 @@ export default function AdminFamiliesPage() {
           placeholder="Search by name or email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full bg-gray-900 border border-gray-700 rounded-lg pl-9 pr-4 py-2.5 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-green-500"
+          className="input-field-default pl-9 pr-4 py-2.5"
         />
       </div>
 

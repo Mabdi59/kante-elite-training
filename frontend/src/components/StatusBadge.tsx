@@ -5,7 +5,7 @@ const presets: Record<string, string> = {
   CANCELLED: 'bg-red-500/10 text-red-400 border-red-500/20',
   COMPLETED: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
   // Tournament & registration
-  UPCOMING: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+  UPCOMING: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
   ONGOING: 'bg-green-500/10 text-green-400 border-green-500/20',
   PENDING: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
   SUBMITTED: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
@@ -27,7 +27,7 @@ const presets: Record<string, string> = {
   STAFF: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
   PARENT: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
   PLAYER: 'bg-green-500/10 text-green-400 border-green-500/20',
-  TEAM_CAPTAIN: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+  TEAM_CAPTAIN: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
   USER: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
 }
 

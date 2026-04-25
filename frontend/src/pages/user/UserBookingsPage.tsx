@@ -135,7 +135,7 @@ export default function UserBookingsPage() {
                     ) : null}
                     <Link
                       to="/book"
-                      className="text-sm text-teal-400 border border-teal-400/30 hover:bg-amber-400/10 rounded-lg px-4 py-2"
+                      className="text-sm text-amber-500 border border-amber-500/20 hover:bg-amber-500/10 rounded-lg px-4 py-2"
                     >
                       Book Again
                     </Link>

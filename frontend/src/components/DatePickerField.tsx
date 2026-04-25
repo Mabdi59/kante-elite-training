@@ -128,7 +128,7 @@ export default function DatePickerField({
       <button
         type="button"
         onClick={openPicker}
-        className="absolute inset-y-0 right-0 flex items-center justify-center px-3 text-gray-400 hover:text-cyan-300"
+        className="absolute inset-y-0 right-0 flex items-center justify-center px-3 text-gray-400 hover:text-amber-400"
         aria-label="Open date picker"
       >
         <CalendarIcon />

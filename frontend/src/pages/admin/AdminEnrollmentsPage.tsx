@@ -200,7 +200,7 @@ export default function AdminEnrollmentsPage() {
           <select
             value={filterStatus}
             onChange={(event) => setFilterStatus(event.target.value)}
-            className="rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500"
+            className="rounded-lg input-field-default"
           >
             <option value="">All Statuses</option>
             {STATUS_OPTIONS.map((status) => (
@@ -370,7 +370,7 @@ export default function AdminEnrollmentsPage() {
                       value={enrollment.status}
                       onChange={(event) => updateStatus(enrollment.id, event.target.value)}
                       disabled={workingId === enrollment.id}
-                      className="rounded-lg border border-white/10 bg-zinc-900 px-2 py-1 text-xs text-white focus:outline-none focus:ring-1 focus:ring-green-500 disabled:opacity-50"
+                      className="rounded-lg input-field-default text-xs px-2 py-1 disabled:opacity-50"
                     >
                       {STATUS_OPTIONS.map((status) => (
                         <option key={status} value={status}>
@@ -384,7 +384,7 @@ export default function AdminEnrollmentsPage() {
                       value={enrollment.paymentStatus}
                       onChange={(event) => updatePayment(enrollment.id, event.target.value)}
                       disabled={workingId === enrollment.id}
-                      className="rounded-lg border border-white/10 bg-zinc-900 px-2 py-1 text-xs text-white focus:outline-none focus:ring-1 focus:ring-green-500 disabled:opacity-50"
+                      className="rounded-lg input-field-default text-xs px-2 py-1 disabled:opacity-50"
                     >
                       {PAYMENT_STATUSES.map((status) => (
                         <option key={status} value={status}>

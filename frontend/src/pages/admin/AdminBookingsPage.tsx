@@ -465,7 +465,7 @@ export default function AdminBookingsPage() {
                       <button
                         type="button"
                         onClick={() => openEdit(booking)}
-                        className="text-cyan-400 hover:text-cyan-300 text-sm font-medium"
+                        className="text-amber-500 hover:text-amber-300 text-sm font-medium"
                       >
                         Edit
                       </button>

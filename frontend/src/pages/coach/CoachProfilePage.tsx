@@ -51,14 +51,14 @@ export default function CoachProfilePage() {
       {error && <div className="mb-6"><ErrorBanner message={error} onDismiss={() => setError('')} /></div>}
 
       {profile && (
-        <form onSubmit={handleSave} className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-6 max-w-2xl">
+        <form onSubmit={handleSave} className="bg-[#111] border border-[#222] rounded-xl p-6 space-y-6 max-w-2xl">
           <div>
             <label className="block text-gray-300 text-sm font-medium mb-2">Bio</label>
             <textarea
               value={form.bio ?? ''}
               onChange={(e) => setForm({ ...form, bio: e.target.value })}
               rows={4}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-blue-500 resize-none"
+              className="input-field-default text-sm focus:outline-none focus:border-blue-500 resize-none"
               placeholder="Tell players about your background…"
             />
           </div>
@@ -69,7 +69,7 @@ export default function CoachProfilePage() {
               type="text"
               value={form.specialties ?? ''}
               onChange={(e) => setForm({ ...form, specialties: e.target.value })}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-blue-500"
+              className="input-field-default text-sm focus:outline-none focus:border-blue-500"
               placeholder="e.g. Dribbling, Defending, U12-U16"
             />
           </div>
@@ -80,7 +80,7 @@ export default function CoachProfilePage() {
               type="text"
               value={form.certifications ?? ''}
               onChange={(e) => setForm({ ...form, certifications: e.target.value })}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-blue-500"
+              className="input-field-default text-sm focus:outline-none focus:border-blue-500"
               placeholder="e.g. UEFA B, FA Level 2"
             />
           </div>
@@ -93,7 +93,7 @@ export default function CoachProfilePage() {
             >
               {saving ? 'Saving…' : 'Save Profile'}
             </button>
-            {saved && <span className="text-green-400 text-sm">Saved!</span>}
+            {saved && <span className="text-amber-500 text-sm">Saved!</span>}
           </div>
         </form>
       )}

@@ -212,7 +212,7 @@ export default function AdminRecurringSchedulePage() {
                     type="date"
                     value={cancelFromDate}
                     onChange={(e) => setCancelFromDate(e.target.value)}
-                    className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-green-500"
+                    className="input-field-default px-3 py-1.5"
                   />
                   <button
                     onClick={() => handleCancelFuture(s.id)}

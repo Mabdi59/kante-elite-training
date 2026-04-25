@@ -108,12 +108,12 @@ export default function FormatSelector({ value, onChange }: FormatSelectorProps)
               className={[
                 'flex flex-col items-center gap-3 rounded-xl border-2 px-5 py-6 text-center transition-all duration-150 cursor-pointer',
                 selected
-                  ? 'border-cyan-400 bg-cyan-950/40 shadow-[0_0_16px_rgba(34,211,238,0.25)] text-cyan-300'
+                  ? 'border-amber-500 bg-amber-500/10 shadow-[0_0_16px_rgba(245,158,11,0.2)] text-amber-300'
                   : 'border-gray-700 bg-gray-900 text-gray-400 hover:border-gray-500 hover:bg-gray-800 hover:-translate-y-0.5',
               ].join(' ')}
               aria-pressed={selected}
             >
-              <span className={selected ? 'text-cyan-400' : 'text-gray-500'}>
+              <span className={selected ? 'text-amber-500' : 'text-gray-500'}>
                 {option.icon}
               </span>
               <span className={`font-bold text-sm leading-snug ${selected ? 'text-white' : 'text-gray-300'}`}>

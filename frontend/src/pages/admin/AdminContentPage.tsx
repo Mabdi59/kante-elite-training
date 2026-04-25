@@ -91,7 +91,7 @@ function ToggleButton({
       onClick={onClick}
       className={`w-full rounded-2xl px-3 py-2 text-left text-xs font-semibold transition-colors sm:w-auto sm:rounded-full ${
         active
-          ? 'bg-cyan-500 text-black'
+          ? 'bg-amber-500 text-black'
           : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
       } disabled:opacity-50`}
     >
@@ -272,7 +272,7 @@ export default function AdminContentPage() {
               type="button"
               onClick={saveContent}
               disabled={saving}
-              className="w-full rounded-lg bg-cyan-500 px-5 py-3 text-sm font-bold text-black hover:bg-cyan-400 disabled:opacity-50 sm:w-auto"
+              className="w-full rounded-lg bg-amber-500 px-5 py-3 text-sm font-bold text-black hover:bg-amber-400 disabled:opacity-50 sm:w-auto"
             >
               {saving ? 'Saving...' : 'Save Content'}
             </button>
@@ -449,7 +449,7 @@ export default function AdminContentPage() {
                   onClick={() => setFilterCategory(cat)}
                   className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
                     filterCategory === cat
-                      ? 'bg-cyan-500 text-black'
+                      ? 'bg-amber-500 text-black'
                       : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                   }`}
                 >
@@ -467,7 +467,7 @@ export default function AdminContentPage() {
               action={
                 <Link
                   to="/admin/media"
-                  className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-bold text-black hover:bg-cyan-400"
+                  className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-black hover:bg-amber-400"
                 >
                   Go to Media Uploads
                 </Link>

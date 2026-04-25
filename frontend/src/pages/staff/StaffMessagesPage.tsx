@@ -85,7 +85,7 @@ export default function StaffMessagesPage() {
           {filteredMessages.map((message) => (
             <div
               key={message.id}
-              className={`bg-gray-900 border rounded-xl p-5 ${
+              className={`bg-[#111] border rounded-xl p-5 ${
                 message.readStatus ? 'border-gray-800' : 'border-pink-800/50 bg-pink-950/10'
               }`}
             >

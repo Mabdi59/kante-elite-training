@@ -30,8 +30,8 @@ const navSections: PortalNavSection[] = [
 export default function UserLayout({ children }: { children: ReactNode }) {
   return (
     <PortalLayout
-      accentClass="text-teal-400"
-      activeBgClass="bg-teal-500/10"
+      accentClass="text-amber-500"
+      activeBgClass="bg-amber-500/10"
       portalLabel="Account Portal"
       navSections={navSections}
       rootPath="/user"

@@ -449,7 +449,7 @@ export default function AdminProgramsWorkspacePage() {
               <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-cyan-400 mb-2">
+                    <p className="text-xs uppercase tracking-[0.2em] text-amber-500 mb-2">
                       Program Workspace
                     </p>
                     <h2 className="text-white text-2xl font-black">{currentProgramTitle}</h2>
@@ -783,7 +783,7 @@ export default function AdminProgramsWorkspacePage() {
                                   }}
                                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                                     participantMode === mode
-                                      ? 'bg-cyan-500 text-black'
+                                      ? 'bg-amber-500 text-black'
                                       : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                                   }`}
                                 >
@@ -893,7 +893,7 @@ export default function AdminProgramsWorkspacePage() {
                               type="button"
                               disabled={!participantCanSubmit || participantSaving}
                               onClick={handleAddParticipant}
-                              className="bg-cyan-500 hover:bg-cyan-400 text-black font-semibold px-4 py-2 rounded-lg text-sm disabled:opacity-50"
+                              className="bg-amber-500 hover:bg-amber-400 text-black font-semibold px-4 py-2 rounded-lg text-sm disabled:opacity-50"
                             >
                               {participantSaving ? 'Adding...' : 'Add Participant'}
                             </button>
