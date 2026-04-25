@@ -387,3 +387,35 @@
   outline: 2px solid #f59e0b;
   outline-offset: 3px;
 }
+
+/* Cookie consent banner slide-up */
+.animate-slide-up {
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Legal pages list styling */
+.prose-dark ul {
+  list-style: none;
+  padding: 0;
+}
+.prose-dark ul li {
+  padding-left: 1.25rem;
+  position: relative;
+}
+.prose-dark ul li::before {
+  content: '–';
+  position: absolute;
+  left: 0;
+  color: #d97706;
+}

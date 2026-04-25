@@ -13,6 +13,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import ScrollToTop from './components/ScrollToTop'
 import LoadingSpinner from './components/LoadingSpinner'
 import CanonicalMeta from './components/CanonicalMeta'
+import CookieConsentBanner from './components/CookieConsentBanner'
 
 // Public pages — eagerly loaded for fast initial render
 import HomePage from './pages/HomePage'
@@ -38,6 +39,13 @@ const PublicTeamRegisterPage = lazy(() => import('./pages/PublicTeamRegisterPage
 const TournamentRegistrationDashboardPage = lazy(
   () => import('./pages/TournamentRegistrationDashboardPage'),
 )
+
+// Legal / compliance pages
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'))
+const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage'))
+const CancellationPolicyPage = lazy(() => import('./pages/CancellationPolicyPage'))
+const CookiePolicyPage = lazy(() => import('./pages/CookiePolicyPage'))
+const AccessibilityPage = lazy(() => import('./pages/AccessibilityPage'))
 
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'))
 const AdminBookingsPage = lazy(() => import('./pages/admin/AdminBookingsPage'))
@@ -227,6 +235,13 @@ export default function App() {
             <Route path="/book" element={<BookPage />} />
             <Route path="/book/success" element={<BookingSuccessPage />} />
             <Route path="/sessions" element={<PublicAvailabilityPage />} />
+
+            {/* Legal / compliance pages */}
+            <Route path="/privacy" element={<MainLayout><PrivacyPolicyPage /></MainLayout>} />
+            <Route path="/terms" element={<MainLayout><TermsOfServicePage /></MainLayout>} />
+            <Route path="/cancellation-policy" element={<MainLayout><CancellationPolicyPage /></MainLayout>} />
+            <Route path="/cookie-policy" element={<MainLayout><CookiePolicyPage /></MainLayout>} />
+            <Route path="/accessibility" element={<MainLayout><AccessibilityPage /></MainLayout>} />
 
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -1112,6 +1127,7 @@ export default function App() {
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
+        <CookieConsentBanner />
       </BrowserRouter>
     </AuthProvider>
   )

@@ -147,11 +147,20 @@ export default function Footer() {
       </div>
 
       {/* Bottom bar */}
-      <div className="border-t border-[#1a1a1a] py-5 px-4 flex flex-col gap-2 items-center sm:flex-row sm:justify-between">
-        <p className="text-gray-600 text-xs">
-          &copy; {new Date().getFullYear()} Kante Elite Training. All rights reserved.
-        </p>
-        <p className="text-gray-700 text-xs">Columbus, Ohio</p>
+      <div className="border-t border-[#1a1a1a] py-5 px-4">
+        <div className="flex flex-wrap gap-x-5 gap-y-2 justify-center sm:justify-start mb-3">
+          <Link to="/privacy" className="text-gray-600 hover:text-gray-400 text-xs transition-colors">Privacy Policy</Link>
+          <Link to="/terms" className="text-gray-600 hover:text-gray-400 text-xs transition-colors">Terms of Service</Link>
+          <Link to="/cancellation-policy" className="text-gray-600 hover:text-gray-400 text-xs transition-colors">Cancellation Policy</Link>
+          <Link to="/cookie-policy" className="text-gray-600 hover:text-gray-400 text-xs transition-colors">Cookie Policy</Link>
+          <Link to="/accessibility" className="text-gray-600 hover:text-gray-400 text-xs transition-colors">Accessibility</Link>
+        </div>
+        <div className="flex flex-col gap-1 items-center sm:flex-row sm:justify-between">
+          <p className="text-gray-600 text-xs">
+            &copy; {new Date().getFullYear()} Kante Elite Training. All rights reserved.
+          </p>
+          <p className="text-gray-700 text-xs">Columbus, Ohio</p>
+        </div>
       </div>
     </footer>
   )
