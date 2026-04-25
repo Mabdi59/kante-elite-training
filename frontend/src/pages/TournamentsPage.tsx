@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getTournaments } from '../services/api'
 import type { Tournament } from '../types'
 import StatusBadge from '../components/StatusBadge'
 import CTASection from '../components/CTASection'
+
+const POLL_INTERVAL_MS = 60_000
 
 function TournamentCard({ tournament: t }: { tournament: Tournament }) {
   const spotsLeft = t.maxTeams - t.registeredTeams
@@ -105,32 +107,43 @@ export default function TournamentsPage() {
   const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [loading, setLoading] = useState(true)
   const [filterStatus, setFilterStatus] = useState('')
+  const [showPast, setShowPast] = useState(false)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     document.title = 'Youth Soccer Tournaments | Kante Elite Training — Columbus, Ohio'
     return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
   }, [])
 
-  useEffect(() => {
+  const fetchTournaments = () => {
     getTournaments()
       .then(setTournaments)
       .catch(() => { /* silenced */ })
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchTournaments()
+    intervalRef.current = setInterval(fetchTournaments, POLL_INTERVAL_MS)
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
   }, [])
 
-  const allStatuses = [...new Set(tournaments.map((t) => t.status))]
-  const filtered = (filterStatus ? tournaments.filter((t) => t.status === filterStatus) : tournaments).sort(
-    (a, b) => {
-      const aOpen = a.status !== 'COMPLETED' && a.status !== 'CANCELLED'
-      const bOpen = b.status !== 'COMPLETED' && b.status !== 'CANCELLED'
-      if (aOpen !== bOpen) return aOpen ? -1 : 1
-      return a.startDate.localeCompare(b.startDate)
-    },
-  )
-  const openTournaments = tournaments.filter(
+  // Active = anything that is not finished or cancelled
+  const activeTournaments = tournaments.filter(
     (t) => t.status !== 'COMPLETED' && t.status !== 'CANCELLED',
   )
-  const closingSoon = tournaments.filter((t) => {
+  // Past = completed only (cancelled are hidden entirely from the public view)
+  const pastTournaments = tournaments.filter((t) => t.status === 'COMPLETED')
+
+  const activeStatuses = [...new Set(activeTournaments.map((t) => t.status))]
+
+  const filteredActive = (
+    filterStatus ? activeTournaments.filter((t) => t.status === filterStatus) : activeTournaments
+  ).sort((a, b) => a.startDate.localeCompare(b.startDate))
+
+  const closingSoon = activeTournaments.filter((t) => {
     if (!t.registrationDeadline) return false
     const today = new Date()
     const deadline = new Date(t.registrationDeadline)
@@ -150,11 +163,11 @@ export default function TournamentsPage() {
           <p className="mx-auto max-w-2xl text-base text-gray-400 sm:text-lg">
             Public registration is open. Review the details, choose your tournament, and register your team in a few minutes.
           </p>
-          {!loading && tournaments.length > 0 ? (
+          {!loading && activeTournaments.length > 0 ? (
             <div className="mx-auto mt-8 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="bg-[#111] border border-[#222] rounded-xl p-5">
                 <p className="text-gray-400 text-sm mb-2">Available Now</p>
-                <p className="text-3xl font-black text-green-400">{openTournaments.length}</p>
+                <p className="text-3xl font-black text-green-400">{activeTournaments.length}</p>
               </div>
               <div className="bg-[#111] border border-[#222] rounded-xl p-5">
                 <p className="text-gray-400 text-sm mb-2">Closing Soon</p>
@@ -162,13 +175,13 @@ export default function TournamentsPage() {
               </div>
               <div className="bg-[#111] border border-[#222] rounded-xl p-5">
                 <p className="text-gray-400 text-sm mb-2">Total Listings</p>
-                <p className="text-3xl font-black text-white">{tournaments.length}</p>
+                <p className="text-3xl font-black text-white">{activeTournaments.length}</p>
               </div>
             </div>
           ) : null}
         </div>
 
-        {!loading && tournaments.length > 0 && (
+        {!loading && activeTournaments.length > 0 && (
           <div className="mb-10 flex flex-wrap justify-center gap-2">
             <button
               onClick={() => setFilterStatus('')}
@@ -176,7 +189,7 @@ export default function TournamentsPage() {
             >
               All
             </button>
-            {allStatuses.map((s) => (
+            {activeStatuses.map((s) => (
               <button
                 key={s}
                 onClick={() => setFilterStatus(s)}
@@ -190,7 +203,7 @@ export default function TournamentsPage() {
 
         {loading ? (
           <p className="text-gray-400 text-center">Loading tournaments…</p>
-        ) : filtered.length === 0 ? (
+        ) : filteredActive.length === 0 ? (
           <div className="text-center text-gray-400 py-16">
             <div className="w-16 h-16 rounded-2xl bg-[#111] border border-[#222] flex items-center justify-center mx-auto mb-5">
               <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
@@ -198,15 +211,47 @@ export default function TournamentsPage() {
               </svg>
             </div>
             <p className="text-lg font-semibold text-white mb-2">
-              {filterStatus ? `No ${filterStatus.toLowerCase()} tournaments` : 'No tournaments yet'}
+              {filterStatus ? `No ${filterStatus.toLowerCase()} tournaments` : 'No upcoming tournaments'}
             </p>
             <p className="text-sm">Check back soon for upcoming events.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {filtered.map((t) => (
+            {filteredActive.map((t) => (
               <TournamentCard key={t.id} tournament={t} />
             ))}
+          </div>
+        )}
+
+        {/* Past tournaments — collapsed by default */}
+        {!loading && pastTournaments.length > 0 && (
+          <div className="mt-16">
+            <button
+              onClick={() => setShowPast((v) => !v)}
+              className="flex items-center gap-2 text-gray-500 hover:text-gray-300 text-sm font-semibold transition-colors mx-auto"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className={`w-4 h-4 transition-transform ${showPast ? 'rotate-90' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2.5}
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+              {showPast ? 'Hide' : 'Show'} Past Tournaments ({pastTournaments.length})
+            </button>
+
+            {showPast && (
+              <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 opacity-60">
+                {pastTournaments
+                  .sort((a, b) => b.startDate.localeCompare(a.startDate))
+                  .map((t) => (
+                    <TournamentCard key={t.id} tournament={t} />
+                  ))}
+              </div>
+            )}
           </div>
         )}
       </div>
