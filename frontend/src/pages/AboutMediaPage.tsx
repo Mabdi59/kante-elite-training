@@ -59,7 +59,7 @@ export default function AboutMediaPage() {
 
   if (loading) {
     return (
-      <div className="bg-black pt-20">
+      <div className="min-h-screen bg-black pt-20">
         <div className="page-shell py-10">
           <PageSkeleton titleWidthClassName="w-72" count={4} />
         </div>
@@ -68,7 +68,7 @@ export default function AboutMediaPage() {
   }
 
   return (
-    <div className="bg-black pt-20">
+    <div className="min-h-screen bg-black pt-20">
       <section className="relative overflow-hidden px-4 py-16 sm:py-20">
         {heroPost ? (
           <div className="absolute inset-0">
@@ -163,9 +163,7 @@ export default function AboutMediaPage() {
       <section className="border-y border-[#1a1a1a] bg-[#0a0a0a] px-4 py-16">
         <div className="page-shell max-w-6xl">
           <div className="mb-8 text-center">
-            <span className="section-label">
-              {content.aboutExperienceTitle || defaultWebsiteContent.aboutExperienceTitle}
-            </span>
+            <span className="section-label">Experience</span>
             <h2 className="mb-4 text-3xl font-black text-white sm:text-4xl md:text-5xl">
               {content.aboutExperienceTitle || defaultWebsiteContent.aboutExperienceTitle}
             </h2>
@@ -201,7 +199,7 @@ export default function AboutMediaPage() {
         <div className="page-shell">
           <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <span className="section-label">{content.aboutGalleryTitle || defaultWebsiteContent.aboutGalleryTitle}</span>
+              <span className="section-label">Gallery</span>
               <h2 className="text-3xl font-black text-white sm:text-4xl md:text-5xl">
                 {content.aboutGalleryTitle || defaultWebsiteContent.aboutGalleryTitle}
               </h2>
@@ -230,7 +228,6 @@ export default function AboutMediaPage() {
             </div>
           ) : (
             <EmptyState
-              icon="Gallery"
               title="Gallery updates are on the way"
               description="Featured photos and videos will appear here as soon as they are published."
             />
