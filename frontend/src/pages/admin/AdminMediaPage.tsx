@@ -585,6 +585,47 @@ export default function AdminMediaPage() {
           </div>
         </div>
       ) : null}
+
+      {/* Static fallback assets section */}
+      <div className="mt-10 rounded-2xl border border-[#222] bg-[#111] p-6">
+        <div className="mb-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-500">Static Fallback Assets</p>
+          <h2 className="mt-1 text-lg font-bold text-white">Built-in Photos &amp; Videos</h2>
+          <p className="mt-1 text-xs text-gray-500">
+            These files are bundled with the site and used as fallbacks. They show on the <strong className="text-gray-300">About</strong> page and <strong className="text-gray-300">Media</strong> page when no uploaded content is available.
+            To replace them, upload new media above and toggle <strong className="text-gray-300">Show on About</strong> or set a category — your uploads will take priority.
+          </p>
+        </div>
+
+        <div className="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-widest">Coach Photos (About page)</div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          {[
+            { src: '/images/Coach.png', label: 'Coach.png' },
+            { src: '/images/D26A0694.jpeg', label: 'D26A0694.jpeg' },
+            { src: '/images/D26A0746.jpeg', label: 'D26A0746.jpeg' },
+            { src: '/images/IMG_3599.jpeg', label: 'IMG_3599.jpeg' },
+          ].map((photo) => (
+            <div key={photo.src} className="rounded-xl overflow-hidden border border-[#1e1e1e] bg-black">
+              <div className="aspect-[3/4] overflow-hidden">
+                <img src={photo.src} alt={photo.label} className="w-full h-full object-cover object-top" loading="lazy" />
+              </div>
+              <p className="px-2 py-2 text-[10px] text-gray-500 truncate">{photo.label}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-widest">Training Videos (Media page)</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {['training-1.mp4','training-2.mp4','training-3.mp4','training-4.mp4','training-5.mp4'].map((file) => (
+            <div key={file} className="rounded-xl overflow-hidden border border-[#1e1e1e] bg-black">
+              <div className="aspect-video overflow-hidden">
+                <video src={`/images/${file}`} controls playsInline preload="metadata" className="w-full h-full object-cover" />
+              </div>
+              <p className="px-2 py-2 text-[10px] text-gray-500">{file}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
