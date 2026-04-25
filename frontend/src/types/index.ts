@@ -575,6 +575,7 @@ export interface MediaPostUpdateFormData {
   showOnHome?: boolean
   showOnAbout?: boolean
   mediaCategory?: MediaCategory
+  clearMediaCategory?: boolean
 }
 
 export interface WebsiteContentFormData {

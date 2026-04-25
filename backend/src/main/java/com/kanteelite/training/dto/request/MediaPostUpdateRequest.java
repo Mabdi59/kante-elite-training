@@ -17,4 +17,10 @@ public class MediaPostUpdateRequest {
     private Boolean showOnAbout;
 
     private MediaCategory mediaCategory;
+
+    /**
+     * When true, mediaCategory is explicitly cleared regardless of the mediaCategory field value.
+     * This lets callers distinguish "omit field" from "set to null".
+     */
+    private boolean clearMediaCategory;
 }

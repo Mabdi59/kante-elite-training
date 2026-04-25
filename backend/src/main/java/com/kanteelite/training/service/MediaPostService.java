@@ -86,7 +86,9 @@ public class MediaPostService {
         if (request.getShowOnAbout() != null) {
             mediaPost.setShowOnAbout(request.getShowOnAbout());
         }
-        if (request.getMediaCategory() != null) {
+        if (request.isClearMediaCategory()) {
+            mediaPost.setMediaCategory(null);
+        } else if (request.getMediaCategory() != null) {
             mediaPost.setMediaCategory(request.getMediaCategory());
         }
 
