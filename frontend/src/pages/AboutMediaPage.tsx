@@ -1,6 +1,5 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
 import CTASection from '../components/CTASection'
-import EmptyState from '../components/EmptyState'
 import MediaLightbox from '../components/MediaLightbox'
 import MediaPostCard from '../components/MediaPostCard'
 import PageSkeleton from '../components/PageSkeleton'
@@ -120,46 +119,6 @@ export default function AboutMediaPage() {
         </div>
       </section>
 
-      <section className="bg-black px-4 py-16">
-        <div className="page-shell grid grid-cols-1 items-center gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
-          <div>
-            <span className="section-label">{content.aboutBadge || defaultWebsiteContent.aboutBadge}</span>
-            <h2 className="mb-4 text-3xl font-black text-white sm:text-4xl">
-              {content.aboutHeadline || defaultWebsiteContent.aboutHeadline}
-            </h2>
-            <div className="space-y-4 text-sm leading-relaxed text-gray-400">
-              <p>{content.aboutIntro || defaultWebsiteContent.aboutIntro}</p>
-              <p>{content.aboutBody || defaultWebsiteContent.aboutBody}</p>
-            </div>
-          </div>
-
-          {galleryPosts[0] ? (
-            <button
-              type="button"
-              onClick={() => setActiveMediaIndex(0)}
-              className="block w-full text-left"
-            >
-              <MediaPostCard
-                post={galleryPosts[0]}
-                aspectClassName="aspect-[5/4]"
-                showDate={false}
-                imageLoading="eager"
-                imageFetchPriority="high"
-              />
-            </button>
-          ) : (
-            <div className="rounded-2xl border border-[#222] bg-[#111] p-8">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-400">
-                Live Gallery
-              </p>
-              <p className="mt-3 text-sm leading-relaxed text-gray-400">
-                Training photos and videos added in the admin panel will appear here automatically.
-              </p>
-            </div>
-          )}
-        </div>
-      </section>
-
       <section className="border-y border-[#1a1a1a] bg-[#0a0a0a] px-4 py-16">
         <div className="page-shell max-w-6xl">
           <div className="mb-8 text-center">
@@ -207,46 +166,6 @@ export default function AboutMediaPage() {
             </ul>
             </div>
           </div>
-        </div>
-      </section>
-
-      <section className="bg-black px-4 py-16">
-        <div className="page-shell">
-          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <span className="section-label">Gallery</span>
-              <h2 className="text-3xl font-black text-white sm:text-4xl md:text-5xl">
-                {content.aboutGalleryTitle || defaultWebsiteContent.aboutGalleryTitle}
-              </h2>
-            </div>
-            <p className="max-w-md text-sm leading-relaxed text-gray-400">
-              {content.aboutGalleryDescription || defaultWebsiteContent.aboutGalleryDescription}
-            </p>
-          </div>
-
-          {galleryPosts.length > 0 ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {galleryPosts.map((post, index) => (
-                <button
-                  key={post.id}
-                  type="button"
-                  onClick={() => setActiveMediaIndex(index)}
-                  className="block w-full text-left"
-                >
-                  <MediaPostCard
-                    post={post}
-                    imageLoading={index < 4 ? 'eager' : 'lazy'}
-                    imageFetchPriority={index < 2 ? 'high' : 'auto'}
-                  />
-                </button>
-              ))}
-            </div>
-          ) : (
-            <EmptyState
-              title="Gallery updates are on the way"
-              description="Featured photos and videos will appear here as soon as they are published."
-            />
-          )}
         </div>
       </section>
 
