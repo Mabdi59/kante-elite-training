@@ -12,10 +12,10 @@ interface Document {
 }
 
 const DOC_TYPE_COLORS: Record<string, string> = {
-  MEDICAL_FORM: 'bg-blue-500/20 text-blue-400',
-  LIABILITY_WAIVER: 'bg-amber-500/20 text-amber-400',
-  CONSENT_FORM: 'bg-purple-500/20 text-purple-400',
-  CONTRACT: 'bg-green-500/20 text-green-400',
+  MEDICAL_FORM: 'bg-blue-500/15 text-blue-400 border-blue-500/20',
+  LIABILITY_WAIVER: 'bg-amber-500/15 text-amber-400 border-amber-500/20',
+  CONSENT_FORM: 'bg-purple-500/15 text-purple-400 border-purple-500/20',
+  CONTRACT: 'bg-green-500/15 text-green-400 border-green-500/20',
 }
 
 export default function DocumentsPage() {
@@ -43,18 +43,22 @@ export default function DocumentsPage() {
       {error && <ErrorBanner message={error} />}
 
       {documents.length === 0 ? (
-        <div className="rounded-xl border border-white/10 bg-zinc-900 p-8 text-center text-gray-400">
+        <div className="rounded-2xl border border-dashed border-[#2a2a2a] bg-[#0f0f0f] p-10 text-center text-gray-400">
           No documents found.
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {documents.map((doc) => (
-            <div key={doc.id} className="rounded-xl border border-white/10 bg-zinc-900 p-4 space-y-3">
+            <div key={doc.id} className="rounded-xl border border-[#222] bg-[#111] p-4 space-y-3">
               <div className="flex items-start justify-between gap-2">
-                <div className="text-2xl">📄</div>
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                  </svg>
+                </div>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                    DOC_TYPE_COLORS[doc.docType] ?? 'bg-gray-500/20 text-gray-400'
+                  className={`rounded-full px-2 py-0.5 text-xs font-semibold border ${
+                    DOC_TYPE_COLORS[doc.docType] ?? 'bg-gray-500/20 text-gray-400 border-gray-500/20'
                   }`}
                 >
                   {doc.docType.replace(/_/g, ' ')}
@@ -70,9 +74,12 @@ export default function DocumentsPage() {
                 href={doc.fileUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-center text-xs font-semibold text-white hover:bg-white/10 transition-colors"
+                className="flex items-center justify-center gap-1.5 rounded-lg border border-[#333] bg-[#1a1a1a] px-3 py-1.5 text-center text-xs font-semibold text-white hover:bg-[#222] transition-colors"
               >
-                Download ↗
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+                Download
               </a>
             </div>
           ))}

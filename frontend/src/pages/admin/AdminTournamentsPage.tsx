@@ -150,7 +150,7 @@ export default function AdminTournamentsPage() {
                   openWorkflow(tournament.id)
                 }
               }}
-              className="relative bg-gray-900 border border-gray-800 rounded-xl cursor-pointer hover:border-cyan-500/40 transition-colors"
+              className="relative bg-gray-900 border border-gray-800 rounded-xl cursor-pointer hover:border-amber-500/40 transition-colors"
             >
               <div className="p-5 flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
@@ -163,7 +163,7 @@ export default function AdminTournamentsPage() {
                       </span>
                     ) : null}
                     {tournament.division ? (
-                      <span className="text-xs text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full">
+                      <span className="text-xs text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full">
                         {tournament.division}
                       </span>
                     ) : null}

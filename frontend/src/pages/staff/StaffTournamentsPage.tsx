@@ -97,7 +97,7 @@ export default function StaffTournamentsPage() {
       ) : (
         <div className="space-y-4">
           {tournaments.map((tournament) => (
-            <div key={tournament.id} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+            <div key={tournament.id} className="bg-[#111] border border-[#222] rounded-xl overflow-hidden">
               <div className="p-5 flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 flex-wrap mb-1">
@@ -176,7 +176,7 @@ export default function StaffTournamentsPage() {
                                     onChange={(event) =>
                                       handleRegistrationStatusChange(registration.id, event.target.value)
                                     }
-                                    className="bg-gray-800 border border-gray-700 text-gray-300 rounded px-2 py-1 text-xs"
+                                    className="bg-[#1a1a1a] border border-[#2a2a2a] text-gray-300 rounded px-2 py-1 text-xs"
                                   >
                                     {REGISTRATION_STATUSES.map((status) => (
                                       <option key={status} value={status}>
@@ -189,7 +189,7 @@ export default function StaffTournamentsPage() {
                                     onChange={(event) =>
                                       handleRegistrationPaymentChange(registration.id, event.target.value)
                                     }
-                                    className="bg-gray-800 border border-gray-700 text-gray-300 rounded px-2 py-1 text-xs"
+                                    className="bg-[#1a1a1a] border border-[#2a2a2a] text-gray-300 rounded px-2 py-1 text-xs"
                                   >
                                     {PAYMENT_STATUSES.map((status) => (
                                       <option key={status} value={status}>

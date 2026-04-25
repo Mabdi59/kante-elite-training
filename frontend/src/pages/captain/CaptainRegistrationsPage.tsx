@@ -323,13 +323,13 @@ export default function CaptainRegistrationsPage() {
       {error ? <ErrorBanner message={error} onDismiss={() => setError('')} /> : null}
 
       {notice ? (
-        <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-green-300 text-sm">
+        <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-amber-400 text-sm">
           {notice}
         </div>
       ) : null}
 
       {editingId ? (
-        <form onSubmit={handleSave} className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+        <form onSubmit={handleSave} className="bg-[#111] border border-[#222] rounded-xl p-6 space-y-4">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
               <h2 className="text-white text-xl font-bold">Edit Registration</h2>
@@ -353,7 +353,7 @@ export default function CaptainRegistrationsPage() {
                 required
                 value={form.teamName}
                 onChange={(event) => setForm((current) => ({ ...current, teamName: event.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-white text-sm"
               />
             </div>
             <div>
@@ -362,7 +362,7 @@ export default function CaptainRegistrationsPage() {
                 required
                 value={form.captainName}
                 onChange={(event) => setForm((current) => ({ ...current, captainName: event.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-white text-sm"
               />
             </div>
             <div>
@@ -372,7 +372,7 @@ export default function CaptainRegistrationsPage() {
                 required
                 value={form.contactEmail}
                 onChange={(event) => setForm((current) => ({ ...current, contactEmail: event.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-white text-sm"
               />
             </div>
             <div>
@@ -380,7 +380,7 @@ export default function CaptainRegistrationsPage() {
               <input
                 value={form.phone ?? ''}
                 onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-white text-sm"
               />
             </div>
             <div>
@@ -388,7 +388,7 @@ export default function CaptainRegistrationsPage() {
               <input
                 value={form.clubName ?? ''}
                 onChange={(event) => setForm((current) => ({ ...current, clubName: event.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-white text-sm"
               />
             </div>
             <div>
@@ -398,7 +398,7 @@ export default function CaptainRegistrationsPage() {
                 onChange={(event) =>
                   setForm((current) => ({ ...current, tournamentId: Number(event.target.value) }))
                 }
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-white text-sm"
               >
                 {tournaments.map((tournament) => (
                   <option key={tournament.id} value={tournament.id}>
@@ -429,7 +429,7 @@ export default function CaptainRegistrationsPage() {
       ) : null}
 
       {workspaceId ? (
-        <section className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-6">
+        <section className="bg-[#111] border border-[#222] rounded-2xl p-6 space-y-6">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
               <p className="text-orange-400 text-xs font-bold uppercase tracking-widest mb-3">
@@ -464,7 +464,7 @@ export default function CaptainRegistrationsPage() {
           ) : workspace ? (
             <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-6">
               <div className="space-y-6">
-                <section className="bg-black/30 border border-gray-800 rounded-xl p-5">
+                <section className="bg-black/30 border border-[#222] rounded-xl p-5">
                   <h3 className="text-white text-xl font-bold mb-4">Registration Details</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div className="bg-black/40 border border-[#1f1f1f] rounded-xl p-4">
@@ -497,7 +497,7 @@ export default function CaptainRegistrationsPage() {
                   </div>
                 </section>
 
-                <section className="bg-black/30 border border-gray-800 rounded-xl p-5">
+                <section className="bg-black/30 border border-[#222] rounded-xl p-5">
                   <div className="flex items-start justify-between gap-4 flex-wrap mb-5">
                     <div>
                       <h3 className="text-white text-xl font-bold">Payment</h3>
@@ -532,7 +532,7 @@ export default function CaptainRegistrationsPage() {
                       type="button"
                       onClick={handleCheckout}
                       disabled={creatingCheckout}
-                      className="w-full sm:w-auto bg-green-500 hover:bg-green-400 disabled:opacity-50 text-black font-bold px-5 py-3 rounded-lg mb-5"
+                      className="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black font-bold px-5 py-3 rounded-lg mb-5"
                     >
                       {creatingCheckout ? 'Starting Checkout...' : 'Pay Online'}
                     </button>
@@ -546,7 +546,7 @@ export default function CaptainRegistrationsPage() {
                           <select
                             value={paymentMethod}
                             onChange={(event) => setPaymentMethod(event.target.value)}
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white"
+                            className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-4 py-3 text-white"
                           >
                             {PAYMENT_METHODS.map((method) => (
                               <option key={method} value={method}>
@@ -560,7 +560,7 @@ export default function CaptainRegistrationsPage() {
                           <input
                             value={paymentReference}
                             onChange={(event) => setPaymentReference(event.target.value)}
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white"
+                            className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-4 py-3 text-white"
                             placeholder="Transaction ID or note"
                           />
                         </div>
@@ -572,7 +572,7 @@ export default function CaptainRegistrationsPage() {
                           rows={3}
                           value={paymentNotes}
                           onChange={(event) => setPaymentNotes(event.target.value)}
-                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white resize-none"
+                          className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-4 py-3 text-white resize-none"
                           placeholder="Add any details that will help us match your payment."
                         />
                       </div>
@@ -594,7 +594,7 @@ export default function CaptainRegistrationsPage() {
                   )}
                 </section>
 
-                <section className="bg-black/30 border border-gray-800 rounded-xl p-5">
+                <section className="bg-black/30 border border-[#222] rounded-xl p-5">
                   <div className="flex items-start justify-between gap-4 flex-wrap mb-5">
                     <div>
                       <h3 className="text-white text-xl font-bold">Roster</h3>
@@ -627,7 +627,7 @@ export default function CaptainRegistrationsPage() {
                         rows={6}
                         value={rosterText}
                         onChange={(event) => setRosterText(event.target.value)}
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white resize-none"
+                        className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-4 py-3 text-white resize-none"
                         placeholder="Example: Player names, jersey numbers, positions, or any roster notes."
                       />
                     </div>
@@ -637,7 +637,7 @@ export default function CaptainRegistrationsPage() {
                       <input
                         type="file"
                         onChange={(event) => setRosterFile(event.target.files?.[0] ?? null)}
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-gray-300"
+                        className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-4 py-3 text-gray-300"
                       />
                       <p className="text-gray-500 text-xs mt-2">Accepted size up to 10 MB.</p>
                     </div>
@@ -654,7 +654,7 @@ export default function CaptainRegistrationsPage() {
               </div>
 
               <div className="space-y-6">
-                <section className="bg-black/30 border border-gray-800 rounded-xl p-5">
+                <section className="bg-black/30 border border-[#222] rounded-xl p-5">
                   <p className="text-orange-400 text-xs font-bold uppercase tracking-widest mb-4">
                     What Happens Next
                   </p>
@@ -668,7 +668,7 @@ export default function CaptainRegistrationsPage() {
                   </ul>
                 </section>
 
-                <section className="bg-black/30 border border-gray-800 rounded-xl p-5">
+                <section className="bg-black/30 border border-[#222] rounded-xl p-5">
                   <p className="text-orange-400 text-xs font-bold uppercase tracking-widest mb-4">
                     Team Portal
                   </p>
@@ -678,7 +678,7 @@ export default function CaptainRegistrationsPage() {
                 </section>
 
                 {workspace.lastFollowUpSentAt ? (
-                  <section className="bg-black/30 border border-gray-800 rounded-xl p-5">
+                  <section className="bg-black/30 border border-[#222] rounded-xl p-5">
                     <p className="text-orange-400 text-xs font-bold uppercase tracking-widest mb-4">
                       Last Update
                     </p>
@@ -711,7 +711,7 @@ export default function CaptainRegistrationsPage() {
       ) : (
         <div className="space-y-4">
           {registrations.map((registration) => (
-            <div key={registration.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <div key={registration.id} className="bg-[#111] border border-[#222] rounded-xl p-5">
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div>
                   <div className="flex items-center gap-3 mb-2 flex-wrap">
@@ -749,7 +749,7 @@ export default function CaptainRegistrationsPage() {
                     className={`rounded-lg px-4 py-2 text-sm border ${
                       workspaceId === registration.id
                         ? 'text-white border-white/30 bg-white/10'
-                        : 'text-gray-300 border-gray-600 hover:bg-gray-800'
+                        : 'text-gray-300 border-gray-600 hover:bg-[#1a1a1a]'
                     }`}
                   >
                     {workspaceId === registration.id ? 'Workspace Open' : 'Open Workspace'}

@@ -25,8 +25,8 @@ export default function StaffDashboardPage() {
 
   const cards = [
     { label: 'Total Bookings', value: stats.totalBookings, color: 'text-blue-400', link: '/staff/bookings' },
-    { label: 'Today', value: stats.todayBookings, color: 'text-green-400', link: '/staff/bookings' },
-    { label: 'Upcoming', value: stats.upcomingBookings, color: 'text-cyan-400', link: '/staff/bookings' },
+    { label: 'Today', value: stats.todayBookings, color: 'text-amber-500', link: '/staff/bookings' },
+    { label: 'Upcoming', value: stats.upcomingBookings, color: 'text-amber-500', link: '/staff/bookings' },
     { label: 'Confirmed', value: stats.confirmedBookings, color: 'text-emerald-400', link: '/staff/bookings' },
     { label: 'Unread Messages', value: stats.unreadMessages, color: 'text-pink-400', link: '/staff/messages' },
     { label: 'Blocked Slots', value: stats.blockedSlots, color: 'text-red-400', link: '/staff/availability' },
@@ -53,7 +53,7 @@ export default function StaffDashboardPage() {
           </Link>
           <Link
             to="/staff/messages"
-            className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg"
+            className="bg-[#1a1a1a] hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg"
           >
             View Messages
           </Link>
@@ -67,7 +67,7 @@ export default function StaffDashboardPage() {
           <Link
             key={card.label}
             to={card.link}
-            className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-gray-600 transition-colors"
+            className="bg-[#111] border border-[#222] rounded-xl p-6 hover:border-gray-600 transition-colors"
           >
             <p className="text-gray-400 text-sm mb-2">{card.label}</p>
             <p className={`text-4xl font-black ${card.color}`}>{card.value}</p>

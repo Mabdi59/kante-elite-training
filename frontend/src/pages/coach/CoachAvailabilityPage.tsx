@@ -176,7 +176,7 @@ export default function CoachAvailabilityPage() {
 
       {error ? <ErrorBanner message={error} onDismiss={() => setError('')} /> : null}
 
-      <section className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <section className="bg-[#111] border border-[#222] rounded-xl p-6">
         <div className="flex items-center justify-between gap-4 mb-4">
           <div>
             <h2 className="text-white text-xl font-bold">Weekly Availability</h2>
@@ -198,7 +198,7 @@ export default function CoachAvailabilityPage() {
           <select
             value={ruleDay}
             onChange={(event) => setRuleDay(event.target.value)}
-            className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
+            className="bg-[#1a1a1a] border border-[#2a2a2a] text-gray-300 rounded-lg px-3 py-2 text-sm"
           >
             {DAYS.map((day, index) => (
               <option key={day} value={index}>
@@ -211,14 +211,14 @@ export default function CoachAvailabilityPage() {
             type="time"
             value={ruleStart}
             onChange={(event) => setRuleStart(event.target.value)}
-            className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
+            className="bg-[#1a1a1a] border border-[#2a2a2a] text-gray-300 rounded-lg px-3 py-2 text-sm"
           />
 
           <input
             type="time"
             value={ruleEnd}
             onChange={(event) => setRuleEnd(event.target.value)}
-            className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
+            className="bg-[#1a1a1a] border border-[#2a2a2a] text-gray-300 rounded-lg px-3 py-2 text-sm"
           />
 
           <label className="flex items-center gap-2 text-sm text-gray-300 px-1">
@@ -249,7 +249,7 @@ export default function CoachAvailabilityPage() {
             {rules.map((rule) => (
               <div
                 key={rule.id}
-                className="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3 gap-4"
+                className="flex items-center justify-between bg-[#1a1a1a] rounded-lg px-4 py-3 gap-4"
               >
                 <div className="flex items-center gap-4 flex-wrap">
                   <span className="text-white font-medium w-24">{DAYS[rule.dayOfWeek]}</span>
@@ -265,7 +265,7 @@ export default function CoachAvailabilityPage() {
                 <div className="flex gap-2 shrink-0">
                   <button
                     onClick={() => openRuleEdit(rule)}
-                    className="text-cyan-400 hover:text-cyan-300 text-sm"
+                    className="text-amber-500 hover:text-amber-400 text-sm"
                   >
                     Edit
                   </button>
@@ -282,7 +282,7 @@ export default function CoachAvailabilityPage() {
         )}
       </section>
 
-      <section className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <section className="bg-[#111] border border-[#222] rounded-xl p-6">
         <div className="flex items-center justify-between gap-4 mb-4">
           <div>
             <h2 className="text-white text-xl font-bold">Blocked Dates and Times</h2>
@@ -306,7 +306,7 @@ export default function CoachAvailabilityPage() {
             value={blockDate}
             onChange={(event) => setBlockDate(event.target.value)}
             required
-            className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
+            className="bg-[#1a1a1a] border border-[#2a2a2a] text-gray-300 rounded-lg px-3 py-2 text-sm"
           />
 
           <input
@@ -314,7 +314,7 @@ export default function CoachAvailabilityPage() {
             value={blockTime}
             onChange={(event) => setBlockTime(event.target.value)}
             placeholder="Time, optional"
-            className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
+            className="bg-[#1a1a1a] border border-[#2a2a2a] text-gray-300 rounded-lg px-3 py-2 text-sm"
           />
 
           <input
@@ -322,7 +322,7 @@ export default function CoachAvailabilityPage() {
             value={blockReason}
             onChange={(event) => setBlockReason(event.target.value)}
             placeholder="Reason, optional"
-            className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
+            className="bg-[#1a1a1a] border border-[#2a2a2a] text-gray-300 rounded-lg px-3 py-2 text-sm"
           />
 
           <button
@@ -343,7 +343,7 @@ export default function CoachAvailabilityPage() {
             {blockedSlots.map((slot) => (
               <div
                 key={slot.id}
-                className="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3 gap-4"
+                className="flex items-center justify-between bg-[#1a1a1a] rounded-lg px-4 py-3 gap-4"
               >
                 <div className="flex items-center gap-4 flex-wrap">
                   <span className="text-white font-medium">{slot.slotDate}</span>
@@ -361,7 +361,7 @@ export default function CoachAvailabilityPage() {
                 <div className="flex gap-2 shrink-0">
                   <button
                     onClick={() => openBlockedEdit(slot)}
-                    className="text-cyan-400 hover:text-cyan-300 text-sm"
+                    className="text-amber-500 hover:text-amber-400 text-sm"
                   >
                     Edit
                   </button>

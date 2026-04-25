@@ -50,7 +50,7 @@ export default function StaffPlayersPage() {
           placeholder="Search by player, parent email, or position..."
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          className="w-full max-w-md bg-gray-900 border border-gray-800 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-amber-500"
+          className="w-full max-w-md bg-[#111] border border-[#222] rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-amber-500"
         />
       </div>
 
@@ -63,7 +63,7 @@ export default function StaffPlayersPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filteredPlayers.map((player) => (
-            <div key={player.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <div key={player.id} className="bg-[#111] border border-[#222] rounded-xl p-5">
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div>
                   <p className="text-white font-semibold">{player.name}</p>
@@ -71,7 +71,7 @@ export default function StaffPlayersPage() {
                     {player.parentUserEmail ?? 'Standalone player'}
                   </p>
                 </div>
-                <span className={`text-xs ${player.active ? 'text-green-400' : 'text-red-400'}`}>
+                <span className={`text-xs ${player.active ? 'text-amber-500' : 'text-red-400'}`}>
                   {player.active ? 'Active' : 'Inactive'}
                 </span>
               </div>

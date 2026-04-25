@@ -44,44 +44,32 @@ export default function ParentDashboardPage() {
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Link
-            to="/book"
-            className="bg-green-500 hover:bg-green-400 text-black text-sm font-bold px-4 py-2 rounded-lg"
-          >
-            Book a Session
-          </Link>
-          <Link
-            to="/parent/players"
-            className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg"
-          >
-            Manage Players
-          </Link>
+          <Link to="/book" className="btn-primary text-sm">Book a Session</Link>
+          <Link to="/parent/players" className="btn-secondary text-sm">Manage Players</Link>
         </div>
       </div>
 
       {error ? <ErrorBanner message={error} onDismiss={() => setError('')} /> : null}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Link to="/parent/bookings" className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-gray-600 transition-colors">
+        <Link to="/parent/bookings" className="bg-[#111] border border-[#222] hover:border-amber-500/30 rounded-xl p-6 transition-all">
           <p className="text-gray-400 text-sm mb-2">Upcoming Sessions</p>
-          <p className="text-4xl font-black text-green-400">{upcomingBookings.length}</p>
+          <p className="text-4xl font-black text-amber-500">{upcomingBookings.length}</p>
         </Link>
-        <Link to="/parent/players" className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-gray-600 transition-colors">
+        <Link to="/parent/players" className="bg-[#111] border border-[#222] hover:border-amber-500/30 rounded-xl p-6 transition-all">
           <p className="text-gray-400 text-sm mb-2">Player Profiles</p>
-          <p className="text-4xl font-black text-blue-400">{players.length}</p>
+          <p className="text-4xl font-black text-white">{players.length}</p>
         </Link>
-        <Link to="/parent/bookings" className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-gray-600 transition-colors">
+        <Link to="/parent/bookings" className="bg-[#111] border border-[#222] hover:border-amber-500/30 rounded-xl p-6 transition-all">
           <p className="text-gray-400 text-sm mb-2">Past or Cancelled</p>
           <p className="text-4xl font-black text-gray-400">{pastBookings.length}</p>
         </Link>
       </div>
 
-      <section className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <section className="bg-[#111] border border-[#222] rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-white text-xl font-bold">Upcoming Sessions</h2>
-          <Link to="/parent/bookings" className="text-green-400 hover:text-green-300 text-sm">
-            View All
-          </Link>
+          <Link to="/parent/bookings" className="text-amber-500 hover:text-amber-400 text-sm">View All</Link>
         </div>
 
         {upcomingBookings.length === 0 ? (
@@ -89,7 +77,7 @@ export default function ParentDashboardPage() {
         ) : (
           <div className="space-y-3">
             {upcomingBookings.slice(0, 5).map((booking) => (
-              <div key={booking.id} className="flex items-center justify-between gap-4 bg-gray-800 rounded-lg p-4">
+              <div key={booking.id} className="flex items-center justify-between gap-4 bg-[#1a1a1a] rounded-lg p-4">
                 <div>
                   <p className="text-white font-medium">{booking.playerName}</p>
                   <p className="text-gray-400 text-sm">
@@ -103,12 +91,10 @@ export default function ParentDashboardPage() {
         )}
       </section>
 
-      <section className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <section className="bg-[#111] border border-[#222] rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-white text-xl font-bold">Player Profiles</h2>
-          <Link to="/parent/players" className="text-green-400 hover:text-green-300 text-sm">
-            Manage
-          </Link>
+          <Link to="/parent/players" className="text-amber-500 hover:text-amber-400 text-sm">Manage</Link>
         </div>
 
         {players.length === 0 ? (
@@ -116,7 +102,7 @@ export default function ParentDashboardPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {players.slice(0, 4).map((player) => (
-              <div key={player.id} className="bg-gray-800 rounded-lg p-4">
+              <div key={player.id} className="bg-[#1a1a1a] rounded-lg p-4">
                 <p className="text-white font-medium">{player.name}</p>
                 <p className="text-gray-400 text-sm">
                   {player.age ? `Age ${player.age}` : 'Age not set'}
@@ -128,15 +114,13 @@ export default function ParentDashboardPage() {
         )}
       </section>
 
-      <section className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <section className="bg-[#111] border border-[#222] rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-white text-xl font-bold">Recurring Training Schedule</h2>
-          <Link to="/calendar" className="text-green-400 hover:text-green-300 text-sm">
-            View Full Calendar
-          </Link>
+          <Link to="/calendar" className="text-amber-500 hover:text-amber-400 text-sm">View Full Calendar</Link>
         </div>
         <div className="flex flex-col items-center justify-center py-6 text-center gap-3">
-          <div className="h-12 w-12 rounded-full bg-gray-800 flex items-center justify-center">
+          <div className="h-12 w-12 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center">
             <svg className="h-6 w-6 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
               <path d="M8 2v4M16 2v4" />
               <rect x="3" y="5" width="18" height="16" rx="2" />
@@ -147,10 +131,7 @@ export default function ParentDashboardPage() {
           <p className="text-gray-400 text-sm max-w-xs">
             Your recurring training schedules will appear here once set up by your academy.
           </p>
-          <Link
-            to="/calendar"
-            className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
-          >
+          <Link to="/calendar" className="btn-secondary text-sm">
             View Calendar
           </Link>
         </div>

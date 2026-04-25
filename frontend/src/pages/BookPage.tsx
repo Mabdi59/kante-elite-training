@@ -123,19 +123,19 @@ function BookingSidebar({ program, date, time, playerName }: SidebarProps) {
                   <div className="space-y-2.5 text-sm">
                     {date && (
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-500 text-xs">📅</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
                         <span className="text-gray-200 text-xs">{formatDisplayDate(date)}</span>
                       </div>
                     )}
                     {time && (
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-500 text-xs">⏰</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
                         <span className="text-gray-200 text-xs">{time}</span>
                       </div>
                     )}
                     {playerName && (
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-500 text-xs">👤</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
                         <span className="text-gray-200 text-xs">{playerName}</span>
                       </div>
                     )}
@@ -154,14 +154,14 @@ function BookingSidebar({ program, date, time, playerName }: SidebarProps) {
 
         <div className="bg-[#111] border border-[#222] rounded-2xl p-5 space-y-3">
           {[
-            { icon: '🔒', text: 'Instant booking confirmation' },
-            { icon: '📧', text: 'Confirmation email sent automatically' },
-            { icon: '👋', text: 'Coach Kante follows up before the session' },
-            { icon: '🔁', text: 'Rescheduling support if needed' },
-            { icon: '📱', text: 'Call or text us anytime' },
+            { icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>, text: 'Instant booking confirmation' },
+            { icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>, text: 'Confirmation email sent automatically' },
+            { icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>, text: 'Coach Kante follows up before the session' },
+            { icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/></svg>, text: 'Rescheduling support if needed' },
+            { icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6Z"/></svg>, text: 'Call or text us anytime' },
           ].map((item) => (
             <div key={item.text} className="flex items-center gap-3">
-              <span className="text-base flex-shrink-0">{item.icon}</span>
+              <span className="flex-shrink-0">{item.icon}</span>
               <span className="text-gray-400 text-xs leading-relaxed">{item.text}</span>
             </div>
           ))}
@@ -169,7 +169,7 @@ function BookingSidebar({ program, date, time, playerName }: SidebarProps) {
 
         <div className="bg-amber-500/8 border border-amber-500/20 rounded-xl p-4">
           <p className="text-amber-400 text-xs font-semibold flex items-center gap-2">
-            <span>⚡</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
             Weekend and evening spots fill quickly. Book early for the best selection.
           </p>
         </div>
@@ -566,7 +566,7 @@ export default function BookPage() {
                         </div>
                       ) : !availability || availability.availableSlots.length === 0 ? (
                         <div className="bg-[#141414] border border-[#222] rounded-xl p-6 text-center">
-                          <p className="text-3xl mb-3">📅</p>
+                          <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-3"><svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></div>
                           <p className="text-white font-bold text-sm mb-1">No slots available</p>
                           <p className="text-gray-400 text-xs">
                             All spots are taken for this day. Please choose a different date.
@@ -795,7 +795,7 @@ export default function BookPage() {
 
                   {error && (
                     <div className="bg-red-900/20 border border-red-500/30 text-red-400 rounded-xl px-5 py-4 text-sm mb-5 flex items-start gap-3">
-                      <span className="flex-shrink-0 mt-0.5">⚠️</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
                       <span>{error}</span>
                     </div>
                   )}
@@ -824,6 +824,17 @@ export default function BookPage() {
                     </svg>
                     <p className="text-gray-600 text-xs">We will send your confirmation right away and follow up before the session if needed.</p>
                   </div>
+                  <p className="text-center text-gray-700 text-xs mt-3">
+                    By confirming you agree to our{' '}
+                    <Link to="/cancellation-policy" className="underline hover:text-gray-500 transition-colors">
+                      Cancellation &amp; Refund Policy
+                    </Link>
+                    {' '}and{' '}
+                    <Link to="/terms" className="underline hover:text-gray-500 transition-colors">
+                      Terms of Service
+                    </Link>
+                    .
+                  </p>
                 </div>
               )}
             </div>

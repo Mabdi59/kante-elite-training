@@ -146,14 +146,14 @@ export default function TrainingPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
             <div className="hidden md:block absolute top-8 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-amber-500/30 via-amber-500/10 to-amber-500/30" />
             {[
-              { step: '01', title: 'Choose Program', desc: 'Pick the training type that matches your goals and schedule.', icon: '📋' },
-              { step: '02', title: 'Pick Date & Time', desc: 'Browse live availability and choose the session that works best for you.', icon: '📅' },
-              { step: '03', title: 'Enter Details', desc: 'Share quick player information. It takes less than two minutes.', icon: '✍️' },
-              { step: '04', title: 'Confirm Spot', desc: 'Review your details and lock in your training time right away.', icon: '✅' },
+              { step: '01', title: 'Choose Program', desc: 'Pick the training type that matches your goals and schedule.', icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg> },
+              { step: '02', title: 'Pick Date & Time', desc: 'Browse live availability and choose the session that works best for you.', icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg> },
+              { step: '03', title: 'Enter Details', desc: 'Share quick player information. It takes less than two minutes.', icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg> },
+              { step: '04', title: 'Confirm Spot', desc: 'Review your details and lock in your training time right away.', icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg> },
             ].map((item) => (
               <div key={item.step} className="text-center relative">
                 <div className="w-16 h-16 rounded-2xl bg-[#111] border border-[#222] flex items-center justify-center mx-auto mb-4 relative z-10">
-                  <span className="text-2xl">{item.icon}</span>
+                  {item.icon}
                 </div>
                 <div className="text-amber-500 font-black text-xs tracking-widest mb-1">{item.step}</div>
                 <h3 className="text-white font-black text-base mb-2">{item.title}</h3>

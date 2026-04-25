@@ -163,13 +163,13 @@ export default function AdminRecurringSchedulePage() {
 
                   <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
                     <span className="text-gray-400 text-sm">
-                      📅 {formatWeekdays(s.weekdays)} at {s.bookingTime}
+                      {formatWeekdays(s.weekdays)} at {s.bookingTime}
                     </span>
                     {s.coachName && (
-                      <span className="text-gray-400 text-sm">👤 {s.coachName}</span>
+                      <span className="text-gray-400 text-sm">{s.coachName}</span>
                     )}
                     {s.programName && (
-                      <span className="text-gray-400 text-sm">🎯 {s.programName}</span>
+                      <span className="text-gray-400 text-sm">{s.programName}</span>
                     )}
                   </div>
 
@@ -212,7 +212,7 @@ export default function AdminRecurringSchedulePage() {
                     type="date"
                     value={cancelFromDate}
                     onChange={(e) => setCancelFromDate(e.target.value)}
-                    className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-green-500"
+                    className="input-field-default px-3 py-1.5"
                   />
                   <button
                     onClick={() => handleCancelFuture(s.id)}

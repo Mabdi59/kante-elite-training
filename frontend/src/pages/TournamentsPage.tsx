@@ -14,12 +14,12 @@ function TournamentCard({ tournament: t }: { tournament: Tournament }) {
   return (
     <Link
       to={`/tournaments/${t.id}`}
-      className="block bg-gray-900 border border-gray-800 hover:border-cyan-800 rounded-2xl p-6 flex flex-col transition-colors group"
+      className="block bg-[#111] border border-[#222] hover:border-amber-500/30 rounded-2xl p-6 flex flex-col transition-all duration-300 hover:-translate-y-0.5 group"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div>
-          <h3 className="text-white text-xl font-black leading-tight group-hover:text-cyan-300 transition-colors">{t.name}</h3>
+          <h3 className="text-white text-xl font-black leading-tight group-hover:text-amber-400 transition-colors">{t.name}</h3>
           <p className="text-gray-400 text-sm mt-0.5">{t.location}</p>
         </div>
         <StatusBadge status={t.status} className="ml-2 shrink-0 mt-0.5" />
@@ -28,17 +28,17 @@ function TournamentCard({ tournament: t }: { tournament: Tournament }) {
       {/* Tags */}
       <div className="flex flex-wrap gap-2 mb-4">
         {t.ageGroup && (
-          <span className="text-xs text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2.5 py-0.5 rounded-full">
+          <span className="text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full">
             {t.ageGroup}
           </span>
         )}
         {t.division && (
-          <span className="text-xs text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-0.5 rounded-full">
+          <span className="text-xs text-gray-300 bg-white/5 border border-white/10 px-2.5 py-0.5 rounded-full">
             {t.division}
           </span>
         )}
         {(t.entryFee ?? 0) > 0 && (
-          <span className="text-xs text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-2.5 py-0.5 rounded-full">
+          <span className="text-xs text-green-400 bg-green-500/10 border border-green-500/20 px-2.5 py-0.5 rounded-full">
             ${t.entryFee} entry
           </span>
         )}
@@ -71,7 +71,7 @@ function TournamentCard({ tournament: t }: { tournament: Tournament }) {
         </div>
         <div className="flex justify-between">
           <span>Spots Left</span>
-          <span className={spotsLeft > 3 ? 'text-green-400' : spotsLeft > 0 ? 'text-yellow-400' : 'text-red-400'}>
+          <span className={spotsLeft > 3 ? 'text-green-400' : spotsLeft > 0 ? 'text-amber-400' : 'text-red-400'}>
             {spotsLeft > 0 ? spotsLeft : 'Full'}
           </span>
         </div>
@@ -82,11 +82,11 @@ function TournamentCard({ tournament: t }: { tournament: Tournament }) {
       )}
 
       {canRegister ? (
-        <div className="block w-full text-center bg-green-500 group-hover:bg-green-400 text-black font-bold py-2.5 rounded-xl transition-colors text-sm">
-          View & Register
+        <div className="block w-full text-center bg-amber-500 group-hover:bg-amber-400 text-black font-extrabold py-2.5 rounded-xl transition-colors text-sm">
+          View &amp; Register
         </div>
       ) : (
-        <div className="w-full text-center bg-gray-800 text-gray-400 font-semibold py-2.5 rounded-xl text-sm group-hover:bg-gray-700 transition-colors">
+        <div className="w-full text-center bg-[#1a1a1a] border border-[#2a2a2a] text-gray-500 font-semibold py-2.5 rounded-xl text-sm">
           {t.status === 'COMPLETED'
             ? 'View Results'
             : t.status === 'CANCELLED'
@@ -141,21 +141,25 @@ export default function TournamentsPage() {
     <div className="min-h-screen bg-black px-4 py-20">
       <div className="page-shell max-w-6xl">
         <div className="text-center mb-12">
-          <h1 className="mb-4 text-3xl font-black text-white sm:text-4xl md:text-5xl">TOURNAMENTS</h1>
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-5">
+            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
+            Competition
+          </div>
+          <h1 className="mb-4 text-3xl font-black text-white sm:text-4xl md:text-5xl">Tournaments</h1>
           <p className="mx-auto max-w-2xl text-base text-gray-400 sm:text-lg">
             Public registration is open. Review the details, choose your tournament, and register your team in a few minutes.
           </p>
           {!loading && tournaments.length > 0 ? (
             <div className="mx-auto mt-8 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <div className="bg-[#111] border border-[#222] rounded-xl p-5">
                 <p className="text-gray-400 text-sm mb-2">Available Now</p>
                 <p className="text-3xl font-black text-green-400">{openTournaments.length}</p>
               </div>
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <div className="bg-[#111] border border-[#222] rounded-xl p-5">
                 <p className="text-gray-400 text-sm mb-2">Closing Soon</p>
                 <p className="text-3xl font-black text-amber-400">{closingSoon.length}</p>
               </div>
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <div className="bg-[#111] border border-[#222] rounded-xl p-5">
                 <p className="text-gray-400 text-sm mb-2">Total Listings</p>
                 <p className="text-3xl font-black text-white">{tournaments.length}</p>
               </div>
@@ -167,7 +171,7 @@ export default function TournamentsPage() {
           <div className="mb-10 flex flex-wrap justify-center gap-2">
             <button
               onClick={() => setFilterStatus('')}
-              className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors ${!filterStatus ? 'bg-white text-black border-white' : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}
+              className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors ${!filterStatus ? 'bg-amber-500 text-black border-amber-500' : 'border-[#333] text-gray-400 hover:border-[#555] hover:text-gray-300'}`}
             >
               All
             </button>
@@ -175,7 +179,7 @@ export default function TournamentsPage() {
               <button
                 key={s}
                 onClick={() => setFilterStatus(s)}
-                className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors ${filterStatus === s ? 'bg-white text-black border-white' : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}
+                className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors ${filterStatus === s ? 'bg-amber-500 text-black border-amber-500' : 'border-[#333] text-gray-400 hover:border-[#555] hover:text-gray-300'}`}
               >
                 {s}
               </button>
@@ -186,8 +190,12 @@ export default function TournamentsPage() {
         {loading ? (
           <p className="text-gray-400 text-center">Loading tournaments…</p>
         ) : filtered.length === 0 ? (
-          <div className="text-center text-gray-400">
-            <div className="text-5xl mb-4">🏆</div>
+          <div className="text-center text-gray-400 py-16">
+            <div className="w-16 h-16 rounded-2xl bg-[#111] border border-[#222] flex items-center justify-center mx-auto mb-5">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 0 0 2.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 0 1 2.916.52 6.003 6.003 0 0 1-5.395 4.972m0 0a6.726 6.726 0 0 1-2.749 1.35m0 0a6.772 6.772 0 0 1-3.044 0" />
+              </svg>
+            </div>
             <p className="text-lg font-semibold text-white mb-2">
               {filterStatus ? `No ${filterStatus.toLowerCase()} tournaments` : 'No tournaments yet'}
             </p>

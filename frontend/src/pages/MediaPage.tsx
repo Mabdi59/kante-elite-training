@@ -114,7 +114,7 @@ export default function MediaPage() {
                     className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
                       activeCategory === tab.value
                         ? 'bg-amber-500/20 text-amber-300'
-                        : 'bg-gray-800 text-gray-500'
+                        : 'bg-[#1a1a1a] text-gray-500'
                     }`}
                   >
                     {count}

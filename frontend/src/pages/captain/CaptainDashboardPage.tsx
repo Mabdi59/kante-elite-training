@@ -44,7 +44,7 @@ export default function CaptainDashboardPage() {
           </Link>
           <Link
             to="/captain/registrations"
-            className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg"
+            className="bg-[#1a1a1a] hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg"
           >
             Manage Registrations
           </Link>
@@ -54,29 +54,29 @@ export default function CaptainDashboardPage() {
       {error ? <ErrorBanner message={error} onDismiss={() => setError('')} /> : null}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div className="bg-[#111] border border-[#222] rounded-xl p-6">
           <p className="text-gray-400 text-sm mb-2">Total Registrations</p>
           <p className="text-4xl font-black text-orange-400">{dashboard?.totalRegistrations ?? 0}</p>
         </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div className="bg-[#111] border border-[#222] rounded-xl p-6">
           <p className="text-gray-400 text-sm mb-2">Pending</p>
           <p className="text-4xl font-black text-yellow-400">{dashboard?.pendingRegistrations ?? 0}</p>
         </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div className="bg-[#111] border border-[#222] rounded-xl p-6">
           <p className="text-gray-400 text-sm mb-2">Approved</p>
-          <p className="text-4xl font-black text-green-400">{dashboard?.approvedRegistrations ?? 0}</p>
+          <p className="text-4xl font-black text-amber-500">{dashboard?.approvedRegistrations ?? 0}</p>
         </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div className="bg-[#111] border border-[#222] rounded-xl p-6">
           <p className="text-gray-400 text-sm mb-2">Waitlisted</p>
-          <p className="text-4xl font-black text-cyan-400">{dashboard?.waitlistedRegistrations ?? 0}</p>
+          <p className="text-4xl font-black text-amber-500">{dashboard?.waitlistedRegistrations ?? 0}</p>
         </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div className="bg-[#111] border border-[#222] rounded-xl p-6">
           <p className="text-gray-400 text-sm mb-2">Open Tournaments</p>
           <p className="text-4xl font-black text-white">{dashboard?.availableTournaments ?? 0}</p>
         </div>
       </div>
 
-      <section className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <section className="bg-[#111] border border-[#222] rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-white text-xl font-bold">Recent Registrations</h2>
           <Link to="/captain/registrations" className="text-orange-400 hover:text-orange-300 text-sm">
@@ -91,7 +91,7 @@ export default function CaptainDashboardPage() {
             {registrations.slice(0, 5).map((registration) => (
               <div
                 key={registration.id}
-                className="flex items-center justify-between gap-4 bg-gray-800 rounded-lg p-4"
+                className="flex items-center justify-between gap-4 bg-[#1a1a1a] rounded-lg p-4"
               >
                 <div>
                   <p className="text-white font-medium">{registration.teamName}</p>

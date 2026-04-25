@@ -45,13 +45,13 @@ export default function CoachDashboardPage() {
           </Link>
           <Link
             to="/coach/availability"
-            className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg"
+            className="bg-[#1a1a1a] hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg"
           >
             Manage Availability
           </Link>
           <Link
             to="/coach/profile"
-            className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg"
+            className="bg-[#1a1a1a] hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg"
           >
             Edit Profile
           </Link>
@@ -59,22 +59,22 @@ export default function CoachDashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div className="bg-[#111] border border-[#222] rounded-xl p-6">
           <p className="text-gray-400 text-sm mb-2">Coming up</p>
           <p className="text-4xl font-black text-blue-400">{upcoming.length}</p>
         </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div className="bg-[#111] border border-[#222] rounded-xl p-6">
           <p className="text-gray-400 text-sm mb-2">Past sessions</p>
           <p className="text-4xl font-black text-gray-400">{past.length}</p>
         </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div className="bg-[#111] border border-[#222] rounded-xl p-6">
           <p className="text-gray-400 text-sm mb-2">All time</p>
-          <p className="text-4xl font-black text-green-400">{sessions.length}</p>
+          <p className="text-4xl font-black text-amber-500">{sessions.length}</p>
         </div>
       </div>
 
       {profile && (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div className="bg-[#111] border border-[#222] rounded-xl p-6">
           <h2 className="text-white text-xl font-bold mb-4">Your Profile</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             {profile.bio && (
@@ -99,14 +99,14 @@ export default function CoachDashboardPage() {
         </div>
       )}
 
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <div className="bg-[#111] border border-[#222] rounded-xl p-6">
         <h2 className="text-white text-xl font-bold mb-4">Upcoming Sessions</h2>
         {upcoming.length === 0 ? (
           <p className="text-gray-500 text-sm">Nothing scheduled yet.</p>
         ) : (
           <div className="space-y-3">
             {upcoming.slice(0, 10).map((s) => (
-              <div key={s.id} className="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
+              <div key={s.id} className="flex items-center justify-between p-4 bg-[#1a1a1a] rounded-lg">
                 <div>
                   <p className="text-white font-medium">{s.playerName}</p>
                   <p className="text-gray-400 text-sm">

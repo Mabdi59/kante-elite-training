@@ -68,7 +68,7 @@ export default function AdminSearchPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search by name, email, program…"
-          className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 pl-10 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+          className="w-full input-field-default rounded-xl pl-10"
         />
         <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="11" cy="11" r="8" />

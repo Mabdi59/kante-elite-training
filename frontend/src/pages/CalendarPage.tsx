@@ -191,7 +191,7 @@ export default function CalendarPage() {
         <button
           type="button"
           onClick={() => setShowForm(!showForm)}
-          className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500"
+          className="btn-primary text-sm"
         >
           + Add Event
         </button>
@@ -200,42 +200,42 @@ export default function CalendarPage() {
         {error && <ErrorBanner message={error} />}
 
         {showForm && (
-          <div className="rounded-xl border border-white/10 bg-zinc-900 p-5">
+          <div className="rounded-xl border border-[#222] bg-[#111] p-5">
             <h2 className="mb-4 text-base font-bold text-white">New Event</h2>
             <form onSubmit={handleAddEvent} className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1 block text-xs font-semibold text-gray-400">Title *</label>
                 <input required value={newTitle} onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full rounded-lg border border-white/10 bg-black px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500" />
+                  className="input-field-default" />
               </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold text-gray-400">Type</label>
                 <input value={newType} onChange={(e) => setNewType(e.target.value)}
                   placeholder="e.g. SESSION, GAME"
-                  className="w-full rounded-lg border border-white/10 bg-black px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-green-500" />
+                  className="input-field-default" />
               </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold text-gray-400">Start *</label>
                 <input required type="datetime-local" value={newStart} onChange={(e) => setNewStart(e.target.value)}
-                  className="w-full rounded-lg border border-white/10 bg-black px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500" />
+                  className="input-field-default" />
               </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold text-gray-400">End</label>
                 <input type="datetime-local" value={newEnd} onChange={(e) => setNewEnd(e.target.value)}
-                  className="w-full rounded-lg border border-white/10 bg-black px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500" />
+                  className="input-field-default" />
               </div>
               <div className="sm:col-span-2">
                 <label className="mb-1 block text-xs font-semibold text-gray-400">Description</label>
                 <textarea rows={2} value={newDesc} onChange={(e) => setNewDesc(e.target.value)}
-                  className="w-full rounded-lg border border-white/10 bg-black px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500" />
+                  className="input-field-default" />
               </div>
               <div className="sm:col-span-2 flex gap-3">
                 <button type="submit" disabled={saving}
-                  className="rounded-lg bg-green-600 px-5 py-2 text-sm font-semibold text-white hover:bg-green-500 disabled:opacity-50">
+                  className="btn-primary disabled:opacity-50">
                   {saving ? 'Saving…' : 'Create Event'}
                 </button>
                 <button type="button" onClick={() => setShowForm(false)}
-                  className="rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-gray-400 hover:text-white">
+                  className="btn-secondary">
                   Cancel
                 </button>
               </div>
@@ -245,11 +245,11 @@ export default function CalendarPage() {
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <div className="rounded-xl border border-white/10 bg-zinc-900 p-4">
+            <div className="rounded-xl border border-[#222] bg-[#111] p-4">
               <div className="mb-4 flex items-center justify-between">
-                <button type="button" onClick={prevMonth} className="rounded-lg border border-white/10 px-3 py-1.5 text-sm text-gray-400 hover:text-white">‹</button>
+                <button type="button" onClick={prevMonth} className="rounded-lg border border-[#333] px-3 py-1.5 text-sm text-gray-400 hover:text-white hover:border-[#555] transition-colors">‹</button>
                 <span className="text-base font-bold text-white">{MONTH_NAMES[month]} {year}</span>
-                <button type="button" onClick={nextMonth} className="rounded-lg border border-white/10 px-3 py-1.5 text-sm text-gray-400 hover:text-white">›</button>
+                <button type="button" onClick={nextMonth} className="rounded-lg border border-[#333] px-3 py-1.5 text-sm text-gray-400 hover:text-white hover:border-[#555] transition-colors">›</button>
               </div>
 
               <div className="grid grid-cols-7 gap-px text-center">
@@ -272,9 +272,9 @@ export default function CalendarPage() {
                       onClick={() => setSelectedDay(day)}
                       className={`relative rounded-lg p-1.5 text-sm transition-colors ${
                         isSelected
-                          ? 'bg-green-600 text-white'
+                          ? 'bg-amber-500 text-black font-bold'
                           : isToday
-                            ? 'border border-green-500/40 text-green-400'
+                            ? 'border border-amber-500/40 text-amber-400'
                             : 'text-gray-300 hover:bg-white/5'
                       }`}
                     >
@@ -283,7 +283,7 @@ export default function CalendarPage() {
                         <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 flex gap-px">
                           {dayEvents.slice(0, 3).map((ev) => (
                             <span key={ev.id} className="h-1 w-1 rounded-full"
-                              style={{ backgroundColor: ev.color || '#22c55e' }} />
+                              style={{ backgroundColor: ev.color || '#f59e0b' }} />
                           ))}
                         </span>
                       )}
@@ -294,7 +294,7 @@ export default function CalendarPage() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-white/10 bg-zinc-900 p-4">
+          <div className="rounded-xl border border-[#222] bg-[#111] p-4">
             <h3 className="mb-3 text-sm font-bold text-white">
               {selectedDay
                 ? `${MONTH_NAMES[month]} ${selectedDay}`
@@ -305,10 +305,10 @@ export default function CalendarPage() {
             )}
             <div className="space-y-2">
               {selectedEvents.map((ev) => (
-                <div key={ev.id} className="rounded-lg border border-white/10 bg-black p-3">
+                <div key={ev.id} className="rounded-lg border border-[#2a2a2a] bg-black p-3">
                   <div className="flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full shrink-0"
-                      style={{ backgroundColor: ev.color || '#22c55e' }} />
+                      style={{ backgroundColor: ev.color || '#f59e0b' }} />
                     <p className="text-sm font-semibold text-white">{ev.title}</p>
                   </div>
                   {ev.description && <p className="mt-1 text-xs text-gray-400">{ev.description}</p>}
@@ -324,7 +324,7 @@ export default function CalendarPage() {
 
         {/* iCal subscription */}
         {icalUrl && (
-          <div className="rounded-xl border border-white/10 bg-zinc-900 p-5">
+          <div className="rounded-xl border border-[#222] bg-[#111] p-5">
             <h3 className="text-sm font-bold text-white mb-1">Subscribe to Calendar</h3>
             <p className="text-xs text-gray-400 mb-3">
               Use this private URL to subscribe in Google Calendar, Apple Calendar, or Outlook. Keep it secret.
@@ -333,12 +333,12 @@ export default function CalendarPage() {
               <input
                 readOnly
                 value={icalUrl}
-                className="flex-1 min-w-0 rounded-lg border border-white/10 bg-black px-3 py-2 text-xs text-gray-300 font-mono focus:outline-none"
+                className="flex-1 min-w-0 rounded-lg border border-[#333] bg-black px-3 py-2 text-xs text-gray-300 font-mono focus:outline-none"
               />
               <button
                 type="button"
                 onClick={copyIcalUrl}
-                className="rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-500 shrink-0"
+                className="btn-primary text-xs px-3 py-2 shrink-0"
               >
                 {icalCopied ? 'Copied!' : 'Copy'}
               </button>
@@ -346,7 +346,7 @@ export default function CalendarPage() {
                 type="button"
                 onClick={regenerateIcalToken}
                 disabled={icalRegenerating}
-                className="rounded-lg border border-white/10 px-3 py-2 text-xs font-semibold text-gray-400 hover:text-white disabled:opacity-50 shrink-0"
+                className="btn-secondary text-xs px-3 py-2 shrink-0 disabled:opacity-50"
                 title="Regenerate token — this invalidates the old URL"
               >
                 {icalRegenerating ? '…' : 'Regenerate'}

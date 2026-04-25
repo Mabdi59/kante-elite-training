@@ -184,7 +184,11 @@ export default function AboutMediaPage() {
                   key={point}
                   className="flex items-start gap-3 rounded-xl border border-[#1f1f1f] bg-[#111] px-4 py-4"
                 >
-                  <span className="mt-0.5 text-amber-500">*</span>
+                  <span className="mt-0.5 flex-shrink-0 text-amber-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                  </span>
                   <span className="text-sm font-semibold leading-relaxed text-white">{point}</span>
                 </li>
               ))}

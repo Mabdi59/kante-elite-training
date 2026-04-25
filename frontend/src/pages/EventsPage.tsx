@@ -42,7 +42,7 @@ export default function EventsPage() {
             </div>
           ) : events.length === 0 ? (
             <div className="text-center py-16">
-              <div className="text-6xl mb-4">📅</div>
+              <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-4"><svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></div>
               <h3 className="text-white font-black text-2xl mb-3">No Events Currently Scheduled</h3>
               <p className="text-gray-400 mb-6">
                 Check back soon. New camps and events are added throughout the year.

@@ -223,8 +223,8 @@ export default function AdminCoachesPage() {
                   </span>
                 </div>
                 <p className="text-gray-400 text-sm">{c.userEmail}</p>
-                {c.specialties && <p className="text-gray-500 text-sm mt-1">🏆 {c.specialties}</p>}
-                {c.certifications && <p className="text-gray-500 text-sm">📋 {c.certifications}</p>}
+                {c.specialties && <p className="text-gray-500 text-sm mt-1">{c.specialties}</p>}
+                {c.certifications && <p className="text-gray-500 text-sm">{c.certifications}</p>}
                 {c.bio && <p className="text-gray-600 text-sm mt-2 italic line-clamp-2">{c.bio}</p>}
               </div>
               <div className="flex gap-2 shrink-0">

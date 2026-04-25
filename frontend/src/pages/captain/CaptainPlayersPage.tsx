@@ -31,7 +31,7 @@ export default function CaptainPlayersPage() {
       {error && <ErrorBanner message={error} />}
 
       {registrations.length === 0 && !error && (
-        <div className="rounded-xl border border-gray-800 bg-gray-900 p-8 text-center">
+        <div className="rounded-xl border border-[#222] bg-[#111] p-8 text-center">
           <p className="text-gray-400">No team registrations found.</p>
           <p className="text-sm text-gray-500 mt-1">
             Register a team from the Tournaments page to manage your roster.
@@ -42,9 +42,9 @@ export default function CaptainPlayersPage() {
       {registrations.map((reg) => (
         <div
           key={reg.id}
-          className="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden"
+          className="rounded-xl border border-[#222] bg-[#111] overflow-hidden"
         >
-          <div className="flex items-center justify-between p-5 border-b border-gray-800">
+          <div className="flex items-center justify-between p-5 border-b border-[#222]">
             <div>
               <h2 className="text-white font-bold text-lg">{reg.teamName}</h2>
               <p className="text-sm text-gray-400 mt-0.5">{reg.tournamentName}</p>
@@ -75,7 +75,7 @@ export default function CaptainPlayersPage() {
                 <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">
                   Submitted Roster
                 </p>
-                <pre className="whitespace-pre-wrap text-sm text-gray-300 bg-gray-800 rounded-lg p-4 font-mono leading-relaxed">
+                <pre className="whitespace-pre-wrap text-sm text-gray-300 bg-[#1a1a1a] rounded-lg p-4 font-mono leading-relaxed">
                   {reg.rosterText}
                 </pre>
                 {reg.rosterSubmittedAt && (

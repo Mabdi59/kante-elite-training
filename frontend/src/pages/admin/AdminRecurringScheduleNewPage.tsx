@@ -216,7 +216,7 @@ export default function AdminRecurringScheduleNewPage() {
                   setSelectedFamilyId(e.target.value ? Number(e.target.value) : '')
                   setSelectedPlayerIds([])
                 }}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-green-500"
+                className="input-field-default py-2.5"
               >
                 <option value="">Select a family...</option>
                 {families.map((f) => (
@@ -242,7 +242,7 @@ export default function AdminRecurringScheduleNewPage() {
                     .filter((n) => !isNaN(n))
                   setSelectedPlayerIds(ids)
                 }}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-green-500"
+                className="input-field-default py-2.5"
               />
               {selectedFamily && (
                 <p className="text-gray-500 text-xs">
@@ -266,7 +266,7 @@ export default function AdminRecurringScheduleNewPage() {
               <select
                 value={selectedProgramId}
                 onChange={(e) => setSelectedProgramId(e.target.value ? Number(e.target.value) : '')}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-green-500"
+                className="input-field-default py-2.5"
               >
                 <option value="">Select program...</option>
                 {programs.map((p) => (
@@ -279,7 +279,7 @@ export default function AdminRecurringScheduleNewPage() {
               <select
                 value={selectedCoachId}
                 onChange={(e) => setSelectedCoachId(e.target.value ? Number(e.target.value) : '')}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-green-500"
+                className="input-field-default py-2.5"
               >
                 <option value="">Any / unassigned</option>
                 {coaches.map((c) => (
@@ -295,7 +295,7 @@ export default function AdminRecurringScheduleNewPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Saturday morning training"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-green-500"
+              className="input-field-default py-2.5"
             />
           </label>
         </div>
@@ -315,7 +315,7 @@ export default function AdminRecurringScheduleNewPage() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-green-500"
+                className="input-field-default py-2.5"
               />
             </label>
 
@@ -352,14 +352,14 @@ export default function AdminRecurringScheduleNewPage() {
                   onChange={(e) => setNumberOfWeeks(parseInt(e.target.value) || 1)}
                   min={1}
                   max={52}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-green-500"
+                  className="input-field-default py-2.5"
                 />
               ) : (
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-green-500"
+                  className="input-field-default py-2.5"
                 />
               )}
             </div>
@@ -397,7 +397,7 @@ export default function AdminRecurringScheduleNewPage() {
                 type="time"
                 value={bookingTime}
                 onChange={(e) => setBookingTime(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-green-500"
+                className="input-field-default py-2.5"
               />
             </label>
             <label className="space-y-1.5">
@@ -405,7 +405,7 @@ export default function AdminRecurringScheduleNewPage() {
               <select
                 value={durationMinutes}
                 onChange={(e) => setDurationMinutes(Number(e.target.value))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-green-500"
+                className="input-field-default py-2.5"
               >
                 {DURATIONS.map((d) => (
                   <option key={d} value={d}>{d} minutes</option>
@@ -425,7 +425,7 @@ export default function AdminRecurringScheduleNewPage() {
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Any additional notes..."
             rows={3}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-green-500 resize-none"
+            className="input-field-default py-2.5 resize-none"
           />
         </label>
 

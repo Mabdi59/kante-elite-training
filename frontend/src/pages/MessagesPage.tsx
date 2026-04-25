@@ -122,7 +122,7 @@ export default function MessagesPage() {
 
       {error && <ErrorBanner message={error} onDismiss={() => setError('')} />}
 
-      <div className="flex gap-1 rounded-xl border border-white/10 bg-zinc-900 p-1">
+      <div className="flex gap-1 rounded-xl border border-[#222] bg-[#111] p-1">
         {(['inbox', 'sent', 'compose'] as Tab[]).map((t) => (
           <button
             key={t}
@@ -138,7 +138,7 @@ export default function MessagesPage() {
       </div>
 
       {tab === 'compose' && (
-        <div className="rounded-xl border border-white/10 bg-zinc-900 p-6">
+        <div className="rounded-xl border border-[#222] bg-[#111] p-6">
           <h2 className="mb-4 text-lg font-bold text-white">
             {parentId ? 'Reply' : 'New Message'}
           </h2>
@@ -207,7 +207,7 @@ export default function MessagesPage() {
             {loading ? (
               <LoadingSpinner label="Loading messages..." />
             ) : messages.length === 0 ? (
-              <div className="rounded-xl border border-white/10 bg-zinc-900 p-8 text-center text-gray-400 text-sm">
+              <div className="rounded-xl border border-[#222] bg-[#111] p-8 text-center text-gray-400 text-sm">
                 No messages yet
               </div>
             ) : (
@@ -219,7 +219,7 @@ export default function MessagesPage() {
                   className={`w-full rounded-xl border px-4 py-3 text-left transition-colors ${
                     selected?.id === msg.id
                       ? 'border-amber-500/40 bg-amber-500/10'
-                      : 'border-white/10 bg-zinc-900 hover:bg-zinc-800'
+                      : 'border-white/10 bg-[#111] hover:bg-[#1a1a1a]'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -240,7 +240,7 @@ export default function MessagesPage() {
           </div>
 
           {selected && (
-            <div className="rounded-xl border border-white/10 bg-zinc-900 p-5 space-y-4">
+            <div className="rounded-xl border border-[#222] bg-[#111] p-5 space-y-4">
               <div className="border-b border-white/10 pb-3">
                 <h2 className="text-base font-bold text-white">{selected.subject}</h2>
                 <p className="mt-1 text-xs text-gray-400">

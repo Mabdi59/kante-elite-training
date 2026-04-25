@@ -458,14 +458,14 @@ export default function AdminBookingsPage() {
                                   : 'bg-gray-700/40 text-gray-500 border-gray-700/30'
                         }`}
                       >
-                        💳 {booking.paymentStatus}
+                        {booking.paymentStatus}
                       </span>
                     </div>
                     <div className="flex gap-2 flex-wrap">
                       <button
                         type="button"
                         onClick={() => openEdit(booking)}
-                        className="text-cyan-400 hover:text-cyan-300 text-sm font-medium"
+                        className="text-amber-500 hover:text-amber-300 text-sm font-medium"
                       >
                         Edit
                       </button>

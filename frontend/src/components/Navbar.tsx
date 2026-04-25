@@ -72,7 +72,11 @@ export default function Navbar() {
     >
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 md:h-20">
         <Link to="/" className="flex min-w-0 items-center gap-3">
-          <span className="text-2xl">⚽</span>
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 text-black">
+              <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-.53 14.03a.75.75 0 0 0 1.06 0l3-3a.75.75 0 1 0-1.06-1.06l-1.72 1.72V8.25a.75.75 0 0 0-1.5 0v5.69l-1.72-1.72a.75.75 0 0 0-1.06 1.06l3 3Z" clipRule="evenodd" />
+            </svg>
+          </div>
           <div className="min-w-0">
             <span className="block truncate text-sm font-black leading-none tracking-tight text-white sm:text-base md:text-lg">
               KANTE ELITE
@@ -106,12 +110,12 @@ export default function Navbar() {
           {isAuthenticated ? (
             <>
               {isAdmin && (
-                <Link to="/admin" className="text-sm font-semibold text-green-400 hover:text-green-300">
+                <Link to="/admin" className="text-sm font-semibold text-amber-500 hover:text-amber-400">
                   Admin
                 </Link>
               )}
               {isCoach && !isAdmin && (
-                <Link to="/coach" className="text-sm font-semibold text-blue-400 hover:text-blue-300">
+                <Link to="/coach" className="text-sm font-semibold text-amber-500 hover:text-amber-400">
                   Coach
                 </Link>
               )}
@@ -217,7 +221,7 @@ export default function Navbar() {
                   {isAdmin ? (
                     <Link
                       to="/admin"
-                      className="rounded-2xl border border-green-500/20 bg-green-500/10 px-4 py-4 text-base font-semibold text-green-400"
+                      className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-4 text-base font-semibold text-amber-400"
                     >
                       Admin Panel
                     </Link>
@@ -225,7 +229,7 @@ export default function Navbar() {
                   {isCoach && !isAdmin ? (
                     <Link
                       to="/coach"
-                      className="rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-4 text-base font-semibold text-blue-400"
+                      className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-4 text-base font-semibold text-amber-400"
                     >
                       Coach Panel
                     </Link>

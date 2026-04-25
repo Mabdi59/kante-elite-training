@@ -110,7 +110,7 @@ export default function PublicTeamRegisterPage() {
             ) : null}
 
             {!user ? (
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 mt-8 space-y-5">
+              <div className="bg-[#111] border border-[#222] rounded-2xl p-8 mt-8 space-y-5">
                 <h2 className="text-white text-2xl font-black">Start With Your Account</h2>
                 <p className="text-gray-400 leading-relaxed">
                   Create an account or sign in first. We will take you straight into team registration and save everything in your registration dashboard.
@@ -127,7 +127,7 @@ export default function PublicTeamRegisterPage() {
             ) : (
               <form
                 onSubmit={handleSubmit}
-                className="bg-gray-900 border border-gray-800 rounded-2xl p-8 space-y-6 mt-8"
+                className="bg-[#111] border border-[#222] rounded-2xl p-8 space-y-6 mt-8"
               >
                 <div>
                   <label className="block text-gray-400 text-sm mb-2">Team Name</label>
@@ -136,7 +136,7 @@ export default function PublicTeamRegisterPage() {
                     required
                     value={teamName}
                     onChange={(e) => setTeamName(e.target.value)}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-green-500"
+                    className="input-field-default"
                     placeholder="Your team name"
                   />
                 </div>
@@ -148,7 +148,7 @@ export default function PublicTeamRegisterPage() {
                     required
                     value={captainName}
                     onChange={(e) => setCaptainName(e.target.value)}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-green-500"
+                    className="input-field-default"
                     placeholder="Team captain or coach"
                   />
                 </div>
@@ -160,7 +160,7 @@ export default function PublicTeamRegisterPage() {
                     required
                     value={contactEmail}
                     onChange={(e) => setContactEmail(e.target.value)}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-green-500"
+                    className="input-field-default"
                     placeholder="captain@email.com"
                   />
                 </div>
@@ -172,7 +172,7 @@ export default function PublicTeamRegisterPage() {
                       type="text"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-green-500"
+                      className="input-field-default"
                       placeholder="Optional"
                     />
                   </div>
@@ -183,7 +183,7 @@ export default function PublicTeamRegisterPage() {
                       type="text"
                       value={clubName}
                       onChange={(e) => setClubName(e.target.value)}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-green-500"
+                      className="input-field-default"
                       placeholder="Optional"
                     />
                   </div>
@@ -192,7 +192,7 @@ export default function PublicTeamRegisterPage() {
                 <button
                   type="submit"
                   disabled={loading || loadingTournament || !tournament}
-                  className="w-full bg-green-500 hover:bg-green-400 disabled:opacity-50 text-black font-bold py-3 rounded-lg transition-colors"
+                  className="btn-primary w-full justify-center py-3 disabled:opacity-50"
                 >
                   {loading ? 'Registering...' : 'Register Team'}
                 </button>
@@ -261,8 +261,8 @@ export default function PublicTeamRegisterPage() {
                     </p>
                   ) : null}
 
-                  <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4">
-                    <p className="text-green-400 text-sm font-semibold">
+                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
+                    <p className="text-amber-400 text-sm font-semibold">
                       Team registration is open. Submit your team details here, then manage everything from your registration dashboard.
                     </p>
                   </div>

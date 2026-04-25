@@ -284,7 +284,7 @@ export default function AdminAttendancePage() {
               type="date"
               value={from}
               onChange={(event) => setFrom(event.target.value)}
-              className="rounded-lg border border-white/10 bg-black px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500"
+              className="input-field-default"
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -293,7 +293,7 @@ export default function AdminAttendancePage() {
               type="date"
               value={to}
               onChange={(event) => setTo(event.target.value)}
-              className="rounded-lg border border-white/10 bg-black px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500"
+              className="input-field-default"
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -303,7 +303,7 @@ export default function AdminAttendancePage() {
               value={playerEmail}
               onChange={(event) => setPlayerEmail(event.target.value)}
               placeholder="player@example.com"
-              className="rounded-lg border border-white/10 bg-black px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+              className="input-field-default"
             />
           </div>
           <div className="flex items-end gap-3 flex-wrap">

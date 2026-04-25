@@ -175,7 +175,7 @@ export default function StaffBookingsPage() {
       {error ? <ErrorBanner message={error} onDismiss={() => setError('')} /> : null}
 
       {showCreateForm ? (
-        <form onSubmit={handleCreateBooking} className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+        <form onSubmit={handleCreateBooking} className="bg-[#111] border border-[#222] rounded-xl p-6 space-y-4">
           <h2 className="text-white text-xl font-bold">Quick Booking</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -191,7 +191,7 @@ export default function StaffBookingsPage() {
                     bookingTime: '',
                   }))
                 }
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="input-field-default"
               >
                 <option value="">Select a program</option>
                 {programs.map((program) => (
@@ -209,7 +209,7 @@ export default function StaffBookingsPage() {
                 required
                 value={form.bookingDate}
                 onChange={(event) => setForm((current) => ({ ...current, bookingDate: event.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="input-field-default"
               />
             </div>
 
@@ -221,7 +221,7 @@ export default function StaffBookingsPage() {
                 value={form.bookingTime}
                 onChange={(event) => setForm((current) => ({ ...current, bookingTime: event.target.value }))}
                 placeholder="Example: 4:00 PM"
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="input-field-default"
               />
               <div className="mt-3">
                 {loadingSlots ? (
@@ -236,7 +236,7 @@ export default function StaffBookingsPage() {
                         className={`px-3 py-1.5 rounded-full text-xs border ${
                           form.bookingTime === slot
                             ? 'bg-amber-500 text-black border-amber-500'
-                            : 'bg-gray-800 text-gray-300 border-gray-700 hover:border-amber-500'
+                            : 'bg-[#1a1a1a] text-gray-300 border-gray-700 hover:border-amber-500'
                         }`}
                       >
                         {slot}
@@ -255,7 +255,7 @@ export default function StaffBookingsPage() {
                 required
                 value={form.playerName}
                 onChange={(event) => setForm((current) => ({ ...current, playerName: event.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="input-field-default"
               />
             </div>
 
@@ -264,7 +264,7 @@ export default function StaffBookingsPage() {
               <input
                 value={form.playerAge}
                 onChange={(event) => setForm((current) => ({ ...current, playerAge: event.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="input-field-default"
               />
             </div>
 
@@ -273,7 +273,7 @@ export default function StaffBookingsPage() {
               <input
                 value={form.parentName}
                 onChange={(event) => setForm((current) => ({ ...current, parentName: event.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="input-field-default"
               />
             </div>
 
@@ -284,7 +284,7 @@ export default function StaffBookingsPage() {
                 required
                 value={form.email}
                 onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="input-field-default"
               />
             </div>
 
@@ -294,7 +294,7 @@ export default function StaffBookingsPage() {
                 required
                 value={form.phone}
                 onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="input-field-default"
               />
             </div>
 
@@ -305,7 +305,7 @@ export default function StaffBookingsPage() {
                 onChange={(event) =>
                   setForm((current) => ({ ...current, experienceLevel: event.target.value }))
                 }
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="input-field-default"
               />
             </div>
 
@@ -315,7 +315,7 @@ export default function StaffBookingsPage() {
                 rows={3}
                 value={form.notes}
                 onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm resize-none"
+                className="input-field-default resize-none"
               />
             </div>
           </div>
@@ -349,12 +349,12 @@ export default function StaffBookingsPage() {
           placeholder="Search player, email, or program..."
           value={filterSearch}
           onChange={(event) => setFilterSearch(event.target.value)}
-          className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-48 focus:outline-none focus:border-amber-500"
+          className="bg-[#1a1a1a] border border-[#2a2a2a] text-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-48 focus:outline-none focus:border-amber-500"
         />
         <select
           value={filterStatus}
           onChange={(event) => setFilterStatus(event.target.value)}
-          className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
+          className="bg-[#1a1a1a] border border-[#2a2a2a] text-gray-300 rounded-lg px-3 py-2 text-sm"
         >
           <option value="">All statuses</option>
           {STATUS_OPTIONS.map((status) => (
@@ -367,7 +367,7 @@ export default function StaffBookingsPage() {
           type="date"
           value={filterDate}
           onChange={(event) => setFilterDate(event.target.value)}
-          className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
+          className="bg-[#1a1a1a] border border-[#2a2a2a] text-gray-300 rounded-lg px-3 py-2 text-sm"
         />
       </div>
 
@@ -388,13 +388,13 @@ export default function StaffBookingsPage() {
             const isRescheduling = editingRescheduleId === booking.id
 
             return (
-              <div key={booking.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+              <div key={booking.id} className="bg-[#111] border border-[#222] rounded-xl p-5 space-y-4">
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                   <div className="flex-1 min-w-[16rem]">
                     <div className="flex items-center gap-3 mb-2 flex-wrap">
                       <p className="text-white font-semibold">{booking.playerName}</p>
                       {booking.playerAge ? (
-                        <span className="text-gray-500 text-xs bg-gray-800 px-2 py-0.5 rounded-full">
+                        <span className="text-gray-500 text-xs bg-[#1a1a1a] px-2 py-0.5 rounded-full">
                           Age {booking.playerAge}
                         </span>
                       ) : null}
@@ -417,7 +417,7 @@ export default function StaffBookingsPage() {
                     <StatusBadge status={booking.bookingStatus} />
                     <button
                       onClick={() => (isRescheduling ? closeReschedule() : openReschedule(booking))}
-                      className="text-cyan-400 hover:text-cyan-300 text-sm font-medium"
+                      className="text-amber-500 hover:text-amber-400 text-sm font-medium"
                     >
                       {isRescheduling ? 'Close Reschedule' : 'Reschedule'}
                     </button>
@@ -434,7 +434,7 @@ export default function StaffBookingsPage() {
                         status === 'CONFIRMED'
                           ? 'bg-blue-600 hover:bg-blue-500 text-white'
                           : status === 'COMPLETED'
-                            ? 'bg-green-600 hover:bg-green-500 text-white'
+                            ? 'bg-amber-500 hover:bg-amber-400 text-white'
                             : status === 'CANCELLED'
                               ? 'bg-red-700 hover:bg-red-600 text-white'
                               : 'bg-gray-700 hover:bg-gray-600 text-white'
@@ -446,24 +446,24 @@ export default function StaffBookingsPage() {
                 </div>
 
                 {isRescheduling ? (
-                  <div className="bg-gray-800 rounded-xl p-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+                  <div className="bg-[#1a1a1a] rounded-xl p-4 grid grid-cols-1 md:grid-cols-4 gap-3">
                     <input
                       type="date"
                       value={newDate}
                       onChange={(event) => setNewDate(event.target.value)}
-                      className="bg-gray-900 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
+                      className="bg-[#111] border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
                     />
                     <input
                       type="text"
                       value={newTime}
                       onChange={(event) => setNewTime(event.target.value)}
                       placeholder="New time"
-                      className="bg-gray-900 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
+                      className="bg-[#111] border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
                     />
                     <button
                       onClick={() => handleReschedule(booking.id)}
                       disabled={isWorking}
-                      className="bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50"
+                      className="btn-primary disabled:opacity-50"
                     >
                       {isWorking ? 'Saving...' : 'Save New Time'}
                     </button>

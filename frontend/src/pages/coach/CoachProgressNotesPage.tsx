@@ -11,7 +11,7 @@ const TYPE_COLORS: Record<string, string> = {
   TACTICAL: 'bg-purple-500/20 text-purple-400',
   PHYSICAL: 'bg-orange-500/20 text-orange-400',
   MENTAL: 'bg-pink-500/20 text-pink-400',
-  MILESTONE: 'bg-green-500/20 text-green-400',
+  MILESTONE: 'bg-green-500/20 text-amber-500',
 }
 
 interface ProgressNote {
@@ -159,13 +159,13 @@ export default function CoachProgressNotesPage() {
 
       {error && <ErrorBanner message={error} onDismiss={() => setError('')} />}
       {success && (
-        <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-3 text-green-400 text-sm">
+        <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-3 text-amber-500 text-sm">
           {success}
         </div>
       )}
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="bg-[#111] border border-[#222] rounded-xl p-6 space-y-4">
           <h2 className="text-white font-bold text-lg">{editingId ? 'Edit Note' : 'New Progress Note'}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -175,7 +175,7 @@ export default function CoachProgressNotesPage() {
                 required
                 value={form.playerEmail}
                 onChange={(e) => setForm({ ...form, playerEmail: e.target.value })}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                className="input-field-default focus:outline-none focus:border-blue-500"
               />
             </div>
             <div>
@@ -184,7 +184,7 @@ export default function CoachProgressNotesPage() {
                 type="text"
                 value={form.playerName}
                 onChange={(e) => setForm({ ...form, playerName: e.target.value })}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                className="input-field-default focus:outline-none focus:border-blue-500"
               />
             </div>
             <div>
@@ -194,7 +194,7 @@ export default function CoachProgressNotesPage() {
                 required
                 value={form.sessionDate}
                 onChange={(e) => setForm({ ...form, sessionDate: e.target.value })}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                className="input-field-default focus:outline-none focus:border-blue-500"
               />
             </div>
             <div>
@@ -202,7 +202,7 @@ export default function CoachProgressNotesPage() {
               <select
                 value={form.noteType}
                 onChange={(e) => setForm({ ...form, noteType: e.target.value })}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                className="input-field-default focus:outline-none focus:border-blue-500"
               >
                 {NOTE_TYPES.map((t) => (
                   <option key={t} value={t}>{t}</option>
@@ -215,7 +215,7 @@ export default function CoachProgressNotesPage() {
                 type="text"
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                className="input-field-default focus:outline-none focus:border-blue-500"
                 placeholder="Brief summary"
               />
             </div>
@@ -227,7 +227,7 @@ export default function CoachProgressNotesPage() {
                 max="5"
                 value={form.rating}
                 onChange={(e) => setForm({ ...form, rating: e.target.value as number | '' })}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                className="input-field-default focus:outline-none focus:border-blue-500"
                 placeholder="Optional"
               />
             </div>
@@ -239,7 +239,7 @@ export default function CoachProgressNotesPage() {
               value={form.content}
               onChange={(e) => setForm({ ...form, content: e.target.value })}
               rows={4}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 resize-none"
+              className="input-field-default focus:outline-none focus:border-blue-500 resize-none"
               placeholder="Detailed development note…"
             />
           </div>
@@ -264,7 +264,7 @@ export default function CoachProgressNotesPage() {
             <button
               type="button"
               onClick={() => { setShowForm(false); setEditingId(null); setForm(EMPTY_FORM) }}
-              className="bg-gray-800 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded-lg text-sm"
+              className="bg-[#1a1a1a] hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded-lg text-sm"
             >
               Cancel
             </button>
@@ -273,8 +273,8 @@ export default function CoachProgressNotesPage() {
       )}
 
       {notes.length === 0 && !showForm && (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">📝</div>
+        <div className="bg-[#111] border border-[#222] rounded-xl p-12 text-center">
+          <div className="w-14 h-14 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-4"><svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg></div>
           <p className="text-white font-semibold mb-1">No notes yet</p>
           <p className="text-gray-400 text-sm">Write your first player development note.</p>
         </div>
@@ -282,7 +282,7 @@ export default function CoachProgressNotesPage() {
 
       <div className="space-y-3">
         {notes.map((note) => (
-          <div key={note.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <div key={note.id} className="bg-[#111] border border-[#222] rounded-xl p-5">
             <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${TYPE_COLORS[note.noteType] ?? TYPE_COLORS.GENERAL}`}>
@@ -291,7 +291,7 @@ export default function CoachProgressNotesPage() {
                 <span className="text-gray-400 text-xs">{note.sessionDate}</span>
                 {note.rating && stars(note.rating)}
                 {!note.visibleToParent && (
-                  <span className="text-gray-500 text-xs italic">🔒 private</span>
+                  <span className="inline-flex items-center gap-1 text-gray-500 text-xs italic"><svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>private</span>
                 )}
               </div>
               <div className="flex gap-2">

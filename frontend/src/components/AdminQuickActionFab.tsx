@@ -40,7 +40,7 @@ export default function AdminQuickActionFab() {
         <button
           type="button"
           onClick={() => setOpen((current) => !current)}
-          className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-cyan-500 text-black shadow-2xl transition-transform active:scale-[0.96]"
+          className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-amber-500 text-black shadow-2xl transition-transform active:scale-[0.96]"
           aria-label="Open quick actions"
         >
           <svg

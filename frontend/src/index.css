@@ -244,6 +244,22 @@
       transform: translateX(0);
     }
   }
+
+  @keyframes countUp {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
 }
 
 @layer utilities {
@@ -332,4 +348,74 @@
   .animate-slide-in-right {
     animation: slideInRight 0.3s ease forwards;
   }
+
+  .animate-marquee {
+    animation: marquee 28s linear infinite;
+  }
+
+  /* Staggered fade-up delays for sequential reveals */
+  .animate-fade-up-d1 { animation: fadeUp 0.55s ease 0.1s both; }
+  .animate-fade-up-d2 { animation: fadeUp 0.55s ease 0.2s both; }
+  .animate-fade-up-d3 { animation: fadeUp 0.55s ease 0.3s both; }
+  .animate-fade-up-d4 { animation: fadeUp 0.55s ease 0.4s both; }
+  .animate-fade-up-d5 { animation: fadeUp 0.55s ease 0.5s both; }
+}
+
+/* Screen reader only – accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Global focus-visible for keyboard navigation */
+:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+/* Ensure buttons/links that manage their own focus ring don't double up */
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.btn-ghost:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 3px;
+}
+
+/* Cookie consent banner slide-up */
+.animate-slide-up {
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Legal pages list styling */
+.prose-dark ul {
+  list-style: none;
+  padding: 0;
+}
+.prose-dark ul li {
+  padding-left: 1.25rem;
+  position: relative;
+}
+.prose-dark ul li::before {
+  content: '–';
+  position: absolute;
+  left: 0;
+  color: #d97706;
 }

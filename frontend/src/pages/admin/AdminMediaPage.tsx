@@ -205,7 +205,7 @@ export default function AdminMediaPage() {
               Upload photos and videos to keep the public feed fresh with training highlights.
             </p>
           </div>
-          <div className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-cyan-300">
+          <div className="rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-300">
             {posts.length} post{posts.length === 1 ? '' : 's'}
           </div>
         </div>
@@ -315,7 +315,7 @@ export default function AdminMediaPage() {
               <button
                 type="submit"
                 disabled={!selectedFile || !category || uploading}
-                className="w-full rounded-lg bg-cyan-500 px-5 py-3 text-sm font-bold text-black transition-colors hover:bg-cyan-400 disabled:opacity-50 sm:w-auto"
+                className="w-full rounded-lg bg-amber-500 px-5 py-3 text-sm font-bold text-black transition-colors hover:bg-amber-400 disabled:opacity-50 sm:w-auto"
               >
                 <span className="inline-flex items-center gap-2">
                   {uploading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-black/20 border-t-black" /> : null}
@@ -372,7 +372,7 @@ export default function AdminMediaPage() {
                   onClick={() => setFilterCategory(cat)}
                   className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
                     filterCategory === cat
-                      ? 'bg-cyan-500 text-black'
+                      ? 'bg-amber-500 text-black'
                       : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                   }`}
                 >
@@ -396,7 +396,7 @@ export default function AdminMediaPage() {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-bold text-black hover:bg-cyan-400"
+                    className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-black hover:bg-amber-400"
                   >
                     Upload your first post
                   </button>
@@ -491,7 +491,7 @@ export default function AdminMediaPage() {
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 px-4 py-8 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl border border-gray-800 bg-gray-900 p-6 shadow-2xl">
             <div className="mb-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-400">Edit Post</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-500">Edit Post</p>
               <h3 className="mt-2 text-xl font-bold text-white">Update this media post</h3>
             </div>
 
@@ -551,7 +551,7 @@ export default function AdminMediaPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="w-full rounded-lg bg-cyan-500 px-5 py-3 text-sm font-bold text-black hover:bg-cyan-400 disabled:opacity-50 sm:w-auto"
+                  className="w-full rounded-lg bg-amber-500 px-5 py-3 text-sm font-bold text-black hover:bg-amber-400 disabled:opacity-50 sm:w-auto"
                 >
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>

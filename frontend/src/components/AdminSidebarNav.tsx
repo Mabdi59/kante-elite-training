@@ -395,8 +395,8 @@ export default function AdminSidebarNav({ pathname }: { pathname: string }) {
                 to={entry.path}
                 className={`flex min-h-11 items-center gap-3 rounded-xl px-3 py-3 text-sm transition-colors ${
                   isActive
-                    ? 'bg-green-500/10 text-green-400 font-medium'
-                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                    ? 'bg-amber-500/10 text-amber-500 font-medium'
+                    : 'text-gray-300 hover:bg-[#1a1a1a] hover:text-white'
                 }`}
               >
                 <span className="flex h-4 w-4 items-center justify-center">{entry.icon}</span>
@@ -409,14 +409,14 @@ export default function AdminSidebarNav({ pathname }: { pathname: string }) {
           const groupIsOpen = openGroups[entry.id] ?? false
 
           return (
-            <div key={entry.id} className="rounded-2xl border border-gray-800/80 bg-gray-950/40">
+            <div key={entry.id} className="rounded-2xl border border-[#1a1a1a] bg-[#0d0d0d]">
               <button
                 type="button"
                 onClick={() => toggleGroup(entry.id)}
                 className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm transition-colors ${
                   groupIsActive
-                    ? 'text-green-400'
-                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                    ? 'text-amber-500'
+                    : 'text-gray-300 hover:bg-[#1a1a1a] hover:text-white'
                 }`}
               >
                 <span className="flex h-4 w-4 items-center justify-center">{entry.icon}</span>
@@ -443,8 +443,8 @@ export default function AdminSidebarNav({ pathname }: { pathname: string }) {
                         to={item.path}
                         className={`flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
                           isActive
-                            ? 'bg-green-500/10 text-green-400 font-medium'
-                            : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                            ? 'bg-amber-500/10 text-amber-500 font-medium'
+                            : 'text-gray-400 hover:bg-[#1a1a1a] hover:text-white'
                         }`}
                       >
                         <span className="flex h-4 w-4 items-center justify-center">{item.icon}</span>

@@ -46,13 +46,13 @@ export default function UserDashboardPage() {
         <div className="flex gap-2 flex-wrap">
           <Link
             to="/book"
-            className="bg-teal-500 hover:bg-teal-400 text-black text-sm font-bold px-4 py-2 rounded-lg"
+            className="btn-primary text-sm"
           >
             Book a Session
           </Link>
           <Link
             to="/user/players"
-            className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg"
+            className="btn-secondary text-sm"
           >
             Manage Players
           </Link>
@@ -64,31 +64,31 @@ export default function UserDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Link
           to="/user/bookings"
-          className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-gray-600 transition-colors"
+          className="bg-[#111] border border-[#222] hover:border-amber-500/30 rounded-xl p-6 transition-all"
         >
           <p className="text-gray-400 text-sm mb-2">Upcoming Sessions</p>
-          <p className="text-4xl font-black text-teal-400">{upcomingBookings.length}</p>
+          <p className="text-4xl font-black text-amber-500">{upcomingBookings.length}</p>
         </Link>
         <Link
           to="/user/players"
-          className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-gray-600 transition-colors"
+          className="bg-[#111] border border-[#222] hover:border-amber-500/30 rounded-xl p-6 transition-all"
         >
           <p className="text-gray-400 text-sm mb-2">Player Profiles</p>
-          <p className="text-4xl font-black text-blue-400">{players.length}</p>
+          <p className="text-4xl font-black text-white">{players.length}</p>
         </Link>
         <Link
           to="/user/bookings"
-          className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-gray-600 transition-colors"
+          className="bg-[#111] border border-[#222] hover:border-amber-500/30 rounded-xl p-6 transition-all"
         >
           <p className="text-gray-400 text-sm mb-2">Past or Cancelled</p>
           <p className="text-4xl font-black text-gray-400">{pastBookings.length}</p>
         </Link>
       </div>
 
-      <section className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <section className="bg-[#111] border border-[#222] rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-white text-xl font-bold">Upcoming Sessions</h2>
-          <Link to="/user/bookings" className="text-teal-400 hover:text-teal-300 text-sm">
+          <Link to="/user/bookings" className="text-amber-500 hover:text-amber-400 text-sm">
             View All
           </Link>
         </div>
@@ -100,7 +100,7 @@ export default function UserDashboardPage() {
             {upcomingBookings.slice(0, 5).map((booking) => (
               <div
                 key={booking.id}
-                className="flex items-center justify-between gap-4 bg-gray-800 rounded-lg p-4"
+                className="flex items-center justify-between gap-4 bg-[#1a1a1a] rounded-lg p-4"
               >
                 <div>
                   <p className="text-white font-medium">{booking.playerName}</p>
@@ -115,10 +115,10 @@ export default function UserDashboardPage() {
         )}
       </section>
 
-      <section className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <section className="bg-[#111] border border-[#222] rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-white text-xl font-bold">Player Profiles</h2>
-          <Link to="/user/players" className="text-teal-400 hover:text-teal-300 text-sm">
+          <Link to="/user/players" className="text-amber-500 hover:text-amber-400 text-sm">
             Manage
           </Link>
         </div>
@@ -128,7 +128,7 @@ export default function UserDashboardPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {players.slice(0, 4).map((player) => (
-              <div key={player.id} className="bg-gray-800 rounded-lg p-4">
+              <div key={player.id} className="bg-[#1a1a1a] rounded-lg p-4">
                 <p className="text-white font-medium">{player.name}</p>
                 <p className="text-gray-400 text-sm">
                   {player.age ? `Age ${player.age}` : 'Age not set'}

@@ -274,7 +274,7 @@ export default function AdminFamilyOnboardingPage() {
                       value={parentName}
                       onChange={(e) => setParentName(e.target.value)}
                       placeholder="Jane Smith"
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-green-500"
+                      className="input-field-default py-2.5"
                     />
                   </label>
                   <label className="space-y-1.5">
@@ -284,7 +284,7 @@ export default function AdminFamilyOnboardingPage() {
                       value={parentEmail}
                       onChange={(e) => setParentEmail(e.target.value)}
                       placeholder="jane@example.com"
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-green-500"
+                      className="input-field-default py-2.5"
                     />
                   </label>
                 </div>
@@ -296,7 +296,7 @@ export default function AdminFamilyOnboardingPage() {
                       value={parentPhone}
                       onChange={(e) => setParentPhone(e.target.value)}
                       placeholder="+1 (614) 000-0000"
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-green-500"
+                      className="input-field-default py-2.5"
                     />
                   </label>
                   <label className="space-y-1.5">
@@ -306,7 +306,7 @@ export default function AdminFamilyOnboardingPage() {
                       value={parentPassword}
                       onChange={(e) => setParentPassword(e.target.value)}
                       placeholder="Auto-generated if blank"
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-green-500"
+                      className="input-field-default py-2.5"
                     />
                   </label>
                 </div>
@@ -317,7 +317,7 @@ export default function AdminFamilyOnboardingPage() {
                     value={emergencyContact}
                     onChange={(e) => setEmergencyContact(e.target.value)}
                     placeholder="Name and phone number"
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-green-500"
+                    className="input-field-default py-2.5"
                   />
                 </label>
               </div>
@@ -332,7 +332,7 @@ export default function AdminFamilyOnboardingPage() {
                       placeholder="Search users by name or email..."
                       value={userSearch}
                       onChange={(e) => setUserSearch(e.target.value)}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-green-500"
+                      className="input-field-default py-2.5"
                     />
                     <div className="max-h-56 overflow-y-auto rounded-lg border border-gray-700 divide-y divide-gray-800">
                       {filteredUsers.length === 0 ? (
@@ -408,7 +408,7 @@ export default function AdminFamilyOnboardingPage() {
                         value={player.name}
                         onChange={(e) => updatePlayer(idx, 'name', e.target.value)}
                         placeholder="Player name"
-                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-green-500"
+                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-amber-500"
                       />
                     </label>
                     <label className="space-y-1.5">
@@ -433,7 +433,7 @@ export default function AdminFamilyOnboardingPage() {
                           updatePlayer(idx, 'dateOfBirth', e.target.value)
                           updatePlayer(idx, 'age', calculateAgeFromDateOfBirth(e.target.value))
                         }}
-                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-500"
+                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
                       />
                     </label>
                     <label className="space-y-1.5">
@@ -441,7 +441,7 @@ export default function AdminFamilyOnboardingPage() {
                       <select
                         value={player.skillLevel ?? ''}
                         onChange={(e) => updatePlayer(idx, 'skillLevel', e.target.value)}
-                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-500"
+                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
                       >
                         <option value="">Select level</option>
                         {SKILL_LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
@@ -452,7 +452,7 @@ export default function AdminFamilyOnboardingPage() {
                       <select
                         value={player.preferredPosition ?? ''}
                         onChange={(e) => updatePlayer(idx, 'preferredPosition', e.target.value)}
-                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-500"
+                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
                       >
                         <option value="">Select position</option>
                         {POSITIONS.map((p) => <option key={p} value={p}>{p}</option>)}
@@ -482,7 +482,7 @@ export default function AdminFamilyOnboardingPage() {
                       onChange={(e) => updatePlayer(idx, 'notes', e.target.value)}
                       placeholder="Any notes about this player..."
                       rows={2}
-                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-green-500 resize-none"
+                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-amber-500 resize-none"
                     />
                   </label>
                 </div>

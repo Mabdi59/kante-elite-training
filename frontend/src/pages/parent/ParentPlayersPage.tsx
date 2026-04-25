@@ -112,7 +112,7 @@ export default function ParentPlayersPage() {
         </div>
         <button
           onClick={openCreate}
-          className="bg-green-500 hover:bg-green-400 text-black text-sm font-bold px-4 py-2 rounded-lg"
+          className="btn-primary text-sm"
         >
           Add Player
         </button>
@@ -121,7 +121,7 @@ export default function ParentPlayersPage() {
       {error ? <ErrorBanner message={error} onDismiss={() => setError('')} /> : null}
 
       {showForm ? (
-        <form onSubmit={handleSave} className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+        <form onSubmit={handleSave} className="bg-[#111] border border-[#222] rounded-xl p-6 space-y-4">
           <h2 className="text-white text-xl font-bold">
             {editingPlayer ? 'Edit Player Profile' : 'New Player Profile'}
           </h2>
@@ -133,7 +133,7 @@ export default function ParentPlayersPage() {
                 required
                 value={form.name}
                 onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="input-field-default"
               />
             </div>
 
@@ -149,7 +149,7 @@ export default function ParentPlayersPage() {
                     age: calculateAgeFromDateOfBirth(event.target.value),
                   }))
                 }
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="input-field-default"
               />
             </div>
 
@@ -162,7 +162,7 @@ export default function ParentPlayersPage() {
                 value={calculateAgeFromDateOfBirth(form.dateOfBirth) ?? form.age ?? ''}
                 readOnly
                 disabled
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-400 text-sm cursor-not-allowed disabled:opacity-100"
+                className="input-field-default text-gray-400 cursor-not-allowed disabled:opacity-100"
               />
               <p className="mt-1 text-xs text-gray-500">Calculated automatically from date of birth.</p>
             </div>
@@ -172,7 +172,7 @@ export default function ParentPlayersPage() {
               <select
                 value={form.skillLevel ?? ''}
                 onChange={(event) => setForm((current) => ({ ...current, skillLevel: event.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="input-field-default"
               >
                 <option value="">Select level</option>
                 <option value="BEGINNER">BEGINNER</option>
@@ -189,7 +189,7 @@ export default function ParentPlayersPage() {
                 onChange={(event) =>
                   setForm((current) => ({ ...current, preferredPosition: event.target.value }))
                 }
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                className="input-field-default"
                 placeholder="Example: Midfielder"
               />
             </div>
@@ -200,7 +200,7 @@ export default function ParentPlayersPage() {
                 rows={3}
                 value={form.notes ?? ''}
                 onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm resize-none"
+                className="input-field-default resize-none"
               />
             </div>
           </div>
@@ -209,14 +209,14 @@ export default function ParentPlayersPage() {
             <button
               type="submit"
               disabled={saving}
-              className="bg-green-500 hover:bg-green-400 text-black font-bold px-5 py-2 rounded-lg text-sm disabled:opacity-50"
+              className="btn-primary disabled:opacity-50"
             >
               {saving ? 'Saving...' : editingPlayer ? 'Save Changes' : 'Add Player'}
             </button>
             <button
               type="button"
               onClick={closeForm}
-              className="bg-gray-700 hover:bg-gray-600 text-white px-5 py-2 rounded-lg text-sm"
+              className="btn-secondary"
             >
               Cancel
             </button>
@@ -230,7 +230,7 @@ export default function ParentPlayersPage() {
           title="No player profiles yet"
           description="Add your first player to keep booking details organized."
           action={
-            <button onClick={openCreate} className="bg-green-500 text-black font-bold px-5 py-2 rounded-lg text-sm">
+            <button onClick={openCreate} className="btn-primary">
               Add Player
             </button>
           }
@@ -238,7 +238,7 @@ export default function ParentPlayersPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {players.map((player) => (
-            <div key={player.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <div key={player.id} className="bg-[#111] border border-[#222] rounded-xl p-5">
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div>
                   <p className="text-white font-semibold text-lg">{player.name}</p>
@@ -249,7 +249,7 @@ export default function ParentPlayersPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => openEdit(player)}
-                    className="text-cyan-400 hover:text-cyan-300 text-sm"
+                    className="text-amber-500 hover:text-amber-400 text-sm"
                   >
                     Edit
                   </button>
