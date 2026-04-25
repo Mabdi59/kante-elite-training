@@ -18,5 +18,8 @@ public class MediaPostResponse {
     private boolean showOnHome;
     private boolean showOnAbout;
     private MediaCategory mediaCategory;
+    private int displayOrder;
+    private int homeDisplayOrder;
+    private int aboutDisplayOrder;
     private LocalDateTime createdAt;
 }

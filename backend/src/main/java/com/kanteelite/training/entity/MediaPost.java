@@ -47,6 +47,18 @@ public class MediaPost {
     @Column(name = "media_category", length = 30)
     private MediaCategory mediaCategory;
 
+    @Builder.Default
+    @Column(name = "display_order", nullable = false)
+    private int displayOrder = 0;
+
+    @Builder.Default
+    @Column(name = "home_display_order", nullable = false)
+    private int homeDisplayOrder = 0;
+
+    @Builder.Default
+    @Column(name = "about_display_order", nullable = false)
+    private int aboutDisplayOrder = 0;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

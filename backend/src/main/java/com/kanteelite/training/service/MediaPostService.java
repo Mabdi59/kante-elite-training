@@ -118,6 +118,9 @@ public class MediaPostService {
                 .showOnHome(mediaPost.isShowOnHome())
                 .showOnAbout(mediaPost.isShowOnAbout())
                 .mediaCategory(mediaPost.getMediaCategory())
+                .displayOrder(mediaPost.getDisplayOrder())
+                .homeDisplayOrder(mediaPost.getHomeDisplayOrder())
+                .aboutDisplayOrder(mediaPost.getAboutDisplayOrder())
                 .createdAt(mediaPost.getCreatedAt())
                 .build();
     }
