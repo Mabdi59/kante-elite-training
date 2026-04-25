@@ -79,19 +79,7 @@ export default function MediaPage() {
 
       <section className="border-t border-[#1a1a1a] bg-[#0a0a0a] px-4 py-16">
         <div className="page-shell">
-          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <span className="section-label">Latest Highlights</span>
-              <h2 className="text-3xl font-black text-white sm:text-4xl md:text-5xl">
-                From Training Ground to Game Day
-              </h2>
-            </div>
-            <p className="max-w-md text-sm leading-relaxed text-gray-400">
-              Every post is part of the story, from technical work and small group sessions to events and tournament weekends.
-            </p>
-          </div>
-
-          {posts.length > 0 && (
+          {posts.length > 1 && (
           <div className="mb-8 flex flex-wrap gap-2">
             {CATEGORY_TABS.map((tab) => {
               const count =
@@ -167,9 +155,6 @@ export default function MediaPage() {
             <h2 className="text-3xl font-black text-white sm:text-4xl">
               Watch the <span className="gradient-text">Work</span>
             </h2>
-            <p className="text-gray-400 text-sm mt-3 max-w-xl mx-auto">
-              Real sessions with real players. This is what development looks like at Kante Elite Training.
-            </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {['training-1.mp4','training-2.mp4','training-3.mp4','training-4.mp4','training-5.mp4'].map((file) => (
