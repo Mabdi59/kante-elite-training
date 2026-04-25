@@ -2,7 +2,6 @@
 import { Link } from 'react-router-dom'
 import { CATEGORY_OPTIONS, getCategoryLabel } from '../components/CategoryBadge'
 import CTASection from '../components/CTASection'
-import EmptyState from '../components/EmptyState'
 import MediaLightbox from '../components/MediaLightbox'
 import MediaPostCard from '../components/MediaPostCard'
 import PageSkeleton from '../components/PageSkeleton'
@@ -92,6 +91,7 @@ export default function MediaPage() {
             </p>
           </div>
 
+          {posts.length > 0 && (
           <div className="mb-8 flex flex-wrap gap-2">
             {CATEGORY_TABS.map((tab) => {
               const count =
@@ -123,35 +123,11 @@ export default function MediaPage() {
               )
             })}
           </div>
+          )}
 
           {loading ? (
             <PageSkeleton titleWidthClassName="w-64" count={6} />
-          ) : visiblePosts.length === 0 ? (
-            <EmptyState
-              icon="Media"
-              title={activeCategory === 'ALL' ? 'No highlights posted yet' : `No ${getCategoryLabel(activeCategory as MediaCategory)} yet`}
-              description={
-                activeCategory === 'ALL'
-                  ? 'Fresh training clips, event moments, and player highlights will show up here once they are published.'
-                  : 'Nothing in this category yet. Check back soon or explore another category.'
-              }
-              action={
-                activeCategory !== 'ALL' ? (
-                  <button
-                    type="button"
-                    onClick={() => handleCategoryChange('ALL')}
-                    className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-black hover:bg-amber-400"
-                  >
-                    View all highlights
-                  </button>
-                ) : (
-                  <Link to="/training" className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-black hover:bg-amber-400">
-                    Explore programs while you check back
-                  </Link>
-                )
-              }
-            />
-          ) : (
+          ) : visiblePosts.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
               {visiblePosts.map((post, index) => (
                 <button
