@@ -172,8 +172,22 @@ export default function AboutMediaPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-[#222] bg-[#1a1a1a] p-5 sm:p-8">
-            <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8 items-start">
+            <div className="flex flex-col items-center text-center lg:items-start lg:text-left gap-4 max-w-xs mx-auto lg:mx-0">
+              <img
+                src="/images/Coach.png"
+                alt="Coach Mohamed Sheik Kante"
+                className="w-48 h-48 rounded-2xl object-cover object-top ring-2 ring-amber-500 shadow-xl"
+              />
+              <div>
+                <p className="text-white font-black text-xl">Mohamed Sheik</p>
+                <p className="text-amber-500 text-sm font-semibold uppercase tracking-widest">Coach Kante</p>
+                <p className="text-gray-500 text-xs mt-1">Head Coach & Founder · Est. 2024</p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-[#222] bg-[#1a1a1a] p-5 sm:p-8">
+              <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {(content.aboutExperiencePoints?.length
                 ? content.aboutExperiencePoints
                 : defaultWebsiteContent.aboutExperiencePoints
@@ -191,6 +205,7 @@ export default function AboutMediaPage() {
                 </li>
               ))}
             </ul>
+            </div>
           </div>
         </div>
       </section>
