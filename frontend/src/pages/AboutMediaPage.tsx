@@ -197,6 +197,33 @@ export default function AboutMediaPage() {
         </div>
       </section>
 
+      <section className="bg-[#0a0a0a] border-t border-[#1a1a1a] px-4 py-16">
+        <div className="page-shell max-w-6xl">
+          <div className="mb-8 text-center">
+            <span className="section-label">Training Sessions</span>
+            <h2 className="text-3xl font-black text-white sm:text-4xl">
+              Watch the <span className="gradient-text">Work</span>
+            </h2>
+            <p className="text-gray-400 text-sm mt-3 max-w-xl mx-auto">
+              Real sessions with real players. This is what development looks like at Kante Elite Training.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {['training-1.mp4','training-2.mp4','training-3.mp4','training-4.mp4','training-5.mp4'].map((file) => (
+              <div key={file} className="rounded-2xl overflow-hidden bg-[#111] border border-[#1e1e1e] aspect-[9/16]">
+                <video
+                  src={`/images/${file}`}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <CTASection
         title="Train With Confidence"
         subtitle="Book a session with a coach who brings real playing experience and a clear plan for development."
