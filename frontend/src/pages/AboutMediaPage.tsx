@@ -85,7 +85,7 @@ export default function AboutMediaPage() {
                 src={heroPost.mediaUrl}
                 alt={heroPost.caption?.trim() || content.aboutHeroTitle || 'Kante Elite training banner'}
                 loading="eager"
-                fetchPriority="high"
+                fetchpriority="high"
                 className="h-full w-full object-cover animate-hero-zoom"
               />
             )}
@@ -136,6 +136,8 @@ export default function AboutMediaPage() {
               <img
                 src="/images/Coach.png"
                 alt="Coach Mohamed Sheik Kante"
+                loading="eager"
+                fetchpriority="high"
                 className="w-48 h-48 rounded-2xl object-cover object-top ring-2 ring-amber-500 shadow-xl"
               />
               <div>

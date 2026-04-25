@@ -75,6 +75,8 @@ export default function Navbar() {
           <img
             src="/images/464169962_1489362111765457_2497551385302895846_n.jpg"
             alt="Kante Elite Training logo"
+            loading="eager"
+            fetchpriority="high"
             className="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-amber-500"
           />
           <div>

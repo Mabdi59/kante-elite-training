@@ -163,7 +163,7 @@ export default function HomePage() {
                 src={heroMedia.mediaUrl}
                 alt={heroMedia.caption?.trim() || siteContent.homeHeadline || 'Kante Elite highlight'}
                 loading="eager"
-                fetchPriority="high"
+                fetchpriority="high"
                 className="h-full w-full object-cover animate-hero-zoom"
               />
             )}
