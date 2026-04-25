@@ -31,7 +31,7 @@ export default function CancellationPolicyPage() {
           <p className="text-gray-500 text-sm">Last updated: {LAST_UPDATED}</p>
         </div>
 
-        <div className="space-y-8">
+        <div className="prose-dark space-y-8">
           <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6 text-sm text-amber-300 leading-relaxed">
             <p className="font-semibold text-amber-400 mb-1">Quick Summary</p>
             <p>

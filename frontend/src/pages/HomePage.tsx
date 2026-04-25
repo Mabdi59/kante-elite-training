@@ -90,6 +90,7 @@ export default function HomePage() {
   const [siteContent, setSiteContent] = useState<WebsiteContent>(defaultWebsiteContent)
   const [activeMediaIndex, setActiveMediaIndex] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
+  const [homeFaqOpen, setHomeFaqOpen] = useState<number | null>(null)
 
   useEffect(() => {
     document.title = 'Kante Elite Training — Youth Soccer Academy, Columbus Ohio'
@@ -749,6 +750,85 @@ export default function HomePage() {
           <Link to="/book" className="bg-black text-amber-500 font-black text-sm px-6 py-2.5 rounded-lg whitespace-nowrap hover:bg-zinc-900 transition-colors">
             Reserve Your Spot
           </Link>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="bg-[#050505] border-t border-[#1a1a1a] py-20 px-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="section-label">Common Questions</p>
+            <h2 className="section-heading">
+              Answers <span className="gradient-text">Parents Ask</span>
+            </h2>
+            <p className="section-subheading">
+              Quick answers to what we hear most often. Still have questions?{' '}
+              <Link to="/contact" className="text-amber-500 hover:text-amber-400 transition-colors">
+                Contact us
+              </Link>
+              .
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {[
+              {
+                q: 'What age groups do you train?',
+                a: 'We train players from ages 8 to 18. Each session is tailored to the player\'s age, level, and goals.',
+              },
+              {
+                q: 'Do you offer trial sessions?',
+                a: 'Yes. New players can start with a single introductory session before committing to a program. Check the Training page for current options.',
+              },
+              {
+                q: 'What is your cancellation policy?',
+                a: 'Please give at least 24 hours notice if you need to cancel or reschedule. Cancellations with less than 24 hours notice and no-shows are non-refundable. Coach-initiated cancellations receive a full refund or reschedule at your choice.',
+              },
+              {
+                q: 'Can parents watch training sessions?',
+                a: 'Yes, parents are welcome to observe sessions from designated viewing areas. We believe transparency between coaches and parents supports better player development.',
+              },
+              {
+                q: 'What should my child bring to sessions?',
+                a: 'Players should bring cleats (no metal studs on turf), shin guards, a water bottle, and athletic clothing. A ball is provided but players can bring their own.',
+              },
+            ].map((faq, i) => (
+              <div key={i} className="border border-[#222] rounded-xl overflow-hidden">
+                <button
+                  onClick={() => setHomeFaqOpen(homeFaqOpen === i ? null : i)}
+                  className="w-full flex items-center justify-between px-6 py-5 text-left bg-[#111] hover:bg-[#161616] transition-colors"
+                >
+                  <span className="text-white font-semibold pr-4">{faq.q}</span>
+                  <span
+                    className={`text-amber-500 flex-shrink-0 transition-transform duration-200 ${
+                      homeFaqOpen === i ? 'rotate-45' : 'rotate-0'
+                    }`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                  </span>
+                </button>
+                {homeFaqOpen === i && (
+                  <div className="px-6 py-5 bg-[#0d0d0d] border-t border-[#1a1a1a]">
+                    <p className="text-gray-300 leading-relaxed">{faq.a}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-8">
+            <Link
+              to="/faq"
+              className="inline-flex items-center gap-2 text-amber-500 hover:text-amber-400 text-sm font-semibold transition-colors"
+            >
+              View all frequently asked questions
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+            </Link>
+          </div>
         </div>
       </section>
 

@@ -824,6 +824,17 @@ export default function BookPage() {
                     </svg>
                     <p className="text-gray-600 text-xs">We will send your confirmation right away and follow up before the session if needed.</p>
                   </div>
+                  <p className="text-center text-gray-700 text-xs mt-3">
+                    By confirming you agree to our{' '}
+                    <Link to="/cancellation-policy" className="underline hover:text-gray-500 transition-colors">
+                      Cancellation &amp; Refund Policy
+                    </Link>
+                    {' '}and{' '}
+                    <Link to="/terms" className="underline hover:text-gray-500 transition-colors">
+                      Terms of Service
+                    </Link>
+                    .
+                  </p>
                 </div>
               )}
             </div>

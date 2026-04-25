@@ -31,7 +31,7 @@ export default function TermsOfServicePage() {
           <p className="text-gray-500 text-sm">Last updated: {LAST_UPDATED}</p>
         </div>
 
-        <div className="space-y-8">
+        <div className="prose-dark space-y-8">
           <div className="bg-[#111] border border-[#222] rounded-2xl p-6 text-sm text-gray-300 leading-relaxed space-y-3">
             <p>
               Please read these Terms of Service carefully before using the {BUSINESS_NAME} website or booking a training session. By accessing our website or purchasing services, you agree to be bound by these terms.

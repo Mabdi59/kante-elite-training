@@ -5,6 +5,7 @@ const footerLinks = [
   { href: '/events', label: 'Events' },
   { href: '/tournaments', label: 'Tournaments' },
   { href: '/results', label: 'Results' },
+  { href: '/faq', label: 'FAQ' },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
   { href: '/book', label: 'Book a Session' },

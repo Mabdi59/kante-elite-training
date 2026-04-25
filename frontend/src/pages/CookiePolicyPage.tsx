@@ -30,7 +30,7 @@ export default function CookiePolicyPage() {
           <p className="text-gray-500 text-sm">Last updated: {LAST_UPDATED}</p>
         </div>
 
-        <div className="space-y-8">
+        <div className="prose-dark space-y-8">
           <div className="bg-[#111] border border-[#222] rounded-2xl p-6 text-sm text-gray-300 leading-relaxed">
             <p>
               This Cookie Policy explains what cookies are, how {BUSINESS_NAME} uses them on our website, and the choices you have regarding cookies.
