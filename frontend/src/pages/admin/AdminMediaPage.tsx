@@ -169,6 +169,7 @@ export default function AdminMediaPage() {
       showOnHome: post.showOnHome,
       showOnAbout: post.showOnAbout,
       mediaCategory: post.mediaCategory,
+      clearMediaCategory: false,
     })
   }
 
@@ -511,7 +512,14 @@ export default function AdminMediaPage() {
                 <label className="mb-2 block text-sm text-gray-400">Category</label>
                 <select
                   value={editForm.mediaCategory ?? ''}
-                  onChange={(e) => setEditForm((prev) => ({ ...prev, mediaCategory: (e.target.value as MediaCategory) || undefined }))}
+                  onChange={(e) => {
+                    const val = e.target.value as MediaCategory | ''
+                    if (val) {
+                      setEditForm((prev) => ({ ...prev, mediaCategory: val, clearMediaCategory: false }))
+                    } else {
+                      setEditForm((prev) => ({ ...prev, mediaCategory: undefined, clearMediaCategory: true }))
+                    }
+                  }}
                   className="w-full rounded-xl border border-gray-800 bg-black px-4 py-3 text-sm text-white"
                 >
                   <option value="">No category</option>

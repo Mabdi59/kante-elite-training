@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { getTestimonials } from '../services/api'
 import type { Testimonial } from '../types'
+import CTASection from '../components/CTASection'
+import EmptyState from '../components/EmptyState'
 import HeroSection from '../components/HeroSection'
 import TestimonialCard from '../components/TestimonialCard'
-import CTASection from '../components/CTASection'
 
 const achievements = [
   {
@@ -62,16 +64,16 @@ export default function ResultsPage() {
   }, [])
 
   return (
-    <div className="pt-20">
+    <div className="min-h-screen bg-black pt-20">
       <HeroSection
         badge="Real Results"
         title="Real Progress. Real Results."
         subtitle="We measure success by player growth, confidence, and the opportunities earned through consistent training."
       />
 
-      <section className="bg-[#111111] py-16 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <section className="border-t border-[#1a1a1a] bg-[#0a0a0a] px-4 py-16">
+        <div className="page-shell">
+          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
             {achievements.map((a) => (
               <div
                 key={a.label}
@@ -86,23 +88,39 @@ export default function ResultsPage() {
         </div>
       </section>
 
-      <section className="bg-[#111111] py-16 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-10">
-            <p className="section-label">What Families Say</p>
-            <h2 className="text-white font-black text-4xl">
-              Honest Reviews from <span className="text-amber-500">Real Families</span>
+      <section className="border-t border-[#1a1a1a] bg-black px-4 py-16">
+        <div className="page-shell">
+          <div className="mb-10 text-center">
+            <span className="section-label">What Families Say</span>
+            <h2 className="text-white font-black text-4xl text-balance">
+              Honest Reviews from Real Families
             </h2>
+            <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-gray-400">
+              Parents and players share their experience training with Coach Kante.
+            </p>
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="card h-48 animate-pulse" />
               ))}
             </div>
+          ) : testimonials.length === 0 ? (
+            <EmptyState
+              title="Reviews are on the way"
+              description="Family reviews and player stories will appear here as soon as they are published."
+              action={
+                <Link
+                  to="/book"
+                  className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-black hover:bg-amber-400"
+                >
+                  Book a Session
+                </Link>
+              }
+            />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {testimonials.map((t) => (
                 <TestimonialCard key={t.id} testimonial={t} />
               ))}
@@ -114,6 +132,10 @@ export default function ResultsPage() {
       <CTASection
         title="Ready to Start Your Player's Story?"
         subtitle="Every result starts with a first session. Book now and begin with a clear plan."
+        primaryLabel="Book a Session"
+        primaryHref="/book"
+        secondaryLabel="View Programs"
+        secondaryHref="/training"
       />
     </div>
   )

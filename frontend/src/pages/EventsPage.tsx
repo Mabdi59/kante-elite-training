@@ -21,8 +21,10 @@ export default function EventsPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const openEvents = events.filter((e) => e.status !== 'SOLD_OUT')
-  const soldOutEvents = events.filter((e) => e.status === 'SOLD_OUT')
+  // Events are already filtered to non-COMPLETED by the backend.
+  // Split by spots remaining: spotsLeft === 0 means full (sold out), regardless of status label.
+  const openEvents = events.filter((e) => e.spotsLeft === null || e.spotsLeft > 0)
+  const soldOutEvents = events.filter((e) => e.spotsLeft !== null && e.spotsLeft === 0)
 
   return (
     <div className="pt-20">

@@ -37,7 +37,7 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public List<EventResponse> getUpcomingEvents() {
-        return eventRepository.findByStartDateGreaterThanEqualOrderByStartDateAsc(LocalDate.now())
+        return eventRepository.findByStatusNotOrderByDisplayOrderAscStartDateAsc("COMPLETED")
                 .stream()
                 .map(this::toResponse)
                 .toList();

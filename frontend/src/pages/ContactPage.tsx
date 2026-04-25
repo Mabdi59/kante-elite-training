@@ -58,7 +58,7 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="pt-20">
+    <div className="min-h-screen bg-black pt-20">
       <HeroSection
         badge="Get in Touch"
         title="Contact Coach Kante"
@@ -160,6 +160,7 @@ export default function ContactPage() {
                   Thanks for reaching out. Coach Kante will reply within 24 hours, and often sooner.
                 </p>
                 <button
+                  type="button"
                   onClick={() => setSuccess(false)}
                   className="btn-secondary text-sm"
                 >
