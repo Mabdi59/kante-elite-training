@@ -144,7 +144,7 @@ export default function MediaPage() {
                 </button>
               ))}
             </div>
-          )}
+          ) : null}
 
           {!loading && filteredPosts.length > visiblePosts.length ? (
             <div className="mt-8 text-center">
