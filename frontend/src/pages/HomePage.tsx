@@ -643,13 +643,13 @@ export default function HomePage() {
                 step: '02',
                 icon: '📧',
                 title: 'Confirmation and Follow Up',
-                desc: 'You will get a confirmation email right away. Coach Kante will follow up before the first session to learn the player&apos;s goals.',
+                desc: "You will get a confirmation email right away. Coach Kante will follow up before the first session to learn the player's goals.",
               },
               {
                 step: '03',
                 icon: '⚽',
                 title: 'Train With a Clear Plan',
-                desc: 'Each session is built around the player&apos;s needs, with progress tracked and the work adjusted over time.',
+                desc: "Each session is built around the player's needs, with progress tracked and the work adjusted over time.",
               },
             ].map((item, i) => (
               <div key={item.step} className="relative text-center group">

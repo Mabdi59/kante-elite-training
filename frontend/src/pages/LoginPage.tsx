@@ -57,57 +57,69 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4">
+    <div className="min-h-screen bg-black flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link to="/" className="text-3xl font-black text-white">
-            KANTÉ ELITE
+          <Link to="/" className="inline-flex flex-col items-center gap-0.5">
+            <span className="text-2xl font-black tracking-tight text-white">KANTÉ ELITE</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-500">Training</span>
           </Link>
-          <p className="text-gray-400 mt-2">
+          <p className="text-gray-400 mt-4 text-sm">
             {isTournamentIntent ? 'Sign in to manage your tournament entry' : 'Sign in to your account'}
           </p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="bg-gray-900 border border-gray-800 rounded-2xl p-8 space-y-6"
+          className="bg-[#111] border border-[#222] rounded-2xl p-8 space-y-5"
         >
-          <h1 className="text-white text-2xl font-bold">Login</h1>
+          <div>
+            <h1 className="text-white text-xl font-black">Welcome back</h1>
+            <p className="text-gray-500 text-sm mt-1">Enter your credentials to continue.</p>
+          </div>
 
           {isTournamentIntent ? (
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 text-amber-300 text-sm">
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3.5 text-amber-300 text-sm leading-relaxed">
               Use your account to continue as the team captain or team coach for this tournament.
             </div>
           ) : null}
 
           {error && (
-            <div className="bg-red-900/30 border border-red-500 rounded-lg p-3 text-red-400 text-sm">
-              {error}
+            <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-3.5 text-red-400 text-sm flex items-start gap-2.5">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+              </svg>
+              <span>{error}</span>
             </div>
           )}
 
           <div>
-            <label className="block text-gray-400 text-sm mb-2">Email</label>
+            <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Email</label>
             <input
               type="email"
               required
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-green-500"
+              className="input-field-default"
               placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label className="block text-gray-400 text-sm mb-2">Password</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider">Password</label>
+              <Link to="/forgot-password" className="text-xs text-gray-500 hover:text-amber-500 transition-colors">
+                Forgot password?
+              </Link>
+            </div>
             <input
               type="password"
               required
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-green-500"
+              className="input-field-default"
               placeholder="••••••••"
             />
           </div>
@@ -115,19 +127,21 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-green-500 hover:bg-green-400 disabled:opacity-50 text-black font-bold py-3 rounded-lg transition-colors"
+            className="btn-primary w-full justify-center disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none"
           >
-            {loading ? 'Signing in…' : 'Sign In'}
+            {loading ? (
+              <>
+                <svg className="w-4 h-4 animate-spin -ml-1 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Signing in…
+              </>
+            ) : 'Sign In'}
           </button>
 
           <p className="text-gray-500 text-sm text-center">
-            <Link to="/forgot-password" className="text-gray-400 hover:text-gray-300">
-              Forgot password?
-            </Link>
-          </p>
-
-          <p className="text-gray-500 text-sm text-center">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link
               to={
                 isTournamentIntent
@@ -136,7 +150,7 @@ export default function LoginPage() {
                     }`
                   : '/register'
               }
-              className="text-green-400 hover:text-green-300"
+              className="text-amber-500 hover:text-amber-400 font-semibold transition-colors"
             >
               Register
             </Link>

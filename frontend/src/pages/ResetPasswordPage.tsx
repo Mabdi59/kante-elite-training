@@ -35,53 +35,57 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4">
+    <div className="min-h-screen bg-black flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link to="/" className="text-2xl font-black text-white tracking-wider">
-            KANTÉ ELITE
+          <Link to="/" className="inline-flex flex-col items-center gap-0.5">
+            <span className="text-2xl font-black tracking-tight text-white">KANTÉ ELITE</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-500">Training</span>
           </Link>
           <h1 className="text-white text-3xl font-black mt-6 mb-2">Reset Password</h1>
-          <p className="text-gray-400">Enter your reset code and choose a new password.</p>
+          <p className="text-gray-400 text-sm">Enter your reset code and choose a new password.</p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="bg-gray-900 border border-gray-800 rounded-2xl p-8 space-y-4"
+          className="bg-[#111] border border-[#222] rounded-2xl p-8 space-y-5"
         >
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-400 text-sm">
-              {error}
+            <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-3.5 text-red-400 text-sm flex items-start gap-2.5">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+              </svg>
+              <span>{error}</span>
             </div>
           )}
 
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">Reset Code</label>
+            <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Reset Code</label>
             <input
               type="text"
               value={token}
               onChange={(e) => setToken(e.target.value)}
               required
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-green-500 font-mono text-sm"
+              className="input-field-default font-mono text-sm"
               placeholder="Paste the code from your email"
             />
           </div>
 
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">New Password</label>
+            <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">New Password</label>
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
               minLength={8}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-green-500"
+              className="input-field-default"
               placeholder="Min. 8 characters"
             />
           </div>
 
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">
+            <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
               Confirm New Password
             </label>
             <input
@@ -89,7 +93,7 @@ export default function ResetPasswordPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-green-500"
+              className="input-field-default"
               placeholder="Repeat password"
             />
           </div>
@@ -97,17 +101,25 @@ export default function ResetPasswordPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary w-full justify-center disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none"
           >
-            {loading ? 'Resetting…' : 'Reset Password'}
+            {loading ? (
+              <>
+                <svg className="w-4 h-4 animate-spin -ml-1 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Resetting…
+              </>
+            ) : 'Reset Password'}
           </button>
 
           <p className="text-center text-gray-500 text-sm">
-            <Link to="/forgot-password" className="text-green-400 hover:text-green-300">
+            <Link to="/forgot-password" className="text-amber-500 hover:text-amber-400 font-semibold transition-colors">
               Get a new code
             </Link>
             {' · '}
-            <Link to="/login" className="text-green-400 hover:text-green-300">
+            <Link to="/login" className="text-amber-500 hover:text-amber-400 font-semibold transition-colors">
               Login
             </Link>
           </p>

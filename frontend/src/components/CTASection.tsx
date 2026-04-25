@@ -20,9 +20,21 @@ export default function CTASection({
   urgencyLine,
 }: CTASectionProps) {
   return (
-    <section className="relative overflow-hidden bg-black px-4 py-16 text-center sm:py-20">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_#78350f_0%,_transparent_60%)] opacity-20" />
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/25 to-transparent" />
+    <section className="relative overflow-hidden bg-black px-4 py-16 text-center sm:py-24">
+      {/* Background layers */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(120,53,15,0.35)_0%,_transparent_65%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(245,158,11,0.06)_0%,_transparent_50%)]" />
+
+      {/* Dot grid */}
+      <div
+        className="absolute inset-0 opacity-[0.02]"
+        style={{
+          backgroundImage: 'radial-gradient(circle, #f59e0b 1px, transparent 1px)',
+          backgroundSize: '28px 28px',
+        }}
+      />
+
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/10 to-transparent" />
 
       <div className="relative max-w-4xl mx-auto">
@@ -37,7 +49,7 @@ export default function CTASection({
           {title}
         </h2>
         {subtitle && (
-          <p className="mx-auto mb-8 max-w-2xl text-base leading-relaxed text-gray-300 sm:text-lg md:text-xl">
+          <p className="mx-auto mb-8 max-w-2xl text-base leading-relaxed text-gray-300 sm:text-lg">
             {subtitle}
           </p>
         )}
@@ -55,10 +67,10 @@ export default function CTASection({
           )}
         </div>
 
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs text-gray-600 sm:mt-8 sm:gap-6">
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-xs text-gray-500 sm:gap-6">
           {['No commitment required', 'Instant booking confirmation', 'Fast confirmation email'].map((t) => (
             <span key={t} className="flex items-center gap-1.5">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-amber-500/60" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-amber-500/70" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
               </svg>
               {t}
