@@ -169,6 +169,34 @@ export default function AboutMediaPage() {
         </div>
       </section>
 
+      <section className="bg-black px-4 py-16">
+        <div className="page-shell max-w-6xl">
+          <div className="mb-8 text-center">
+            <span className="section-label">In Action</span>
+            <h2 className="text-3xl font-black text-white sm:text-4xl">
+              Coach <span className="gradient-text">Kante</span>
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { src: '/images/Coach.png', alt: 'Coach Kante' },
+              { src: '/images/D26A0694.jpeg', alt: 'Coach Kante on the field' },
+              { src: '/images/D26A0746.jpeg', alt: 'Coach Kante training' },
+              { src: '/images/IMG_3599.jpeg', alt: 'Coach Kante in action' },
+            ].map((photo) => (
+              <div key={photo.src} className="rounded-2xl overflow-hidden aspect-[3/4] bg-[#111] border border-[#1e1e1e]">
+                <img
+                  src={photo.src}
+                  alt={photo.alt}
+                  className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <CTASection
         title="Train With Confidence"
         subtitle="Book a session with a coach who brings real playing experience and a clear plan for development."
