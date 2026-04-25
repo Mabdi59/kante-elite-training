@@ -234,7 +234,7 @@ export default function App() {
             />
             <Route path="/book" element={<BookPage />} />
             <Route path="/book/success" element={<BookingSuccessPage />} />
-            <Route path="/sessions" element={<PublicAvailabilityPage />} />
+            <Route path="/sessions" element={<MainLayout><PublicAvailabilityPage /></MainLayout>} />
 
             {/* Legal / compliance pages */}
             <Route path="/privacy" element={<MainLayout><PrivacyPolicyPage /></MainLayout>} />
