@@ -127,7 +127,7 @@ export default function PublicAvailabilityPage() {
                 className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
                   selectedProgramId === p.id
                     ? 'bg-amber-500 text-black'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
+                    : 'bg-[#111] text-gray-300 hover:bg-[#1a1a1a] border border-[#333]'
                 }`}
               >
                 {p.name}
@@ -137,12 +137,12 @@ export default function PublicAvailabilityPage() {
         )}
 
         {/* Week navigator */}
-        <div className="flex items-center justify-between gap-4 bg-gray-900 border border-gray-800 rounded-xl p-4">
+        <div className="flex items-center justify-between gap-4 bg-[#111] border border-[#222] rounded-xl p-4">
           <button
             type="button"
             disabled={weekOffset <= 0}
             onClick={() => setWeekOffset((o) => o - 1)}
-            className="text-gray-400 hover:text-white disabled:opacity-30 text-lg font-bold px-3 py-1 rounded-lg hover:bg-gray-800 transition-colors"
+            className="text-gray-400 hover:text-white disabled:opacity-30 text-lg font-bold px-3 py-1 rounded-lg hover:bg-[#1a1a1a] transition-colors"
           >
             ‹
           </button>
@@ -170,7 +170,7 @@ export default function PublicAvailabilityPage() {
             type="button"
             disabled={weekOffset >= 11}
             onClick={() => setWeekOffset((o) => o + 1)}
-            className="text-gray-400 hover:text-white disabled:opacity-30 text-lg font-bold px-3 py-1 rounded-lg hover:bg-gray-800 transition-colors"
+            className="text-gray-400 hover:text-white disabled:opacity-30 text-lg font-bold px-3 py-1 rounded-lg hover:bg-[#1a1a1a] transition-colors"
           >
             ›
           </button>
@@ -209,8 +209,8 @@ export default function PublicAvailabilityPage() {
                     isToday(date)
                       ? 'border-amber-500/50 bg-amber-500/5'
                       : past
-                        ? 'border-gray-800/40 bg-gray-900/30 opacity-40'
-                        : 'border-gray-800 bg-gray-900'
+                        ? 'border-gray-800/40 bg-[#111]/30 opacity-40'
+                        : 'border-[#222] bg-[#111]'
                   }`}
                 >
                   <div className="text-center mb-2">
