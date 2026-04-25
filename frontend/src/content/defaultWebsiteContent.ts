@@ -25,7 +25,8 @@ export const defaultWebsiteContent: WebsiteContent = {
   aboutExperienceDescription: 'Real experience that shapes every session.',
   aboutExperiencePoints: [
     'Somalia National Team player',
-    'Ohio Dominican University captain and starter',
+    'Ohio Dominican University Mens Soccer captain and starter',
+    'UA Soccer Academy',
     'All-Conference honors and Player of the Week',
     'Experience in USL2 and UPSL level competition',
     'Years of competitive and high level training',

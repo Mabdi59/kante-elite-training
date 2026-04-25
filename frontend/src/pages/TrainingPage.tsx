@@ -195,6 +195,69 @@ export default function TrainingPage() {
         </div>
       </section>
 
+      {/* Private Training Spotlight */}
+      <section className="bg-[#0a0a0a] py-16 px-4 border-t border-[#1a1a1a]">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <span className="section-label">All Ages Welcome</span>
+              <h2 className="text-white font-black text-4xl mt-2 mb-4">
+                Private <span className="gradient-text">Training</span>
+              </h2>
+              <p className="text-gray-400 text-sm leading-relaxed mb-8">
+                One-on-one sessions tailored to the individual player. Every session covers the technical areas that make the biggest difference on the field. For more details and registration, message us directly.
+              </p>
+              <ul className="space-y-3">
+                {[
+                  'Technical Work',
+                  'Dribbling',
+                  'Passing / Receiving',
+                  'Striking (Shooting / Crossing)',
+                  'Defending',
+                  'Position Specific — Field Player or GK',
+                ].map((skill) => (
+                  <li key={skill} className="flex items-center gap-3 text-sm text-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    {skill}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link to="/book" className="btn-primary">Book Private Session</Link>
+                <Link to="/contact" className="btn-secondary">Message Us</Link>
+              </div>
+            </div>
+            <div className="bg-[#111] border border-[#1e1e1e] rounded-2xl p-8">
+              <div className="flex items-center gap-4 mb-6">
+                <img
+                  src="/images/464169962_1489362111765457_2497551385302895846_n.jpg"
+                  alt="Coach Mohamed Sheik Kante"
+                  className="h-16 w-16 rounded-full object-cover ring-2 ring-amber-500"
+                />
+                <div>
+                  <p className="text-white font-black text-lg leading-tight">Mohamed Sheik</p>
+                  <p className="text-amber-500 text-sm font-semibold">Coach Kante</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {[
+                  'Ohio Dominican Mens Soccer',
+                  'Somalia National Team',
+                  'UA Soccer Academy',
+                ].map((credential) => (
+                  <div key={credential} className="flex items-center gap-3 text-sm text-gray-400">
+                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                    {credential}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="bg-black py-16 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
