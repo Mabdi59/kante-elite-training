@@ -169,10 +169,10 @@ export default function AccountPage() {
               }`}
             >
               {t === 'bookings'
-                ? `📅 Bookings (${bookings.length})`
+                ? `Bookings (${bookings.length})`
                 : t === 'players'
-                  ? `👦 Players (${players.length})`
-                  : '🔒 Security'}
+                  ? `Players (${players.length})`
+                  : 'Security'}
             </button>
           ))}
         </div>
@@ -186,7 +186,7 @@ export default function AccountPage() {
             {/* Upcoming sessions */}
             <section className="mb-10">
               <h2 className="text-white text-xl font-bold mb-4 flex items-center gap-2">
-                <span>📅</span> Upcoming Sessions ({upcoming.length})
+                Upcoming Sessions ({upcoming.length})
               </h2>
               {upcoming.length === 0 ? (
                 <div className="bg-[#111] border border-[#222] rounded-xl p-6 text-center">

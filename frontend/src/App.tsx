@@ -124,7 +124,7 @@ function NotFoundPage() {
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4 text-center">
       <div>
-        <div className="text-7xl mb-6">⚽</div>
+        <div className="w-20 h-20 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-6"><svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg></div>
         <h1 className="text-white font-black text-5xl mb-4">404</h1>
         <p className="text-gray-400 text-lg mb-8">Page not found.</p>
         <a href="/" className="btn-primary">

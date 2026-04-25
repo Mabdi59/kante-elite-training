@@ -458,7 +458,7 @@ export default function AdminBookingsPage() {
                                   : 'bg-gray-700/40 text-gray-500 border-gray-700/30'
                         }`}
                       >
-                        💳 {booking.paymentStatus}
+                        {booking.paymentStatus}
                       </span>
                     </div>
                     <div className="flex gap-2 flex-wrap">

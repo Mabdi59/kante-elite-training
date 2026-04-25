@@ -1750,7 +1750,7 @@ function AdminBracketView({ matches }: { matches: TournamentMatch[] }) {
           <h3 className="text-white font-black text-lg">Knockout Bracket</h3>
           <p className="text-gray-500 text-sm mt-0.5">
             {allFinal
-              ? '🏆 All matches complete.'
+              ? 'All matches complete.'
               : anyFinal
               ? 'In progress — winners advance automatically when a match is saved as FINAL.'
               : 'Waiting for results — save a match as FINAL to advance the winner.'}
@@ -1762,7 +1762,7 @@ function AdminBracketView({ matches }: { matches: TournamentMatch[] }) {
           {sorted.map(([roundName, roundMatches]) => (
             <div key={roundName} className="flex flex-col gap-2 w-[220px] shrink-0">
               <div className={`text-xs font-bold uppercase tracking-widest text-center mb-2 ${roundName === 'Final' ? 'text-yellow-400' : roundName === 'Third Place' ? 'text-gray-400' : 'text-amber-500'}`}>
-                {roundName === 'Final' ? '🏆 ' : ''}{roundName}
+                {roundName}
               </div>
               <div className="flex flex-col gap-4">
                 {roundMatches.map((m) => {

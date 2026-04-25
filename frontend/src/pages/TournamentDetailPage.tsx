@@ -52,7 +52,7 @@ export default function TournamentDetailPage() {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="text-5xl mb-4">🏆</div>
+          <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-4"><svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></div>
           <p className="text-white text-xl font-bold mb-2">Tournament Not Found</p>
           <p className="text-gray-400 text-sm mb-6">{error || 'This tournament does not exist.'}</p>
           <Link to="/tournaments" className="text-amber-500 hover:text-amber-400 text-sm">← Back to Tournaments</Link>
@@ -504,7 +504,7 @@ function BracketTab({ matches }: { matches: TournamentMatch[] }) {
           {(rounds as [string, TournamentMatch[]][]).map(([roundName, roundMatches]) => (
             <div key={roundName} className="flex w-[220px] shrink-0 snap-start flex-col">
               <h3 className={`text-xs font-bold uppercase tracking-widest text-center mb-3 ${roundName === 'Final' ? 'text-amber-400' : roundName === 'Third Place' ? 'text-gray-400' : 'text-amber-500/70'}`}>
-                {roundName === 'Final' ? '🏆 ' : ''}{roundName}
+                {roundName}
               </h3>
               <div className="flex flex-col gap-4">
                 {roundMatches.map((m) => (

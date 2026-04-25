@@ -92,7 +92,7 @@ export default function AdminAuditLogsPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState icon="📋" title="No audit log entries found" />
+        <EmptyState title="No audit log entries found" />
       ) : (
         <div className="space-y-2">
           {filtered.map((log) => {

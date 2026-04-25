@@ -34,7 +34,7 @@ const audiences = [
     href: '/book',
   },
   {
-    icon: '⚡',
+    icon: (<svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>),
     title: 'Young Athletes',
     headline: 'You want to improve with purpose.',
     desc: 'Our sessions sharpen technique, build stronger habits, and help players feel more confident on the ball.',
@@ -42,7 +42,7 @@ const audiences = [
     href: '/training',
   },
   {
-    icon: '🏆',
+    icon: (<svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>),
     title: 'Competitive Players',
     headline: 'You need an edge that shows up in games.',
     desc: 'We help serious players improve the details that matter in matches, tryouts, and higher-level environments.',
@@ -53,17 +53,17 @@ const audiences = [
 
 const pillars = [
   {
-    icon: '🎯',
+    icon: (<svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="21.17" y1="8" x2="12" y2="8"/><line x1="3.95" y1="6.06" x2="8.54" y2="14"/><line x1="10.88" y1="21.94" x2="15.46" y2="14"/></svg>),
     title: 'Technical Excellence',
     desc: 'Structured practice that builds strong technique and carries over into real match performance.',
   },
   {
-    icon: '💪',
+    icon: (<svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5Z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg>),
     title: 'Mental Strength',
     desc: 'Confident, resilient players make better decisions and perform with more composure.',
   },
   {
-    icon: '⚡',
+    icon: (<svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>),
     title: 'Physical Development',
     desc: 'Age-appropriate athletic training helps players move better, recover well, and compete with confidence.',
   },
@@ -635,26 +635,26 @@ export default function HomePage() {
             {[
               {
                 step: '01',
-                icon: '📋',
+                icon: (<svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>),
                 title: 'Book Your Session',
                 desc: 'Choose your program, pick a date and time, and confirm your session. It only takes a few minutes.',
               },
               {
                 step: '02',
-                icon: '📧',
+                icon: (<svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><path d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>),
                 title: 'Confirmation and Follow Up',
                 desc: "You will get a confirmation email right away. Coach Kante will follow up before the first session to learn the player's goals.",
               },
               {
                 step: '03',
-                icon: '⚽',
+                icon: (<svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/><path d="M4.9 4.9 7.5 7.5"/><path d="M19.1 4.9 16.5 7.5"/></svg>),
                 title: 'Train With a Clear Plan',
                 desc: "Each session is built around the player's needs, with progress tracked and the work adjusted over time.",
               },
             ].map((item, i) => (
               <div key={item.step} className="relative text-center group">
                 <div className="w-20 h-20 rounded-2xl bg-[#111] border border-[#222] flex items-center justify-center mx-auto mb-5 relative z-10 group-hover:border-amber-500/30 transition-colors duration-300">
-                  <span className="text-3xl">{item.icon}</span>
+                  {item.icon}
                 </div>
                 <div className="text-amber-500 font-black text-xs tracking-widest mb-2">{item.step}</div>
                 <h3 className="text-white font-black text-lg mb-3">{item.title}</h3>
@@ -683,7 +683,7 @@ export default function HomePage() {
       <section className="bg-amber-500 py-5 px-4">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">⚡</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
             <p className="text-black font-black text-sm md:text-base">
               Spots are limited. Weekend sessions fill especially fast.
             </p>

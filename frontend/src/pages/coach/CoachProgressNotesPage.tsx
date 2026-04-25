@@ -274,7 +274,7 @@ export default function CoachProgressNotesPage() {
 
       {notes.length === 0 && !showForm && (
         <div className="bg-[#111] border border-[#222] rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">📝</div>
+          <div className="w-14 h-14 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-4"><svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg></div>
           <p className="text-white font-semibold mb-1">No notes yet</p>
           <p className="text-gray-400 text-sm">Write your first player development note.</p>
         </div>
@@ -291,7 +291,7 @@ export default function CoachProgressNotesPage() {
                 <span className="text-gray-400 text-xs">{note.sessionDate}</span>
                 {note.rating && stars(note.rating)}
                 {!note.visibleToParent && (
-                  <span className="text-gray-500 text-xs italic">🔒 private</span>
+                  <span className="inline-flex items-center gap-1 text-gray-500 text-xs italic"><svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>private</span>
                 )}
               </div>
               <div className="flex gap-2">

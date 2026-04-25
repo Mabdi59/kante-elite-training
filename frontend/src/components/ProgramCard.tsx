@@ -19,7 +19,7 @@ export default function ProgramCard({ program, featured = false, variant = 'defa
       >
         {featured && (
           <div className="bg-amber-500 text-black text-xs font-black uppercase tracking-widest px-4 py-1.5 text-center">
-            ⚡ Most Popular
+            Most Popular
           </div>
         )}
         <div className="flex flex-1 flex-col p-5 sm:p-6">
@@ -51,7 +51,7 @@ export default function ProgramCard({ program, featured = false, variant = 'defa
     >
       {featured && (
         <div className="bg-amber-500 text-black text-xs font-black uppercase tracking-widest px-4 py-1.5 text-center">
-          ⚡ Most Popular
+          Most Popular
         </div>
       )}
 

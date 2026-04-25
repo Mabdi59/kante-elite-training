@@ -360,3 +360,30 @@
   .animate-fade-up-d4 { animation: fadeUp 0.55s ease 0.4s both; }
   .animate-fade-up-d5 { animation: fadeUp 0.55s ease 0.5s both; }
 }
+
+/* Screen reader only – accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Global focus-visible for keyboard navigation */
+:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+/* Ensure buttons/links that manage their own focus ring don't double up */
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.btn-ghost:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 3px;
+}

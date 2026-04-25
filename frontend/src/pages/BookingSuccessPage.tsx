@@ -156,7 +156,7 @@ export default function BookingSuccessPage() {
       <div className="min-h-screen bg-black flex items-center justify-center px-4 pt-20">
         <div className="max-w-md w-full card p-10 text-center">
           <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-3xl">✅</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
           </div>
           <h2 className="text-white font-black text-2xl mb-3">Payment Confirmed!</h2>
           <p className="text-gray-400 text-sm mb-6 leading-relaxed">
@@ -180,7 +180,7 @@ export default function BookingSuccessPage() {
       <div className="min-h-screen bg-black flex items-center justify-center px-4 pt-20">
         <div className="max-w-md w-full card p-10 text-center">
           <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-3xl">⚠️</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
           </div>
           <h2 className="text-white font-black text-2xl mb-3">Booking Details Unavailable</h2>
           <p className="text-gray-400 text-sm mb-6 leading-relaxed">{error}</p>
@@ -254,7 +254,7 @@ export default function BookingSuccessPage() {
               <h2 className="text-white font-black text-base">Booking Summary</h2>
               <p className="text-gray-500 text-xs mt-0.5">Confirmation #{booking.id}</p>
             </div>
-            <div className="badge-green">✅ Confirmed</div>
+            <div className="badge-green">Confirmed</div>
           </div>
           <div className="px-6 py-6 space-y-3.5">
             {([
@@ -279,7 +279,7 @@ export default function BookingSuccessPage() {
 
         <div className="bg-[#111] border border-[#1e1e1e] rounded-2xl p-7 mb-6">
           <h3 className="text-white font-black text-base mb-5 flex items-center gap-2">
-            <span className="text-amber-500">📋</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
             Before Your Session
           </h3>
           <ul className="space-y-3">
@@ -329,7 +329,7 @@ export default function BookingSuccessPage() {
           className="fixed bottom-5 right-4 z-40 inline-flex min-h-11 items-center gap-2 rounded-full border border-amber-500/30 bg-[#111111]/95 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-black/30 transition hover:-translate-y-0.5 hover:border-amber-400 hover:text-amber-300 sm:bottom-8 sm:right-8"
           aria-label="Back to homepage"
         >
-          <span className="text-amber-400">🏠</span>
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
           Home
         </Link>
       ) : null}
