@@ -72,11 +72,11 @@ export default function Navbar() {
     >
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 md:h-20">
         <Link to="/" className="flex min-w-0 items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 text-black">
-              <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-.53 14.03a.75.75 0 0 0 1.06 0l3-3a.75.75 0 1 0-1.06-1.06l-1.72 1.72V8.25a.75.75 0 0 0-1.5 0v5.69l-1.72-1.72a.75.75 0 0 0-1.06 1.06l3 3Z" clipRule="evenodd" />
-            </svg>
-          </div>
+          <img
+            src="/images/464169962_1489362111765457_2497551385302895846_n.jpg"
+            alt="Kante Elite Training logo"
+            className="h-10 w-10 shrink-0 rounded-full object-cover"
+          />
           <div className="min-w-0">
             <span className="block truncate text-sm font-black leading-none tracking-tight text-white sm:text-base md:text-lg">
               KANTE ELITE
