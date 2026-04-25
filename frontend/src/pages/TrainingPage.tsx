@@ -232,7 +232,7 @@ export default function TrainingPage() {
             <div className="bg-[#111] border border-[#1e1e1e] rounded-2xl p-8">
               <div className="flex items-center gap-4 mb-6">
                 <img
-                  src="/images/464169962_1489362111765457_2497551385302895846_n.jpg"
+                  src="/images/Coach.png"
                   alt="Coach Mohamed Sheik Kante"
                   className="h-16 w-16 rounded-full object-cover ring-2 ring-amber-500"
                 />
