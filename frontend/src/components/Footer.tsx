@@ -19,22 +19,28 @@ const accountLinks = [
 export default function Footer() {
   return (
     <footer className="border-t border-[#1a1a1a] bg-[#0a0a0a] pb-[calc(env(safe-area-inset-bottom)+6.75rem)] md:pb-0">
-      {/* CTA Banner */}
-      <div className="relative overflow-hidden border-b border-[#1a1a1a] bg-black px-4 py-12 text-center">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(120,53,15,0.25)_0%,_transparent_65%)]" />
+      <div className="relative overflow-hidden border-b border-[#1a1a1a] bg-black px-4 py-12">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(245,158,11,0.12)_0%,_transparent_48%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(120,53,15,0.18)_0%,_transparent_52%)]" />
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
-        <div className="relative max-w-xl mx-auto">
-          <p className="section-label">Ready to Start?</p>
-          <h2 className="mb-6 text-2xl font-black text-white md:text-3xl">
-            How fast can your child improve?{' '}
-            <span className="gradient-text">Find out.</span>
-          </h2>
-          <div className="mx-auto flex max-w-md flex-col gap-3 sm:max-w-none sm:flex-row sm:flex-wrap sm:justify-center">
+
+        <div className="page-shell relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <p className="section-label">Ready When You Are</p>
+            <h2 className="mb-3 text-2xl font-black text-white md:text-3xl">
+              Book online, get confirmation right away, and start with a clear next step.
+            </h2>
+            <p className="max-w-xl text-sm leading-relaxed text-gray-400 sm:text-base">
+              Questions before you book? Call, email, or send a message. The direct booking flow is live whenever you are ready.
+            </p>
+          </div>
+
+          <div className="button-stack-mobile lg:justify-end">
             <Link to="/book" className="btn-primary w-full sm:w-auto">
               Book a Session
             </Link>
-            <Link to="/training" className="btn-secondary w-full sm:w-auto">
-              View Programs
+            <Link to="/contact" className="btn-secondary w-full sm:w-auto">
+              Ask a Question
             </Link>
           </div>
         </div>
@@ -44,12 +50,13 @@ export default function Footer() {
       <div className="page-shell grid grid-cols-1 gap-10 px-4 py-12 md:grid-cols-4">
         {/* Brand */}
         <div className="md:col-span-1">
-          <div className="mb-4 flex items-center gap-2.5">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 text-black">
-                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-.53 14.03a.75.75 0 0 0 1.06 0l3-3a.75.75 0 1 0-1.06-1.06l-1.72 1.72V8.25a.75.75 0 0 0-1.5 0v5.69l-1.72-1.72a.75.75 0 0 0-1.06 1.06l3 3Z" clipRule="evenodd" />
-              </svg>
-            </div>
+          <div className="mb-4 flex items-center gap-3">
+            <img
+              src="/images/464169962_1489362111765457_2497551385302895846_n.jpg"
+              alt="Kante Elite Training logo"
+              loading="lazy"
+              className="h-11 w-11 rounded-full object-cover ring-2 ring-amber-500"
+            />
             <div>
               <span className="text-white font-black text-lg leading-none block">KANTE ELITE</span>
               <span className="text-amber-500 text-[10px] tracking-widest uppercase leading-none font-semibold">
@@ -58,19 +65,30 @@ export default function Footer() {
             </div>
           </div>
           <p className="text-gray-400 text-sm leading-relaxed mb-5">
-            Columbus youth soccer training for players ages 8 to 18. Private and small group sessions with a focus on real improvement.
+            Columbus-based soccer training for players who want focused coaching, clear feedback, and a real plan for improvement.
           </p>
-          <a
-            href="https://www.instagram.com/kanteelitetraining_/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-white/5 border border-white/10 hover:border-amber-500/30 hover:bg-amber-500/5 text-gray-300 hover:text-amber-400 text-sm font-medium px-3 py-2 rounded-lg transition-all duration-200"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-            </svg>
-            @kanteelitetraining_
-          </a>
+          <div className="flex flex-wrap gap-3">
+            <a
+              href="tel:+16142852317"
+              className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-gray-300 transition-all duration-200 hover:border-amber-500/30 hover:bg-amber-500/5 hover:text-amber-400"
+            >
+              Call
+            </a>
+            <a
+              href="mailto:kanteelitetraining@gmail.com"
+              className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-gray-300 transition-all duration-200 hover:border-amber-500/30 hover:bg-amber-500/5 hover:text-amber-400"
+            >
+              Email
+            </a>
+            <a
+              href="https://www.instagram.com/kanteelitetraining_/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-gray-300 transition-all duration-200 hover:border-amber-500/30 hover:bg-amber-500/5 hover:text-amber-400"
+            >
+              Instagram
+            </a>
+          </div>
         </div>
 
         {/* Navigation */}

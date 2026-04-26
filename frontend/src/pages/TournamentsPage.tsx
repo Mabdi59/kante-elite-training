@@ -256,6 +256,7 @@ export default function TournamentsPage() {
         )}
       </div>
       <CTASection
+        eyebrow="Stay Sharp"
         title="Train With the Best, Compete With Confidence"
         subtitle="Kante Elite Training prepares players for competitive environments. Join a program and step onto the pitch ready."
         primaryLabel="Book a Session"
@@ -263,6 +264,11 @@ export default function TournamentsPage() {
         secondaryLabel="View Programs"
         secondaryHref="/training"
         urgencyLine="Now Enrolling"
+        proofPoints={[
+          'Competitive environment prep',
+          'Private and small group options',
+          'Direct online booking',
+        ]}
       />
     </div>
   )

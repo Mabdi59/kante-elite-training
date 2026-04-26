@@ -15,6 +15,7 @@ import EventCard from '../components/EventCard'
 import CTASection from '../components/CTASection'
 import MediaPostCard from '../components/MediaPostCard'
 import MediaLightbox from '../components/MediaLightbox'
+import PublicProofBand from '../components/PublicProofBand'
 import { defaultWebsiteContent } from '../content/defaultWebsiteContent'
 
 const stats = [
@@ -66,6 +67,47 @@ const pillars = [
     icon: (<svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>),
     title: 'Physical Development',
     desc: 'Age-appropriate athletic training helps players move better, recover well, and compete with confidence.',
+  },
+]
+
+const homeProofItems = [
+  {
+    icon: (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" /></svg>),
+    label: '100+ players trained',
+  },
+  {
+    icon: (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>),
+    label: 'Columbus, Ohio',
+  },
+  {
+    icon: (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><rect x="3" y="4" width="18" height="17" rx="2" /><path strokeLinecap="round" strokeLinejoin="round" d="M3 9h18M8 2v4M16 2v4" /></svg>),
+    label: 'Book online in minutes',
+    href: '/book',
+  },
+  {
+    icon: (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>),
+    label: 'Private and small group options',
+    href: '/training',
+  },
+  {
+    icon: (<svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>),
+    label: '@kanteelitetraining_',
+    href: 'https://www.instagram.com/kanteelitetraining_/',
+  },
+]
+
+const coachStandards = [
+  {
+    title: 'Clear session objectives',
+    desc: 'Players know what the session is working on and families can understand why it matters.',
+  },
+  {
+    title: 'Honest, usable feedback',
+    desc: 'Progress is explained in plain language so the next step never feels vague.',
+  },
+  {
+    title: 'Game-ready habits',
+    desc: 'The work is coached to carry into confidence, decisions, and match performance.',
   },
 ]
 
@@ -138,11 +180,6 @@ export default function HomePage() {
 
   const heroMedia = mediaPosts.find((post) => post.featured) ?? null
   const homeMediaPosts = mediaPosts.filter((post) => post.showOnHome).slice(0, 6)
-  const coachFeatureMedia =
-    homeMediaPosts.find((post) => post.id !== heroMedia?.id) ??
-    homeMediaPosts[0] ??
-    mediaPosts.find((post) => post.id !== heroMedia?.id) ??
-    null
 
   return (
     <div>
@@ -163,7 +200,7 @@ export default function HomePage() {
                 src={heroMedia.mediaUrl}
                 alt={heroMedia.caption?.trim() || siteContent.homeHeadline || 'Kante Elite highlight'}
                 loading="eager"
-                fetchpriority="high"
+                fetchPriority="high"
                 className="h-full w-full object-cover animate-hero-zoom"
               />
             )}
@@ -244,53 +281,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Trust band */}
-      <section className="bg-[#0a0a0a] border-t border-[#1a1a1a] py-5 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-xs text-gray-500 font-medium">
-            <span className="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
-              </svg>
-              100+ players trained
-            </span>
-            <span className="hidden sm:block text-[#2a2a2a]">|</span>
-            <span className="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-              </svg>
-              Columbus, Ohio
-            </span>
-            <span className="hidden sm:block text-[#2a2a2a]">|</span>
-            <span className="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-              </svg>
-              Flexible scheduling
-            </span>
-            <span className="hidden sm:block text-[#2a2a2a]">|</span>
-            <span className="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-              </svg>
-              95% would recommend
-            </span>
-            <span className="hidden sm:block text-[#2a2a2a]">|</span>
-            <a
-              href="https://www.instagram.com/kanteelitetraining_/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 hover:text-amber-400 transition-colors"
-            >
-              <svg className="w-4 h-4 text-amber-500" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-              </svg>
-              @kanteelitetraining_
-            </a>
-          </div>
-        </div>
-      </section>
+      <PublicProofBand items={homeProofItems} />
 
       <section className="bg-[#0a0a0a] py-16 px-4 border-t border-[#1a1a1a]">
         <div className="max-w-7xl mx-auto">
@@ -611,43 +602,41 @@ export default function HomePage() {
       <section className="bg-black py-16 px-4">
         <div className="page-shell">
           <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
-            {coachFeatureMedia ? (
-              <button
-                type="button"
-                onClick={() => {
-                  const coachMediaIndex = homeMediaPosts.findIndex((post) => post.id === coachFeatureMedia.id)
-                  if (coachMediaIndex >= 0) {
-                    setActiveMediaIndex(coachMediaIndex)
-                  }
-                }}
-                className="order-2 text-left lg:order-1"
-              >
-                <MediaPostCard
-                  post={coachFeatureMedia}
-                  aspectClassName="aspect-[5/4]"
-                  showDate={false}
-                  imageLoading="eager"
-                  imageFetchPriority="high"
-                />
-              </button>
-            ) : null}
-            <div className={`${coachFeatureMedia ? 'hidden' : 'flex'} bg-[#111] rounded-2xl h-96 lg:h-auto min-h-80 items-center justify-center relative overflow-hidden order-2 lg:order-1 border border-[#1e1e1e]`}>
-              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/8 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent" />
-              <div className="text-center relative z-10 p-8">
-                <img
-                  src="/images/Coach.png"
-                  alt="Coach Mohamed Sheik Kante"
-                  className="w-24 h-24 rounded-full object-cover object-top ring-2 ring-amber-500 mx-auto mb-4"
-                />
-                <p className="text-gray-500 text-sm">Coach Kante</p>
-                <p className="text-amber-500 text-xs font-bold uppercase tracking-widest mt-1">Head Coach & Founder</p>
+            <div className="relative order-2 min-h-80 overflow-hidden rounded-[1.75rem] border border-[#1e1e1e] bg-[#111] lg:order-1">
+              <img
+                src="/images/IMG_3599.jpeg"
+                alt="Coach Kante working with players during a session"
+                loading="eager"
+                fetchPriority="high"
+                className="absolute inset-0 h-full w-full object-cover object-center"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-black/10" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.22),_transparent_42%)]" />
+              <div className="relative flex h-full items-end p-6 sm:p-8">
+                <div className="max-w-sm rounded-2xl border border-white/10 bg-black/65 p-5 backdrop-blur">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src="/images/Coach.png"
+                      alt="Coach Mohamed Sheik Kante"
+                      loading="eager"
+                      fetchPriority="high"
+                      className="h-14 w-14 rounded-full object-cover object-top ring-2 ring-amber-500"
+                    />
+                    <div>
+                      <p className="text-sm font-black uppercase tracking-[0.2em] text-amber-500">Coach Kante</p>
+                      <p className="text-sm text-gray-300">Head Coach and Founder</p>
+                    </div>
+                  </div>
+                  <p className="mt-4 text-sm leading-relaxed text-gray-200">
+                    Focused coaching, clear standards, and sessions designed to carry into real match habits.
+                  </p>
+                </div>
               </div>
             </div>
             <div className="order-1 lg:order-2">
               <span className="section-label">The Coach</span>
               <h2 className="mb-5 text-3xl font-black text-white sm:text-4xl">
-                Meet <span className="gradient-text">{siteContent.aboutHeroTitle || defaultWebsiteContent.aboutHeroTitle}</span>
+                Coaching built on <span className="gradient-text">real experience</span> and real standards
               </h2>
               <div className="space-y-4 text-gray-400 leading-relaxed text-sm">
                 <p>
@@ -667,6 +656,14 @@ export default function HomePage() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                     </svg>
                     <span className="text-white text-xs font-semibold">{cred}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mb-8 grid grid-cols-1 gap-3">
+                {coachStandards.map((item) => (
+                  <div key={item.title} className="rounded-2xl border border-[#222] bg-[#111] px-4 py-4">
+                    <p className="text-sm font-black text-white">{item.title}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-gray-400">{item.desc}</p>
                   </div>
                 ))}
               </div>
@@ -736,20 +733,6 @@ export default function HomePage() {
               </svg>
             </Link>
           </div>
-        </div>
-      </section>
-
-      <section className="bg-amber-500 py-5 px-4">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            <p className="text-black font-black text-sm md:text-base">
-              Spots are limited. Weekend sessions fill especially fast.
-            </p>
-          </div>
-          <Link to="/book" className="bg-black text-amber-500 font-black text-sm px-6 py-2.5 rounded-lg whitespace-nowrap hover:bg-zinc-900 transition-colors">
-            Reserve Your Spot
-          </Link>
         </div>
       </section>
 
@@ -833,11 +816,18 @@ export default function HomePage() {
       </section>
 
       <CTASection
+        eyebrow="Start Strong"
         title="Your Player&apos;s Best Season Starts Now"
         subtitle="Book a session today and give your player focused training, clear feedback, and a plan for progress."
         primaryLabel="Book Your First Session"
         secondaryLabel="Learn About Programs"
         secondaryHref="/training"
+        urgencyLine="Weekend sessions fill fast"
+        proofPoints={[
+          'Book online in minutes',
+          'Confirmation email right away',
+          'Coach follow-up before the first session',
+        ]}
       />
 
       <MediaLightbox

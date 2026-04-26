@@ -128,12 +128,18 @@ export default function EventsPage() {
       </section>
 
       <CTASection
+        eyebrow="Stay Ready"
         title="Want Early Event Updates?"
         subtitle="Camps can fill quickly. Contact us to join our event updates list."
         primaryLabel="Get in Touch"
         primaryHref="/contact"
         secondaryLabel="View Programs"
         secondaryHref="/training"
+        proofPoints={[
+          'Join the updates list',
+          'Fast answers from Coach Kante',
+          'Year-round training programs',
+        ]}
       />
     </div>
   )

@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CATEGORY_OPTIONS, getCategoryLabel } from '../components/CategoryBadge'
+import { CATEGORY_OPTIONS } from '../components/CategoryBadge'
 import CTASection from '../components/CTASection'
 import MediaLightbox from '../components/MediaLightbox'
 import MediaPostCard from '../components/MediaPostCard'
@@ -41,6 +41,12 @@ export default function MediaPage() {
   }, [posts, activeCategory])
 
   const visiblePosts = filteredPosts.slice(0, visibleCount)
+  const mediaGridClassName =
+    visiblePosts.length === 1
+      ? 'mx-auto max-w-3xl'
+      : visiblePosts.length === 2
+        ? 'mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2'
+        : 'grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4'
 
   const handleCategoryChange = (cat: FilterCategory) => {
     setActiveCategory(cat)
@@ -72,6 +78,13 @@ export default function MediaPage() {
               <Link to="/about" className="btn-secondary w-full sm:w-auto">
                 Meet Coach Kante
               </Link>
+            </div>
+            <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/10 pt-5 text-sm text-gray-400">
+              <span>Session clips</span>
+              <span className="hidden text-[#2a2a2a] sm:inline">|</span>
+              <span>Match-day moments</span>
+              <span className="hidden text-[#2a2a2a] sm:inline">|</span>
+              <span>Player development highlights</span>
             </div>
           </div>
         </div>
@@ -116,7 +129,7 @@ export default function MediaPage() {
           {loading ? (
             <PageSkeleton titleWidthClassName="w-64" count={6} />
           ) : visiblePosts.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+            <div className={mediaGridClassName}>
               {visiblePosts.map((post, index) => (
                 <button
                   key={post.id}
@@ -126,6 +139,7 @@ export default function MediaPage() {
                 >
                   <MediaPostCard
                     post={post}
+                    aspectClassName={visiblePosts.length === 1 ? 'aspect-[16/10]' : undefined}
                     imageLoading={index < 8 ? 'eager' : 'lazy'}
                     imageFetchPriority={index < 2 ? 'high' : 'auto'}
                   />
@@ -148,37 +162,45 @@ export default function MediaPage() {
         </div>
       </section>
 
-      <section className="border-t border-[#1a1a1a] bg-[#0a0a0a] px-4 py-16">
-        <div className="page-shell">
-          <div className="mb-8 text-center">
-            <span className="section-label">Training Sessions</span>
-            <h2 className="text-3xl font-black text-white sm:text-4xl">
-              Watch the <span className="gradient-text">Work</span>
-            </h2>
+      {posts.length === 0 ? (
+        <section className="border-t border-[#1a1a1a] bg-[#0a0a0a] px-4 py-16">
+          <div className="page-shell">
+            <div className="mb-8 text-center">
+              <span className="section-label">Training Sessions</span>
+              <h2 className="text-3xl font-black text-white sm:text-4xl">
+                Watch the <span className="gradient-text">Work</span>
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {['training-1.mp4','training-2.mp4','training-3.mp4','training-4.mp4','training-5.mp4'].map((file) => (
+                <div key={file} className="rounded-2xl overflow-hidden bg-[#111] border border-[#1e1e1e] aspect-[9/16]">
+                  <video
+                    src={`/images/${file}`}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {['training-1.mp4','training-2.mp4','training-3.mp4','training-4.mp4','training-5.mp4'].map((file) => (
-              <div key={file} className="rounded-2xl overflow-hidden bg-[#111] border border-[#1e1e1e] aspect-[9/16]">
-                <video
-                  src={`/images/${file}`}
-                  controls
-                  playsInline
-                  preload="metadata"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       <CTASection
+        eyebrow="Step Into The Work"
         title="Ready to Build Your Own Highlights"
         subtitle="Book a session and train in an environment built for steady growth, confident play, and real progress."
         primaryLabel="Start Training"
         primaryHref="/book"
         secondaryLabel="View Programs"
         secondaryHref="/training"
+        proofPoints={[
+          'Real session footage',
+          'Private and small group options',
+          'Book online when ready',
+        ]}
       />
 
       <MediaLightbox

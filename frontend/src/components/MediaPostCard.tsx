@@ -51,7 +51,7 @@ export default function MediaPostCard({
             src={post.mediaUrl}
             alt={post.caption?.trim() || 'Kante Elite highlight'}
             loading={imageLoading}
-            fetchpriority={imageFetchPriority}
+            fetchPriority={imageFetchPriority}
             className="h-full w-full object-cover"
           />
         )}

@@ -6,6 +6,7 @@ import HeroSection from '../components/HeroSection'
 import ProgramCard from '../components/ProgramCard'
 import TestimonialCard from '../components/TestimonialCard'
 import CTASection from '../components/CTASection'
+import PublicProofBand from '../components/PublicProofBand'
 
 const faqs = [
   {
@@ -125,6 +126,26 @@ const outcomes = [
   },
 ]
 
+const trainingProofItems = [
+  {
+    icon: (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>),
+    label: 'U8-18+ age groups',
+  },
+  {
+    icon: (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><rect x="3" y="4" width="18" height="17" rx="2" /><path strokeLinecap="round" strokeLinejoin="round" d="M3 9h18M8 2v4M16 2v4" /></svg>),
+    label: 'Live booking availability',
+    href: '/book',
+  },
+  {
+    icon: (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>),
+    label: 'Confirmation email right away',
+  },
+  {
+    icon: (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>),
+    label: 'Private and small group options',
+  },
+]
+
 export default function TrainingPage() {
   const [programs, setPrograms] = useState<Program[]>([])
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
@@ -152,69 +173,26 @@ export default function TrainingPage() {
         subtitle="From first touch to high-level performance, every program is structured, focused, and personal."
       />
 
-      {/* Trust band */}
-      <section className="bg-[#0a0a0a] border-t border-[#1a1a1a] py-5 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-xs text-gray-500 font-medium">
-            <span className="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
-              </svg>
-              100+ players trained
-            </span>
-            <span className="hidden sm:block text-[#2a2a2a]">|</span>
-            <span className="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-              </svg>
-              Columbus, Ohio
-            </span>
-            <span className="hidden sm:block text-[#2a2a2a]">|</span>
-            <span className="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-              </svg>
-              Flexible scheduling
-            </span>
-            <span className="hidden sm:block text-[#2a2a2a]">|</span>
-            <span className="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-              </svg>
-              95% would recommend
-            </span>
-            <span className="hidden sm:block text-[#2a2a2a]">|</span>
-            <span className="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
-              </svg>
-              U8–18+ age groups
-            </span>
-          </div>
-        </div>
-      </section>
+      <PublicProofBand items={trainingProofItems} />
 
       {/* Private Training Spotlight */}
       <section className="bg-[#0a0a0a] py-16 px-4 border-t border-[#1a1a1a]">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <span className="section-label">All Ages Welcome</span>
+              <span className="section-label">Built Around The Player</span>
               <h2 className="text-white font-black text-4xl mt-2 mb-4">
                 Private <span className="gradient-text">Training</span>
               </h2>
               <p className="text-gray-400 text-sm leading-relaxed mb-8">
-                One-on-one sessions tailored to the individual player. Every session covers the technical areas that make the biggest difference on the field. For more details and registration, message us directly.
+                One-on-one sessions are tailored to the player, the position, and the current goal. Book online, choose a time, and get confirmation right away without waiting on a back-and-forth.
               </p>
               <ul className="space-y-3">
                 {[
-                  'Technical Work',
-                  'Dribbling',
-                  'Passing / Receiving',
-                  'Striking (Shooting / Crossing)',
-                  'Defending',
-                  'Position Specific — Field Player or GK',
+                  'Technical work that matches the player level',
+                  'Dribbling, passing, receiving, and striking detail',
+                  'Position-specific coaching for field players or goalkeepers',
+                  'Clear feedback on what improved and what comes next',
                 ].map((skill) => (
                   <li key={skill} className="flex items-center gap-3 text-sm text-gray-300">
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
@@ -226,32 +204,38 @@ export default function TrainingPage() {
               </ul>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link to="/book" className="btn-primary">Book Private Session</Link>
-                <Link to="/contact" className="btn-secondary">Message Us</Link>
+                <Link to="/sessions" className="btn-secondary">View Schedule</Link>
               </div>
             </div>
-            <div className="bg-[#111] border border-[#1e1e1e] rounded-2xl p-8">
-              <div className="flex items-center gap-4 mb-6">
+            <div className="overflow-hidden rounded-2xl border border-[#1e1e1e] bg-[#111]">
+              <div className="relative aspect-[4/5] sm:aspect-[16/10] lg:aspect-[4/5]">
                 <img
-                  src="/images/Coach.png"
-                  alt="Coach Mohamed Sheik Kante"
-                  className="h-16 w-16 rounded-full object-cover ring-2 ring-amber-500"
+                  src="/images/IMG_3599.jpeg"
+                  alt="Coach Kante working with players during private training"
+                  loading="eager"
+                  className="h-full w-full object-cover object-center"
                 />
-                <div>
-                  <p className="text-white font-black text-lg leading-tight">Mohamed Sheik</p>
-                  <p className="text-amber-500 text-sm font-semibold">Coach Kante</p>
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-black/10" />
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-500">Coach-led sessions</p>
+                  <p className="mt-2 max-w-sm text-sm leading-relaxed text-gray-200">
+                    Focused technical work with standards players can feel right away and families can understand after the session.
+                  </p>
                 </div>
               </div>
-              <div className="space-y-3">
+              <div className="grid gap-3 border-t border-[#1e1e1e] p-5 sm:grid-cols-3">
                 {[
-                  'Ohio Dominican Mens Soccer',
+                  'Ohio Dominican captain',
                   'Somalia National Team',
                   'UA Soccer Academy',
                 ].map((credential) => (
-                  <div key={credential} className="flex items-center gap-3 text-sm text-gray-400">
-                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                  <div key={credential} className="rounded-xl border border-[#222] bg-[#0d0d0d] px-4 py-3 text-sm text-gray-300">
                     {credential}
                   </div>
                 ))}
+              </div>
+              <div className="px-5 pb-5 text-sm leading-relaxed text-gray-400">
+                The direct booking path is active, so families can choose a session without waiting for manual registration.
               </div>
             </div>
           </div>
@@ -287,7 +271,7 @@ export default function TrainingPage() {
               </div>
               <p className="text-lg font-semibold text-white">Programs coming soon.</p>
               <p className="mt-3 text-sm leading-relaxed text-gray-400">
-                Training programs will appear here as soon as they are published. Contact us to ask about current availability.
+                Training programs will appear here as soon as they are published. Check back soon or contact us if you need help choosing the right fit.
               </p>
               <Link to="/contact" className="btn-secondary mt-6 inline-flex text-sm">
                 Contact Us
@@ -401,9 +385,15 @@ export default function TrainingPage() {
       <FAQ />
 
       <CTASection
+        eyebrow="Build The Base"
         title="Ready to Start Training?"
-        subtitle="Choose a program, book your first session, and start seeing progress within weeks."
-        urgencyLine="Limited spots available. Book ahead."
+        subtitle="Choose a program, book your first session, and start with a plan that matches the player."
+        urgencyLine="Live online booking is open"
+        proofPoints={[
+          'Private and small group options',
+          'Choose from live availability',
+          'Confirmation email right away',
+        ]}
       />
     </div>
   )

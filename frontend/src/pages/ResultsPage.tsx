@@ -130,12 +130,18 @@ export default function ResultsPage() {
       </section>
 
       <CTASection
+        eyebrow="Your Turn"
         title="Ready to Start Your Player's Story?"
         subtitle="Every result starts with a first session. Book now and begin with a clear plan."
         primaryLabel="Book a Session"
         primaryHref="/book"
         secondaryLabel="View Programs"
         secondaryHref="/training"
+        proofPoints={[
+          'Trusted by Columbus families',
+          'Programs for U8-18+',
+          'Clear feedback after every session',
+        ]}
       />
     </div>
   )
