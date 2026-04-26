@@ -23,6 +23,7 @@
 # misc
 .DS_Store
 *.pem
+frontend/qa-screens/
 
 # debug
 npm-debug.log*
