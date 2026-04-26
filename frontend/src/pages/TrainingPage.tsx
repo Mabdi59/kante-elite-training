@@ -204,7 +204,7 @@ export default function TrainingPage() {
               </ul>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link to="/book" className="btn-primary">Book Private Session</Link>
-                <Link to="/sessions" className="btn-secondary">View Schedule</Link>
+                <Link to="/schedule" className="btn-secondary">View Schedule</Link>
               </div>
             </div>
             <div className="overflow-hidden rounded-2xl border border-[#1e1e1e] bg-[#111]">

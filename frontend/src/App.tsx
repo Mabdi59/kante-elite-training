@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import MainLayout from './layouts/MainLayout'
 import AdminLayout from './layouts/ResponsiveAdminLayout'
@@ -234,7 +234,8 @@ export default function App() {
             />
             <Route path="/book" element={<BookPage />} />
             <Route path="/book/success" element={<BookingSuccessPage />} />
-            <Route path="/sessions" element={<MainLayout><PublicAvailabilityPage /></MainLayout>} />
+            <Route path="/schedule" element={<MainLayout><PublicAvailabilityPage /></MainLayout>} />
+            <Route path="/sessions" element={<Navigate to="/schedule" replace />} />
 
             {/* Legal / compliance pages */}
             <Route path="/privacy" element={<MainLayout><PrivacyPolicyPage /></MainLayout>} />

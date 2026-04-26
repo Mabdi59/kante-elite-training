@@ -222,7 +222,7 @@ export default function BookPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  // Accept both ?program=slug-or-id (legacy) and ?programId=123 (from /sessions calendar)
+  // Accept both ?program=slug-or-id (legacy) and ?programId=123 (from /schedule calendar)
   const preselectedProgramId = searchParams.get('programId') ?? searchParams.get('program')
   const preselectedDate = searchParams.get('date') ?? ''
   const preselectedTime = searchParams.get('time') ?? ''

@@ -6,7 +6,7 @@ import NotificationBell from './NotificationBell'
 
 const navLinks = [
   { href: '/training', label: 'Programs' },
-  { href: '/sessions', label: 'Schedule' },
+  { href: '/schedule', label: 'Schedule' },
   { href: '/tournaments', label: 'Tournaments' },
   { href: '/events', label: 'Events' },
   { href: '/media', label: 'Media' },
