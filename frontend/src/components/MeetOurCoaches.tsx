@@ -52,7 +52,7 @@ export default function MeetOurCoaches() {
                             text-amber-400 text-[10px] font-black uppercase tracking-[0.18em]
                             px-3 py-1.5 rounded-full">
               <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
-              Head Coach &amp; Founder
+              Head Coach & Founder
             </div>
 
             {/* Aspect ratio wrapper — taller on desktop to reinforce hierarchy */}
