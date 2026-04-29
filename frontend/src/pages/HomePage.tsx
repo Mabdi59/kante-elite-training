@@ -17,6 +17,7 @@ import MediaAsset from '../components/MediaAsset'
 import MediaPostCard from '../components/MediaPostCard'
 import MediaLightbox from '../components/MediaLightbox'
 import PublicProofBand from '../components/PublicProofBand'
+import MeetOurCoaches from '../components/MeetOurCoaches'
 import { COACH_PROFILE_MEDIA, COACH_SPOTLIGHT_MEDIA } from '../content/mediaFallbacks'
 import { defaultWebsiteContent } from '../content/defaultWebsiteContent'
 import { getMediaAlt, sortMediaPosts } from '../utils/media'
@@ -350,6 +351,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <MeetOurCoaches />
 
       <section className="bg-[#0a0a0a] py-16 px-4 border-t border-[#1a1a1a]">
         <div className="max-w-7xl mx-auto">
