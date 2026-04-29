@@ -72,6 +72,9 @@ public class Event {
     @Column(length = 50)
     private String intensity;
 
+    @Column(name = "coach_name", length = 100)
+    private String coachName;
+
     @Column(name = "display_order")
     @Builder.Default
     private Integer displayOrder = 0;

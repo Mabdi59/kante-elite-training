@@ -12,6 +12,8 @@ const coaches = [
     alt: 'Coach Kante – promo card. Former Division 2 player at Ohio Dominican University, G-MAC 2nd and 3rd team All-Conference honoree, Three-time team MVP, Somali National Team player, USSF licensed coach and founder of Kante Elite Training.',
     width: 720,
     height: 864,
+    coachParam: 'kante',
+    ctaLabel: 'Book with Coach Kante',
   },
   {
     name: 'Coach Tony',
@@ -20,6 +22,8 @@ const coaches = [
     alt: 'Coach Tony – Summer Training promo card. Former Division 1 player at Wright State University, Semi-Pro at Vagnharads VSK (Sweden) and Pittsburgh Riverhounds, USSF and UEFA licensed coach at Reynoldsburg High School.',
     width: 620,
     height: 713,
+    coachParam: 'tony',
+    ctaLabel: 'Book with Coach Tony',
   },
 ]
 
@@ -91,12 +95,22 @@ export default function MeetOurCoaches() {
                   <p className="text-amber-400 text-xs font-semibold mt-0.5 uppercase tracking-widest">{coach.label}</p>
                 </div>
               </div>
+
+              {/* Per-coach CTA */}
+              <div className="px-5 py-4 border-t border-[#222] bg-[#0d0d0d]">
+                <Link
+                  to={`/events?coach=${coach.coachParam}`}
+                  className="btn-primary w-full text-center text-sm py-2.5"
+                >
+                  {coach.ctaLabel}
+                </Link>
+              </div>
             </div>
           ))}
         </div>
 
-        {/* CTA */}
-        <div className="text-center mt-12">
+        {/* General CTA */}
+        <div className="text-center mt-10">
           <Link
             to="/book"
             className="btn-primary text-base px-10 py-4 gap-2"

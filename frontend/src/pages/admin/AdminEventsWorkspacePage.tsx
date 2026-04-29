@@ -45,6 +45,7 @@ type EventFormState = {
   type: string
   ageGroup: string
   intensity: string
+  coachName: string
   price: number
   displayOrder: number
 }
@@ -63,6 +64,7 @@ const emptyForm: EventFormState = {
   type: 'CAMP',
   ageGroup: '',
   intensity: '',
+  coachName: '',
   price: 0,
   displayOrder: 0,
 }
@@ -95,6 +97,7 @@ function toFormState(event?: Event): EventFormState {
     type: event.type ?? 'CAMP',
     ageGroup: event.ageGroup ?? '',
     intensity: event.intensity ?? '',
+    coachName: event.coachName ?? '',
     price: Number(event.price ?? 0),
     displayOrder: Number(event.displayOrder ?? 0),
   }
@@ -118,6 +121,7 @@ function buildEventPayload(form: EventFormState): Partial<Event> {
     type: form.type,
     ageGroup: form.ageGroup.trim(),
     intensity: form.intensity.trim(),
+    coachName: form.coachName.trim() || undefined,
     price: Number(form.price) || 0,
     displayOrder: Math.max(0, Number(form.displayOrder) || 0),
   }
@@ -580,6 +584,16 @@ export default function AdminEventsWorkspacePage() {
                             onChange={(e) => setForm((prev) => ({ ...prev, intensity: e.target.value }))}
                             className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
                             placeholder="High"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-400 text-sm mb-1">Lead Coach</label>
+                          <input
+                            value={form.coachName}
+                            onChange={(e) => setForm((prev) => ({ ...prev, coachName: e.target.value }))}
+                            className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
+                            placeholder="e.g. Coach Kante"
                           />
                         </div>
 

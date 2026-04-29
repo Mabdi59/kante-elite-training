@@ -34,6 +34,11 @@ export default function EventCard({ event }: EventCardProps) {
                 {event.type}
               </span>
             )}
+            {event.coachName && (
+              <span className="text-xs font-semibold text-gray-400 mb-1 block">
+                with {event.coachName}
+              </span>
+            )}
             <h3 className="text-white font-black text-lg leading-tight">{event.title}</h3>
           </div>
           <span className={`text-xs font-bold border px-2.5 py-1 rounded-full whitespace-nowrap flex-shrink-0 ${statusBadge.cls}`}>
