@@ -34,18 +34,20 @@ describe('AdminDashboardPage', () => {
     vi.clearAllMocks()
   })
 
-  it('renders the Dashboard heading', async () => {
+  it('renders the launch dashboard heading', async () => {
     render(
       <MemoryRouter>
         <AdminDashboardPage />
       </MemoryRouter>,
     )
 
-    // The heading is present immediately (stats load asynchronously)
-    expect(await screen.findByText('Dashboard')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Run bookings, content, and tournaments from one place.'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Launch Dashboard')).toBeInTheDocument()
   })
 
-  it('renders stat card labels after data loads', async () => {
+  it('renders launch operations and business area cards after data loads', async () => {
     render(
       <MemoryRouter>
         <AdminDashboardPage />
@@ -53,7 +55,8 @@ describe('AdminDashboardPage', () => {
     )
 
     expect(await screen.findByText('Total Bookings')).toBeInTheDocument()
-    expect(screen.getByText('Confirmed')).toBeInTheDocument()
+    expect(screen.getByText('Pending Bookings')).toBeInTheDocument()
+    expect(screen.getByText('Pending Team Registrations')).toBeInTheDocument()
     expect(screen.getByText('Tournaments')).toBeInTheDocument()
   })
 
@@ -64,9 +67,8 @@ describe('AdminDashboardPage', () => {
       </MemoryRouter>,
     )
 
-    // totalBookings = 42
     expect(await screen.findByText('42')).toBeInTheDocument()
-    // totalCoaches = 6
-    expect(screen.getByText('6')).toBeInTheDocument()
+    expect(screen.getByText('3 active')).toBeInTheDocument()
+    expect(screen.getByText('100')).toBeInTheDocument()
   })
 })
