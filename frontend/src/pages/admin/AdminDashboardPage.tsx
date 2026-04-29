@@ -20,6 +20,7 @@ export default function AdminDashboardPage() {
   const [chartData, setChartData] = useState<{ date: string; count: number }[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [chartUnavailable, setChartUnavailable] = useState(false)
 
   useEffect(() => {
     document.title = 'Admin Dashboard | Kante Elite Training'
@@ -29,7 +30,13 @@ export default function AdminDashboardPage() {
   }, [])
 
   useEffect(() => {
-    Promise.all([getAdminDashboard(), getBookingsOverTime(30)])
+    Promise.all([
+      getAdminDashboard(),
+      getBookingsOverTime(30).catch(() => {
+        setChartUnavailable(true)
+        return []
+      }),
+    ])
       .then(([dashboardData, timeData]) => {
         setStats(dashboardData)
         setChartData(timeData)
@@ -180,6 +187,13 @@ export default function AdminDashboardPage() {
               </LineChart>
             </ResponsiveContainer>
           </div>
+        </section>
+      ) : chartUnavailable ? (
+        <section className="rounded-2xl border border-gray-800 bg-gray-900 p-5 sm:p-6">
+          <h2 className="text-lg font-black text-white">Booking Trend</h2>
+          <p className="mt-2 text-sm text-gray-400">
+            Booking history is temporarily unavailable, but the rest of the dashboard is ready to use.
+          </p>
         </section>
       ) : null}
     </div>

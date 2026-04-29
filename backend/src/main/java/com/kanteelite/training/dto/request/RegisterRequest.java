@@ -23,4 +23,8 @@ public class RegisterRequest {
     private String password;
 
     private UserRole requestedRole;
+
+    public void setEmail(String email) {
+        this.email = email == null ? null : email.trim();
+    }
 }

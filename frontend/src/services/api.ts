@@ -301,7 +301,7 @@ export const login = async (
   requestedRole?: UserRole,
 ): Promise<AuthResponse> => {
   const res = await api.post<ApiResponse<AuthResponse>>('/auth/login', {
-    email,
+    email: email.trim(),
     password,
     requestedRole,
   })
@@ -316,7 +316,7 @@ export const register = async (
 ): Promise<AuthResponse> => {
   const res = await api.post<ApiResponse<AuthResponse>>('/auth/register', {
     name,
-    email,
+    email: email.trim(),
     password,
     requestedRole,
   })
@@ -329,7 +329,7 @@ export const claimTeamCaptainAccess = async (): Promise<AuthResponse> => {
 }
 
 export const forgotPassword = async (email: string): Promise<ForgotPasswordResult> => {
-  const res = await api.post<ApiResponse<boolean>>('/auth/forgot-password', { email })
+  const res = await api.post<ApiResponse<boolean>>('/auth/forgot-password', { email: email.trim() })
   return {
     message:
       res.data.message ??

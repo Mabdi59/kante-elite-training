@@ -30,6 +30,15 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("SELECT b FROM Booking b JOIN FETCH b.program ORDER BY b.createdAt DESC")
     List<Booking> findAllByOrderByCreatedAtDesc();
 
+    @Query("""
+        SELECT b.bookingDate, COUNT(b)
+        FROM Booking b
+        WHERE b.bookingDate BETWEEN :from AND :to
+        GROUP BY b.bookingDate
+        ORDER BY b.bookingDate ASC
+        """)
+    List<Object[]> countBookingsByDateRange(@Param("from") LocalDate from, @Param("to") LocalDate to);
+
     @Query("SELECT b FROM Booking b JOIN FETCH b.program WHERE LOWER(b.email) = LOWER(:email) ORDER BY b.createdAt DESC")
     List<Booking> findByEmailIgnoreCaseOrderByCreatedAtDesc(@Param("email") String email);
 

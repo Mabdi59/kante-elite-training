@@ -1,6 +1,5 @@
 package com.kanteelite.training.service;
 
-import com.kanteelite.training.entity.Booking;
 import com.kanteelite.training.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,7 +11,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,10 +27,13 @@ public class ReportingService {
         LocalDate today = LocalDate.now();
         LocalDate from = today.minusDays(days - 1L);
 
-        Map<LocalDate, Long> countsByDate = bookingRepository.findAllByOrderByCreatedAtDesc().stream()
-                .filter(booking -> booking.getBookingDate() != null)
-                .filter(booking -> !booking.getBookingDate().isBefore(from) && !booking.getBookingDate().isAfter(today))
-                .collect(Collectors.groupingBy(Booking::getBookingDate, LinkedHashMap::new, Collectors.counting()));
+        Map<LocalDate, Long> countsByDate = new LinkedHashMap<>();
+        for (Object[] row : bookingRepository.countBookingsByDateRange(from, today)) {
+            if (row.length < 2 || !(row[0] instanceof LocalDate bookingDate) || !(row[1] instanceof Number count)) {
+                continue;
+            }
+            countsByDate.put(bookingDate, count.longValue());
+        }
 
         List<Map<String, Object>> result = new ArrayList<>();
         DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE;
