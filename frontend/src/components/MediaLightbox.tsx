@@ -1,5 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
+import CategoryBadge from './CategoryBadge'
+import MediaAsset from './MediaAsset'
 import type { MediaPost } from '../types'
+import { formatMediaDate, getMediaAlt, getMediaCaption } from '../utils/media'
 
 interface MediaLightboxProps {
   posts: MediaPost[]
@@ -8,31 +11,16 @@ interface MediaLightboxProps {
   onSelect: (index: number) => void
 }
 
-function formatMediaDate(value: string) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return 'Recently added'
-  }
-
-  return date.toLocaleDateString([], {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
-}
-
 export default function MediaLightbox({
   posts,
   activeIndex,
   onClose,
   onSelect,
 }: MediaLightboxProps) {
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null)
+  const previousFocusedElementRef = useRef<HTMLElement | null>(null)
   const touchStartX = useRef<number | null>(null)
   const touchEndX = useRef<number | null>(null)
-  const lastTapTime = useRef(0)
-  const [swipeOffset, setSwipeOffset] = useState(0)
-  const [showLikeBurst, setShowLikeBurst] = useState(false)
-  const [isDragging, setIsDragging] = useState(false)
 
   const post = activeIndex !== null ? posts[activeIndex] : null
   const canGoPrev = activeIndex !== null && activeIndex > 0
@@ -41,6 +29,7 @@ export default function MediaLightbox({
   useEffect(() => {
     if (activeIndex === null) return
 
+    previousFocusedElementRef.current = document.activeElement as HTMLElement | null
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
 
@@ -51,82 +40,45 @@ export default function MediaLightbox({
     }
 
     window.addEventListener('keydown', handleKeyDown)
+    window.requestAnimationFrame(() => closeButtonRef.current?.focus())
+
     return () => {
       document.body.style.overflow = previousOverflow
       window.removeEventListener('keydown', handleKeyDown)
+      previousFocusedElementRef.current?.focus?.()
     }
   }, [activeIndex, canGoNext, canGoPrev, onClose, onSelect])
 
-  useEffect(() => {
-    setSwipeOffset(0)
-    setIsDragging(false)
-  }, [activeIndex])
-
   if (activeIndex === null || !post) return null
-
-  const triggerLikeBurst = () => {
-    setShowLikeBurst(false)
-    window.setTimeout(() => setShowLikeBurst(true), 10)
-    window.setTimeout(() => setShowLikeBurst(false), 760)
-  }
-
-  const commitSwipe = (direction: 'next' | 'prev') => {
-    setIsDragging(false)
-    setSwipeOffset(direction === 'next' ? -120 : 120)
-    window.setTimeout(() => {
-      onSelect(direction === 'next' ? activeIndex + 1 : activeIndex - 1)
-      setSwipeOffset(0)
-    }, 110)
-  }
 
   const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
     touchStartX.current = event.changedTouches[0]?.clientX ?? null
     touchEndX.current = null
-    setIsDragging(true)
   }
 
   const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
-    const currentX = event.changedTouches[0]?.clientX ?? null
-    touchEndX.current = currentX
-    if (touchStartX.current !== null && currentX !== null) {
-      setSwipeOffset(currentX - touchStartX.current)
-    }
+    touchEndX.current = event.changedTouches[0]?.clientX ?? null
   }
 
   const handleTouchEnd = () => {
     const start = touchStartX.current
     const end = touchEndX.current
-    setIsDragging(false)
+    if (start === null || end === null) return
 
-    if (start === null) return
-
-    const delta = start - (end ?? start)
-    if (Math.abs(delta) < 12) {
-      const now = Date.now()
-      if (now - lastTapTime.current < 280) {
-        triggerLikeBurst()
-      }
-      lastTapTime.current = now
-      setSwipeOffset(0)
-      return
-    }
-
-    if (Math.abs(delta) < 60) {
-      setSwipeOffset(0)
-      return
-    }
+    const delta = start - end
+    if (Math.abs(delta) < 60) return
 
     if (delta > 0 && canGoNext) {
-      commitSwipe('next')
+      onSelect(activeIndex + 1)
     } else if (delta < 0 && canGoPrev) {
-      commitSwipe('prev')
-    } else {
-      setSwipeOffset(0)
+      onSelect(activeIndex - 1)
     }
   }
 
+  const caption = getMediaCaption(post)
+
   return (
-    <div className="fixed inset-0 z-[80] bg-black/95 animate-fade-in">
+    <div className="fixed inset-0 z-[80] bg-black/90 backdrop-blur-sm animate-fade-in">
       <button
         type="button"
         aria-label="Close media viewer"
@@ -134,106 +86,123 @@ export default function MediaLightbox({
         className="absolute inset-0"
       />
 
-      <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-3 px-4 py-4 sm:px-6">
-        <div className="rounded-full border border-white/10 bg-black/60 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white backdrop-blur">
-          {activeIndex + 1} / {posts.length}
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Media viewer"
+        className="relative mx-auto flex h-full max-w-[96rem] flex-col px-4 py-4 sm:px-6"
+      >
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="rounded-full border border-white/10 bg-black/60 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white backdrop-blur">
+            {activeIndex + 1} / {posts.length}
+          </div>
+          <button
+            ref={closeButtonRef}
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/60 text-white backdrop-blur"
+            aria-label="Close media viewer"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="m6 6 12 12" />
+              <path d="m18 6-12 12" />
+            </svg>
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/60 text-white backdrop-blur"
-          aria-label="Close"
-        >
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <path d="m6 6 12 12" />
-            <path d="m18 6-12 12" />
-          </svg>
-        </button>
-      </div>
 
-      <div className="flex h-full items-center justify-center p-4 sm:p-6">
-        <div className="animate-lightbox-open relative flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#050505] shadow-2xl">
+        <div className="relative min-h-0 flex-1 overflow-hidden rounded-[28px] border border-white/10 bg-[#050505] shadow-2xl">
+          {canGoPrev ? (
+            <button
+              type="button"
+              onClick={() => onSelect(activeIndex - 1)}
+              className="absolute left-4 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/60 text-white backdrop-blur sm:inline-flex"
+              aria-label="Previous media item"
+            >
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+            </button>
+          ) : null}
+
+          {canGoNext ? (
+            <button
+              type="button"
+              onClick={() => onSelect(activeIndex + 1)}
+              className="absolute right-4 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/60 text-white backdrop-blur sm:inline-flex"
+              aria-label="Next media item"
+            >
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+            </button>
+          ) : null}
+
           <div
-            className="relative flex min-h-0 flex-1 items-center justify-center bg-black"
-            onDoubleClick={triggerLikeBurst}
+            className="flex h-full items-center justify-center bg-black p-3 sm:p-6"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
-            {canGoPrev ? (
-              <button
-                type="button"
-                onClick={() => onSelect(activeIndex - 1)}
-                className="absolute left-3 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/60 text-white backdrop-blur sm:inline-flex"
-                aria-label="Previous post"
-              >
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <path d="m15 18-6-6 6-6" />
-                </svg>
-              </button>
-            ) : null}
+            <MediaAsset
+              src={post.mediaUrl}
+              type={post.mediaType}
+              alt={getMediaAlt(post)}
+              playbackMode="immersive"
+              className="max-h-full w-full max-w-full object-contain"
+            />
+          </div>
 
-            {canGoNext ? (
-              <button
-                type="button"
-                onClick={() => onSelect(activeIndex + 1)}
-                className="absolute right-3 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/60 text-white backdrop-blur sm:inline-flex"
-                aria-label="Next post"
-              >
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
-              </button>
-            ) : null}
-
-            <div
-              className={`flex h-full w-full items-center justify-center transition-transform duration-300 ease-out ${
-                isDragging ? '' : 'snap-center'
-              }`}
-              style={{
-                transform: `translateX(${swipeOffset}px) scale(${isDragging ? 0.985 : 1})`,
-              }}
-            >
-              {post.mediaType === 'VIDEO' ? (
-                <video
-                  src={post.mediaUrl}
-                  controls
-                  playsInline
-                  preload="metadata"
-                  className="max-h-full max-w-full object-contain"
-                />
-              ) : (
-                <img
-                  src={post.mediaUrl}
-                  alt={post.caption?.trim() || 'Kante Elite highlight'}
-                  className="max-h-full max-w-full object-contain"
-                />
-              )}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/85 to-transparent px-4 pb-5 pt-14 sm:px-6">
+            <div className="mb-2 flex flex-wrap items-center gap-3">
+              <span className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white backdrop-blur">
+                {post.mediaType === 'VIDEO' ? 'Video' : 'Photo'}
+              </span>
+              {post.mediaCategory ? <CategoryBadge category={post.mediaCategory} size="sm" /> : null}
+              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-400">
+                {formatMediaDate(post.createdAt)}
+              </span>
             </div>
-
-            {showLikeBurst ? (
-              <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 animate-like-burst text-white">
-                <svg className="h-20 w-20 drop-shadow-[0_10px_30px_rgba(245,158,11,0.35)]" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 21.35 10.55 20C5.4 15.36 2 12.28 2 8.5A4.5 4.5 0 0 1 6.5 4C8.24 4 9.91 4.81 11 6.09 12.09 4.81 13.76 4 15.5 4A4.5 4.5 0 0 1 20 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35Z" />
-                </svg>
-              </div>
-            ) : null}
-
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/80 to-transparent px-4 pb-5 pt-12 sm:px-6">
-              <div className="mb-2 flex flex-wrap items-center gap-3">
-                <span className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white backdrop-blur">
-                  {post.mediaType}
-                </span>
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-400">
-                  {formatMediaDate(post.createdAt)}
-                </span>
-              </div>
-              <p className="max-w-3xl whitespace-pre-line break-words text-sm leading-relaxed text-white sm:text-base">
-                {post.caption?.trim() || 'Training highlight from Kante Elite.'}
-              </p>
-            </div>
+            <p className="max-w-3xl whitespace-pre-line break-words text-sm leading-relaxed text-white sm:text-base">
+              {caption}
+            </p>
           </div>
         </div>
+
+        {posts.length > 1 ? (
+          <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
+            {posts.map((item, index) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onSelect(index)}
+                className={`relative w-24 shrink-0 overflow-hidden rounded-2xl border transition-colors ${
+                  index === activeIndex
+                    ? 'border-amber-500/70 ring-1 ring-amber-500/30'
+                    : 'border-white/10 hover:border-white/20'
+                }`}
+                aria-label={`View media item ${index + 1}`}
+              >
+                <div className="relative aspect-[4/3] bg-black">
+                  <MediaAsset
+                    src={item.mediaUrl}
+                    type={item.mediaType}
+                    alt={getMediaAlt(item)}
+                    playbackMode="card"
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                  {item.mediaType === 'VIDEO' ? (
+                    <span className="pointer-events-none absolute bottom-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-black">
+                      <svg className="h-3.5 w-3.5 translate-x-[1px]" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5.14v13.72c0 .78.84 1.26 1.5.86l10.5-6.86a1 1 0 0 0 0-1.72L9.5 4.28A1 1 0 0 0 8 5.14Z" />
+                      </svg>
+                    </span>
+                  ) : null}
+                </div>
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
     </div>
   )

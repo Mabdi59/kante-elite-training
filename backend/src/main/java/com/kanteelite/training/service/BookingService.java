@@ -185,8 +185,11 @@ public class BookingService {
         if (booking.getBookingStatus() == BookingStatus.CANCELLED) {
             throw new IllegalArgumentException("Booking is already cancelled.");
         }
+        BookingStatus previousStatus = booking.getBookingStatus();
         booking.setBookingStatus(BookingStatus.CANCELLED);
-        BookingResponse response = toResponse(bookingRepository.save(booking));
+        Booking saved = bookingRepository.save(booking);
+        notifyBookingCreatorOfStatusChange(saved, previousStatus, BookingStatus.CANCELLED);
+        BookingResponse response = toResponse(saved);
         auditLogService.log(userEmail, "CANCEL", "Booking", id, "User cancelled their booking.");
         return response;
     }
@@ -207,10 +210,22 @@ public class BookingService {
             throw new SlotUnavailableException("The new time slot is not available.");
         }
 
-        String oldSlot = booking.getBookingDate() + " " + booking.getBookingTime();
+        LocalDate oldDate = booking.getBookingDate();
+        String oldTime = booking.getBookingTime();
+        String oldSlot = oldDate + " " + oldTime;
         booking.setBookingDate(req.getNewDate());
         booking.setBookingTime(req.getNewTime());
-        BookingResponse response = toResponse(bookingRepository.save(booking));
+        Booking saved = bookingRepository.save(booking);
+        BookingResponse response = toResponse(saved);
+        notificationService.send(
+                saved.getEmail(),
+                "BOOKING_RESCHEDULE",
+                "Booking rescheduled",
+                "Your booking for " + saved.getProgram().getName() + " has been moved from " + oldSlot
+                        + " to " + req.getNewDate() + " " + req.getNewTime() + ".",
+                "Booking",
+                saved.getId());
+        emailService.sendBookingRescheduledEmail(response, oldDate, oldTime);
         auditLogService.log(actorEmail, "RESCHEDULE", "Booking", id,
                 "Moved from " + oldSlot + " to " + req.getNewDate() + " " + req.getNewTime());
         return response;

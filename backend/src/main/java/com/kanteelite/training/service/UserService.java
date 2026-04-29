@@ -51,6 +51,7 @@ public class UserService {
                 .role(role)
                 .build();
         user = userRepository.save(user);
+        emailService.sendAccountWelcomeEmail(user.getEmail(), user.getName());
         String accessToken = jwtUtil.generateAccessToken(user.getEmail(), user.getRole().name());
         String refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
         return buildResponse(user, accessToken, refreshToken);

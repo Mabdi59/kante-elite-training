@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/frontend/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -48,3 +49,10 @@ next-env.d.ts
 
 # Backend compiled output
 backend/target/
+
+# Frontend build output
+frontend/dist/
+
+# Runtime uploads and logs
+backend/uploads/
+*.log

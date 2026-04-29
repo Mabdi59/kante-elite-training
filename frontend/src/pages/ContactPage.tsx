@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import ErrorBanner from '../components/ErrorBanner'
 import HeroSection from '../components/HeroSection'
 import PublicProofBand from '../components/PublicProofBand'
+import { useAuth } from '../context/AuthContext'
 import { submitContact } from '../services/api'
 import type { ContactFormData } from '../types'
 
@@ -106,6 +108,7 @@ const contactDetails = [
 ]
 
 export default function ContactPage() {
+  const { user } = useAuth()
   const [form, setForm] = useState<ContactFormData>(initialForm)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -115,6 +118,15 @@ export default function ContactPage() {
     document.title = 'Contact | Kante Elite Training'
     return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
   }, [])
+
+  useEffect(() => {
+    if (!user) return
+    setForm((prev) => ({
+      ...prev,
+      name: prev.name || user.name,
+      email: prev.email || user.email,
+    }))
+  }, [user])
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -129,6 +141,7 @@ export default function ContactPage() {
       await submitContact(form)
       setSuccess(true)
       setForm(initialForm)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err: unknown) {
       const message =
         err && typeof err === 'object' && 'response' in err
@@ -246,7 +259,14 @@ export default function ContactPage() {
                 <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
                   <button
                     type="button"
-                    onClick={() => setSuccess(false)}
+                    onClick={() => {
+                      setSuccess(false)
+                      setForm({
+                        ...initialForm,
+                        name: user?.name ?? '',
+                        email: user?.email ?? '',
+                      })
+                    }}
                     className="btn-secondary text-sm"
                   >
                     Send Another Message
@@ -344,14 +364,11 @@ export default function ContactPage() {
                   />
                 </div>
 
-                {error && (
-                  <div className="mb-5 flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-900/20 px-5 py-4 text-sm text-red-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="mt-0.5 h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                    </svg>
-                    <span>{error}</span>
+                {error ? (
+                  <div className="mb-5">
+                    <ErrorBanner message={error} onDismiss={() => setError('')} />
                   </div>
-                )}
+                ) : null}
 
                 <button
                   type="submit"

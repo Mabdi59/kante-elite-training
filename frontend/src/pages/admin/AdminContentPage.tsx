@@ -13,6 +13,7 @@ import {
   updateWebsiteContent,
 } from '../../services/api'
 import type { MediaCategory, MediaPost, WebsiteContent } from '../../types'
+import { sortMediaPosts } from '../../utils/media'
 
 function TextField({
   label,
@@ -105,6 +106,55 @@ function ToggleButton({
   )
 }
 
+function MediaOrderField({
+  label,
+  value,
+  disabled,
+  onCommit,
+}: {
+  label: string
+  value: number
+  disabled?: boolean
+  onCommit: (value: number) => void
+}) {
+  const [draft, setDraft] = useState(String(value ?? 0))
+
+  useEffect(() => {
+    setDraft(String(value ?? 0))
+  }, [value])
+
+  const commit = () => {
+    const parsed = Number.parseInt(draft, 10)
+    const normalized = Number.isFinite(parsed) && parsed > 0 ? parsed : 0
+    setDraft(String(normalized))
+    if (normalized !== value) {
+      onCommit(normalized)
+    }
+  }
+
+  return (
+    <label className="block">
+      <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
+        {label}
+      </span>
+      <input
+        type="number"
+        min={0}
+        value={draft}
+        disabled={disabled}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.currentTarget.blur()
+          }
+        }}
+        className="w-full rounded-xl border border-gray-700 bg-black px-3 py-2 text-sm text-white disabled:opacity-50"
+      />
+    </label>
+  )
+}
+
 type EditableContentField =
   | 'homeBadge'
   | 'homeHeadline'
@@ -169,8 +219,9 @@ export default function AdminContentPage() {
   )
 
   const filteredPosts = useMemo(() => {
-    if (filterCategory === 'ALL') return posts
-    return posts.filter((p) => p.mediaCategory === filterCategory)
+    const orderedPosts = sortMediaPosts(posts, 'feed')
+    if (filterCategory === 'ALL') return orderedPosts
+    return orderedPosts.filter((post) => post.mediaCategory === filterCategory)
   }, [posts, filterCategory])
 
   const updateContentField = (key: EditableContentField, value: string) => {
@@ -239,10 +290,14 @@ export default function AdminContentPage() {
 
     try {
       await updateMediaPost(postId, {
+        altText: patch.altText,
         featured: patch.featured,
         showOnHome: patch.showOnHome,
         showOnAbout: patch.showOnAbout,
         mediaCategory: patch.mediaCategory,
+        displayOrder: patch.displayOrder,
+        homeDisplayOrder: patch.homeDisplayOrder,
+        aboutDisplayOrder: patch.aboutDisplayOrder,
       })
       const refreshedPosts = await getMediaPosts()
       setPosts(refreshedPosts)
@@ -440,6 +495,9 @@ export default function AdminContentPage() {
               <p className="mt-2 text-xs font-medium uppercase tracking-[0.18em] text-amber-400">
                 Only one featured hero is active at a time.
               </p>
+              <p className="mt-2 text-xs leading-relaxed text-gray-500">
+                Set any order field to `0` to keep automatic newest-first sorting. Use positive numbers to pin an item higher on that surface.
+              </p>
             </div>
             <div className="rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-300">
               {featuredPostCount} featured
@@ -550,6 +608,26 @@ export default function AdminContentPage() {
                         active={post.featured}
                         disabled={isSavingPost}
                         onClick={() => togglePost(post.id, { featured: !post.featured })}
+                      />
+                    </div>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                      <MediaOrderField
+                        label="Feed order"
+                        value={post.displayOrder}
+                        disabled={isSavingPost}
+                        onCommit={(value) => togglePost(post.id, { displayOrder: value })}
+                      />
+                      <MediaOrderField
+                        label="Home order"
+                        value={post.homeDisplayOrder}
+                        disabled={isSavingPost || !post.showOnHome}
+                        onCommit={(value) => togglePost(post.id, { homeDisplayOrder: value })}
+                      />
+                      <MediaOrderField
+                        label="About order"
+                        value={post.aboutDisplayOrder}
+                        disabled={isSavingPost || !post.showOnAbout}
+                        onCommit={(value) => togglePost(post.id, { aboutDisplayOrder: value })}
                       />
                     </div>
                   </div>

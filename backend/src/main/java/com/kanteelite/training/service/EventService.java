@@ -1,6 +1,8 @@
 package com.kanteelite.training.service;
 
 import com.kanteelite.training.dto.request.EventRequest;
+import com.kanteelite.training.dto.request.EventParticipationRequest;
+import com.kanteelite.training.dto.request.SimpleEventRegistrationRequest;
 import com.kanteelite.training.dto.request.ParticipantAssignmentRequest;
 import com.kanteelite.training.dto.response.EventResponse;
 import com.kanteelite.training.dto.response.EventWorkflowResponse;
@@ -21,8 +23,10 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +38,8 @@ public class EventService {
     private final EventParticipantRepository eventParticipantRepository;
     private final UserRepository userRepository;
     private final PlayerProfileRepository playerProfileRepository;
+    private final NotificationService notificationService;
+    private final EmailService emailService;
 
     @Transactional(readOnly = true)
     public List<EventResponse> getUpcomingEvents() {
@@ -115,7 +121,9 @@ public class EventService {
         event.setType(req.getType());
         event.setIntensity(req.getIntensity());
         if (req.getDisplayOrder() != null) event.setDisplayOrder(req.getDisplayOrder());
-        return toResponse(eventRepository.save(event));
+        Event saved = eventRepository.save(event);
+        notifyEventLifecycle(saved, "updated", "Event details were updated. Please review your schedule.");
+        return toResponse(saved);
     }
 
     @Transactional
@@ -154,22 +162,48 @@ public class EventService {
             participant.setManualEmail(manualEmail);
         }
 
-        return toParticipantResponse(eventParticipantRepository.save(participant));
+        EventParticipant saved = eventParticipantRepository.save(participant);
+        ManagedParticipantResponse response = toParticipantResponse(saved);
+        notifyParticipantAssignment(event, response, true);
+        return response;
+    }
+
+    @Transactional
+    public ManagedParticipantResponse requestParticipation(Long eventId, EventParticipationRequest request) {
+        ParticipantAssignmentRequest assignment = new ParticipantAssignmentRequest();
+        assignment.setManualName(request.getName());
+        assignment.setManualEmail(request.getEmail());
+        return addParticipant(eventId, assignment);
+    }
+
+    /**
+     * Simple direct registration to event - just name and email.
+     * This is the preferred endpoint for public users joining events.
+     */
+    @Transactional
+    public ManagedParticipantResponse registerForEvent(Long eventId, SimpleEventRegistrationRequest request) {
+        ParticipantAssignmentRequest assignment = new ParticipantAssignmentRequest();
+        assignment.setManualName(request.getName());
+        assignment.setManualEmail(request.getEmail());
+        return addParticipant(eventId, assignment);
     }
 
     @Transactional
     public void removeParticipant(Long eventId, Long participantId) {
         EventParticipant participant = eventParticipantRepository.findByIdAndEventId(participantId, eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("EventParticipant", participantId));
+        ManagedParticipantResponse participantResponse = toParticipantResponse(participant);
+        Event event = participant.getEvent();
         eventParticipantRepository.delete(participant);
+        notifyParticipantAssignment(event, participantResponse, false);
     }
 
     @Transactional
     public void deleteEvent(Long id) {
-        if (!eventRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Event", id);
-        }
+        Event event = getEventEntity(id);
+        List<EventParticipant> participants = eventParticipantRepository.findByEventIdOrderByCreatedAtAsc(id);
         eventRepository.deleteById(id);
+        notifyEventLifecycle(event, participants, "cancelled", "This event has been cancelled and removed.");
     }
 
     private Event getEventEntity(Long id) {
@@ -292,5 +326,68 @@ public class EventService {
     private String normalizeEmail(String value) {
         String trimmed = trimToNull(value);
         return trimmed == null ? null : trimmed.toLowerCase(Locale.ROOT);
+    }
+
+    private void notifyEventLifecycle(Event event, String action, String detail) {
+        List<EventParticipant> participants = eventParticipantRepository.findByEventIdOrderByCreatedAtAsc(event.getId());
+        notifyEventLifecycle(event, participants, action, detail);
+    }
+
+    private void notifyEventLifecycle(Event event, List<EventParticipant> participants, String action, String detail) {
+        Map<String, String> recipients = new LinkedHashMap<>();
+        for (EventParticipant participant : participants) {
+            ManagedParticipantResponse response = toParticipantResponse(participant);
+            if (StringUtils.hasText(response.getEmail())) {
+                String normalizedEmail = normalizeEmail(response.getEmail());
+                recipients.putIfAbsent(normalizedEmail, response.getName());
+            }
+        }
+
+        if (recipients.isEmpty()) {
+            return;
+        }
+
+        String title = "Event " + action;
+        String body = event.getTitle() + ": " + detail;
+        for (Map.Entry<String, String> recipient : recipients.entrySet()) {
+            notificationService.send(
+                    recipient.getKey(),
+                    "EVENT_UPDATE",
+                    title,
+                    body,
+                    "Event",
+                    event.getId());
+            emailService.sendEventLifecycleEmail(
+                    recipient.getKey(),
+                    recipient.getValue(),
+                    event.getTitle(),
+                    action,
+                    detail);
+        }
+    }
+
+    private void notifyParticipantAssignment(Event event, ManagedParticipantResponse participant, boolean added) {
+        if (!StringUtils.hasText(participant.getEmail())) {
+            return;
+        }
+
+        String title = added ? "Event registration confirmed" : "Event registration removed";
+        String body = added
+                ? "You have been registered for " + event.getTitle() + "."
+                : "You have been removed from " + event.getTitle() + ".";
+
+        notificationService.send(
+                participant.getEmail(),
+                "EVENT_REGISTRATION",
+                title,
+                body,
+                "Event",
+                event.getId());
+
+        emailService.sendEventParticipantEmail(
+                participant.getEmail(),
+                participant.getName(),
+                event.getTitle(),
+                added);
     }
 }

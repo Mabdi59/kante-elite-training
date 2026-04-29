@@ -1,8 +1,11 @@
 ﻿import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useSearchParams, Link } from 'react-router-dom'
 import api, { getBookingByStripeSession } from '../services/api'
+import EmptyState from '../components/EmptyState'
+import LoadingSpinner from '../components/LoadingSpinner'
 import type { ApiResponse, Booking } from '../types'
 import { useAuth } from '../context/AuthContext'
+import { getPortalDestination } from '../utils/portal'
 
 function formatDate(dateStr: string) {
   return new Date(`${dateStr}T12:00:00`).toLocaleDateString('en-US', {
@@ -27,38 +30,9 @@ export default function BookingSuccessPage() {
   const [showHomeButton, setShowHomeButton] = useState(false)
   const pollAttemptsRef = useRef(0)
   const confirmationEmailAvailable = booking?.confirmationEmailAvailable === true
-  const portalPath =
-    user?.role === 'ADMIN'
-      ? '/admin'
-      : user?.role === 'STAFF'
-        ? '/staff'
-        : user?.role === 'COACH'
-          ? '/coach'
-          : user?.role === 'TEAM_CAPTAIN'
-            ? '/captain'
-          : user?.role === 'PLAYER'
-            ? '/player'
-            : user?.role === 'PARENT'
-              ? '/parent'
-              : user?.role === 'USER'
-                ? '/user'
-              : null
-  const portalLabel =
-    user?.role === 'PLAYER'
-      ? 'Back to Player Portal'
-      : user?.role === 'PARENT'
-        ? 'Back to Parent Portal'
-        : user?.role === 'USER'
-          ? 'Back to Account Portal'
-        : user?.role === 'COACH'
-          ? 'Back to Coach Panel'
-          : user?.role === 'TEAM_CAPTAIN'
-            ? 'Back to Captain Portal'
-          : user?.role === 'STAFF'
-            ? 'Back to Staff Panel'
-            : user?.role === 'ADMIN'
-              ? 'Back to Admin Panel'
-              : ''
+  const portal = getPortalDestination(user?.role)
+  const portalPath = portal?.path ?? null
+  const portalLabel = portal?.returnLabel ?? ''
 
   const pollStripeBooking = useCallback(async () => {
     if (!stripeSessionId) return
@@ -138,13 +112,15 @@ export default function BookingSuccessPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center px-4">
-        <div className="text-center">
-          <div className="w-14 h-14 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin mx-auto mb-6" />
-          <p className="text-white font-bold text-xl">
-            {stripePolling ? 'Payment received! Confirming your booking...' : 'Confirming your booking...'}
-          </p>
-          <p className="text-gray-400 text-sm mt-2">Just a moment while we finalize everything.</p>
+      <div className="min-h-screen bg-black px-4">
+        <div className="mx-auto flex min-h-screen max-w-3xl items-center justify-center">
+          <div className="text-center">
+            <LoadingSpinner
+              size="lg"
+              label={stripePolling ? 'Payment received. Confirming your booking...' : 'Confirming your booking...'}
+            />
+            <p className="-mt-4 text-sm text-gray-500">Just a moment while we finalize everything.</p>
+          </div>
         </div>
       </div>
     )
@@ -177,29 +153,32 @@ export default function BookingSuccessPage() {
 
   if (error || !booking) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center px-4 pt-20">
-        <div className="max-w-md w-full card p-10 text-center">
-          <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
-          </div>
-          <h2 className="text-white font-black text-2xl mb-3">Booking Details Unavailable</h2>
-          <p className="text-gray-400 text-sm mb-6 leading-relaxed">{error}</p>
-          <p className="text-gray-500 text-xs mb-6">
-            If your booking was submitted, the confirmation details should still appear in your portal. If anything looks off, contact us and we will help you confirm the session.
-          </p>
-          <div className="flex flex-col gap-3">
-            <Link to="/contact" className="btn-primary text-center">
-              Contact Coach Kante
-            </Link>
-            <Link to="/book" className="btn-secondary text-center">
-              Try Booking Again
-            </Link>
-            {portalPath ? (
-              <Link to={portalPath} className="text-sm text-gray-400 hover:text-white text-center">
-                {portalLabel}
-              </Link>
-            ) : null}
-          </div>
+      <div className="min-h-screen bg-black px-4 pt-20">
+        <div className="mx-auto flex min-h-[70vh] max-w-3xl items-center justify-center">
+          <EmptyState
+            icon={(
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-amber-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+              </svg>
+            )}
+            title="Booking details unavailable"
+            description={`${error || 'We could not load your booking confirmation right now.'} If your booking was submitted, the confirmation should still appear in your portal once everything finishes syncing.`}
+            action={(
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
+                <Link to="/contact" className="btn-primary justify-center text-center">
+                  Contact Coach Kante
+                </Link>
+                <Link to="/book" className="btn-secondary justify-center text-center">
+                  Try booking again
+                </Link>
+                {portalPath ? (
+                  <Link to={portalPath} className="btn-ghost justify-center text-center">
+                    {portalLabel}
+                  </Link>
+                ) : null}
+              </div>
+            )}
+          />
         </div>
       </div>
     )

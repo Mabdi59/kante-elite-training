@@ -101,43 +101,18 @@ public class TournamentService {
     public TournamentWorkflowResponse getAdminWorkflow(Long tournamentId) {
         Tournament tournament = getTournamentEntity(tournamentId);
         List<TeamRegistration> registrations = teamRegistrationRepository.findByTournamentId(tournamentId);
-        Map<Long, List<TeamPlayerResponse>> playersByTeamId = loadPlayersByTeamId(registrations);
-        List<TournamentWorkflowTeamResponse> teams = registrations.stream()
-                .sorted(Comparator.comparing(registration -> registration.getTeam().getName(), String.CASE_INSENSITIVE_ORDER))
-                .map(registration -> {
-                    List<TeamPlayerResponse> players = new ArrayList<>(
-                            playersByTeamId.getOrDefault(registration.getTeam().getId(), List.of()));
-                    return TournamentWorkflowTeamResponse.builder()
-                            .registrationId(registration.getId())
-                            .tournamentId(tournamentId)
-                            .teamId(registration.getTeam().getId())
-                            .teamName(registration.getTeam().getName())
-                            .captainName(registration.getTeam().getCaptainName())
-                            .contactEmail(registration.getTeam().getContactEmail())
-                            .phone(registration.getTeam().getPhone())
-                            .clubName(registration.getTeam().getClubName())
-                            .registrationStatus(registration.getStatus().name())
-                            .paymentStatus(registration.getPaymentStatus().name())
-                            .publicAccessUrl(buildPublicAccessUrl(registration.getGuestAccessToken()))
-                            .playerCount(players.size())
-                            .players(players)
-                            .build();
-                })
-                .toList();
-        List<TournamentMatchResponse> matches = tournamentMatchRepository
-                .findByTournamentIdOrderByMatchDateAscKickoffTimeAscIdAsc(tournamentId)
-                .stream()
-                .map(this::toMatchResponse)
-                .toList();
+        List<TournamentWorkflowTeamResponse> teams = buildAdminWorkflowTeams(tournamentId, registrations);
+        return buildWorkflowResponse(tournamentId, tournament, teams);
+    }
 
-        return TournamentWorkflowResponse.builder()
-                .tournament(toResponse(tournament))
-                .teams(teams)
-                .matches(matches)
-                .standings(computeStandings(tournamentId))
-                .totalPlayers(teams.stream().mapToLong(TournamentWorkflowTeamResponse::getPlayerCount).sum())
-                .completedMatches(matches.stream().filter(match -> MATCH_STATUS_FINAL.equalsIgnoreCase(match.getStatus())).count())
-                .build();
+    @Transactional(readOnly = true)
+    public TournamentWorkflowResponse getPublicWorkflow(Long tournamentId) {
+        Tournament tournament = getTournamentEntity(tournamentId);
+        List<TeamRegistration> registrations = teamRegistrationRepository.findByTournamentId(tournamentId).stream()
+                .filter(registration -> registration.getStatus() == TeamRegistrationStatus.APPROVED)
+                .toList();
+        List<TournamentWorkflowTeamResponse> teams = buildPublicWorkflowTeams(tournamentId, registrations);
+        return buildWorkflowResponse(tournamentId, tournament, teams);
     }
 
     @Transactional
@@ -296,6 +271,15 @@ public class TournamentService {
     public TournamentRegistrationDashboardResponse getPublicRegistrationDashboard(String guestAccessToken) {
         TeamRegistration registration = getRegistrationByAccessToken(guestAccessToken);
         return toDashboardResponse(registration);
+    }
+
+    @Transactional(readOnly = true)
+    public TournamentRegistrationFileStorageService.StoredFileResource getRosterDownload(String guestAccessToken) {
+        TeamRegistration registration = getRegistrationByAccessToken(guestAccessToken);
+        return fileStorageService.loadStoredDocument(
+                registration.getRosterFilePath(),
+                registration.getRosterFileName(),
+                registration.getRosterFileType());
     }
 
     @Transactional
@@ -1056,6 +1040,84 @@ public class TournamentService {
         return playersByTeamId;
     }
 
+    private TournamentWorkflowResponse buildWorkflowResponse(
+            Long tournamentId,
+            Tournament tournament,
+            List<TournamentWorkflowTeamResponse> teams) {
+        List<TournamentMatchResponse> matches = tournamentMatchRepository
+                .findByTournamentIdOrderByMatchDateAscKickoffTimeAscIdAsc(tournamentId)
+                .stream()
+                .map(this::toMatchResponse)
+                .toList();
+
+        return TournamentWorkflowResponse.builder()
+                .tournament(toResponse(tournament))
+                .teams(teams)
+                .matches(matches)
+                .standings(computeStandings(tournamentId))
+                .totalPlayers(teams.stream().mapToLong(TournamentWorkflowTeamResponse::getPlayerCount).sum())
+                .completedMatches(matches.stream()
+                        .filter(match -> MATCH_STATUS_FINAL.equalsIgnoreCase(match.getStatus()))
+                        .count())
+                .build();
+    }
+
+    private List<TournamentWorkflowTeamResponse> buildAdminWorkflowTeams(
+            Long tournamentId,
+            List<TeamRegistration> registrations) {
+        Map<Long, List<TeamPlayerResponse>> playersByTeamId = loadPlayersByTeamId(registrations);
+        return registrations.stream()
+                .sorted(Comparator.comparing(registration -> registration.getTeam().getName(), String.CASE_INSENSITIVE_ORDER))
+                .map(registration -> toWorkflowTeamResponse(
+                        tournamentId,
+                        registration,
+                        new ArrayList<>(playersByTeamId.getOrDefault(registration.getTeam().getId(), List.of())),
+                        true))
+                .toList();
+    }
+
+    private List<TournamentWorkflowTeamResponse> buildPublicWorkflowTeams(
+            Long tournamentId,
+            List<TeamRegistration> registrations) {
+        Map<Long, List<TeamPlayerResponse>> playersByTeamId = loadPlayersByTeamId(registrations);
+        return registrations.stream()
+                .sorted(Comparator.comparing(registration -> registration.getTeam().getName(), String.CASE_INSENSITIVE_ORDER))
+                .map(registration -> toWorkflowTeamResponse(
+                        tournamentId,
+                        registration,
+                        new ArrayList<>(playersByTeamId.getOrDefault(registration.getTeam().getId(), List.of())),
+                        false))
+                .toList();
+    }
+
+    private TournamentWorkflowTeamResponse toWorkflowTeamResponse(
+            Long tournamentId,
+            TeamRegistration registration,
+            List<TeamPlayerResponse> players,
+            boolean includeSensitiveFields) {
+        return TournamentWorkflowTeamResponse.builder()
+                .registrationId(registration.getId())
+                .tournamentId(tournamentId)
+                .teamId(registration.getTeam().getId())
+                .teamName(registration.getTeam().getName())
+                .guestAccessToken(includeSensitiveFields ? registration.getGuestAccessToken() : null)
+                .captainName(includeSensitiveFields ? registration.getTeam().getCaptainName() : null)
+                .contactEmail(includeSensitiveFields ? registration.getTeam().getContactEmail() : null)
+                .phone(includeSensitiveFields ? registration.getTeam().getPhone() : null)
+                .clubName(registration.getTeam().getClubName())
+                .registrationStatus(registration.getStatus().name())
+                .paymentStatus(includeSensitiveFields && registration.getPaymentStatus() != null
+                        ? registration.getPaymentStatus().name()
+                        : null)
+                .publicAccessUrl(includeSensitiveFields ? buildPublicAccessUrl(registration.getGuestAccessToken()) : null)
+                .rosterSubmitted(registration.getRosterSubmittedAt() != null)
+                .rosterFileName(includeSensitiveFields ? registration.getRosterFileName() : null)
+                .rosterSubmittedAt(includeSensitiveFields ? registration.getRosterSubmittedAt() : null)
+                .playerCount(players.size())
+                .players(includeSensitiveFields ? players : List.of())
+                .build();
+    }
+
     private TournamentResponse toResponse(Tournament t) {
         long registered = teamRegistrationRepository.countByTournamentId(t.getId());
         return TournamentResponse.builder()
@@ -1093,6 +1155,7 @@ public class TournamentService {
                 .tournamentName(r.getTournament().getName())
                 .tournamentLocation(r.getTournament().getLocation())
                 .tournamentStartDate(r.getTournament().getStartDate())
+                .tournamentEndDate(r.getTournament().getEndDate())
                 .tournamentStatus(r.getTournament().getStatus())
                 .teamId(r.getTeam().getId())
                 .teamName(r.getTeam().getName())

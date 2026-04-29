@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   createAdminUser,
   deleteAdminUser,
@@ -24,10 +25,13 @@ const emptyForm: AdminUserFormData = {
 
 export default function AdminUsersPage() {
   const { user: currentUser } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const searchQueryParam = searchParams.get('q') ?? ''
+  const editUserParam = Number(searchParams.get('edit') ?? '')
   const [users, setUsers] = useState<AdminUser[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(searchQueryParam)
   const [showForm, setShowForm] = useState(false)
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null)
   const [form, setForm] = useState<AdminUserFormData>(emptyForm)
@@ -42,13 +46,18 @@ export default function AdminUsersPage() {
       .finally(() => setLoading(false))
   }
 
-
   useEffect(() => {
     document.title = 'Users | Kante Elite Training'
     return () => { document.title = 'Kante Elite Training' }
   }, [])
 
   useEffect(load, [])
+
+  useEffect(() => {
+    if (searchQueryParam !== search) {
+      setSearch(searchQueryParam)
+    }
+  }, [search, searchQueryParam])
 
   const openCreate = () => {
     setEditingUser(null)
@@ -68,6 +77,27 @@ export default function AdminUsersPage() {
     setError('')
     setShowForm(true)
   }
+
+  useEffect(() => {
+    if (!editUserParam) return
+
+    const target = users.find((user) => user.id === editUserParam)
+    if (!target) return
+
+    setEditingUser(target)
+    setForm({
+      name: target.name,
+      email: target.email,
+      password: '',
+      role: target.role,
+    })
+    setError('')
+    setShowForm(true)
+
+    const next = new URLSearchParams(searchParams)
+    next.delete('edit')
+    setSearchParams(next, { replace: true })
+  }, [editUserParam, users, searchParams, setSearchParams])
 
   const closeForm = () => {
     setShowForm(false)
@@ -284,7 +314,7 @@ export default function AdminUsersPage() {
                   <td className="py-3 pr-4 text-gray-500">#{item.id}</td>
                   <td className="py-3 pr-4 font-medium text-white">{item.name}</td>
                   <td className="py-3 pr-4 text-gray-400">{item.email}</td>
-                  <td className="py-3 pr-4 text-gray-400 hidden md:table-cell">{item.phone ?? '|'}</td>
+                  <td className="py-3 pr-4 text-gray-400 hidden md:table-cell">{item.phone || 'Not provided'}</td>
                   <td className="py-3 pr-4">
                     <div className="flex items-center gap-2">
                       <StatusBadge status={item.role} />

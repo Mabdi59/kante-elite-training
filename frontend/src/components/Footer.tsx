@@ -47,14 +47,13 @@ export default function Footer() {
       </div>
 
       {/* Main Footer Grid */}
-      <div className="page-shell grid grid-cols-1 gap-10 px-4 py-12 md:grid-cols-4">
+      <div className="page-shell grid grid-cols-1 gap-10 py-12 md:grid-cols-4">
         {/* Brand */}
         <div className="md:col-span-1">
           <div className="mb-4 flex items-center gap-3">
             <img
               src="/images/464169962_1489362111765457_2497551385302895846_n.jpg"
               alt="Kante Elite Training logo"
-              loading="lazy"
               className="h-11 w-11 rounded-full object-cover ring-2 ring-amber-500"
             />
             <div>
@@ -166,19 +165,21 @@ export default function Footer() {
       </div>
 
       {/* Bottom bar */}
-      <div className="border-t border-[#1a1a1a] py-5 px-4">
-        <div className="flex flex-wrap gap-x-5 gap-y-2 justify-center sm:justify-start mb-3">
-          <Link to="/privacy" className="text-gray-600 hover:text-gray-400 text-xs transition-colors">Privacy Policy</Link>
-          <Link to="/terms" className="text-gray-600 hover:text-gray-400 text-xs transition-colors">Terms of Service</Link>
-          <Link to="/cancellation-policy" className="text-gray-600 hover:text-gray-400 text-xs transition-colors">Cancellation Policy</Link>
-          <Link to="/cookie-policy" className="text-gray-600 hover:text-gray-400 text-xs transition-colors">Cookie Policy</Link>
-          <Link to="/accessibility" className="text-gray-600 hover:text-gray-400 text-xs transition-colors">Accessibility</Link>
-        </div>
-        <div className="flex flex-col gap-1 items-center sm:flex-row sm:justify-between">
-          <p className="text-gray-600 text-xs">
-            &copy; {new Date().getFullYear()} Kante Elite Training. All rights reserved.
-          </p>
-          <p className="text-gray-700 text-xs">Columbus, Ohio</p>
+      <div className="border-t border-[#1a1a1a] py-5">
+        <div className="page-shell">
+          <div className="mb-3 flex flex-wrap justify-center gap-x-5 gap-y-2 sm:justify-start">
+            <Link to="/privacy" className="text-xs text-gray-600 transition-colors hover:text-gray-400">Privacy Policy</Link>
+            <Link to="/terms" className="text-xs text-gray-600 transition-colors hover:text-gray-400">Terms of Service</Link>
+            <Link to="/cancellation-policy" className="text-xs text-gray-600 transition-colors hover:text-gray-400">Cancellation Policy</Link>
+            <Link to="/cookie-policy" className="text-xs text-gray-600 transition-colors hover:text-gray-400">Cookie Policy</Link>
+            <Link to="/accessibility" className="text-xs text-gray-600 transition-colors hover:text-gray-400">Accessibility</Link>
+          </div>
+          <div className="flex flex-col items-center gap-1 sm:flex-row sm:justify-between">
+            <p className="text-xs text-gray-600">
+              &copy; {new Date().getFullYear()} Kante Elite Training. All rights reserved.
+            </p>
+            <p className="text-xs text-gray-700">Columbus, Ohio</p>
+          </div>
         </div>
       </div>
     </footer>

@@ -34,7 +34,7 @@ public class TournamentController {
 
     @GetMapping("/{id}/public")
     public ResponseEntity<ApiResponse<TournamentWorkflowResponse>> getPublicView(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.success(tournamentService.getAdminWorkflow(id)));
+        return ResponseEntity.ok(ApiResponse.success(tournamentService.getPublicWorkflow(id)));
     }
 
     @GetMapping("/{id}/registrations")

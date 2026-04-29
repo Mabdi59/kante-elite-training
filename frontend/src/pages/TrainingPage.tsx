@@ -3,10 +3,13 @@ import { Link } from 'react-router-dom'
 import { getPrograms, getFeaturedTestimonials } from '../services/api'
 import type { Program, Testimonial } from '../types'
 import HeroSection from '../components/HeroSection'
+import MediaAsset from '../components/MediaAsset'
 import ProgramCard from '../components/ProgramCard'
 import TestimonialCard from '../components/TestimonialCard'
 import CTASection from '../components/CTASection'
 import PublicProofBand from '../components/PublicProofBand'
+import { COACH_SPOTLIGHT_MEDIA } from '../content/mediaFallbacks'
+import { getMediaAlt } from '../utils/media'
 
 const faqs = [
   {
@@ -204,15 +207,17 @@ export default function TrainingPage() {
               </ul>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link to="/book" className="btn-primary">Book Private Session</Link>
-                <Link to="/schedule" className="btn-secondary">View Schedule</Link>
+                <Link to="/book" className="btn-secondary">View Availability</Link>
               </div>
             </div>
             <div className="overflow-hidden rounded-2xl border border-[#1e1e1e] bg-[#111]">
               <div className="relative aspect-[4/5] sm:aspect-[16/10] lg:aspect-[4/5]">
-                <img
-                  src="/images/IMG_3599.jpeg"
-                  alt="Coach Kante working with players during private training"
+                <MediaAsset
+                  src={COACH_SPOTLIGHT_MEDIA.mediaUrl}
+                  type={COACH_SPOTLIGHT_MEDIA.mediaType}
+                  alt={getMediaAlt(COACH_SPOTLIGHT_MEDIA, 'Coach Kante working with players during private training')}
                   loading="eager"
+                  fetchPriority="high"
                   className="h-full w-full object-cover object-center"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-black/10" />
@@ -269,9 +274,9 @@ export default function TrainingPage() {
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/>
                 </svg>
               </div>
-              <p className="text-lg font-semibold text-white">Programs coming soon.</p>
+              <p className="text-lg font-semibold text-white">No programs are published right now.</p>
               <p className="mt-3 text-sm leading-relaxed text-gray-400">
-                Training programs will appear here as soon as they are published. Check back soon or contact us if you need help choosing the right fit.
+                  Reach out if you want help choosing the best training option for your player.
               </p>
               <Link to="/contact" className="btn-secondary mt-6 inline-flex text-sm">
                 Contact Us

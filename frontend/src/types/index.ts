@@ -87,10 +87,14 @@ export interface MediaPost {
   mediaUrl: string
   mediaType: MediaType
   caption?: string
+  altText?: string
   featured: boolean
   showOnHome: boolean
   showOnAbout: boolean
   mediaCategory?: MediaCategory
+  displayOrder: number
+  homeDisplayOrder: number
+  aboutDisplayOrder: number
   createdAt: string
 }
 
@@ -203,6 +207,7 @@ export interface TournamentWorkflowTeam {
   tournamentId: number
   teamId: number
   teamName: string
+  guestAccessToken?: string
   captainName: string
   contactEmail: string
   phone?: string
@@ -210,6 +215,9 @@ export interface TournamentWorkflowTeam {
   registrationStatus: string
   paymentStatus?: string
   publicAccessUrl?: string
+  rosterSubmitted?: boolean
+  rosterFileName?: string
+  rosterSubmittedAt?: string
   playerCount: number
   players: TeamPlayer[]
 }
@@ -266,6 +274,7 @@ export interface TeamRegistration {
   tournamentName: string
   tournamentLocation?: string
   tournamentStartDate?: string
+  tournamentEndDate?: string
   tournamentStatus?: string
   teamId: number
   teamName: string
@@ -364,42 +373,12 @@ export interface AdminDashboard {
   totalActiveSeries?: number
 }
 
-export interface StaffDashboard {
-  totalBookings: number
-  todayBookings: number
-  upcomingBookings: number
-  confirmedBookings: number
-  unreadMessages: number
-  blockedSlots: number
-  pendingRegistrations: number
-  totalPlayers: number
-  totalTournaments: number
-}
-
-export interface CaptainDashboard {
-  totalRegistrations: number
-  pendingRegistrations: number
-  approvedRegistrations: number
-  waitlistedRegistrations: number
-  availableTournaments: number
-}
-
 export interface AdminUser {
   id: number
   name: string
   email: string
   role: UserRole
   phone?: string
-  createdAt: string
-}
-
-export interface AuditLog {
-  id: number
-  userEmail?: string
-  action: string
-  entity: string
-  entityId?: number
-  details?: string
   createdAt: string
 }
 
@@ -417,18 +396,6 @@ export interface BlockedSlot {
   slotDate: string
   slotTime?: string
   reason?: string
-  createdAt: string
-}
-
-export interface CoachProfile {
-  id: number
-  userId: number
-  userName: string
-  userEmail: string
-  bio?: string
-  specialties?: string
-  certifications?: string
-  active: boolean
   createdAt: string
 }
 
@@ -470,6 +437,15 @@ export interface BookingFormData {
   email: string
   phone: string
   experienceLevel: string
+  notes: string
+}
+
+export interface EventRegistrationFormData {
+  playerName: string
+  playerAge: string
+  parentName: string
+  email: string
+  phone: string
   notes: string
 }
 
@@ -537,29 +513,11 @@ export interface PlayerProfileFormData {
   notes?: string
 }
 
-export interface CoachProfileFormData {
-  bio?: string
-  specialties?: string
-  certifications?: string
-  active?: boolean
-}
-
 export interface AdminUserFormData {
   name: string
   email: string
   password?: string
   role: UserRole
-}
-
-export interface AdminPlayerFormData {
-  parentUserId?: number
-  name: string
-  dateOfBirth?: string
-  age?: number
-  skillLevel?: string
-  preferredPosition?: string
-  notes?: string
-  active?: boolean
 }
 
 export interface ParticipantAssignmentFormData {
@@ -571,10 +529,14 @@ export interface ParticipantAssignmentFormData {
 
 export interface MediaPostUpdateFormData {
   caption?: string
+  altText?: string
   featured?: boolean
   showOnHome?: boolean
   showOnAbout?: boolean
   mediaCategory?: MediaCategory
+  displayOrder?: number
+  homeDisplayOrder?: number
+  aboutDisplayOrder?: number
   clearMediaCategory?: boolean
 }
 
@@ -598,119 +560,4 @@ export interface WebsiteContentFormData {
   aboutExperiencePoints?: string[]
 }
 
-// ─── Family & Recurring Schedule Types ───────────────────────────────────────
 
-export interface FamilyListItem {
-  id: number
-  name: string
-  email: string
-  phone?: string
-  createdAt: string
-  playerCount: number
-  upcomingSessionCount: number
-}
-
-export interface FamilyPlayerSummary {
-  id: number
-  name: string
-  age?: number
-  skillLevel?: string
-  preferredPosition?: string
-  active: boolean
-}
-
-export interface FamilyRecentBooking {
-  id: number
-  date: string
-  time: string
-  programName: string
-  status: string
-  playerName: string
-}
-
-export interface BookingSeriesPlayerSummary {
-  id: number
-  name: string
-  parentUserEmail: string
-}
-
-export interface BookingSeries {
-  id: number
-  coachUserId?: number
-  coachName?: string
-  programId?: number
-  programName?: string
-  title?: string
-  startDate: string
-  endDate?: string
-  weekdays: string
-  bookingTime: string
-  durationMinutes?: number
-  notes?: string
-  active: boolean
-  createdAt: string
-  players: BookingSeriesPlayerSummary[]
-  totalSessions: number
-  completedSessions: number
-  upcomingSessions: number
-}
-
-export interface FamilyDetail {
-  parentId: number
-  parentName: string
-  parentEmail: string
-  parentPhone?: string
-  emergencyContact?: string
-  players: FamilyPlayerSummary[]
-  activeSeries: BookingSeries[]
-  totalBookings: number
-  upcomingBookings: number
-  completedBookings: number
-  recentBookings: FamilyRecentBooking[]
-}
-
-export interface BookingSeriesPreviewItem {
-  date: string
-  dayOfWeek: string
-  bookingTime: string
-  coachName?: string
-  programName?: string
-  conflict: boolean
-  conflictReason?: string
-}
-
-export interface BookingSeriesRequest {
-  coachUserId?: number
-  programId: number
-  playerProfileIds: number[]
-  title?: string
-  startDate: string
-  endDate?: string
-  numberOfWeeks?: number
-  weekdays: string
-  bookingTime: string
-  durationMinutes?: number
-  notes?: string
-}
-
-export interface PlayerOnboardingEntry {
-  name: string
-  dateOfBirth?: string
-  age?: number
-  skillLevel?: string
-  preferredPosition?: string
-  notes?: string
-  active?: boolean
-}
-
-export interface FamilyOnboardingRequest {
-  existingParentUserId?: number
-  parentName?: string
-  parentEmail?: string
-  parentPhone?: string
-  parentRole?: string
-  parentNotes?: string
-  emergencyContact?: string
-  parentPassword?: string
-  players: PlayerOnboardingEntry[]
-}

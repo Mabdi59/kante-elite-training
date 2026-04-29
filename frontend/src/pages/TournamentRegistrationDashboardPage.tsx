@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import {
+  buildTournamentRosterDownloadUrl,
   createTournamentPaymentCheckout,
   getPublicTournamentRegistration,
   submitTournamentManualPayment,
@@ -11,6 +12,7 @@ import type { TournamentRegistrationDashboard } from '../types'
 import ErrorBanner from '../components/ErrorBanner'
 import LoadingSpinner from '../components/LoadingSpinner'
 import StatusBadge from '../components/StatusBadge'
+import { formatTournamentDateRange } from '../utils/tournament'
 
 const PAYMENT_METHODS = ['Card', 'Cash App', 'Zelle', 'Venmo', 'Cash', 'Bank Transfer']
 
@@ -181,6 +183,13 @@ export default function TournamentRegistrationDashboardPage() {
   const paymentComplete =
     registration.paymentStatus === 'PAID' || registration.paymentStatus === 'NOT_REQUIRED'
   const canSubmitManualPayment = dashboard.paymentRequired && !paymentComplete
+  const rosterDownloadUrl = registration.guestAccessToken
+    ? buildTournamentRosterDownloadUrl(registration.guestAccessToken)
+    : null
+  const tournamentDateLabel = formatTournamentDateRange(
+    registration.tournamentStartDate,
+    registration.tournamentEndDate,
+  )
 
   return (
     <div className="min-h-screen bg-black px-4 py-20">
@@ -241,9 +250,7 @@ export default function TournamentRegistrationDashboardPage() {
                 </div>
                 <div className="bg-black/40 border border-[#1f1f1f] rounded-xl p-4">
                   <p className="text-gray-500 mb-1">Tournament Date</p>
-                  <p className="text-white font-semibold">
-                    {registration.tournamentStartDate ?? 'To be confirmed'}
-                  </p>
+                  <p className="text-white font-semibold">{tournamentDateLabel}</p>
                 </div>
                 <div className="bg-black/40 border border-[#1f1f1f] rounded-xl p-4">
                   <p className="text-gray-500 mb-1">Captain</p>
@@ -371,7 +378,19 @@ export default function TournamentRegistrationDashboardPage() {
               {dashboard.rosterFileName || dashboard.rosterSubmittedAt ? (
                 <div className="bg-black/40 border border-[#1f1f1f] rounded-xl p-4 mb-5 text-sm">
                   {dashboard.rosterFileName ? (
-                    <p className="text-white font-semibold">Current file: {dashboard.rosterFileName}</p>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <p className="text-white font-semibold">Current file: {dashboard.rosterFileName}</p>
+                      {rosterDownloadUrl ? (
+                        <a
+                          href={rosterDownloadUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-sm font-semibold text-amber-400 hover:text-amber-300"
+                        >
+                          Download
+                        </a>
+                      ) : null}
+                    </div>
                   ) : null}
                   {dashboard.rosterSubmittedAt ? (
                     <p className="text-gray-400 mt-1">Last updated: {dashboard.rosterSubmittedAt}</p>

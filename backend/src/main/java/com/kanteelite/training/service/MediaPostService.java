@@ -35,9 +35,17 @@ public class MediaPostService {
     }
 
     @Transactional
-    public MediaPostResponse createPost(MultipartFile file, String caption, MediaCategory category) {
+    public MediaPostResponse createPost(
+            MultipartFile file,
+            String caption,
+            String altText,
+            MediaCategory category
+    ) {
         if (StringUtils.hasText(caption) && caption.trim().length() > 500) {
             throw new IllegalArgumentException("Caption must be 500 characters or less.");
+        }
+        if (StringUtils.hasText(altText) && altText.trim().length() > 255) {
+            throw new IllegalArgumentException("Alt text must be 255 characters or less.");
         }
 
         MediaStorageService.StoredMedia storedMedia;
@@ -53,6 +61,7 @@ public class MediaPostService {
                     .mediaUrl(storedMedia.getPublicUrl())
                     .mediaType(storedMedia.getMediaType())
                     .caption(StringUtils.hasText(caption) ? caption.trim() : null)
+                    .altText(StringUtils.hasText(altText) ? altText.trim() : null)
                     .mediaCategory(category)
                     .build());
             return toResponse(saved);
@@ -74,6 +83,9 @@ public class MediaPostService {
         if (request.getCaption() != null) {
             mediaPost.setCaption(StringUtils.hasText(request.getCaption()) ? request.getCaption().trim() : null);
         }
+        if (request.getAltText() != null) {
+            mediaPost.setAltText(StringUtils.hasText(request.getAltText()) ? request.getAltText().trim() : null);
+        }
         if (Boolean.TRUE.equals(request.getFeatured())) {
             mediaPostRepository.clearFeaturedForOtherPosts(id);
             mediaPost.setFeatured(true);
@@ -90,6 +102,15 @@ public class MediaPostService {
             mediaPost.setMediaCategory(null);
         } else if (request.getMediaCategory() != null) {
             mediaPost.setMediaCategory(request.getMediaCategory());
+        }
+        if (request.getDisplayOrder() != null) {
+            mediaPost.setDisplayOrder(request.getDisplayOrder());
+        }
+        if (request.getHomeDisplayOrder() != null) {
+            mediaPost.setHomeDisplayOrder(request.getHomeDisplayOrder());
+        }
+        if (request.getAboutDisplayOrder() != null) {
+            mediaPost.setAboutDisplayOrder(request.getAboutDisplayOrder());
         }
 
         return toResponse(mediaPostRepository.save(mediaPost));
@@ -114,6 +135,7 @@ public class MediaPostService {
                 .mediaUrl(mediaPost.getMediaUrl())
                 .mediaType(mediaPost.getMediaType())
                 .caption(mediaPost.getCaption())
+                .altText(mediaPost.getAltText())
                 .featured(mediaPost.isFeatured())
                 .showOnHome(mediaPost.isShowOnHome())
                 .showOnAbout(mediaPost.isShowOnAbout())

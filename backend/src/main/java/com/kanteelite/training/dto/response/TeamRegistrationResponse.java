@@ -17,6 +17,7 @@ public class TeamRegistrationResponse {
     private String tournamentName;
     private String tournamentLocation;
     private LocalDate tournamentStartDate;
+    private LocalDate tournamentEndDate;
     private String tournamentStatus;
     private Long teamId;
     private String teamName;

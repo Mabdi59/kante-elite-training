@@ -27,16 +27,10 @@ import type {
   ManualTournamentPaymentFormData,
   ContactMessage,
   AdminDashboard,
-  StaffDashboard,
-  CaptainDashboard,
   AdminUser,
   AdminUserFormData,
-  AuditLog,
   AvailabilityRule,
   BlockedSlot,
-  CoachProfile,
-  CoachProfileFormData,
-  AdminPlayerFormData,
   PlayerProfile,
   PlayerProfileFormData,
   ParticipantAssignmentFormData,
@@ -47,18 +41,19 @@ import type {
   StandingEntry,
   WebsiteContent,
   WebsiteContentFormData,
-  FamilyListItem,
-  FamilyDetail,
-  FamilyOnboardingRequest,
-  BookingSeriesRequest,
-  BookingSeriesPreviewItem,
-  BookingSeries,
+  EventRegistrationFormData,
 } from '../types'
 
 const configuredApiUrl = (import.meta.env.VITE_API_URL ?? '').trim()
 const normalizedApiBaseUrl = configuredApiUrl
   ? `${configuredApiUrl.replace(/\/+$/, '').replace(/\/api$/, '')}/api`
   : '/api'
+
+export const buildApiUrl = (path: string) => {
+  if (/^https?:\/\//i.test(path)) return path
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+  return `${normalizedApiBaseUrl}${normalizedPath}`
+}
 
 const api = axios.create({
   baseURL: normalizedApiBaseUrl,
@@ -201,16 +196,21 @@ export const getPrograms = async (): Promise<Program[]> => {
   return res.data.data ?? []
 }
 
-export const getProgramById = async (id: number): Promise<Program> => {
-  const res = await api.get<ApiResponse<Program>>(`/programs/${id}`)
-  return res.data.data!
-}
-
 // ─── Events ───────────────────────────────────────────────────────────────────
 
 export const getEvents = async (): Promise<Event[]> => {
   const res = await api.get<ApiResponse<Event[]>>('/events')
   return res.data.data ?? []
+}
+
+export const createEventRegistration = async (
+  eventId: number,
+  data: EventRegistrationFormData,
+): Promise<void> => {
+  await api.post(`/events/${eventId}/register`, {
+    name: data.playerName.trim(),
+    email: data.email.trim(),
+  })
 }
 
 export const getMediaPosts = async (): Promise<MediaPost[]> => {
@@ -276,11 +276,6 @@ export const getBookingByStripeSession = async (sessionId: string): Promise<Book
   return res.data.data ?? null
 }
 
-export const getMyPayments = async (): Promise<Booking[]> => {
-  const res = await api.get<ApiResponse<Booking[]>>('/payments/my')
-  return Array.isArray(res.data.data) ? res.data.data : []
-}
-
 export const getAdminPayments = async (): Promise<Booking[]> => {
   const res = await api.get<ApiResponse<Booking[]>>('/admin/payments')
   return Array.isArray(res.data.data) ? res.data.data : []
@@ -331,15 +326,6 @@ export const register = async (
 export const claimTeamCaptainAccess = async (): Promise<AuthResponse> => {
   const res = await api.post<ApiResponse<AuthResponse>>('/auth/claim-team-captain', {})
   return res.data.data!
-}
-
-export const refreshTokens = async (refreshToken: string): Promise<AuthResponse> => {
-  const res = await api.post<ApiResponse<AuthResponse>>('/auth/refresh', { refreshToken })
-  return res.data.data!
-}
-
-export const logoutApi = async (refreshToken: string): Promise<void> => {
-  await api.post('/auth/logout', { refreshToken })
 }
 
 export const forgotPassword = async (email: string): Promise<ForgotPasswordResult> => {
@@ -443,10 +429,8 @@ export const createTournamentPaymentCheckout = async (
   return res.data.data!
 }
 
-export const getCaptainDashboard = async (): Promise<CaptainDashboard> => {
-  const res = await api.get<ApiResponse<CaptainDashboard>>('/captain/dashboard')
-  return res.data.data!
-}
+export const buildTournamentRosterDownloadUrl = (token: string) =>
+  buildApiUrl(`/tournaments/registrations/access/${token}/roster/download`)
 
 export const getCaptainRegistrations = async (): Promise<TeamRegistration[]> => {
   const res = await api.get<ApiResponse<TeamRegistration[]>>('/captain/registrations')
@@ -484,10 +468,18 @@ export const getBookingsOverTime = async (days = 30): Promise<{ date: string; co
   return res.data
 }
 
-export const createMediaPost = async (file: File, caption: string, category?: MediaCategory): Promise<MediaPost> => {
+export const createMediaPost = async (
+  file: File,
+  caption: string,
+  category?: MediaCategory,
+  altText?: string,
+): Promise<MediaPost> => {
   const formData = new FormData()
   formData.append('file', file)
   formData.append('caption', caption.trim())
+  if (altText?.trim()) {
+    formData.append('altText', altText.trim())
+  }
   if (category) {
     formData.append('category', category)
   }
@@ -906,11 +898,6 @@ export const deleteAdminUser = async (id: number): Promise<void> => {
   await api.delete(`/admin/users/${id}`)
 }
 
-export const getAuditLogs = async (): Promise<AuditLog[]> => {
-  const res = await api.get<ApiResponse<AuditLog[]>>('/admin/audit-logs')
-  return res.data.data ?? []
-}
-
 // ─── Admin Availability ───────────────────────────────────────────────────────
 
 export const getAvailabilityRules = async (): Promise<AvailabilityRule[]> => {
@@ -959,142 +946,11 @@ export const deleteBlockedSlot = async (id: number): Promise<void> => {
   await api.delete(`/admin/availability/blocked/${id}`)
 }
 
-// ─── Admin Coaches ────────────────────────────────────────────────────────────
-
-export const getAdminCoaches = async (): Promise<CoachProfile[]> => {
-  const res = await api.get<ApiResponse<CoachProfile[]>>('/admin/coaches')
-  return res.data.data ?? []
-}
-
-export const createCoachProfile = async (
-  userId: number,
-  data: CoachProfileFormData,
-): Promise<CoachProfile> => {
-  const res = await api.post<ApiResponse<CoachProfile>>(`/admin/coaches/${userId}`, data)
-  return res.data.data!
-}
-
-export const updateCoachProfile = async (
-  id: number,
-  data: CoachProfileFormData,
-): Promise<CoachProfile> => {
-  const res = await api.put<ApiResponse<CoachProfile>>(`/admin/coaches/${id}`, data)
-  return res.data.data!
-}
-
-export const deleteCoachProfile = async (id: number): Promise<void> => {
-  await api.delete(`/admin/coaches/${id}`)
-}
-
 // ─── Admin Players ────────────────────────────────────────────────────────────
 
 export const getAdminPlayers = async (): Promise<PlayerProfile[]> => {
   const res = await api.get<ApiResponse<PlayerProfile[]>>('/admin/players')
   return res.data.data ?? []
-}
-
-export const createAdminPlayer = async (
-  data: AdminPlayerFormData,
-): Promise<PlayerProfile> => {
-  const res = await api.post<ApiResponse<PlayerProfile>>('/admin/players', data)
-  return res.data.data!
-}
-
-export const updateAdminPlayer = async (
-  id: number,
-  data: AdminPlayerFormData,
-): Promise<PlayerProfile> => {
-  const res = await api.put<ApiResponse<PlayerProfile>>(`/admin/players/${id}`, data)
-  return res.data.data!
-}
-
-export const deleteAdminPlayer = async (id: number): Promise<void> => {
-  await api.delete(`/admin/players/${id}`)
-}
-
-// ─── Coach Dashboard ──────────────────────────────────────────────────────────
-
-export const getMyCoachProfile = async (): Promise<CoachProfile | null> => {
-  const res = await api.get<ApiResponse<CoachProfile>>('/coach/profile')
-  return res.data.data ?? null
-}
-
-export const updateMyCoachProfile = async (data: CoachProfileFormData): Promise<CoachProfile> => {
-  const res = await api.put<ApiResponse<CoachProfile>>('/coach/profile', data)
-  return res.data.data!
-}
-
-export const getMyCoachSessions = async (): Promise<Booking[]> => {
-  const res = await api.get<ApiResponse<Booking[]>>('/coach/sessions')
-  return res.data.data ?? []
-}
-
-export const updateCoachSessionStatus = async (
-  id: number,
-  status: string,
-): Promise<Booking> => {
-  const res = await api.patch<ApiResponse<Booking>>(`/coach/sessions/${id}/status`, { status })
-  return res.data.data!
-}
-
-export const rescheduleCoachSession = async (
-  id: number,
-  newDate: string,
-  newTime: string,
-): Promise<Booking> => {
-  const res = await api.patch<ApiResponse<Booking>>(`/coach/sessions/${id}/reschedule`, {
-    newDate,
-    newTime,
-  })
-  return res.data.data!
-}
-
-export const getCoachAvailabilityRules = async (): Promise<AvailabilityRule[]> => {
-  const res = await api.get<ApiResponse<AvailabilityRule[]>>('/coach/availability/rules')
-  return res.data.data ?? []
-}
-
-export const createCoachAvailabilityRule = async (
-  data: Partial<AvailabilityRule>,
-): Promise<AvailabilityRule> => {
-  const res = await api.post<ApiResponse<AvailabilityRule>>('/coach/availability/rules', data)
-  return res.data.data!
-}
-
-export const updateCoachAvailabilityRule = async (
-  id: number,
-  data: Partial<AvailabilityRule>,
-): Promise<AvailabilityRule> => {
-  const res = await api.put<ApiResponse<AvailabilityRule>>(`/coach/availability/rules/${id}`, data)
-  return res.data.data!
-}
-
-export const deleteCoachAvailabilityRule = async (id: number): Promise<void> => {
-  await api.delete(`/coach/availability/rules/${id}`)
-}
-
-export const getCoachBlockedSlots = async (): Promise<BlockedSlot[]> => {
-  const res = await api.get<ApiResponse<BlockedSlot[]>>('/coach/availability/blocked')
-  return res.data.data ?? []
-}
-
-export const createCoachBlockedSlot = async (
-  data: Partial<BlockedSlot>,
-): Promise<BlockedSlot> => {
-  const res = await api.post<ApiResponse<BlockedSlot>>('/coach/availability/blocked', data)
-  return res.data.data!
-}
-
-export const updateCoachBlockedSlot = async (
-  id: number,
-  data: Partial<BlockedSlot>,
-): Promise<BlockedSlot> => {
-  const res = await api.put<ApiResponse<BlockedSlot>>(`/coach/availability/blocked/${id}`, data)
-  return res.data.data!
-}
-
-export const deleteCoachBlockedSlot = async (id: number): Promise<void> => {
-  await api.delete(`/coach/availability/blocked/${id}`)
 }
 
 // ─── Account Player Profiles ──────────────────────────────────────────────────
@@ -1120,199 +976,9 @@ export const updatePlayerProfile = async (
 export const removePlayerProfile = async (id: number): Promise<void> => {
   await api.delete(`/account/players/${id}`)
 }
-
-export const getStaffDashboard = async (): Promise<StaffDashboard> => {
-  const res = await api.get<ApiResponse<StaffDashboard>>('/staff/dashboard')
-  return res.data.data!
-}
-
-export const getStaffBookings = async (): Promise<Booking[]> => {
-  const res = await api.get<ApiResponse<Booking[]>>('/staff/bookings')
-  return res.data.data ?? []
-}
-
-export const createStaffBooking = async (data: BookingFormData): Promise<Booking> => {
-  const res = await api.post<ApiResponse<Booking>>('/staff/bookings', data)
-  return res.data.data!
-}
-
-export const updateStaffBookingStatus = async (id: number, status: string): Promise<Booking> => {
-  const res = await api.patch<ApiResponse<Booking>>(`/staff/bookings/${id}/status`, { status })
-  return res.data.data!
-}
-
-export const rescheduleStaffBooking = async (
-  id: number,
-  newDate: string,
-  newTime: string,
-): Promise<Booking> => {
-  const res = await api.patch<ApiResponse<Booking>>(`/staff/bookings/${id}/reschedule`, {
-    newDate,
-    newTime,
-  })
-  return res.data.data!
-}
-
-export const getStaffMessages = async (): Promise<ContactMessage[]> => {
-  const res = await api.get<ApiResponse<ContactMessage[]>>('/staff/messages')
-  return res.data.data ?? []
-}
-
-export const markStaffMessageAsRead = async (id: number): Promise<ContactMessage> => {
-  const res = await api.patch<ApiResponse<ContactMessage>>(`/staff/messages/${id}/read`, {})
-  return res.data.data!
-}
-
-export const deleteStaffMessage = async (id: number): Promise<void> => {
-  await api.delete(`/staff/messages/${id}`)
-}
-
-export const getStaffAvailabilityRules = async (): Promise<AvailabilityRule[]> => {
-  const res = await api.get<ApiResponse<AvailabilityRule[]>>('/staff/availability/rules')
-  return res.data.data ?? []
-}
-
-export const createStaffAvailabilityRule = async (
-  data: Partial<AvailabilityRule>,
-): Promise<AvailabilityRule> => {
-  const res = await api.post<ApiResponse<AvailabilityRule>>('/staff/availability/rules', data)
-  return res.data.data!
-}
-
-export const updateStaffAvailabilityRule = async (
-  id: number,
-  data: Partial<AvailabilityRule>,
-): Promise<AvailabilityRule> => {
-  const res = await api.put<ApiResponse<AvailabilityRule>>(`/staff/availability/rules/${id}`, data)
-  return res.data.data!
-}
-
-export const deleteStaffAvailabilityRule = async (id: number): Promise<void> => {
-  await api.delete(`/staff/availability/rules/${id}`)
-}
-
-export const getStaffBlockedSlots = async (): Promise<BlockedSlot[]> => {
-  const res = await api.get<ApiResponse<BlockedSlot[]>>('/staff/availability/blocked')
-  return res.data.data ?? []
-}
-
-export const createStaffBlockedSlot = async (data: Partial<BlockedSlot>): Promise<BlockedSlot> => {
-  const res = await api.post<ApiResponse<BlockedSlot>>('/staff/availability/blocked', data)
-  return res.data.data!
-}
-
-export const updateStaffBlockedSlot = async (
-  id: number,
-  data: Partial<BlockedSlot>,
-): Promise<BlockedSlot> => {
-  const res = await api.put<ApiResponse<BlockedSlot>>(`/staff/availability/blocked/${id}`, data)
-  return res.data.data!
-}
-
-export const deleteStaffBlockedSlot = async (id: number): Promise<void> => {
-  await api.delete(`/staff/availability/blocked/${id}`)
-}
-
-export const getStaffTournaments = async (): Promise<Tournament[]> => {
-  const res = await api.get<ApiResponse<Tournament[]>>('/staff/tournaments')
-  return res.data.data ?? []
-}
-
-export const getStaffTournamentRegistrations = async (id: number): Promise<TeamRegistration[]> => {
-  const res = await api.get<ApiResponse<TeamRegistration[]>>(`/staff/tournaments/${id}/registrations`)
-  return res.data.data ?? []
-}
-
-export const updateStaffRegistrationStatus = async (
-  regId: number,
-  status: string,
-): Promise<TeamRegistration> => {
-  const res = await api.patch<ApiResponse<TeamRegistration>>(
-    `/staff/tournaments/registrations/${regId}/status`,
-    { status },
-  )
-  return res.data.data!
-}
-
-export const updateStaffRegistrationPaymentStatus = async (
-  regId: number,
-  paymentStatus: string,
-): Promise<TeamRegistration> => {
-  const res = await api.patch<ApiResponse<TeamRegistration>>(
-    `/staff/tournaments/registrations/${regId}/payment`,
-    { paymentStatus },
-  )
-  return res.data.data!
-}
-
-export const getStaffPlayers = async (): Promise<PlayerProfile[]> => {
-  const res = await api.get<ApiResponse<PlayerProfile[]>>('/staff/players')
-  return res.data.data ?? []
-}
-
-export default api
-
-// ── Admin Families ──────────────────────────────────────────────────
-export const getAdminFamilies = async (): Promise<FamilyListItem[]> => {
-  const res = await api.get<ApiResponse<FamilyListItem[]>>('/admin/families')
-  return res.data.data ?? []
-}
-
-export const onboardFamily = async (data: FamilyOnboardingRequest): Promise<FamilyDetail> => {
-  const res = await api.post<ApiResponse<FamilyDetail>>('/admin/families/onboard', data)
-  return res.data.data!
-}
-
-export const getAdminFamily = async (parentUserId: number): Promise<FamilyDetail> => {
-  const res = await api.get<ApiResponse<FamilyDetail>>(`/admin/families/${parentUserId}`)
-  return res.data.data!
-}
-
-export const updateAdminFamily = async (parentUserId: number, data: FamilyOnboardingRequest): Promise<FamilyDetail> => {
-  const res = await api.put<ApiResponse<FamilyDetail>>(`/admin/families/${parentUserId}`, data)
-  return res.data.data!
-}
-
-// ── Admin Recurring Schedules ────────────────────────────────────────
-export const previewBookingSeries = async (data: BookingSeriesRequest): Promise<BookingSeriesPreviewItem[]> => {
-  const res = await api.post<ApiResponse<BookingSeriesPreviewItem[]>>('/admin/recurring-schedules/preview', data)
-  return res.data.data ?? []
-}
-
-export const createBookingSeries = async (data: BookingSeriesRequest): Promise<BookingSeries> => {
-  const res = await api.post<ApiResponse<BookingSeries>>('/admin/recurring-schedules', data)
-  return res.data.data!
-}
-
-export const getAdminBookingSeries = async (): Promise<BookingSeries[]> => {
-  const res = await api.get<ApiResponse<BookingSeries[]>>('/admin/recurring-schedules')
-  return res.data.data ?? []
-}
-
-export const getBookingSeriesById = async (id: number): Promise<BookingSeries> => {
-  const res = await api.get<ApiResponse<BookingSeries>>(`/admin/recurring-schedules/${id}`)
-  return res.data.data!
-}
-
-export const deleteBookingSeries = async (id: number): Promise<void> => {
-  await api.delete(`/admin/recurring-schedules/${id}`)
-}
-
-export const cancelFutureSessions = async (id: number, fromDate: string): Promise<void> => {
-  await api.post(`/admin/recurring-schedules/${id}/cancel-future`, { fromDate })
-}
-
-export const cancelSeriesSession = async (bookingId: number): Promise<void> => {
-  await api.delete(`/admin/recurring-schedules/sessions/${bookingId}`)
-}
-
-// ── Coach Weekly Schedule ────────────────────────────────────────────
-export const getCoachWeekSchedule = async (startDate: string): Promise<Booking[]> => {
-  const res = await api.get<ApiResponse<Booking[]>>(`/coach/schedule/week?startDate=${startDate}`)
-  return res.data.data ?? []
-}
-
 // ── Account: Change Password ─────────────────────────────────────────────────
 export const changePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
   await api.patch('/account/password', { currentPassword, newPassword })
 }
+
+export default api

@@ -14,6 +14,7 @@ public class TournamentWorkflowTeamResponse {
     private Long tournamentId;
     private Long teamId;
     private String teamName;
+    private String guestAccessToken;
     private String captainName;
     private String contactEmail;
     private String phone;
@@ -21,6 +22,9 @@ public class TournamentWorkflowTeamResponse {
     private String registrationStatus;
     private String paymentStatus;
     private String publicAccessUrl;
+    private boolean rosterSubmitted;
+    private String rosterFileName;
+    private java.time.LocalDateTime rosterSubmittedAt;
     private long playerCount;
     private List<TeamPlayerResponse> players;
 }

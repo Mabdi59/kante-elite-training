@@ -14,6 +14,7 @@ public class MediaPostResponse {
     private String mediaUrl;
     private MediaType mediaType;
     private String caption;
+    private String altText;
     private boolean featured;
     private boolean showOnHome;
     private boolean showOnAbout;

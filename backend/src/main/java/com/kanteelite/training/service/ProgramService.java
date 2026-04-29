@@ -33,6 +33,8 @@ public class ProgramService {
     private final ProgramParticipantRepository programParticipantRepository;
     private final UserRepository userRepository;
     private final PlayerProfileRepository playerProfileRepository;
+    private final NotificationService notificationService;
+    private final EmailService emailService;
 
     @Transactional(readOnly = true)
     public List<ProgramResponse> getAllActivePrograms() {
@@ -166,14 +168,20 @@ public class ProgramService {
             participant.setManualEmail(manualEmail);
         }
 
-        return toParticipantResponse(programParticipantRepository.save(participant));
+        ProgramParticipant saved = programParticipantRepository.save(participant);
+        ManagedParticipantResponse response = toParticipantResponse(saved);
+        notifyParticipantAssignment(program, response, true);
+        return response;
     }
 
     @Transactional
     public void removeParticipant(Long programId, Long participantId) {
         ProgramParticipant participant = programParticipantRepository.findByIdAndProgramId(participantId, programId)
                 .orElseThrow(() -> new ResourceNotFoundException("ProgramParticipant", participantId));
+        ManagedParticipantResponse participantResponse = toParticipantResponse(participant);
+        Program program = participant.getProgram();
         programParticipantRepository.delete(participant);
+        notifyParticipantAssignment(program, participantResponse, false);
     }
 
     @Transactional
@@ -270,5 +278,30 @@ public class ProgramService {
     private String normalizeEmail(String value) {
         String trimmed = trimToNull(value);
         return trimmed == null ? null : trimmed.toLowerCase(Locale.ROOT);
+    }
+
+    private void notifyParticipantAssignment(Program program, ManagedParticipantResponse participant, boolean added) {
+        if (!StringUtils.hasText(participant.getEmail())) {
+            return;
+        }
+
+        String title = added ? "Program assignment confirmed" : "Program assignment removed";
+        String body = added
+                ? "You have been added to " + program.getName() + "."
+                : "You have been removed from " + program.getName() + ".";
+
+        notificationService.send(
+                participant.getEmail(),
+                "PROGRAM_ASSIGNMENT",
+                title,
+                body,
+                "Program",
+                program.getId());
+
+        emailService.sendProgramParticipantEmail(
+                participant.getEmail(),
+                participant.getName(),
+                program.getName(),
+                added);
     }
 }

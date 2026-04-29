@@ -45,12 +45,14 @@ function formatStatusLabel(status: string) {
 }
 
 export default function StatusBadge({ status, className = '' }: Props) {
-  const cls = presets[status.toUpperCase()] ?? 'bg-gray-500/10 text-gray-400 border-gray-500/20'
+  const normalizedStatus = status?.trim() ? status.toUpperCase() : 'UNKNOWN'
+  const cls = presets[normalizedStatus] ?? 'bg-gray-500/10 text-gray-400 border-gray-500/20'
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${cls} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${cls} ${className}`}
     >
-      {formatStatusLabel(status)}
+      <span className="h-1.5 w-1.5 rounded-full bg-current opacity-80" />
+      {formatStatusLabel(normalizedStatus === 'UNKNOWN' ? 'UNKNOWN' : status)}
     </span>
   )
 }

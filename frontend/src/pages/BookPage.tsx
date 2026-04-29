@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import api, { createBookingCheckout, getAvailability, getPaymentsEnabled, getPrograms } from '../services/api'
 import type { ApiResponse, Program, AvailabilityData, BookingFormData, Booking } from '../types'
 import { useAuth } from '../context/AuthContext'
+import { getPortalDestination } from '../utils/portal'
 
 const experienceLevels = [
   { value: 'beginner', label: 'Beginner, just starting out' },
@@ -222,7 +223,7 @@ export default function BookPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  // Accept both ?program=slug-or-id (legacy) and ?programId=123 (from /schedule calendar)
+  // Accept both ?program=slug-or-id and ?programId=123 for direct or legacy booking links.
   const preselectedProgramId = searchParams.get('programId') ?? searchParams.get('program')
   const preselectedDate = searchParams.get('date') ?? ''
   const preselectedTime = searchParams.get('time') ?? ''
@@ -282,7 +283,8 @@ export default function BookPage() {
   useEffect(() => {
     if (!user) return
 
-    const shouldPrefillContactName = user.role === 'PARENT' || user.role === 'USER'
+    const shouldPrefillContactName =
+      user.role !== 'ADMIN' && user.role !== 'TEAM_CAPTAIN' && user.role !== 'COACH'
 
     setForm((prev) => ({
       ...prev,
@@ -293,14 +295,29 @@ export default function BookPage() {
 
   useEffect(() => {
     if (!selectedProgram || !form.bookingDate) return
+    let active = true
     setLoadingSlots(true)
     setAvailability(null)
     getAvailability(selectedProgram.id, form.bookingDate)
-      .then(setAvailability)
-      .catch(() => {
-        setError('Unable to load available time slots. Please try a different date or refresh.')
+      .then((nextAvailability) => {
+        if (active) {
+          setAvailability(nextAvailability)
+        }
       })
-      .finally(() => setLoadingSlots(false))
+      .catch(() => {
+        if (active) {
+          setError('Unable to load available time slots. Please try a different date or refresh.')
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoadingSlots(false)
+        }
+      })
+
+    return () => {
+      active = false
+    }
   }, [selectedProgram, form.bookingDate])
 
   useEffect(() => {
@@ -397,38 +414,9 @@ export default function BookPage() {
   ]
 
   const isTwoColumn = step >= 2 && selectedProgram !== null
-  const portalPath =
-    user?.role === 'ADMIN'
-      ? '/admin'
-      : user?.role === 'STAFF'
-        ? '/staff'
-        : user?.role === 'COACH'
-          ? '/coach'
-          : user?.role === 'TEAM_CAPTAIN'
-            ? '/captain'
-          : user?.role === 'PLAYER'
-            ? '/player'
-            : user?.role === 'PARENT'
-              ? '/parent'
-              : user?.role === 'USER'
-                ? '/user'
-              : null
-  const portalLabel =
-    user?.role === 'PLAYER'
-      ? 'Back to Player Portal'
-      : user?.role === 'PARENT'
-        ? 'Back to Parent Portal'
-        : user?.role === 'USER'
-          ? 'Back to Account Portal'
-        : user?.role === 'COACH'
-          ? 'Back to Coach Panel'
-          : user?.role === 'TEAM_CAPTAIN'
-            ? 'Back to Captain Portal'
-          : user?.role === 'STAFF'
-            ? 'Back to Staff Panel'
-            : user?.role === 'ADMIN'
-              ? 'Back to Admin Panel'
-              : ''
+  const portal = getPortalDestination(user?.role)
+  const portalPath = portal?.path ?? null
+  const portalLabel = portal?.returnLabel ?? ''
 
   return (
     <div className="min-h-screen bg-black px-4 pt-20 pb-16 md:pt-24">

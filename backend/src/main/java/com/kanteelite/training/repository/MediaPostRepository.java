@@ -13,10 +13,25 @@ import java.util.List;
 @Repository
 public interface MediaPostRepository extends JpaRepository<MediaPost, Long> {
 
-    @Query("select m from MediaPost m order by m.isFeatured desc, m.createdAt desc")
+    @Query("""
+        select m from MediaPost m
+        order by
+            m.isFeatured desc,
+            case when m.displayOrder > 0 then 0 else 1 end asc,
+            m.displayOrder asc,
+            m.createdAt desc
+        """)
     List<MediaPost> findAllForDisplay();
 
-    @Query("select m from MediaPost m where m.mediaCategory = :category order by m.isFeatured desc, m.createdAt desc")
+    @Query("""
+        select m from MediaPost m
+        where m.mediaCategory = :category
+        order by
+            m.isFeatured desc,
+            case when m.displayOrder > 0 then 0 else 1 end asc,
+            m.displayOrder asc,
+            m.createdAt desc
+        """)
     List<MediaPost> findByCategoryForDisplay(@Param("category") MediaCategory category);
 
     @Modifying
