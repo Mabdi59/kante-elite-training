@@ -54,5 +54,8 @@ public class EventRequest {
     @Size(max = 50)
     private String intensity;
 
+    @Size(max = 100)
+    private String coachName;
+
     private Integer displayOrder = 0;
 }

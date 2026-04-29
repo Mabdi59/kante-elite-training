@@ -75,6 +75,7 @@ export interface Event {
   status: string
   type: string
   intensity?: string
+  coachName?: string
   displayOrder: number
 }
 

@@ -28,5 +28,6 @@ public class EventResponse {
     private String status;
     private String type;
     private String intensity;
+    private String coachName;
     private Integer displayOrder;
 }

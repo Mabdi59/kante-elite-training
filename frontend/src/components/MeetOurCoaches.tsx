@@ -12,6 +12,7 @@ const coaches = [
     alt: 'Coach Kante – promo card. Former Division 2 player at Ohio Dominican University, G-MAC 2nd and 3rd team All-Conference honoree, Three-time team MVP, Somali National Team player, USSF licensed coach and founder of Kante Elite Training.',
     width: 720,
     height: 864,
+    ctaLabel: 'View Summer Training',
   },
   {
     name: 'Coach Tony',
@@ -20,6 +21,7 @@ const coaches = [
     alt: 'Coach Tony – Summer Training promo card. Former Division 1 player at Wright State University, Semi-Pro at Vagnharads VSK (Sweden) and Pittsburgh Riverhounds, USSF and UEFA licensed coach at Reynoldsburg High School.',
     width: 620,
     height: 713,
+    ctaLabel: 'View Summer Training',
   },
 ]
 
@@ -47,6 +49,13 @@ export default function MeetOurCoaches() {
           </h2>
           <p className="text-gray-400 mt-4 max-w-xl mx-auto text-base leading-relaxed">
             Elite experience. Real development. Built for players who want to improve.
+          </p>
+          <p className="text-gray-500 mt-2 max-w-lg mx-auto text-sm">
+            Coach Kante and Coach Tony work together across our summer training program —{' '}
+            <Link to="/events" className="text-amber-500 hover:underline">
+              see all summer camp dates
+            </Link>
+            .
           </p>
         </div>
 
@@ -91,12 +100,22 @@ export default function MeetOurCoaches() {
                   <p className="text-amber-400 text-xs font-semibold mt-0.5 uppercase tracking-widest">{coach.label}</p>
                 </div>
               </div>
+
+              {/* Per-coach CTA */}
+              <div className="px-5 py-4 border-t border-[#222] bg-[#0d0d0d]">
+                <Link
+                  to="/events"
+                  className="btn-primary w-full text-center text-sm py-2.5"
+                >
+                  {coach.ctaLabel}
+                </Link>
+              </div>
             </div>
           ))}
         </div>
 
-        {/* CTA */}
-        <div className="text-center mt-12">
+        {/* General CTA */}
+        <div className="text-center mt-10">
           <Link
             to="/book"
             className="btn-primary text-base px-10 py-4 gap-2"

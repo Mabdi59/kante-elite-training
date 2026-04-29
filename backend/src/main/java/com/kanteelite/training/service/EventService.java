@@ -97,6 +97,7 @@ public class EventService {
                 .status(normalizeStatus(req.getStatus()))
                 .type(req.getType())
                 .intensity(req.getIntensity())
+                .coachName(req.getCoachName())
                 .displayOrder(req.getDisplayOrder() != null ? req.getDisplayOrder() : 0)
                 .build();
         return toResponse(eventRepository.save(event));
@@ -120,6 +121,7 @@ public class EventService {
         event.setStatus(normalizeStatus(req.getStatus()));
         event.setType(req.getType());
         event.setIntensity(req.getIntensity());
+        event.setCoachName(req.getCoachName());
         if (req.getDisplayOrder() != null) event.setDisplayOrder(req.getDisplayOrder());
         Event saved = eventRepository.save(event);
         notifyEventLifecycle(saved, "updated", "Event details were updated. Please review your schedule.");
@@ -239,6 +241,7 @@ public class EventService {
                 .status(event.getStatus())
                 .type(event.getType())
                 .intensity(event.getIntensity())
+                .coachName(event.getCoachName())
                 .displayOrder(event.getDisplayOrder())
                 .build();
     }
