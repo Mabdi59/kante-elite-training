@@ -6,7 +6,11 @@ interface Props {
 export default function LoadingSpinner({ size = 'md', label }: Props) {
   const sizeClass = size === 'sm' ? 'w-5 h-5' : size === 'lg' ? 'w-10 h-10' : 'w-7 h-7'
   return (
-    <div className="animate-fade-in flex flex-col items-center justify-center gap-3 py-10 text-gray-500">
+    <div
+      role="status"
+      aria-live="polite"
+      className="animate-fade-in flex flex-col items-center justify-center gap-3 py-10 text-gray-500"
+    >
       <svg
         className={`${sizeClass} animate-spin`}
         xmlns="http://www.w3.org/2000/svg"
@@ -28,6 +32,7 @@ export default function LoadingSpinner({ size = 'md', label }: Props) {
         />
       </svg>
       {label ? <span className="text-sm font-medium tracking-wide">{label}</span> : null}
+      <span className="sr-only">{label ?? 'Loading'}</span>
     </div>
   )
 }

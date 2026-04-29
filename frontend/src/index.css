@@ -9,6 +9,7 @@
 
   html {
     scroll-behavior: smooth;
+    scroll-padding-top: calc(env(safe-area-inset-top) + 5.5rem);
     scrollbar-width: thin;
     scrollbar-color: #333 #0a0a0a;
     overflow-x: clip;
@@ -31,9 +32,11 @@
   body {
     @apply bg-black text-white;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    color-scheme: dark;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     letter-spacing: -0.01em;
+    text-rendering: optimizeLegibility;
     overflow-x: clip;
     min-width: 320px;
   }
@@ -86,21 +89,22 @@
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black font-extrabold px-8 py-3 rounded-lg transition-all duration-200 shadow-amber hover:shadow-amber-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] select-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-8 py-3 font-extrabold text-black shadow-amber transition-all duration-200 hover:-translate-y-0.5 hover:bg-amber-400 hover:shadow-amber-lg active:translate-y-0 active:scale-[0.98] select-none;
     letter-spacing: -0.01em;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center border-2 border-amber-500 text-amber-500 hover:bg-amber-500 hover:text-black font-extrabold px-8 py-3 rounded-lg transition-all duration-200 active:scale-[0.98] select-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border-2 border-amber-500 bg-transparent px-8 py-3 font-extrabold text-amber-500 transition-all duration-200 hover:-translate-y-0.5 hover:bg-amber-500 hover:text-black active:scale-[0.98] select-none;
     letter-spacing: -0.01em;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center text-gray-400 hover:text-white font-semibold px-4 py-2 rounded-lg transition-all duration-200 active:scale-[0.98] select-none;
+    @apply inline-flex items-center justify-center rounded-xl px-4 py-2 font-semibold text-gray-400 transition-all duration-200 hover:bg-white/[0.04] hover:text-white active:scale-[0.98] select-none;
   }
 
   .card {
-    @apply bg-surface-raised border border-surface-border rounded-xl overflow-hidden;
+    @apply overflow-hidden rounded-[24px] border border-surface-border bg-surface-raised;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
     transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
   }
 
@@ -374,6 +378,11 @@
   border-width: 0;
 }
 
+::selection {
+  background: rgba(245, 158, 11, 0.28);
+  color: #ffffff;
+}
+
 /* Global focus-visible for keyboard navigation */
 :focus-visible {
   outline: 2px solid #f59e0b;
@@ -401,6 +410,21 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

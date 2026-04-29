@@ -145,6 +145,8 @@ function formatSchedule(startAt?: string, endAt?: string) {
 
 export default function AdminProgramsWorkspacePage() {
   const [searchParams, setSearchParams] = useSearchParams()
+  const searchQueryParam = searchParams.get('q') ?? ''
+  const requestedProgramId = Number(searchParams.get('programId') ?? '')
   const [programs, setPrograms] = useState<Program[]>([])
   const [users, setUsers] = useState<AdminUser[]>([])
   const [players, setPlayers] = useState<PlayerProfile[]>([])
@@ -157,7 +159,7 @@ export default function AdminProgramsWorkspacePage() {
   const [saving, setSaving] = useState(false)
   const [participantSaving, setParticipantSaving] = useState(false)
   const [removingParticipantId, setRemovingParticipantId] = useState<number | null>(null)
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(searchQueryParam)
   const [selectedProgramId, setSelectedProgramId] = useState<number | null>(null)
   const [creatingNew, setCreatingNew] = useState(false)
   const [form, setForm] = useState<ProgramFormState>(emptyForm)
@@ -193,17 +195,27 @@ export default function AdminProgramsWorkspacePage() {
   }, [])
 
   useEffect(() => {
+    if (searchQueryParam !== search) {
+      setSearch(searchQueryParam)
+    }
+  }, [search, searchQueryParam])
+
+  useEffect(() => {
     setLoading(true)
     Promise.all([getAdminPrograms(), getAdminUsers(), getAdminPlayers()])
       .then(([programData, userData, playerData]) => {
         setPrograms(programData)
         setUsers(userData)
         setPlayers(playerData)
-        if (programData.length > 0) setSelectedProgramId(programData[0].id)
+        if (requestedProgramId && programData.some((program) => program.id === requestedProgramId)) {
+          setSelectedProgramId(requestedProgramId)
+        } else if (programData.length > 0) {
+          setSelectedProgramId(programData[0].id)
+        }
       })
       .catch(() => setError('Failed to load program scheduling.'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [requestedProgramId])
 
   useEffect(() => {
     if (creatingNew || selectedProgramId === null) {
@@ -249,6 +261,13 @@ export default function AdminProgramsWorkspacePage() {
     openCreate()
     setSearchParams({}, { replace: true })
   }, [searchParams, setSearchParams])
+
+  useEffect(() => {
+    if (!requestedProgramId || creatingNew) return
+    if (programs.some((program) => program.id === requestedProgramId) && requestedProgramId !== selectedProgramId) {
+      setSelectedProgramId(requestedProgramId)
+    }
+  }, [creatingNew, programs, requestedProgramId, selectedProgramId])
 
   const openProgram = (programId: number) => {
     setCreatingNew(false)

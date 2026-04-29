@@ -13,10 +13,13 @@ import ProgramCard from '../components/ProgramCard'
 import TestimonialCard from '../components/TestimonialCard'
 import EventCard from '../components/EventCard'
 import CTASection from '../components/CTASection'
+import MediaAsset from '../components/MediaAsset'
 import MediaPostCard from '../components/MediaPostCard'
 import MediaLightbox from '../components/MediaLightbox'
 import PublicProofBand from '../components/PublicProofBand'
+import { COACH_PROFILE_MEDIA, COACH_SPOTLIGHT_MEDIA } from '../content/mediaFallbacks'
 import { defaultWebsiteContent } from '../content/defaultWebsiteContent'
+import { getMediaAlt, sortMediaPosts } from '../utils/media'
 
 const stats = [
   { value: '100+', label: 'Players Trained' },
@@ -178,32 +181,29 @@ export default function HomePage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const heroMedia = mediaPosts.find((post) => post.featured) ?? null
-  const homeMediaPosts = mediaPosts.filter((post) => post.showOnHome).slice(0, 6)
+  const sortedMediaPosts = sortMediaPosts(mediaPosts, 'feed')
+  const heroMedia = sortedMediaPosts.find((post) => post.featured) ?? null
+  const homeMediaPosts = sortMediaPosts(
+    mediaPosts.filter((post) => post.showOnHome),
+    'home',
+  ).slice(0, 5)
+  const leadHomeMediaPost = homeMediaPosts[0] ?? null
+  const supportingHomeMediaPosts = homeMediaPosts.slice(1, 5)
 
   return (
     <div>
       <section className="relative flex min-h-[100svh] items-center overflow-hidden bg-black px-4 sm:min-h-[78vh]">
         {heroMedia ? (
           <div className="absolute inset-0">
-            {heroMedia.mediaType === 'VIDEO' ? (
-              <video
-                src={heroMedia.mediaUrl}
-                autoPlay
-                muted
-                loop
-                playsInline
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <img
-                src={heroMedia.mediaUrl}
-                alt={heroMedia.caption?.trim() || siteContent.homeHeadline || 'Kante Elite highlight'}
-                loading="eager"
-                fetchPriority="high"
-                className="h-full w-full object-cover animate-hero-zoom"
-              />
-            )}
+            <MediaAsset
+              src={heroMedia.mediaUrl}
+              type={heroMedia.mediaType}
+              alt={getMediaAlt(heroMedia, siteContent.homeHeadline || 'Kante Elite highlight')}
+              loading="eager"
+              fetchPriority="high"
+              playbackMode="hero"
+              className="h-full w-full object-cover animate-hero-zoom"
+            />
             <div className="absolute inset-0 bg-black/65" />
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(120,53,15,0.55)_0%,_transparent_68%)]" />
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/75" />
@@ -533,23 +533,54 @@ export default function HomePage() {
                 <SkeletonCard key={i} />
               ))}
             </div>
-          ) : homeMediaPosts.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-              {homeMediaPosts.map((post, index) => (
-                <button
-                  key={post.id}
-                  type="button"
-                  onClick={() => setActiveMediaIndex(index)}
-                  className="block h-full w-full text-left"
-                >
-                  <MediaPostCard
-                    post={post}
-                    className="h-full transition-colors hover:border-amber-500/30"
-                    imageLoading={index < 3 ? 'eager' : 'lazy'}
-                    imageFetchPriority={index < 2 ? 'high' : 'auto'}
-                  />
-                </button>
-              ))}
+          ) : homeMediaPosts.length > 0 && leadHomeMediaPost ? (
+            <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
+              <button
+                type="button"
+                onClick={() => setActiveMediaIndex(0)}
+                className="block h-full w-full text-left"
+              >
+                <MediaPostCard
+                  post={leadHomeMediaPost}
+                  className="h-full"
+                  aspectClassName="aspect-[16/10]"
+                  imageLoading="eager"
+                  imageFetchPriority="high"
+                />
+              </button>
+
+              <div className="grid gap-6">
+                <div className="rounded-[26px] border border-[#222] bg-[#111] p-6">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-400">
+                    Home highlights
+                  </p>
+                  <h3 className="mt-3 text-2xl font-black text-white">
+                    Real moments from the work players are doing each week
+                  </h3>
+                  <p className="mt-3 text-sm leading-relaxed text-gray-400">
+                    Open any highlight for a closer look at the details, tempo, and environment behind Kante Elite sessions.
+                  </p>
+                </div>
+
+                <div className="grid gap-6 sm:grid-cols-2">
+                  {supportingHomeMediaPosts.map((post, index) => (
+                    <button
+                      key={post.id}
+                      type="button"
+                      onClick={() => setActiveMediaIndex(index + 1)}
+                      className="block h-full w-full text-left"
+                    >
+                      <MediaPostCard
+                        post={post}
+                        className="h-full"
+                        aspectClassName="aspect-[4/3]"
+                        imageLoading={index === 0 ? 'eager' : 'lazy'}
+                        imageFetchPriority={index === 0 ? 'high' : 'auto'}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : (
             <div className="rounded-2xl border border-dashed border-[#2a2a2a] bg-[#0f0f0f] px-6 py-12 text-center">
@@ -603,9 +634,10 @@ export default function HomePage() {
         <div className="page-shell">
           <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
             <div className="relative order-2 min-h-80 overflow-hidden rounded-[1.75rem] border border-[#1e1e1e] bg-[#111] lg:order-1">
-              <img
-                src="/images/IMG_3599.jpeg"
-                alt="Coach Kante working with players during a session"
+              <MediaAsset
+                src={COACH_SPOTLIGHT_MEDIA.mediaUrl}
+                type={COACH_SPOTLIGHT_MEDIA.mediaType}
+                alt={getMediaAlt(COACH_SPOTLIGHT_MEDIA)}
                 loading="eager"
                 fetchPriority="high"
                 className="absolute inset-0 h-full w-full object-cover object-center"
@@ -615,9 +647,10 @@ export default function HomePage() {
               <div className="relative flex h-full items-end p-6 sm:p-8">
                 <div className="max-w-sm rounded-2xl border border-white/10 bg-black/65 p-5 backdrop-blur">
                   <div className="flex items-center gap-3">
-                    <img
-                      src="/images/Coach.png"
-                      alt="Coach Mohamed Sheik Kante"
+                    <MediaAsset
+                      src={COACH_PROFILE_MEDIA.mediaUrl}
+                      type={COACH_PROFILE_MEDIA.mediaType}
+                      alt={getMediaAlt(COACH_PROFILE_MEDIA)}
                       loading="eager"
                       fetchPriority="high"
                       className="h-14 w-14 rounded-full object-cover object-top ring-2 ring-amber-500"
@@ -628,7 +661,7 @@ export default function HomePage() {
                     </div>
                   </div>
                   <p className="mt-4 text-sm leading-relaxed text-gray-200">
-                    Focused coaching, clear standards, and sessions designed to carry into real match habits.
+                    Focused coaching, clear standards, and training designed to carry into real match habits.
                   </p>
                 </div>
               </div>

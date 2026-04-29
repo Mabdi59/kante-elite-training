@@ -3,10 +3,10 @@ import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import NotificationBell from './NotificationBell'
+import { getPortalDestination } from '../utils/portal'
 
 const navLinks = [
   { href: '/training', label: 'Programs' },
-  { href: '/schedule', label: 'Schedule' },
   { href: '/tournaments', label: 'Tournaments' },
   { href: '/events', label: 'Events' },
   { href: '/media', label: 'Media' },
@@ -19,23 +19,10 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
-  const { user, isAuthenticated, isAdmin, isCoach, logoutUser } = useAuth()
-  const portalPath =
-    user?.role === 'ADMIN'
-      ? '/admin'
-      : user?.role === 'STAFF'
-        ? '/staff'
-        : user?.role === 'COACH'
-          ? '/coach'
-          : user?.role === 'TEAM_CAPTAIN'
-            ? '/captain'
-            : user?.role === 'PLAYER'
-              ? '/player'
-              : user?.role === 'PARENT'
-                ? '/parent'
-                : user?.role === 'USER'
-                  ? '/user'
-                  : '/account'
+  const { user, isAuthenticated, isAdmin, logoutUser } = useAuth()
+  const portal = getPortalDestination(user?.role)
+  const portalPath = portal?.path ?? '/account'
+  const portalLabel = portal?.navLabel ?? user?.name?.split(' ')[0] ?? 'Account'
   const currentLabel =
     location.pathname === '/'
       ? ''
@@ -76,7 +63,6 @@ export default function Navbar() {
             src="/images/464169962_1489362111765457_2497551385302895846_n.jpg"
             alt="Kante Elite Training logo"
             loading="eager"
-            fetchPriority="high"
             className="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-amber-500"
           />
           <div>
@@ -111,19 +97,14 @@ export default function Navbar() {
         <div className="hidden items-center gap-3 lg:flex">
           {isAuthenticated ? (
             <>
-              {isAdmin && (
+              <Link to={portalPath} className="text-sm font-semibold text-gray-300 hover:text-white">
+                {portalLabel}
+              </Link>
+              {isAdmin ? (
                 <Link to="/admin" className="text-sm font-semibold text-amber-500 hover:text-amber-400">
                   Admin
                 </Link>
-              )}
-              {isCoach && !isAdmin && (
-                <Link to="/coach" className="text-sm font-semibold text-amber-500 hover:text-amber-400">
-                  Coach
-                </Link>
-              )}
-              <Link to={portalPath} className="text-sm font-semibold text-gray-300 hover:text-white">
-                {user?.name?.split(' ')[0] || 'Account'}
-              </Link>
+              ) : null}
               <NotificationBell />
               <button
                 type="button"
@@ -218,7 +199,7 @@ export default function Navbar() {
                     to={portalPath}
                     className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-base font-semibold text-white"
                   >
-                    My Account
+                    {portalLabel}
                   </Link>
                   {isAdmin ? (
                     <Link
@@ -226,14 +207,6 @@ export default function Navbar() {
                       className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-4 text-base font-semibold text-amber-400"
                     >
                       Admin Panel
-                    </Link>
-                  ) : null}
-                  {isCoach && !isAdmin ? (
-                    <Link
-                      to="/coach"
-                      className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-4 text-base font-semibold text-amber-400"
-                    >
-                      Coach Panel
                     </Link>
                   ) : null}
                   <button

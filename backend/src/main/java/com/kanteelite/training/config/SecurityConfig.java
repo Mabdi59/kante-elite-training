@@ -42,6 +42,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
+            .httpBasic(AbstractHttpConfigurer::disable)
+            .formLogin(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .exceptionHandling(ex -> ex
@@ -56,19 +58,29 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 // Public read endpoints
                 .requestMatchers(HttpMethod.GET, "/api/programs/**").permitAll()
+                .requestMatchers(HttpMethod.HEAD, "/api/programs/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
+                .requestMatchers(HttpMethod.HEAD, "/api/events/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/content/**").permitAll()
+                .requestMatchers(HttpMethod.HEAD, "/api/content/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/media/**").permitAll()
+                .requestMatchers(HttpMethod.HEAD, "/api/media/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/uploads/**").permitAll()
+                .requestMatchers(HttpMethod.HEAD, "/api/uploads/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/testimonials/**").permitAll()
+                .requestMatchers(HttpMethod.HEAD, "/api/testimonials/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/availability/**").permitAll()
+                .requestMatchers(HttpMethod.HEAD, "/api/availability/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/tournaments/*/registrations").hasAnyRole("ADMIN", "STAFF")
                 // Token-based registration access is public (opaque token acts as credential)
                 .requestMatchers("/api/tournaments/registrations/access/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/tournaments/**").permitAll()
+                .requestMatchers(HttpMethod.HEAD, "/api/tournaments/**").permitAll()
                 // Public write endpoints
                 .requestMatchers(HttpMethod.POST, "/api/bookings").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/contact").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/events/*/register").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/events/*/requests").permitAll()
                 // Team registration requires authentication
                 .requestMatchers(HttpMethod.POST, "/api/teams/register").authenticated()
                 // Admin-only: tournament mutations and admin panel
@@ -110,9 +122,7 @@ public class SecurityConfig {
                 // Calendar (iCal endpoint uses opaque token, not guessable email)
                 .requestMatchers(HttpMethod.GET, "/api/calendar/ical/*.ics").permitAll()
                 .requestMatchers("/api/calendar/**").authenticated()
-                // Search
-                .requestMatchers("/api/search/**").hasAnyRole("ADMIN", "STAFF", "COACH")
-                // Reports
+                // Dashboard trend reporting
                 .requestMatchers("/api/admin/reports/**").hasRole("ADMIN")
                 // Progress notes
                 .requestMatchers("/api/coach/progress-notes/**").hasAnyRole("ADMIN", "COACH")

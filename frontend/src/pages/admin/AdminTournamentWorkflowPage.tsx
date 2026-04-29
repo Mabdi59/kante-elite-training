@@ -3,6 +3,7 @@ import FormatSelector from '../../components/FormatSelector'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   bulkCreateTournamentTeamPlayers,
+  buildTournamentRosterDownloadUrl,
   createAdminTournamentRegistration,
   createTournament,
   createTournamentMatch,
@@ -1107,26 +1108,62 @@ export default function AdminTournamentWorkflowPage() {
 
             {workflow.teams.length === 0 ? <EmptyState title="No teams yet" description="Add teams before you move into player rosters and scheduling." /> : (
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                {workflow.teams.map((team) => (
-                  <div key={team.teamId} className="bg-gray-950 border border-gray-800 rounded-xl p-4 space-y-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="text-white font-bold">{team.teamName}</div>
-                        <div className="text-gray-400 text-sm">{team.captainName}, {team.contactEmail}</div>
+                {workflow.teams.map((team) => {
+                  const rosterDownloadUrl = team.guestAccessToken
+                    ? buildTournamentRosterDownloadUrl(team.guestAccessToken)
+                    : null
+
+                  return (
+                    <div key={team.teamId} className="bg-gray-950 border border-gray-800 rounded-xl p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="text-white font-bold">{team.teamName}</div>
+                          <div className="text-gray-400 text-sm">{team.captainName}, {team.contactEmail}</div>
+                        </div>
+                        <div className="flex gap-2">
+                          <StatusBadge status={team.registrationStatus} />
+                          {team.paymentStatus ? <StatusBadge status={team.paymentStatus} /> : null}
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        <StatusBadge status={team.registrationStatus} />
-                        {team.paymentStatus ? <StatusBadge status={team.paymentStatus} /> : null}
+                      <div className="space-y-1 text-xs text-gray-500">
+                        <div>{team.playerCount} players added</div>
+                        {team.clubName ? <div>Club: {team.clubName}</div> : null}
+                        <div>
+                          {team.rosterSubmitted ? 'Roster submitted' : 'Roster pending'}
+                          {team.rosterFileName ? ` · ${team.rosterFileName}` : ''}
+                        </div>
+                        {team.rosterSubmittedAt ? (
+                          <div>Updated {new Date(team.rosterSubmittedAt).toLocaleString()}</div>
+                        ) : null}
+                      </div>
+                      <div className="flex gap-2 flex-wrap">
+                        {team.publicAccessUrl ? (
+                          <a
+                            href={team.publicAccessUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-xs"
+                          >
+                            Open Portal
+                          </a>
+                        ) : null}
+                        {rosterDownloadUrl ? (
+                          <a
+                            href={rosterDownloadUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 px-3 py-1.5 rounded-lg text-xs"
+                          >
+                            Download Roster
+                          </a>
+                        ) : null}
+                        <button type="button" onClick={() => openRegistrationEditor(team)} className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg text-xs">Edit</button>
+                        <button type="button" onClick={() => { setSelectedTeamId(team.teamId); setStep('players') }} className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 px-3 py-1.5 rounded-lg text-xs">Players</button>
+                        <button type="button" onClick={async () => { if (!window.confirm(`Delete ${team.teamName}?`)) return; await deleteAdminTournamentRegistration(team.registrationId); await loadWorkflow(tournamentId!) }} className="bg-red-500/10 hover:bg-red-500/20 text-red-400 px-3 py-1.5 rounded-lg text-xs">Delete</button>
                       </div>
                     </div>
-                    <div className="text-gray-500 text-xs">{team.playerCount} players added</div>
-                    <div className="flex gap-2 flex-wrap">
-                      <button type="button" onClick={() => openRegistrationEditor(team)} className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg text-xs">Edit</button>
-                      <button type="button" onClick={() => { setSelectedTeamId(team.teamId); setStep('players') }} className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 px-3 py-1.5 rounded-lg text-xs">Players</button>
-                      <button type="button" onClick={async () => { if (!window.confirm(`Delete ${team.teamName}?`)) return; await deleteAdminTournamentRegistration(team.registrationId); await loadWorkflow(tournamentId!) }} className="bg-red-500/10 hover:bg-red-500/20 text-red-400 px-3 py-1.5 rounded-lg text-xs">Delete</button>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </>

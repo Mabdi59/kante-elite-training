@@ -1,35 +1,29 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
-import MainLayout from './layouts/MainLayout'
-import AdminLayout from './layouts/ResponsiveAdminLayout'
-import CoachPanelLayout from './layouts/CoachPanelLayout'
-import StaffLayout from './layouts/StaffLayout'
-import ParentLayout from './layouts/ParentLayout'
-import PlayerLayout from './layouts/PlayerLayout'
-import CaptainLayout from './layouts/CaptainLayout'
-import UserLayout from './layouts/UserLayout'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
-import ScrollToTop from './components/ScrollToTop'
-import LoadingSpinner from './components/LoadingSpinner'
 import CanonicalMeta from './components/CanonicalMeta'
 import CookieConsentBanner from './components/CookieConsentBanner'
+import LoadingSpinner from './components/LoadingSpinner'
+import ScrollToTop from './components/ScrollToTop'
+import MainLayout from './layouts/MainLayout'
+import AdminLayout from './layouts/ResponsiveAdminLayout'
+import CaptainLayout from './layouts/CaptainLayout'
+import { getPortalDestination } from './utils/portal'
 
-// Public pages — eagerly loaded for fast initial render
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 
-// All other pages are lazy-loaded for code splitting
 const TrainingPage = lazy(() => import('./pages/TrainingPage'))
 const EventsPage = lazy(() => import('./pages/EventsPage'))
+const EventRegisterPage = lazy(() => import('./pages/EventRegisterPage'))
 const ResultsPage = lazy(() => import('./pages/ResultsPage'))
 const MediaPage = lazy(() => import('./pages/MediaPage'))
 const AboutPage = lazy(() => import('./pages/AboutMediaPage'))
 const ContactPage = lazy(() => import('./pages/ContactPage'))
 const BookPage = lazy(() => import('./pages/BookPage'))
 const BookingSuccessPage = lazy(() => import('./pages/BookingSuccessPage'))
-const PublicAvailabilityPage = lazy(() => import('./pages/PublicAvailabilityPage'))
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
 const AccountPage = lazy(() => import('./pages/AccountPage'))
@@ -39,13 +33,12 @@ const PublicTeamRegisterPage = lazy(() => import('./pages/PublicTeamRegisterPage
 const TournamentRegistrationDashboardPage = lazy(
   () => import('./pages/TournamentRegistrationDashboardPage'),
 )
-
-// Legal / compliance pages
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'))
 const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage'))
 const CancellationPolicyPage = lazy(() => import('./pages/CancellationPolicyPage'))
 const CookiePolicyPage = lazy(() => import('./pages/CookiePolicyPage'))
 const AccessibilityPage = lazy(() => import('./pages/AccessibilityPage'))
+const FaqPage = lazy(() => import('./pages/FaqPage'))
 
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'))
 const AdminBookingsPage = lazy(() => import('./pages/admin/AdminBookingsPage'))
@@ -59,88 +52,56 @@ const AdminTestimonialsPage = lazy(() => import('./pages/admin/AdminTestimonials
 const AdminMessagesPage = lazy(() => import('./pages/admin/AdminMessagesPage'))
 const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'))
 const AdminAvailabilityPage = lazy(() => import('./pages/admin/AdminAvailabilityPage'))
-const AdminAuditLogsPage = lazy(() => import('./pages/admin/AdminAuditLogsPage'))
-const AdminCoachesPage = lazy(() => import('./pages/admin/AdminCoachesPage'))
-const AdminPlayersPage = lazy(() => import('./pages/admin/AdminPlayersPage'))
-
-const CoachDashboardPage = lazy(() => import('./pages/coach/CoachDashboardPage'))
-const CoachSessionsManagerPage = lazy(() => import('./pages/coach/CoachSessionsManagerPage'))
-const CoachAvailabilityPage = lazy(() => import('./pages/coach/CoachAvailabilityPage'))
-const CoachProfilePage = lazy(() => import('./pages/coach/CoachProfilePage'))
-
-const StaffDashboardPage = lazy(() => import('./pages/staff/StaffDashboardPage'))
-const StaffBookingsPage = lazy(() => import('./pages/staff/StaffBookingsPage'))
-const StaffMessagesPage = lazy(() => import('./pages/staff/StaffMessagesPage'))
-const StaffAvailabilityPage = lazy(() => import('./pages/staff/StaffAvailabilityPage'))
-const StaffTournamentsPage = lazy(() => import('./pages/staff/StaffTournamentsPage'))
-const StaffPlayersPage = lazy(() => import('./pages/staff/StaffPlayersPage'))
-
-const ParentDashboardPage = lazy(() => import('./pages/parent/ParentDashboardPage'))
-const ParentBookingsPage = lazy(() => import('./pages/parent/ParentBookingsPage'))
-const ParentPlayersPage = lazy(() => import('./pages/parent/ParentPlayersPage'))
-
-const UserDashboardPage = lazy(() => import('./pages/user/UserDashboardPage'))
-const UserBookingsPage = lazy(() => import('./pages/user/UserBookingsPage'))
-const UserPlayersPage = lazy(() => import('./pages/user/UserPlayersPage'))
-
-const PlayerDashboardPage = lazy(() => import('./pages/player/PlayerDashboardPage'))
-const PlayerSessionsPage = lazy(() => import('./pages/player/PlayerSessionsPage'))
-const PlayerProfilePage = lazy(() => import('./pages/player/PlayerProfilePage'))
-
-const CaptainDashboardPage = lazy(() => import('./pages/captain/CaptainDashboardPage'))
-const CaptainTournamentsPage = lazy(() => import('./pages/captain/CaptainTournamentsPage'))
-const CaptainRegistrationsPage = lazy(() => import('./pages/captain/CaptainRegistrationsPage'))
-const CaptainPlayersPage = lazy(() => import('./pages/captain/CaptainPlayersPage'))
-
-// New CRM pages
-const MessagesPage = lazy(() => import('./pages/MessagesPage'))
-const WaiversPage = lazy(() => import('./pages/WaiversPage'))
-const DocumentsPage = lazy(() => import('./pages/DocumentsPage'))
-const CalendarPage = lazy(() => import('./pages/CalendarPage'))
-const EnrollmentsPage = lazy(() => import('./pages/EnrollmentsPage'))
-const CoachAttendancePage = lazy(() => import('./pages/coach/CoachAttendancePage'))
-const PlayerDevelopmentPage = lazy(() => import('./pages/player/PlayerDevelopmentPage'))
-const ParentDevelopmentPage = lazy(() => import('./pages/parent/ParentDevelopmentPage'))
-const AdminAttendancePage = lazy(() => import('./pages/admin/AdminAttendancePage'))
-const AdminEnrollmentsPage = lazy(() => import('./pages/admin/AdminEnrollmentsPage'))
-const AdminReportsPage = lazy(() => import('./pages/admin/AdminReportsPage'))
-const AdminWaiversPage = lazy(() => import('./pages/admin/AdminWaiversPage'))
-const AdminSearchPage = lazy(() => import('./pages/admin/AdminSearchPage'))
-const AdminFamiliesPage = lazy(() => import('./pages/admin/AdminFamiliesPage'))
-const AdminFamilyOnboardingPage = lazy(() => import('./pages/admin/AdminFamilyOnboardingPage'))
-const AdminFamilyDetailPage = lazy(() => import('./pages/admin/AdminFamilyDetailPage'))
-const AdminRecurringSchedulePage = lazy(() => import('./pages/admin/AdminRecurringSchedulePage'))
-const AdminRecurringScheduleNewPage = lazy(() => import('./pages/admin/AdminRecurringScheduleNewPage'))
-const AdminWeeklyCalendarPage = lazy(() => import('./pages/admin/AdminWeeklyCalendarPage'))
-
 const AdminPaymentsPage = lazy(() => import('./pages/admin/AdminPaymentsPage'))
 
-// Phase 6 pages
-const PaymentHistoryPage = lazy(() => import('./pages/PaymentHistoryPage'))
-const CoachProgressNotesPage = lazy(() => import('./pages/coach/CoachProgressNotesPage'))
-const FaqPage = lazy(() => import('./pages/FaqPage'))
+const CaptainTournamentsPage = lazy(() => import('./pages/captain/CaptainTournamentsPage'))
+const CaptainRegistrationsPage = lazy(() => import('./pages/captain/CaptainRegistrationsPage'))
 
 function PageLoader() {
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
-      <LoadingSpinner label="Loading…" />
+    <div className="flex min-h-screen items-center justify-center bg-black">
+      <LoadingSpinner label="Loading..." />
     </div>
   )
 }
 
 function NotFoundPage() {
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4 text-center">
+    <div className="flex min-h-screen items-center justify-center bg-black px-4 text-center">
       <div>
-        <div className="w-20 h-20 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-6"><svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg></div>
-        <h1 className="text-white font-black text-5xl mb-4">404</h1>
-        <p className="text-gray-400 text-lg mb-8">Page not found.</p>
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-amber-500/20 bg-amber-500/10">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-10 w-10 text-amber-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"
+            />
+          </svg>
+        </div>
+        <h1 className="mb-4 text-5xl font-black text-white">404</h1>
+        <p className="mb-8 text-lg text-gray-400">Page not found.</p>
         <a href="/" className="btn-primary">
           Back to Home
         </a>
       </div>
     </div>
   )
+}
+
+function LegacyPortalRedirect() {
+  const { user } = useAuth()
+  return <Navigate to={getPortalDestination(user?.role)?.path ?? '/account'} replace />
+}
+
+function AdminRedirect() {
+  return <Navigate to="/admin" replace />
 }
 
 export default function App() {
@@ -172,6 +133,14 @@ export default function App() {
               element={
                 <MainLayout>
                   <EventsPage />
+                </MainLayout>
+              }
+            />
+            <Route
+              path="/events/:id/register"
+              element={
+                <MainLayout>
+                  <EventRegisterPage />
                 </MainLayout>
               }
             />
@@ -223,7 +192,14 @@ export default function App() {
                 </MainLayout>
               }
             />
-            <Route path="/tournaments/:id/register" element={<MainLayout><PublicTeamRegisterPage /></MainLayout>} />
+            <Route
+              path="/tournaments/:id/register"
+              element={
+                <MainLayout>
+                  <PublicTeamRegisterPage />
+                </MainLayout>
+              }
+            />
             <Route
               path="/tournaments/registration/:token"
               element={
@@ -234,15 +210,57 @@ export default function App() {
             />
             <Route path="/book" element={<BookPage />} />
             <Route path="/book/success" element={<BookingSuccessPage />} />
-            <Route path="/schedule" element={<MainLayout><PublicAvailabilityPage /></MainLayout>} />
-            <Route path="/sessions" element={<Navigate to="/schedule" replace />} />
+            <Route path="/schedule" element={<Navigate to="/book" replace />} />
+            <Route path="/sessions" element={<Navigate to="/book" replace />} />
 
-            {/* Legal / compliance pages */}
-            <Route path="/privacy" element={<MainLayout><PrivacyPolicyPage /></MainLayout>} />
-            <Route path="/terms" element={<MainLayout><TermsOfServicePage /></MainLayout>} />
-            <Route path="/cancellation-policy" element={<MainLayout><CancellationPolicyPage /></MainLayout>} />
-            <Route path="/cookie-policy" element={<MainLayout><CookiePolicyPage /></MainLayout>} />
-            <Route path="/accessibility" element={<MainLayout><AccessibilityPage /></MainLayout>} />
+            <Route
+              path="/privacy"
+              element={
+                <MainLayout>
+                  <PrivacyPolicyPage />
+                </MainLayout>
+              }
+            />
+            <Route
+              path="/terms"
+              element={
+                <MainLayout>
+                  <TermsOfServicePage />
+                </MainLayout>
+              }
+            />
+            <Route
+              path="/cancellation-policy"
+              element={
+                <MainLayout>
+                  <CancellationPolicyPage />
+                </MainLayout>
+              }
+            />
+            <Route
+              path="/cookie-policy"
+              element={
+                <MainLayout>
+                  <CookiePolicyPage />
+                </MainLayout>
+              }
+            />
+            <Route
+              path="/accessibility"
+              element={
+                <MainLayout>
+                  <AccessibilityPage />
+                </MainLayout>
+              }
+            />
+            <Route
+              path="/faq"
+              element={
+                <MainLayout>
+                  <FaqPage />
+                </MainLayout>
+              }
+            />
 
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -259,105 +277,10 @@ export default function App() {
             />
 
             <Route
-              path="/parent"
-              element={
-                <ProtectedRoute requireRole="PARENT">
-                  <ParentLayout>
-                    <ParentDashboardPage />
-                  </ParentLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/parent/bookings"
-              element={
-                <ProtectedRoute requireRole="PARENT">
-                  <ParentLayout>
-                    <ParentBookingsPage />
-                  </ParentLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/parent/players"
-              element={
-                <ProtectedRoute requireRole="PARENT">
-                  <ParentLayout>
-                    <ParentPlayersPage />
-                  </ParentLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/user"
-              element={
-                <ProtectedRoute requireRole="USER">
-                  <UserLayout>
-                    <UserDashboardPage />
-                  </UserLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/user/bookings"
-              element={
-                <ProtectedRoute requireRole="USER">
-                  <UserLayout>
-                    <UserBookingsPage />
-                  </UserLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/user/players"
-              element={
-                <ProtectedRoute requireRole="USER">
-                  <UserLayout>
-                    <UserPlayersPage />
-                  </UserLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/player"
-              element={
-                <ProtectedRoute requireRole="PLAYER">
-                  <PlayerLayout>
-                    <PlayerDashboardPage />
-                  </PlayerLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/player/sessions"
-              element={
-                <ProtectedRoute requireRole="PLAYER">
-                  <PlayerLayout>
-                    <PlayerSessionsPage />
-                  </PlayerLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/player/profile"
-              element={
-                <ProtectedRoute requireRole="PLAYER">
-                  <PlayerLayout>
-                    <PlayerProfilePage />
-                  </PlayerLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
               path="/captain"
               element={
                 <ProtectedRoute requireRoles={['TEAM_CAPTAIN', 'COACH']}>
-                  <CaptainLayout>
-                    <CaptainDashboardPage />
-                  </CaptainLayout>
+                  <LegacyPortalRedirect />
                 </ProtectedRoute>
               }
             />
@@ -381,105 +304,100 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-
             <Route
-              path="/coach"
+              path="/captain/*"
               element={
-                <ProtectedRoute requireRole="COACH">
-                  <CoachPanelLayout>
-                    <CoachDashboardPage />
-                  </CoachPanelLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/coach/sessions"
-              element={
-                <ProtectedRoute requireRole="COACH">
-                  <CoachPanelLayout>
-                    <CoachSessionsManagerPage />
-                  </CoachPanelLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/coach/availability"
-              element={
-                <ProtectedRoute requireRole="COACH">
-                  <CoachPanelLayout>
-                    <CoachAvailabilityPage />
-                  </CoachPanelLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/coach/profile"
-              element={
-                <ProtectedRoute requireRole="COACH">
-                  <CoachPanelLayout>
-                    <CoachProfilePage />
-                  </CoachPanelLayout>
+                <ProtectedRoute requireRoles={['TEAM_CAPTAIN', 'COACH']}>
+                  <LegacyPortalRedirect />
                 </ProtectedRoute>
               }
             />
 
             <Route
-              path="/staff"
+              path="/coach/*"
               element={
-                <ProtectedRoute requireRole="STAFF">
-                  <StaffLayout>
-                    <StaffDashboardPage />
-                  </StaffLayout>
+                <ProtectedRoute requireRoles={['COACH', 'TEAM_CAPTAIN']}>
+                  <LegacyPortalRedirect />
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/staff/bookings"
+              path="/staff/*"
               element={
-                <ProtectedRoute requireRole="STAFF">
-                  <StaffLayout>
-                    <StaffBookingsPage />
-                  </StaffLayout>
+                <ProtectedRoute>
+                  <LegacyPortalRedirect />
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/staff/messages"
+              path="/player/*"
               element={
-                <ProtectedRoute requireRole="STAFF">
-                  <StaffLayout>
-                    <StaffMessagesPage />
-                  </StaffLayout>
+                <ProtectedRoute>
+                  <LegacyPortalRedirect />
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/staff/availability"
+              path="/parent/*"
               element={
-                <ProtectedRoute requireRole="STAFF">
-                  <StaffLayout>
-                    <StaffAvailabilityPage />
-                  </StaffLayout>
+                <ProtectedRoute>
+                  <LegacyPortalRedirect />
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/staff/tournaments"
+              path="/user/*"
               element={
-                <ProtectedRoute requireRole="STAFF">
-                  <StaffLayout>
-                    <StaffTournamentsPage />
-                  </StaffLayout>
+                <ProtectedRoute>
+                  <LegacyPortalRedirect />
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/staff/players"
+              path="/messages"
               element={
-                <ProtectedRoute requireRole="STAFF">
-                  <StaffLayout>
-                    <StaffPlayersPage />
-                  </StaffLayout>
+                <ProtectedRoute>
+                  <LegacyPortalRedirect />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/waivers"
+              element={
+                <ProtectedRoute>
+                  <LegacyPortalRedirect />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/documents"
+              element={
+                <ProtectedRoute>
+                  <LegacyPortalRedirect />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/calendar"
+              element={
+                <ProtectedRoute>
+                  <LegacyPortalRedirect />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/enrollments"
+              element={
+                <ProtectedRoute>
+                  <LegacyPortalRedirect />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/payments"
+              element={
+                <ProtectedRoute>
+                  <LegacyPortalRedirect />
                 </ProtectedRoute>
               }
             />
@@ -500,6 +418,16 @@ export default function App() {
                 <ProtectedRoute requireAdmin>
                   <AdminLayout>
                     <AdminBookingsPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/availability"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminAvailabilityPage />
                   </AdminLayout>
                 </ProtectedRoute>
               }
@@ -555,36 +483,6 @@ export default function App() {
               }
             />
             <Route
-              path="/admin/coaches"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <AdminLayout>
-                    <AdminCoachesPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/players"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <AdminLayout>
-                    <AdminPlayersPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/availability"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <AdminLayout>
-                    <AdminAvailabilityPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/admin/content"
               element={
                 <ProtectedRoute requireAdmin>
@@ -635,36 +533,6 @@ export default function App() {
               }
             />
             <Route
-              path="/admin/audit-logs"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <AdminLayout>
-                    <AdminAuditLogsPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/attendance"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <AdminLayout>
-                    <AdminAttendancePage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/enrollments"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <AdminLayout>
-                    <AdminEnrollmentsPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/admin/payments"
               element={
                 <ProtectedRoute requireAdmin>
@@ -675,452 +543,10 @@ export default function App() {
               }
             />
             <Route
-              path="/admin/reports"
+              path="/admin/*"
               element={
                 <ProtectedRoute requireAdmin>
-                  <AdminLayout>
-                    <AdminReportsPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/waivers"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <AdminLayout>
-                    <AdminWaiversPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/search"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <AdminLayout>
-                    <AdminSearchPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/families"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <AdminLayout>
-                    <AdminFamiliesPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/families/onboard"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <AdminLayout>
-                    <AdminFamilyOnboardingPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/families/:id"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <AdminLayout>
-                    <AdminFamilyDetailPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/recurring-schedules"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <AdminLayout>
-                    <AdminRecurringSchedulePage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/recurring-schedules/new"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <AdminLayout>
-                    <AdminRecurringScheduleNewPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/admin/weekly-calendar"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <AdminLayout>
-                    <AdminWeeklyCalendarPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/coach/attendance"
-              element={
-                <ProtectedRoute requireRole="COACH">
-                  <CoachPanelLayout>
-                    <CoachAttendancePage />
-                  </CoachPanelLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/player/development"
-              element={
-                <ProtectedRoute requireRole="PLAYER">
-                  <PlayerLayout>
-                    <PlayerDevelopmentPage />
-                  </PlayerLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/parent/development"
-              element={
-                <ProtectedRoute requireRole="PARENT">
-                  <ParentLayout>
-                    <ParentDevelopmentPage />
-                  </ParentLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/messages"
-              element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <MessagesPage />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/waivers"
-              element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <WaiversPage />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/documents"
-              element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <DocumentsPage />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/calendar"
-              element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <CalendarPage />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/enrollments"
-              element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <EnrollmentsPage />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Phase 6 routes */}
-            <Route path="/faq" element={<MainLayout><FaqPage /></MainLayout>} />
-
-            <Route
-              path="/coach/notes"
-              element={
-                <ProtectedRoute requireRole="COACH">
-                  <CoachPanelLayout>
-                    <CoachProgressNotesPage />
-                  </CoachPanelLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/user/messages"
-              element={
-                <ProtectedRoute requireRole="USER">
-                  <UserLayout>
-                    <MessagesPage />
-                  </UserLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/user/calendar"
-              element={
-                <ProtectedRoute requireRole="USER">
-                  <UserLayout>
-                    <CalendarPage />
-                  </UserLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/user/waivers"
-              element={
-                <ProtectedRoute requireRole="USER">
-                  <UserLayout>
-                    <WaiversPage />
-                  </UserLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/user/documents"
-              element={
-                <ProtectedRoute requireRole="USER">
-                  <UserLayout>
-                    <DocumentsPage />
-                  </UserLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/user/enrollments"
-              element={
-                <ProtectedRoute requireRole="USER">
-                  <UserLayout>
-                    <EnrollmentsPage />
-                  </UserLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/user/payments"
-              element={
-                <ProtectedRoute requireRole="USER">
-                  <UserLayout>
-                    <PaymentHistoryPage />
-                  </UserLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/parent/messages"
-              element={
-                <ProtectedRoute requireRole="PARENT">
-                  <ParentLayout>
-                    <MessagesPage />
-                  </ParentLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/parent/calendar"
-              element={
-                <ProtectedRoute requireRole="PARENT">
-                  <ParentLayout>
-                    <CalendarPage />
-                  </ParentLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/parent/waivers"
-              element={
-                <ProtectedRoute requireRole="PARENT">
-                  <ParentLayout>
-                    <WaiversPage />
-                  </ParentLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/parent/documents"
-              element={
-                <ProtectedRoute requireRole="PARENT">
-                  <ParentLayout>
-                    <DocumentsPage />
-                  </ParentLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/parent/enrollments"
-              element={
-                <ProtectedRoute requireRole="PARENT">
-                  <ParentLayout>
-                    <EnrollmentsPage />
-                  </ParentLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/parent/payments"
-              element={
-                <ProtectedRoute requireRole="PARENT">
-                  <ParentLayout>
-                    <PaymentHistoryPage />
-                  </ParentLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/player/calendar"
-              element={
-                <ProtectedRoute requireRole="PLAYER">
-                  <PlayerLayout>
-                    <CalendarPage />
-                  </PlayerLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/player/payments"
-              element={
-                <ProtectedRoute requireRole="PLAYER">
-                  <PlayerLayout>
-                    <PaymentHistoryPage />
-                  </PlayerLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/player/waivers"
-              element={
-                <ProtectedRoute requireRole="PLAYER">
-                  <PlayerLayout>
-                    <WaiversPage />
-                  </PlayerLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/player/documents"
-              element={
-                <ProtectedRoute requireRole="PLAYER">
-                  <PlayerLayout>
-                    <DocumentsPage />
-                  </PlayerLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Player – messages */}
-            <Route
-              path="/player/messages"
-              element={
-                <ProtectedRoute requireRole="PLAYER">
-                  <PlayerLayout>
-                    <MessagesPage />
-                  </PlayerLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Staff – calendar / waivers / documents / enrollments / attendance */}
-            <Route
-              path="/staff/calendar"
-              element={
-                <ProtectedRoute requireRoles={['STAFF', 'ADMIN']}>
-                  <StaffLayout>
-                    <CalendarPage />
-                  </StaffLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/staff/waivers"
-              element={
-                <ProtectedRoute requireRoles={['STAFF', 'ADMIN']}>
-                  <StaffLayout>
-                    <WaiversPage />
-                  </StaffLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/staff/documents"
-              element={
-                <ProtectedRoute requireRoles={['STAFF', 'ADMIN']}>
-                  <StaffLayout>
-                    <DocumentsPage />
-                  </StaffLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/staff/enrollments"
-              element={
-                <ProtectedRoute requireRoles={['STAFF', 'ADMIN']}>
-                  <StaffLayout>
-                    <EnrollmentsPage />
-                  </StaffLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/staff/attendance"
-              element={
-                <ProtectedRoute requireRoles={['STAFF', 'ADMIN']}>
-                  <StaffLayout>
-                    <CoachAttendancePage />
-                  </StaffLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Captain – messages / calendar / players */}
-            <Route
-              path="/captain/messages"
-              element={
-                <ProtectedRoute requireRoles={['TEAM_CAPTAIN', 'COACH']}>
-                  <CaptainLayout>
-                    <MessagesPage />
-                  </CaptainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/captain/calendar"
-              element={
-                <ProtectedRoute requireRoles={['TEAM_CAPTAIN', 'COACH']}>
-                  <CaptainLayout>
-                    <CalendarPage />
-                  </CaptainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/captain/players"
-              element={
-                <ProtectedRoute requireRoles={['TEAM_CAPTAIN', 'COACH']}>
-                  <CaptainLayout>
-                    <CaptainPlayersPage />
-                  </CaptainLayout>
+                  <AdminRedirect />
                 </ProtectedRoute>
               }
             />

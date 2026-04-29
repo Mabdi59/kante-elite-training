@@ -41,9 +41,14 @@ public class ProgramEnrollmentService {
         ProgramEnrollment saved = enrollmentRepository.save(enrollment);
         auditLogService.log(enrolledBy, "ENROLL", "ProgramEnrollment", saved.getId(),
                 "Enrolled " + request.getPlayerEmail() + " in " + program.getName());
-        notificationService.send(request.getPlayerEmail(), "ENROLLMENT",
+        String recipientEmail = resolveRecipientEmail(saved);
+        notificationService.send(recipientEmail, "ENROLLMENT",
                 "Enrollment Confirmed", "You have been enrolled in " + program.getName(),
                 "Program", program.getId());
+        emailService.sendEnrollmentCreatedEmail(
+                recipientEmail,
+                saved.getPlayerName() != null ? saved.getPlayerName() : saved.getPlayerEmail(),
+                saved.getProgram().getName());
         return toResponse(saved);
     }
 
@@ -73,7 +78,14 @@ public class ProgramEnrollmentService {
         enrollment.setStatus(status);
         ProgramEnrollment saved = enrollmentRepository.save(enrollment);
         auditLogService.log(actorEmail, "UPDATE_STATUS", "ProgramEnrollment", id, "Status -> " + status);
-        String recipientEmail = saved.getParentEmail() != null ? saved.getParentEmail() : saved.getPlayerEmail();
+        String recipientEmail = resolveRecipientEmail(saved);
+        notificationService.send(
+                recipientEmail,
+                "ENROLLMENT_STATUS",
+                "Enrollment status updated",
+                "Enrollment status for " + saved.getProgram().getName() + " is now " + status.name().toLowerCase(Locale.ROOT) + ".",
+                "ProgramEnrollment",
+                saved.getId());
         emailService.sendEnrollmentStatusEmail(
                 recipientEmail,
                 saved.getPlayerName() != null ? saved.getPlayerName() : saved.getPlayerEmail(),
@@ -89,6 +101,19 @@ public class ProgramEnrollmentService {
         enrollment.setPaymentStatus(paymentStatus);
         ProgramEnrollment saved = enrollmentRepository.save(enrollment);
         auditLogService.log(actorEmail, "UPDATE_PAYMENT", "ProgramEnrollment", id, "Payment -> " + paymentStatus);
+        String recipientEmail = resolveRecipientEmail(saved);
+        notificationService.send(
+                recipientEmail,
+                "ENROLLMENT_PAYMENT",
+                "Payment status updated",
+                "Payment status for " + saved.getProgram().getName() + " is now " + paymentStatus.name().toLowerCase(Locale.ROOT) + ".",
+                "ProgramEnrollment",
+                saved.getId());
+        emailService.sendEnrollmentPaymentStatusEmail(
+                recipientEmail,
+                saved.getPlayerName() != null ? saved.getPlayerName() : saved.getPlayerEmail(),
+                saved.getProgram().getName(),
+                paymentStatus.name());
         return toResponse(saved);
     }
 
@@ -161,5 +186,9 @@ public class ProgramEnrollmentService {
 
     private String normalizeEmail(String email) {
         return email == null || email.isBlank() ? null : email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String resolveRecipientEmail(ProgramEnrollment enrollment) {
+        return enrollment.getParentEmail() != null ? enrollment.getParentEmail() : enrollment.getPlayerEmail();
     }
 }

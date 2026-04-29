@@ -31,6 +31,9 @@ public class MediaPost {
     @Column(columnDefinition = "TEXT")
     private String caption;
 
+    @Column(name = "alt_text", length = 255)
+    private String altText;
+
     @Builder.Default
     @Column(name = "is_featured", nullable = false)
     private boolean isFeatured = false;

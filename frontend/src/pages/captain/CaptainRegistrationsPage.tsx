@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import {
+  buildTournamentRosterDownloadUrl,
   createTournamentPaymentCheckout,
   deleteCaptainRegistration,
   getCaptainRegistrations,
@@ -20,6 +21,7 @@ import LoadingSpinner from '../../components/LoadingSpinner'
 import EmptyState from '../../components/EmptyState'
 import ErrorBanner from '../../components/ErrorBanner'
 import StatusBadge from '../../components/StatusBadge'
+import { formatTournamentDateRange } from '../../utils/tournament'
 
 const emptyForm: TeamRegistrationFormData = {
   teamName: '',
@@ -308,6 +310,15 @@ export default function CaptainRegistrationsPage() {
     workspace?.registration.paymentStatus === 'PAID' ||
     workspace?.registration.paymentStatus === 'NOT_REQUIRED'
   const canSubmitManualPayment = !!workspace?.paymentRequired && !paymentComplete
+  const rosterDownloadUrl = workspace?.registration.guestAccessToken
+    ? buildTournamentRosterDownloadUrl(workspace.registration.guestAccessToken)
+    : null
+  const workspaceTournamentDate = workspace
+    ? formatTournamentDateRange(
+        workspace.registration.tournamentStartDate,
+        workspace.registration.tournamentEndDate,
+      )
+    : 'To be confirmed'
 
   return (
     <div className="space-y-6">
@@ -482,9 +493,7 @@ export default function CaptainRegistrationsPage() {
                     </div>
                     <div className="bg-black/40 border border-[#1f1f1f] rounded-xl p-4">
                       <p className="text-gray-500 mb-1">Tournament Date</p>
-                      <p className="text-white font-semibold">
-                        {workspace.registration.tournamentStartDate ?? 'To be confirmed'}
-                      </p>
+                      <p className="text-white font-semibold">{workspaceTournamentDate}</p>
                     </div>
                     <div className="bg-black/40 border border-[#1f1f1f] rounded-xl p-4">
                       <p className="text-gray-500 mb-1">Captain</p>
@@ -618,7 +627,19 @@ export default function CaptainRegistrationsPage() {
                   {workspace.rosterFileName || workspace.rosterSubmittedAt ? (
                     <div className="bg-black/40 border border-[#1f1f1f] rounded-xl p-4 mb-5 text-sm">
                       {workspace.rosterFileName ? (
-                        <p className="text-white font-semibold">Current file: {workspace.rosterFileName}</p>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <p className="text-white font-semibold">Current file: {workspace.rosterFileName}</p>
+                          {rosterDownloadUrl ? (
+                            <a
+                              href={rosterDownloadUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-sm font-semibold text-amber-400 hover:text-amber-300"
+                            >
+                              Download
+                            </a>
+                          ) : null}
+                        </div>
                       ) : null}
                       {workspace.rosterSubmittedAt ? (
                         <p className="text-gray-400 mt-1">Last updated: {workspace.rosterSubmittedAt}</p>
@@ -716,66 +737,88 @@ export default function CaptainRegistrationsPage() {
         />
       ) : (
         <div className="space-y-4">
-          {registrations.map((registration) => (
-            <div key={registration.id} className="bg-[#111] border border-[#222] rounded-xl p-5">
-              <div className="flex items-start justify-between gap-4 flex-wrap">
-                <div>
-                  <div className="flex items-center gap-3 mb-2 flex-wrap">
-                    <p className="text-white font-semibold text-lg">{registration.teamName}</p>
-                    <StatusBadge status={registration.status} />
-                    {registration.paymentStatus ? <StatusBadge status={registration.paymentStatus} /> : null}
-                  </div>
-                  <p className="text-gray-400 text-sm">
-                    {registration.tournamentName}
-                    {registration.tournamentLocation ? `, ${registration.tournamentLocation}` : ''}
-                  </p>
-                  {registration.tournamentStartDate ? (
-                    <p className="text-gray-500 text-sm mt-1">
-                      Tournament date: {registration.tournamentStartDate}
-                    </p>
-                  ) : null}
-                  <p className="text-gray-500 text-sm mt-1">
-                    Captain: {registration.captainName}, {registration.contactEmail}
-                  </p>
-                  {registration.phone ? (
-                    <p className="text-gray-500 text-sm">Phone: {registration.phone}</p>
-                  ) : null}
-                  {registration.clubName ? (
-                    <p className="text-gray-500 text-sm">Club: {registration.clubName}</p>
-                  ) : null}
-                  {registration.rosterSubmitted ? (
-                    <p className="text-gray-500 text-sm">Roster on file</p>
-                  ) : null}
-                </div>
+          {registrations.map((registration) => {
+            const registrationRosterDownloadUrl =
+              registration.guestAccessToken && registration.rosterFileName
+                ? buildTournamentRosterDownloadUrl(registration.guestAccessToken)
+                : null
 
-                <div className="flex gap-2 flex-wrap">
-                  <button
-                    type="button"
-                    onClick={() => void openWorkspace(registration)}
-                    className={`rounded-lg px-4 py-2 text-sm border ${
-                      workspaceId === registration.id
-                        ? 'text-white border-white/30 bg-white/10'
-                        : 'text-gray-300 border-gray-600 hover:bg-[#1a1a1a]'
-                    }`}
-                  >
-                    {workspaceId === registration.id ? 'Workspace Open' : 'Open Workspace'}
-                  </button>
-                  <button
-                    onClick={() => startEdit(registration)}
-                    className="text-orange-400 border border-orange-400/30 hover:bg-orange-400/10 rounded-lg px-4 py-2 text-sm"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(registration.id)}
-                    className="text-red-400 border border-red-400/30 hover:bg-red-400/10 rounded-lg px-4 py-2 text-sm"
-                  >
-                    Remove
-                  </button>
+            return (
+              <div key={registration.id} className="bg-[#111] border border-[#222] rounded-xl p-5">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <div>
+                    <div className="flex items-center gap-3 mb-2 flex-wrap">
+                      <p className="text-white font-semibold text-lg">{registration.teamName}</p>
+                      <StatusBadge status={registration.status} />
+                      {registration.paymentStatus ? <StatusBadge status={registration.paymentStatus} /> : null}
+                    </div>
+                    <p className="text-gray-400 text-sm">
+                      {registration.tournamentName}
+                      {registration.tournamentLocation ? `, ${registration.tournamentLocation}` : ''}
+                    </p>
+                    {registration.tournamentStartDate ? (
+                      <p className="text-gray-500 text-sm mt-1">
+                        Tournament date: {formatTournamentDateRange(registration.tournamentStartDate, registration.tournamentEndDate)}
+                      </p>
+                    ) : null}
+                    <p className="text-gray-500 text-sm mt-1">
+                      Captain: {registration.captainName}, {registration.contactEmail}
+                    </p>
+                    {registration.phone ? (
+                      <p className="text-gray-500 text-sm">Phone: {registration.phone}</p>
+                    ) : null}
+                    {registration.clubName ? (
+                      <p className="text-gray-500 text-sm">Club: {registration.clubName}</p>
+                    ) : null}
+                    {registration.rosterSubmitted ? (
+                      <p className="text-gray-500 text-sm">Roster on file</p>
+                    ) : null}
+                    {registration.rosterFileName ? (
+                      <div className="mt-1 flex flex-wrap items-center gap-3 text-sm">
+                        <span className="text-gray-500">{registration.rosterFileName}</span>
+                        {registrationRosterDownloadUrl ? (
+                          <a
+                            href={registrationRosterDownloadUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-semibold text-amber-400 hover:text-amber-300"
+                          >
+                            Download roster
+                          </a>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="flex gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => void openWorkspace(registration)}
+                      className={`rounded-lg px-4 py-2 text-sm border ${
+                        workspaceId === registration.id
+                          ? 'text-white border-white/30 bg-white/10'
+                          : 'text-gray-300 border-gray-600 hover:bg-[#1a1a1a]'
+                      }`}
+                    >
+                      {workspaceId === registration.id ? 'Workspace Open' : 'Open Workspace'}
+                    </button>
+                    <button
+                      onClick={() => startEdit(registration)}
+                      className="text-orange-400 border border-orange-400/30 hover:bg-orange-400/10 rounded-lg px-4 py-2 text-sm"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(registration.id)}
+                      className="text-red-400 border border-red-400/30 hover:bg-red-400/10 rounded-lg px-4 py-2 text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

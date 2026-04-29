@@ -8,9 +8,6 @@ interface AuthContextValue {
   refreshToken: string | null
   isAuthenticated: boolean
   isAdmin: boolean
-  isCoach: boolean
-  isStaff: boolean
-  isPlayer: boolean
   loginUser: (token: string, refreshToken: string, user: AuthUser) => void
   logoutUser: () => void
   updateTokens: (token: string, refreshToken: string) => void
@@ -18,25 +15,42 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
+function readStoredSession() {
+  const token = localStorage.getItem('token')
+  const refreshToken = localStorage.getItem('refreshToken')
+  const storedUser = localStorage.getItem('user')
+
+  if (!storedUser) {
+    return { token, refreshToken, user: null as AuthUser | null }
+  }
+
+  try {
+    return {
+      token,
+      refreshToken,
+      user: JSON.parse(storedUser) as AuthUser,
+    }
+  } catch {
+    localStorage.removeItem('token')
+    localStorage.removeItem('refreshToken')
+    localStorage.removeItem('user')
+    return { token: null, refreshToken: null, user: null as AuthUser | null }
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'))
-  const [refreshToken, setRefreshToken] = useState<string | null>(() =>
-    localStorage.getItem('refreshToken'),
-  )
-  const [user, setUser] = useState<AuthUser | null>(() => {
-    const stored = localStorage.getItem('user')
-    return stored ? (JSON.parse(stored) as AuthUser) : null
-  })
+  const initialSession = readStoredSession()
+  const [token, setToken] = useState<string | null>(() => initialSession.token)
+  const [refreshToken, setRefreshToken] = useState<string | null>(() => initialSession.refreshToken)
+  const [user, setUser] = useState<AuthUser | null>(() => initialSession.user)
 
   useEffect(() => {
     const syncFromStorage = () => {
-      const nextToken = localStorage.getItem('token')
-      const nextRefreshToken = localStorage.getItem('refreshToken')
-      const storedUser = localStorage.getItem('user')
+      const nextSession = readStoredSession()
 
-      setToken(nextToken)
-      setRefreshToken(nextRefreshToken)
-      setUser(storedUser ? (JSON.parse(storedUser) as AuthUser) : null)
+      setToken(nextSession.token)
+      setRefreshToken(nextSession.refreshToken)
+      setUser(nextSession.user)
     }
 
     window.addEventListener('storage', syncFromStorage)
@@ -81,9 +95,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         refreshToken,
         isAuthenticated: !!token,
         isAdmin: user?.role === 'ADMIN',
-        isCoach: user?.role === 'COACH' || user?.role === 'ADMIN',
-        isStaff: user?.role === 'STAFF' || user?.role === 'ADMIN',
-        isPlayer: user?.role === 'PLAYER' || user?.role === 'ADMIN',
         loginUser,
         logoutUser,
         updateTokens,

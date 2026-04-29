@@ -27,6 +27,7 @@ public class AdminMediaController {
     public ResponseEntity<ApiResponse<MediaPostResponse>> createMediaPost(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "caption", required = false) String caption,
+            @RequestParam(value = "altText", required = false) String altText,
             @RequestParam(value = "category", required = false) String category,
             @AuthenticationPrincipal UserDetails principal) {
         MediaCategory mediaCategory = null;
@@ -37,7 +38,7 @@ public class AdminMediaController {
                 throw new IllegalArgumentException("Invalid media category: " + category);
             }
         }
-        MediaPostResponse created = mediaPostService.createPost(file, caption, mediaCategory);
+        MediaPostResponse created = mediaPostService.createPost(file, caption, altText, mediaCategory);
         String actor = principal != null ? principal.getUsername() : "admin";
         auditLogService.log(actor, "CREATE", "MediaPost", created.getId(), "Uploaded media post.");
         return ResponseEntity.status(HttpStatus.CREATED)

@@ -4,15 +4,24 @@ import { getTournaments } from '../services/api'
 import type { Tournament } from '../types'
 import StatusBadge from '../components/StatusBadge'
 import CTASection from '../components/CTASection'
+import {
+  formatTournamentDate,
+  formatTournamentDateRange,
+  getTournamentRegistrationState,
+} from '../utils/tournament'
 
 const POLL_INTERVAL_MS = 60_000
 
 function TournamentCard({ tournament: t }: { tournament: Tournament }) {
-  const spotsLeft = t.maxTeams - t.registeredTeams
-  const isDeadlinePassed =
-    t.registrationDeadline ? new Date(t.registrationDeadline) < new Date() : false
-  const canRegister =
-    spotsLeft > 0 && t.status !== 'COMPLETED' && t.status !== 'CANCELLED' && !isDeadlinePassed
+  const registrationState = getTournamentRegistrationState(t)
+  const spotsLeft = registrationState.spotsLeft
+  const canRegister = registrationState.canRegister
+  const cardCtaLabel =
+    t.status === 'COMPLETED'
+      ? 'View Results'
+      : t.status === 'CANCELLED'
+        ? 'Cancelled'
+        : registrationState.unavailableLabel ?? 'View Tournament'
 
   return (
     <Link
@@ -24,6 +33,7 @@ function TournamentCard({ tournament: t }: { tournament: Tournament }) {
         <div>
           <h3 className="text-white text-xl font-black leading-tight group-hover:text-amber-400 transition-colors">{t.name}</h3>
           <p className="text-gray-400 text-sm mt-0.5">{t.location}</p>
+          <p className="text-gray-500 text-xs mt-1">{formatTournamentDateRange(t.startDate, t.endDate)}</p>
         </div>
         <StatusBadge status={t.status} className="ml-2 shrink-0 mt-0.5" />
       </div>
@@ -50,24 +60,18 @@ function TournamentCard({ tournament: t }: { tournament: Tournament }) {
       {/* Details */}
       <div className="space-y-2 text-sm text-gray-400 mb-4 flex-1">
         <div className="flex justify-between">
-          <span>Start Date</span>
-          <span className="text-white">{t.startDate}</span>
+          <span>Dates</span>
+          <span className="text-right text-white">{formatTournamentDateRange(t.startDate, t.endDate)}</span>
         </div>
-        {t.endDate && t.endDate !== t.startDate && (
-          <div className="flex justify-between">
-            <span>End Date</span>
-            <span className="text-white">{t.endDate}</span>
-          </div>
-        )}
-        {t.registrationDeadline && (
+        {t.registrationDeadline ? (
           <div className="flex justify-between">
             <span>Reg. Deadline</span>
-            <span className={isDeadlinePassed ? 'text-red-400' : 'text-white'}>
-              {t.registrationDeadline}
-              {isDeadlinePassed && ' (closed)'}
+            <span className={registrationState.isDeadlinePassed ? 'text-red-400' : 'text-white'}>
+              {formatTournamentDate(t.registrationDeadline)}
+              {registrationState.isDeadlinePassed ? ' (closed)' : ''}
             </span>
           </div>
-        )}
+        ) : null}
         <div className="flex justify-between">
           <span>Teams Registered</span>
           <span className="text-white">{t.registeredTeams} / {t.maxTeams}</span>
@@ -90,13 +94,7 @@ function TournamentCard({ tournament: t }: { tournament: Tournament }) {
         </div>
       ) : (
         <div className="w-full text-center bg-[#1a1a1a] border border-[#2a2a2a] text-gray-500 font-semibold py-2.5 rounded-xl text-sm">
-          {t.status === 'COMPLETED'
-            ? 'View Results'
-            : t.status === 'CANCELLED'
-            ? 'Cancelled'
-            : isDeadlinePassed
-            ? 'View Tournament'
-            : 'Team Spots Full'}
+          {cardCtaLabel}
         </div>
       )}
     </Link>
@@ -144,9 +142,9 @@ export default function TournamentsPage() {
   ).sort((a, b) => a.startDate.localeCompare(b.startDate))
 
   const closingSoon = activeTournaments.filter((t) => {
-    if (!t.registrationDeadline) return false
+    if (!t.registrationDeadline || !getTournamentRegistrationState(t).canRegister) return false
     const today = new Date()
-    const deadline = new Date(t.registrationDeadline)
+    const deadline = new Date(`${t.registrationDeadline}T23:59:59`)
     const diffDays = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
     return diffDays >= 0 && diffDays <= 7
   })
@@ -213,7 +211,7 @@ export default function TournamentsPage() {
             <p className="text-lg font-semibold text-white mb-2">
               {filterStatus ? `No ${filterStatus.toLowerCase()} tournaments` : 'No upcoming tournaments'}
             </p>
-            <p className="text-sm">Check back soon for upcoming events.</p>
+            <p className="text-sm">New tournament listings will appear here as registration opens.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">

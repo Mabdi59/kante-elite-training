@@ -19,7 +19,4 @@ public interface CoachProfileRepository extends JpaRepository<CoachProfile, Long
     List<CoachProfile> findByActiveTrueOrderByCreatedAtDesc();
     List<CoachProfile> findAllByOrderByCreatedAtDesc();
     long countByActiveTrue();
-
-    @Query("SELECT c FROM CoachProfile c JOIN c.user u WHERE LOWER(u.name) LIKE LOWER(CONCAT('%', :q, '%')) OR LOWER(COALESCE(c.bio, '')) LIKE LOWER(CONCAT('%', :q, '%')) OR LOWER(COALESCE(c.specialties, '')) LIKE LOWER(CONCAT('%', :q, '%')) ORDER BY u.name ASC")
-    List<CoachProfile> searchByQuery(@Param("q") String q, org.springframework.data.domain.Pageable pageable);
 }

@@ -4,6 +4,7 @@ import { getPublicTournamentView } from '../services/api'
 import type { StandingEntry, TournamentMatch, TournamentWorkflow, TournamentWorkflowTeam } from '../types'
 import PageSkeleton from '../components/PageSkeleton'
 import StatusBadge from '../components/StatusBadge'
+import { formatTournamentDate, getTournamentRegistrationState } from '../utils/tournament'
 
 type Tab = 'overview' | 'teams' | 'schedule' | 'standings' | 'bracket'
 
@@ -62,9 +63,7 @@ export default function TournamentDetailPage() {
   }
 
   const t = data.tournament
-  const spotsLeft = t.maxTeams - t.registeredTeams
-  const isDeadlinePassed = t.registrationDeadline ? new Date(t.registrationDeadline) < new Date() : false
-  const canRegister = spotsLeft > 0 && t.status !== 'COMPLETED' && t.status !== 'CANCELLED' && !isDeadlinePassed
+  const registrationState = getTournamentRegistrationState(t)
 
   return (
     <div className="bg-black pt-20 pb-32 sm:pb-36 md:pb-16">
@@ -96,7 +95,7 @@ export default function TournamentDetailPage() {
               <p className="text-gray-400">{t.location}</p>
             </div>
             <div className="w-full shrink-0 md:w-auto">
-              {canRegister ? (
+              {registrationState.canRegister ? (
                 <Link
                   to={`/tournaments/${t.id}/register`}
                   className="btn-primary block w-full text-center md:w-auto"
@@ -105,7 +104,7 @@ export default function TournamentDetailPage() {
                 </Link>
               ) : (
                 <div className="w-full rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] px-6 py-3 text-center text-sm font-semibold text-gray-500 md:w-auto">
-                  {t.status === 'COMPLETED' ? 'Tournament Ended' : t.status === 'CANCELLED' ? 'Cancelled' : isDeadlinePassed ? 'Registration Closed' : 'Team Spots Full'}
+                  {registrationState.unavailableLabel ?? 'Registration Unavailable'}
                 </div>
               )}
             </div>
@@ -113,18 +112,18 @@ export default function TournamentDetailPage() {
 
           {/* Quick stats */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8">
-            <StatCard label="Start Date" value={formatDate(t.startDate)} />
-            {t.endDate && t.endDate !== t.startDate && <StatCard label="End Date" value={formatDate(t.endDate)} />}
+            <StatCard label="Start Date" value={formatTournamentDate(t.startDate)} />
+            {t.endDate && t.endDate !== t.startDate ? <StatCard label="End Date" value={formatTournamentDate(t.endDate)} /> : null}
             <StatCard
               label="Teams"
               value={`${t.registeredTeams} / ${t.maxTeams}`}
-              color={spotsLeft > 3 ? 'text-green-400' : spotsLeft > 0 ? 'text-yellow-400' : 'text-red-400'}
+              color={registrationState.spotsLeft > 3 ? 'text-green-400' : registrationState.spotsLeft > 0 ? 'text-yellow-400' : 'text-red-400'}
             />
             {t.registrationDeadline && (
               <StatCard
                 label="Reg. Deadline"
-                value={formatDate(t.registrationDeadline)}
-                color={isDeadlinePassed ? 'text-red-400' : 'text-white'}
+                value={formatTournamentDate(t.registrationDeadline)}
+                color={registrationState.isDeadlinePassed ? 'text-red-400' : 'text-white'}
               />
             )}
             {(t.entryFee ?? 0) > 0 && <StatCard label="Entry Fee" value={`$${t.entryFee}`} color="text-yellow-400" />}
@@ -169,27 +168,6 @@ export default function TournamentDetailPage() {
   )
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function formatDate(d?: string | null) {
-  if (!d) return '|'
-  try {
-    // Parse as local date by splitting the date string to avoid UTC offset shifts
-    const parts = d.split('-').map(Number)
-    const year = parts[0]
-    const month = parts[1]
-    const day = parts[2]
-    if (!year || !month || !day || isNaN(year) || isNaN(month) || isNaN(day)) return d
-    return new Date(year, month - 1, day).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
-  } catch {
-    return d
-  }
-}
-
 function formatType(t?: string | null) {
   if (!t) return 'Round Robin'
   return t.replace('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase())
@@ -223,9 +201,9 @@ function OverviewTab({ tournament: t }: { tournament: TournamentWorkflow['tourna
             ['Age Group', t.ageGroup],
             ['Division', t.division],
             ['Format', formatType(t.formatType)],
-            ['Start Date', formatDate(t.startDate)],
-            ['End Date', formatDate(t.endDate)],
-            ['Registration Deadline', formatDate(t.registrationDeadline)],
+            ['Start Date', formatTournamentDate(t.startDate)],
+            ['End Date', t.endDate ? formatTournamentDate(t.endDate) : null],
+            ['Registration Deadline', t.registrationDeadline ? formatTournamentDate(t.registrationDeadline) : null],
             ['Max Teams', String(t.maxTeams)],
             ['Entry Fee', (t.entryFee ?? 0) > 0 ? `$${t.entryFee}` : 'Free'],
             ['Match Duration', t.matchDurationMinutes ? `${t.matchDurationMinutes} minutes` : null],
@@ -248,9 +226,6 @@ function OverviewTab({ tournament: t }: { tournament: TournamentWorkflow['tourna
 // ─── Teams Tab ────────────────────────────────────────────────────────────────
 
 function TeamsTab({ teams }: { teams: TournamentWorkflowTeam[] }) {
-  const approved = teams.filter((t) => t.registrationStatus === 'APPROVED')
-  const others = teams.filter((t) => t.registrationStatus !== 'APPROVED')
-
   if (teams.length === 0) {
     return (
       <div className="text-center py-16 text-gray-500">
@@ -259,30 +234,23 @@ function TeamsTab({ teams }: { teams: TournamentWorkflowTeam[] }) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
           </svg>
         </div>
-        <p className="text-white font-semibold">No teams registered yet</p>
-        <p className="text-sm mt-1">Be the first team to register for this tournament.</p>
+        <p className="text-white font-semibold">No confirmed teams published yet</p>
+        <p className="text-sm mt-1">Teams will appear here after registrations are approved.</p>
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      {approved.length > 0 && (
-        <section>
-          <h2 className="text-white font-black text-xl mb-4">Confirmed Teams ({approved.length})</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {approved.map((team) => <TeamCard key={team.teamId} team={team} />)}
-          </div>
-        </section>
-      )}
-      {others.length > 0 && (
-        <section>
-          <h2 className="text-white font-black text-xl mb-4">Pending / Waitlisted ({others.length})</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {others.map((team) => <TeamCard key={team.teamId} team={team} />)}
-          </div>
-        </section>
-      )}
+      <section>
+        <h2 className="text-white font-black text-xl mb-2">Confirmed Teams</h2>
+        <p className="text-gray-500 text-sm mb-4">
+          Public listings show approved teams only.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {teams.map((team) => <TeamCard key={team.teamId} team={team} />)}
+        </div>
+      </section>
     </div>
   )
 }
@@ -292,25 +260,12 @@ function TeamCard({ team }: { team: TournamentWorkflowTeam }) {
     <div className="bg-[#111] border border-[#222] rounded-xl p-5">
       <div className="flex items-start justify-between gap-2 mb-3">
         <p className="text-white font-bold">{team.teamName}</p>
-        <StatusBadge status={team.registrationStatus} />
+        <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-400">
+          Confirmed
+        </span>
       </div>
       {team.clubName && <p className="text-gray-500 text-xs mb-1">{team.clubName}</p>}
-      <p className="text-gray-400 text-sm">{team.captainName}</p>
-      <p className="text-gray-500 text-xs mt-2">{team.playerCount} players</p>
-      {team.players && team.players.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-[#222] space-y-1">
-          {team.players.slice(0, 6).map((p) => (
-            <div key={p.id} className="flex items-center gap-2 text-xs text-gray-400">
-              {p.jerseyNumber && <span className="text-gray-600 w-5 text-right">#{p.jerseyNumber}</span>}
-              <span className={p.captain ? 'text-amber-400 font-semibold' : ''}>{p.fullName}{p.captain ? ' (C)' : ''}</span>
-              {p.position && <span className="text-gray-600">· {p.position}</span>}
-            </div>
-          ))}
-          {team.players.length > 6 && (
-            <p className="text-gray-600 text-xs">+{team.players.length - 6} more</p>
-          )}
-        </div>
-      )}
+      <p className="text-gray-400 text-sm">Roster size: {team.playerCount} players</p>
     </div>
   )
 }
@@ -374,7 +329,7 @@ function MatchRow({ match: m }: { match: TournamentMatch }) {
         {/* Meta */}
         <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 sm:text-sm">
           {m.roundName && <span>{m.roundName}</span>}
-          {m.matchDate && <span>{formatDate(m.matchDate)}</span>}
+          {m.matchDate && <span>{formatTournamentDate(m.matchDate)}</span>}
           {m.kickoffTime && <span>{m.kickoffTime.slice(0, 5)}</span>}
           {m.venue && <span>{m.venue}</span>}
           {m.fieldName && <span>· {m.fieldName}</span>}

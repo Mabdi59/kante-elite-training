@@ -1,5 +1,6 @@
 package com.kanteelite.training.service;
 
+import com.kanteelite.training.exception.ResourceNotFoundException;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,6 +58,26 @@ public class TournamentRegistrationFileStorageService {
                 .build();
     }
 
+    public StoredFileResource loadStoredDocument(
+            String relativePath,
+            String originalFileName,
+            String contentType) {
+        if (!StringUtils.hasText(relativePath)) {
+            throw new ResourceNotFoundException("Roster file not found.");
+        }
+
+        Path resolved = rootDirectory.resolve(relativePath).normalize();
+        if (!resolved.startsWith(rootDirectory) || !Files.exists(resolved) || !Files.isRegularFile(resolved)) {
+            throw new ResourceNotFoundException("Roster file not found.");
+        }
+
+        return StoredFileResource.builder()
+                .path(resolved)
+                .fileName(StringUtils.hasText(originalFileName) ? originalFileName : resolved.getFileName().toString())
+                .contentType(normalizeContentType(contentType))
+                .build();
+    }
+
     private String normalizeContentType(String contentType) {
         if (!StringUtils.hasText(contentType)) {
             return "application/octet-stream";
@@ -69,6 +90,14 @@ public class TournamentRegistrationFileStorageService {
     public static class StoredFile {
         private final String fileName;
         private final String relativePath;
+        private final String contentType;
+    }
+
+    @Getter
+    @Builder
+    public static class StoredFileResource {
+        private final Path path;
+        private final String fileName;
         private final String contentType;
     }
 }

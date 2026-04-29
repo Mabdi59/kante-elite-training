@@ -1,0 +1,2 @@
+ALTER TABLE media_posts
+    ADD COLUMN IF NOT EXISTS alt_text VARCHAR(255);

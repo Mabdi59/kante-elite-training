@@ -7,6 +7,8 @@ import ErrorBanner from '../../components/ErrorBanner'
 import EmptyState from '../../components/EmptyState'
 import MediaPostCard from '../../components/MediaPostCard'
 import PageSkeleton from '../../components/PageSkeleton'
+import { MEDIA_FALLBACK_POSTS } from '../../content/mediaFallbacks'
+import { sortMediaPosts } from '../../utils/media'
 
 const MAX_MEDIA_FILE_SIZE = 20 * 1024 * 1024
 const ALLOWED_MEDIA_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4']
@@ -32,6 +34,7 @@ export default function AdminMediaPage() {
   const [fileInputKey, setFileInputKey] = useState(0)
   const [previewUrl, setPreviewUrl] = useState('')
   const [caption, setCaption] = useState('')
+  const [altText, setAltText] = useState('')
   const [category, setCategory] = useState<MediaCategory | ''>('')
   const [filterCategory, setFilterCategory] = useState<FilterCategory>('ALL')
   const [error, setError] = useState('')
@@ -74,22 +77,38 @@ export default function AdminMediaPage() {
       mediaUrl: previewUrl,
       mediaType: getPreviewType(selectedFile),
       caption: caption.trim() || 'Preview',
+      altText: altText.trim() || undefined,
       featured: false,
       showOnHome: false,
       showOnAbout: false,
       mediaCategory: category || undefined,
+      displayOrder: 0,
+      homeDisplayOrder: 0,
+      aboutDisplayOrder: 0,
       createdAt: new Date().toISOString(),
     }
-  }, [caption, category, previewUrl, selectedFile])
+  }, [altText, caption, category, previewUrl, selectedFile])
 
   const filteredPosts = useMemo(() => {
-    if (filterCategory === 'ALL') return posts
-    return posts.filter((p) => p.mediaCategory === filterCategory)
+    const orderedPosts = sortMediaPosts(posts, 'feed')
+    if (filterCategory === 'ALL') return orderedPosts
+    return orderedPosts.filter((post) => post.mediaCategory === filterCategory)
   }, [posts, filterCategory])
+
+  const fallbackPhotoPosts = useMemo(
+    () => MEDIA_FALLBACK_POSTS.filter((post) => post.mediaType === 'IMAGE'),
+    [],
+  )
+
+  const fallbackVideoPosts = useMemo(
+    () => MEDIA_FALLBACK_POSTS.filter((post) => post.mediaType === 'VIDEO'),
+    [],
+  )
 
   const resetForm = () => {
     setSelectedFile(null)
     setCaption('')
+    setAltText('')
     setCategory('')
     setFileInputKey((prev) => prev + 1)
   }
@@ -135,7 +154,7 @@ export default function AdminMediaPage() {
     setUploading(true)
     setError('')
     try {
-      const created = await createMediaPost(selectedFile, caption, category)
+      const created = await createMediaPost(selectedFile, caption, category, altText)
       setPosts((prev) => [created, ...prev])
       resetForm()
     } catch (err: unknown) {
@@ -171,6 +190,7 @@ export default function AdminMediaPage() {
     setEditingPost(post)
     setEditForm({
       caption: post.caption ?? '',
+      altText: post.altText ?? '',
       featured: post.featured,
       showOnHome: post.showOnHome,
       showOnAbout: post.showOnAbout,
@@ -320,6 +340,24 @@ export default function AdminMediaPage() {
                   className="w-full resize-none rounded-xl border border-gray-800 bg-black px-4 py-3 text-sm text-white"
                 />
               </div>
+
+              <div>
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <label className="block text-sm text-gray-400">Alt text</label>
+                  <span className="text-xs text-gray-500">{altText.length} / 255</span>
+                </div>
+                <input
+                  type="text"
+                  maxLength={255}
+                  value={altText}
+                  onChange={(event) => setAltText(event.target.value)}
+                  placeholder="Describe what is visible for screen readers and accessibility."
+                  className="w-full rounded-xl border border-gray-800 bg-black px-4 py-3 text-sm text-white"
+                />
+                <p className="mt-2 text-xs leading-relaxed text-gray-500">
+                  Keep it concrete and visual. Example: Player dribbling between cones during a private session.
+                </p>
+              </div>
             </div>
 
             <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
@@ -371,7 +409,7 @@ export default function AdminMediaPage() {
               <div>
                 <h2 className="text-xl font-bold text-white">Published Feed</h2>
                 <p className="mt-1 text-sm text-gray-400">
-                  The newest posts appear first. Use Content to place them on the homepage and about page.
+                  The newest posts appear first unless you assign a custom feed order. Use Content to manage placement and ordering on the homepage and about page.
                 </p>
               </div>
               <Link
@@ -526,6 +564,17 @@ export default function AdminMediaPage() {
               </div>
 
               <div>
+                <label className="mb-2 block text-sm text-gray-400">Alt text</label>
+                <input
+                  type="text"
+                  maxLength={255}
+                  value={editForm.altText ?? ''}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, altText: e.target.value }))}
+                  className="w-full rounded-xl border border-gray-800 bg-black px-4 py-3 text-sm text-white"
+                />
+              </div>
+
+              <div>
                 <label className="mb-2 block text-sm text-gray-400">Category</label>
                 <select
                   value={editForm.mediaCategory ?? ''}
@@ -593,36 +642,32 @@ export default function AdminMediaPage() {
           <h2 className="mt-1 text-lg font-bold text-white">Built-in Photos &amp; Videos</h2>
           <p className="mt-1 text-xs text-gray-500">
             These files are bundled with the site and used as fallbacks. They show on the <strong className="text-gray-300">About</strong> page and <strong className="text-gray-300">Media</strong> page when no uploaded content is available.
-            To replace them, upload new media above and toggle <strong className="text-gray-300">Show on About</strong> or set a category — your uploads will take priority.
+            To replace them, upload new media above and toggle <strong className="text-gray-300">Show on About</strong> or set a category; your uploads will take priority.
           </p>
         </div>
 
         <div className="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-widest">Coach Photos (About page)</div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-          {[
-            { src: '/images/Coach.png', label: 'Coach.png' },
-            { src: '/images/D26A0694.jpeg', label: 'D26A0694.jpeg' },
-            { src: '/images/D26A0746.jpeg', label: 'D26A0746.jpeg' },
-            { src: '/images/IMG_3599.jpeg', label: 'IMG_3599.jpeg' },
-          ].map((photo) => (
-            <div key={photo.src} className="rounded-xl overflow-hidden border border-[#1e1e1e] bg-black">
-              <div className="aspect-[3/4] overflow-hidden">
-                <img src={photo.src} alt={photo.label} className="w-full h-full object-cover object-top" loading="lazy" />
-              </div>
-              <p className="px-2 py-2 text-[10px] text-gray-500 truncate">{photo.label}</p>
-            </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-6">
+          {fallbackPhotoPosts.map((post) => (
+            <MediaPostCard
+              key={post.id}
+              post={post}
+              aspectClassName="aspect-[3/4]"
+              showDate={false}
+              imageLoading="lazy"
+            />
           ))}
         </div>
 
         <div className="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-widest">Training Videos (Media page)</div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {['training-1.mp4','training-2.mp4','training-3.mp4','training-4.mp4','training-5.mp4'].map((file) => (
-            <div key={file} className="rounded-xl overflow-hidden border border-[#1e1e1e] bg-black">
-              <div className="aspect-video overflow-hidden">
-                <video src={`/images/${file}`} controls playsInline preload="metadata" className="w-full h-full object-cover" />
-              </div>
-              <p className="px-2 py-2 text-[10px] text-gray-500">{file}</p>
-            </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {fallbackVideoPosts.map((post) => (
+            <MediaPostCard
+              key={post.id}
+              post={post}
+              showDate={false}
+              imageLoading="lazy"
+            />
           ))}
         </div>
       </div>

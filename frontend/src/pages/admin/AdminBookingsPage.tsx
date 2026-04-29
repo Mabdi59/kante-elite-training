@@ -8,6 +8,7 @@ import {
   updateAdminBooking,
   updateBookingStatus,
 } from '../../services/api'
+import { useSearchParams } from 'react-router-dom'
 import type { Booking, BookingFormData, Program } from '../../types'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import EmptyState from '../../components/EmptyState'
@@ -45,13 +46,16 @@ function toFormState(booking: Booking): BookingFormData {
 }
 
 export default function AdminBookingsPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const searchQueryParam = searchParams.get('q') ?? ''
+  const editBookingParam = Number(searchParams.get('edit') ?? '')
   const [programs, setPrograms] = useState<Program[]>([])
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [filterDate, setFilterDate] = useState('')
-  const [filterSearch, setFilterSearch] = useState('')
+  const [filterSearch, setFilterSearch] = useState(searchQueryParam)
   const [showForm, setShowForm] = useState(false)
   const [editingBookingId, setEditingBookingId] = useState<number | null>(null)
   const [form, setForm] = useState<BookingFormData>(emptyForm)
@@ -67,6 +71,12 @@ export default function AdminBookingsPage() {
   }, [])
 
   useEffect(() => {
+    if (searchQueryParam !== filterSearch) {
+      setFilterSearch(searchQueryParam)
+    }
+  }, [filterSearch, searchQueryParam])
+
+  useEffect(() => {
     Promise.all([getAdminBookings(), getPrograms()])
       .then(([bookingData, programData]) => {
         setBookings(bookingData)
@@ -75,6 +85,22 @@ export default function AdminBookingsPage() {
       .catch(() => setError('Could not load bookings.'))
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    if (!editBookingParam) return
+
+    const target = bookings.find((booking) => booking.id === editBookingParam)
+    if (!target) return
+
+    setError('')
+    setEditingBookingId(target.id)
+    setForm(toFormState(target))
+    setShowForm(true)
+
+    const next = new URLSearchParams(searchParams)
+    next.delete('edit')
+    setSearchParams(next, { replace: true })
+  }, [bookings, editBookingParam, searchParams, setSearchParams])
 
   useEffect(() => {
     if (!form.programId || !form.bookingDate) {

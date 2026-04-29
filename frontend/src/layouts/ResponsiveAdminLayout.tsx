@@ -28,7 +28,7 @@ export default function ResponsiveAdminLayout({ children }: { children: ReactNod
           <Link to="/" className="block text-lg font-black text-white">
             KANTE ELITE
           </Link>
-          <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-green-400">
+          <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-500">
             Admin Panel
           </p>
         </div>
@@ -68,7 +68,7 @@ export default function ResponsiveAdminLayout({ children }: { children: ReactNod
             <Link to="/" className="block text-lg font-black text-white lg:text-xl">
               KANTE ELITE
             </Link>
-            <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-green-400">
+            <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-500">
               Admin Panel
             </p>
           </div>
@@ -91,7 +91,7 @@ export default function ResponsiveAdminLayout({ children }: { children: ReactNod
           <div className="mb-3 text-sm text-gray-400">
             <span className="font-medium text-white">{user?.name}</span>
             <br />
-            <span className="text-xs text-green-400">{user?.role}</span>
+            <span className="text-xs text-amber-500">{user?.role}</span>
           </div>
           <button
             onClick={handleLogout}

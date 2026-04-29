@@ -3,6 +3,7 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { login } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import type { AuthUser, UserRole } from '../types'
+import { getPostAuthRedirect } from '../utils/portal'
 
 export default function LoginPage() {
   const { loginUser } = useAuth()
@@ -29,22 +30,8 @@ export default function LoginPage() {
       loginUser(res.token, res.refreshToken, user)
       if (redirectPath) {
         navigate(redirectPath)
-      } else if (res.role === 'ADMIN') {
-        navigate('/admin')
-      } else if (res.role === 'STAFF') {
-        navigate('/staff')
-      } else if (res.role === 'COACH') {
-        navigate('/coach')
-      } else if (res.role === 'TEAM_CAPTAIN') {
-        navigate('/captain')
-      } else if (res.role === 'PLAYER') {
-        navigate('/player')
-      } else if (res.role === 'PARENT') {
-        navigate('/parent')
-      } else if (res.role === 'USER') {
-        navigate('/user')
       } else {
-        navigate('/account')
+        navigate(getPostAuthRedirect(res.role))
       }
     } catch (err: unknown) {
       const msg =

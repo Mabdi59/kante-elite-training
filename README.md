@@ -1,174 +1,268 @@
 # Kante Elite Training
 
-A full-stack multi-role tournament management platform for youth soccer in Columbus, Ohio. Built for tournament organizers, team captains, coaches, parents, and players.
+Production-ready full-stack platform for Kante Elite Training in Columbus, Ohio.
 
----
+The application combines:
 
-## System Architecture
+- A public marketing site
+- Direct training booking
+- Events, camps, and clinics registration
+- Tournament registration and team management
+- An admin operations dashboard
+- Customer account management
+- Media, testimonials, results, FAQ, and contact content management
+
+## Current Product Scope
+
+This repository now reflects the launch product, not the earlier multi-portal prototype.
+
+Active user experiences:
+
+- Public website
+- Customer account
+- Team captain portal
+- Admin dashboard
+
+Launch-focused role model:
+
+- `ADMIN`: full platform control
+- `TEAM_CAPTAIN`: manages team tournament registrations and rosters
+- `USER`: books training, registers for events, manages account and player profiles
+
+Notes:
+
+- `COACH` is still supported in auth and backend data, but the live frontend routes now redirect coach users into the team portal where applicable.
+- Legacy `staff`, `player`, `parent`, and `user` portal routes are preserved only as redirects so older links do not break.
+- Stripe is optional and disabled by default.
+
+## Tech Stack
+
+### Frontend
+
+- Vite
+- React 18
+- React Router
+- TypeScript
+- Tailwind CSS
+- Axios
+
+Source lives in [frontend/](/C:/Users/moham/OneDrive/Documents/kante-elite-training/frontend).
+
+### Backend
+
+- Java 17
+- Spring Boot 3
+- Spring Security with JWT + refresh tokens
+- Spring Data JPA
+- Flyway
+- PostgreSQL
+- Thymeleaf email templates
+
+Source lives in [backend/](/C:/Users/moham/OneDrive/Documents/kante-elite-training/backend).
+
+## Repository Structure
 
 ```text
-/
-├── frontend/   React 18 + Vite 5 + Tailwind CSS + TypeScript + React Router 6
-└── backend/    Java 17 + Spring Boot 3.2 + PostgreSQL + Flyway + Spring Security (JWT)
+.
+├─ frontend/   Vite + React application
+├─ backend/    Spring Boot API
+├─ docker-compose.yml
+└─ README.md
 ```
 
-All API calls from the frontend proxy through Vite (`/api -> http://localhost:8080`) in development.
-Production builds can point at the backend with `VITE_API_URL`, or keep same-origin `/api` if you place a reverse proxy in front of the API.
+Key frontend areas:
 
----
+- `frontend/src/App.tsx`: route map
+- `frontend/src/pages/`: public, account, captain, and admin pages
+- `frontend/src/services/api.ts`: client API layer
+- `frontend/src/utils/portal.ts`: role-based post-login destinations
 
-## Roles and Portals
+Key backend areas:
 
-| Role | Portal | What they can do |
-|------|--------|-----------------|
-| `ADMIN` | `/admin` | Full access: tournaments, teams, players, schedule, results, standings, users, coaches, bookings, attendance, enrollments, waivers, search, reports, media, content, family onboarding, recurring schedules |
-| `STAFF` | `/staff` | View and manage bookings, messages, availability, players, tournament details |
-| `COACH` | `/coach` | Manage personal training sessions, availability, coach profile, attendance, player progress notes; also accesses captain portal |
-| `TEAM_CAPTAIN` | `/captain` | Register teams, manage rosters, view registration status, submit payment, manage tournament entries |
-| `PLAYER` | `/player` | View personal training sessions, player profile, development notes, calendar, payment history |
-| `PARENT` | `/parent` | Book training sessions, manage linked player profiles, view player development, messages, calendar, waivers, documents, enrollments, payments |
-| `USER` | `/user` | View bookings, manage player profiles, messages, calendar, waivers, documents, enrollments, payments |
+- `backend/src/main/java/com/kanteelite/training/controller/`: API controllers
+- `backend/src/main/java/com/kanteelite/training/service/`: business logic
+- `backend/src/main/java/com/kanteelite/training/repository/`: JPA repositories
+- `backend/src/main/resources/db/migration/`: Flyway migrations
+- `backend/src/main/resources/templates/email/`: email templates
 
-Login redirects to the correct portal based on role automatically.
-
----
-
-## Tournament Workflow (Admin)
-
-The 7-step admin workflow at `/admin/tournaments/:id/workflow` covers the full lifecycle:
-
-```
-1. Details   → Name, location, dates, registration deadline, entry fee, age group, division
-2. Teams     → Approve / waitlist / reject registered teams
-3. Players   → View and manage players per team; bulk import (Name,Jersey,Position per line)
-4. Format    → Round Robin or Knockout; match duration, points for win/draw, group stages
-5. Schedule  → Auto-generate matches; assign fields, dates, and times; edit inline
-6. Results   → Enter match scores and mark status (SCHEDULED / FINAL / CANCELLED)
-7. Standings → Auto-computed from FINAL matches; grouped by stage; color-coded table
-```
-
-Standings are computed automatically from finalized match results — no manual entry required.
-
----
-
-## Public Tournament Experience
-
-- `/tournaments` — browse all tournaments with filter by status
-- `/tournaments/:id` — public detail page with tabs:
-  - **Overview** — description, dates, format, scoring rules
-  - **Teams** — confirmed and pending teams with rosters
-  - **Schedule** — matches grouped by stage with scores and kickoff times
-  - **Standings** — standings table (only shown after matches are finalized)
-  - **Bracket** — visual knockout bracket (only shown for KNOCKOUT format)
-
----
-
-## Team Captain Flow
-
-1. Register at `/register?intent=tournament&requestedRole=TEAM_CAPTAIN`
-2. Browse tournaments at `/captain/tournaments` and submit a registration
-3. Manage all registrations at `/captain/registrations`:
-   - Update team info
-   - Submit manual payment (Cash App, Zelle, Venmo, etc.)
-   - Upload or paste player roster
-   - View registration status in real time
-
-Coaches with captain-level access also have access to the captain portal.
-
----
-
-## API Overview
+## Frontend Route Surface
 
 ### Public
 
-```
-GET  /api/tournaments                       All tournaments
-GET  /api/tournaments/{id}                  Tournament summary
-GET  /api/tournaments/{id}/public           Full public view (teams, schedule, standings)
-GET  /api/programs                          Training programs
-GET  /api/events                            Public events
-GET  /api/testimonials                      Testimonials
-POST /api/bookings                          Create a booking
-GET  /api/bookings/{id}                     Booking details
-POST /api/contact                           Contact form submission
-```
+- `/`
+- `/training`
+- `/events`
+- `/events/:id/register`
+- `/results`
+- `/media`
+- `/about`
+- `/contact`
+- `/tournaments`
+- `/tournaments/:id`
+- `/tournaments/:id/register`
+- `/tournaments/registration/:token`
+- `/book`
+- `/book/success`
+- `/faq`
+- `/privacy`
+- `/terms`
+- `/cancellation-policy`
+- `/cookie-policy`
+- `/accessibility`
 
-### Auth
+### Auth and Account
 
-```
-POST /api/auth/register                     Register new user
-POST /api/auth/login                        Login → access + refresh tokens
-POST /api/auth/refresh                      Refresh access token
-POST /api/auth/logout                       Revoke refresh token
-POST /api/auth/forgot-password              Request password reset
-POST /api/auth/reset-password               Submit new password with token
-```
+- `/login`
+- `/register`
+- `/forgot-password`
+- `/reset-password`
+- `/account`
 
-### Admin (requires `ADMIN` role)
+### Team Portal
 
-```
-GET/POST/PUT/DELETE /api/admin/tournaments/**   Tournament CRUD + workflow
-GET/POST/PUT/DELETE /api/admin/teams/**         Team and player management
-GET/POST/PUT/DELETE /api/admin/bookings/**      Booking management
-GET/POST/PUT/DELETE /api/admin/users/**         User management and role changes
-GET/POST/PUT/DELETE /api/admin/events/**        Events management
-GET/POST/PUT/DELETE /api/admin/programs/**      Programs management
-GET /api/admin/audit-logs                       Audit log viewer
-```
+- `/captain/tournaments`
+- `/captain/registrations`
 
-### Captain (requires `TEAM_CAPTAIN` or `COACH`)
+### Admin
 
-```
-GET  /api/captain/dashboard                     Dashboard summary
-GET  /api/captain/registrations                 All registrations for this captain
-POST /api/captain/registrations                 Create registration
-PUT  /api/captain/registrations/{id}            Update registration
-DELETE /api/captain/registrations/{id}          Delete registration
-POST /api/captain/registrations/{id}/roster     Submit player roster
-POST /api/captain/registrations/{id}/payment    Submit manual payment
-```
+- `/admin`
+- `/admin/bookings`
+- `/admin/availability`
+- `/admin/programs`
+- `/admin/events`
+- `/admin/tournaments`
+- `/admin/tournaments/:id/workflow`
+- `/admin/content`
+- `/admin/media`
+- `/admin/testimonials`
+- `/admin/messages`
+- `/admin/users`
+- `/admin/payments`
 
-### Coach (requires `COACH` or `ADMIN`)
+## Core Workflows
 
-```
-GET  /api/coach/profile                     Coach profile
-PUT  /api/coach/profile                     Update coach profile
-GET  /api/coach/sessions                    Assigned training sessions
-GET  /api/coach/availability                Coach availability
-POST /api/coach/availability                Set availability
-```
+### Training Booking
 
----
+- Public visitors browse programs and book directly from `/book`
+- Active booking API path: `POST /api/bookings`
+- The booking page checks `GET /api/payments/status`
+- If payments are disabled, bookings are submitted directly
+- If payments are enabled, the frontend can redirect into Stripe Checkout
+
+### Event Registration
+
+- Public visitors register from `/events/:id/register`
+- Current registration contract is minimal and launch-friendly:
+  - name
+  - email
+- The backend accepts legacy field aliases from older clients for safety
+
+### Tournament Registration
+
+- Public users open tournament detail pages and register teams
+- Registration can create or elevate into `TEAM_CAPTAIN` access when needed
+- Team managers use a tokenized registration dashboard and the captain portal to:
+  - update team details
+  - upload or paste rosters
+  - submit manual payments
+  - use Stripe checkout when enabled
+
+### Admin Operations
+
+The admin dashboard is trimmed to active business workflows:
+
+- Bookings
+- Availability
+- Programs
+- Events
+- Tournaments and tournament workflow
+- Website content
+- Media
+- Testimonials
+- Messages
+- Users
+- Payments
+
+## Environment Variables
+
+See [backend/.env.example](/C:/Users/moham/OneDrive/Documents/kante-elite-training/backend/.env.example) for the authoritative backend template.
+
+### Required backend settings
+
+| Variable | Purpose |
+| --- | --- |
+| `SPRING_PROFILES_ACTIVE` | Use `prod` in production |
+| `DB_URL` | PostgreSQL JDBC URL |
+| `DB_USERNAME` | Database username |
+| `DB_PASSWORD` | Database password |
+| `JWT_SECRET` | JWT signing secret |
+| `ADMIN_EMAIL` | Bootstrapped admin email |
+| `ADMIN_PASSWORD` | Bootstrapped admin password |
+| `ADMIN_NAME` | Bootstrapped admin display name |
+| `CORS_ALLOWED_ORIGINS` | Allowed frontend origin list |
+| `FRONTEND_URL` | Canonical frontend URL for links/emails |
+
+### Optional backend settings
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `APP_PAYMENTS_ENABLED` | `false` | Enables Stripe payment flows |
+| `APP_UPLOADS_DIR` | `uploads` | Local/server upload storage |
+| `APP_EMAIL_ENABLED` | `false` | Enables outbound email |
+| `APP_EMAIL_FROM` | `noreply@localhost` | Sender email |
+| `APP_EMAIL_ADMIN` | `admin@localhost` | Admin inbox for notifications |
+| `SPRING_MAIL_HOST` | `smtp.gmail.com` | SMTP host |
+| `SPRING_MAIL_PORT` | `587` | SMTP port |
+| `SPRING_MAIL_USERNAME` | empty | SMTP username |
+| `SPRING_MAIL_PASSWORD` | empty | SMTP password |
+
+### Optional Stripe settings
+
+Only set these when you are intentionally enabling live or test payments:
+
+| Variable | Purpose |
+| --- | --- |
+| `STRIPE_SECRET_KEY` | Stripe secret key |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
+
+Important:
+
+- Do not enable Stripe in production without valid keys and webhook configuration.
+- The repository is aligned to the current direct-booking flow first, with Stripe as an optional production toggle.
+
+### Frontend setting
+
+| Variable | Purpose |
+| --- | --- |
+| `VITE_API_URL` | Optional backend origin when frontend and API are not same-origin |
+
+If `VITE_API_URL` is not set, the frontend uses same-origin `/api`.
 
 ## Local Development
 
 ### Prerequisites
 
+- Node.js 18+
 - Java 17+
 - Maven 3.8+
-- Node.js 18+
 - PostgreSQL 14+
 
-### 1. Create the database
-
-```bash
-psql -U postgres -c "CREATE DATABASE kante_elite;"
-```
-
-### 2. Run the backend
+### Run backend
 
 ```bash
 cd backend
-export DB_URL=jdbc:postgresql://localhost:5432/kante_elite
-export DB_USERNAME=postgres
-export DB_PASSWORD=postgres
-export APP_EMAIL_ENABLED=false
-mvn spring-boot:run
+mvn -DskipTests spring-boot:run
 ```
 
-Backend URL: `http://localhost:8080`
+By default the backend expects:
 
-### 3. Run the frontend
+- `DB_URL=jdbc:postgresql://localhost:5432/kante_elite`
+- `DB_USERNAME=postgres`
+- `DB_PASSWORD=postgres1`
+
+Override those with environment variables before startup as needed.
+
+### Run frontend
 
 ```bash
 cd frontend
@@ -176,190 +270,92 @@ npm install
 npm run dev
 ```
 
-Frontend URL: `http://localhost:5173`
+The Vite dev server runs on [http://localhost:5173](http://localhost:5173) and proxies `/api` to `http://localhost:8080`.
 
-The Vite dev server proxies `/api` to `http://localhost:8080`.
+### Docker Compose
 
----
+For a full local stack:
 
-## Environment Variables
+```bash
+docker compose up --build
+```
 
-### Required
+Current compose services:
 
-| Variable | Description |
-|----------|-------------|
-| `DB_URL` | PostgreSQL JDBC URL |
-| `DB_USERNAME` | PostgreSQL username |
-| `DB_PASSWORD` | PostgreSQL password |
-| `SPRING_PROFILES_ACTIVE` | Use `prod` on AWS |
+- `postgres`
+- `backend`
+- `frontend`
 
-### Admin account (strongly recommended for production)
+## Verification Commands
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `ADMIN_EMAIL` | `admin@kanteelite.com` | Admin account email |
-| `ADMIN_PASSWORD` | `admin123` | Admin account password — **change this** |
-| `ADMIN_NAME` | `Kante Elite Admin` | Admin display name |
+Use these before pushing or deploying:
 
-> ⚠️ **The backend will warn loudly at startup if default admin credentials are in use. Set these environment variables before deploying to production.**
+```bash
+cd frontend && npm run lint
+cd frontend && npm run build
+cd backend && mvn -q -DskipTests compile
+```
 
-### Auth
+Optional packaged backend build:
 
-When `SPRING_PROFILES_ACTIVE=prod`, the app refuses to start with the default admin email or password.
+```bash
+cd backend && mvn -q -DskipTests clean package
+```
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `JWT_SECRET` | random dev key | JWT signing secret (use a long random string in production) |
-| `JWT_EXPIRATION_MS` | `900000` (15 min) | Access token lifetime |
-| `JWT_REFRESH_EXPIRATION_MS` | `604800000` (7 days) | Refresh token lifetime |
-| `JPA_DDL_AUTO` | `update` locally, `validate` in production | JPA schema mode |
-| `JPA_OPEN_IN_VIEW` | `true` locally, `false` in production | Keep lazy loading out of web responses |
+## Production Deployment Notes
 
-### App settings
+Recommended production shape:
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `CORS_ALLOWED_ORIGINS` | `http://localhost:5173` | Allowed frontend origin |
-| `FRONTEND_URL` | `http://localhost:5173` | Used in email links |
-| `APP_EMAIL_ENABLED` | `false` | Set to `true` to send emails |
-| `APP_EMAIL_FROM` | — | Sender email address |
-| `APP_EMAIL_ADMIN` | — | Admin inbox for contact notifications |
+- Frontend served by nginx or another static host
+- Backend running Spring Boot on EC2 or a similar VM/service
+- PostgreSQL on RDS
+- Shared canonical domain with `/api` reverse proxied to backend
 
-| `APP_PAYMENTS_ENABLED` | `false` | Enables Stripe payment flow when keys are set |
+### Deployment checklist
 
-### Frontend
+1. Set `SPRING_PROFILES_ACTIVE=prod`
+2. Configure database credentials
+3. Set a real `JWT_SECRET`
+4. Override default admin credentials
+5. Set `CORS_ALLOWED_ORIGINS` to the real frontend domain list
+6. Set `FRONTEND_URL` to the canonical HTTPS URL
+7. Run Flyway migrations on startup
+8. Ensure `APP_UPLOADS_DIR` points to persistent server storage
+9. Leave Stripe disabled unless production keys and webhook secret are configured
 
-| Variable | Description |
-|----------|-------------|
-| `VITE_API_URL` | Backend root URL. Example: `http://your-ec2-ip:8080` or `https://api.yourdomain.com` |
-
-### Email (only when `APP_EMAIL_ENABLED=true`)
-
-| Variable | Description |
-|----------|-------------|
-| `SPRING_MAIL_HOST` | SMTP host |
-| `SPRING_MAIL_PORT` | SMTP port |
-| `SPRING_MAIL_USERNAME` | SMTP username |
-| `SPRING_MAIL_PASSWORD` | SMTP password |
-
-### Stripe Payments (optional, currently disabled)
-
-| Variable | Description |
-|----------|-------------|
-| `STRIPE_SECRET_KEY` | Stripe secret key (starts with `sk_live_` in production) |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook endpoint signing secret (`whsec_…`) |
-
-Stripe is disabled by default. To activate the full payment flow (including **Apple Pay** and **Google Pay**):
-
-1. **Set these environment variables** in your production environment:
-   ```
-   APP_PAYMENTS_ENABLED=true
-   STRIPE_SECRET_KEY=sk_live_your_key_here
-   STRIPE_WEBHOOK_SECRET=whsec_your_secret_here
-   ```
-
-2. **Register the Stripe webhook endpoint** in the [Stripe Dashboard → Developers → Webhooks](https://dashboard.stripe.com/webhooks):
-   - Endpoint URL: `https://yourdomain.com/api/payments/webhook`
-   - Event to listen for: `checkout.session.completed`
-   - Copy the generated **Signing Secret** into `STRIPE_WEBHOOK_SECRET`
-
-3. **Enable Apple Pay / Google Pay** via Stripe Checkout (no extra code required):
-   - Stripe Checkout automatically presents Apple Pay on Safari/iOS and Google Pay on Chrome when the domain is registered.
-   - In the [Stripe Dashboard → Settings → Payment methods](https://dashboard.stripe.com/settings/payment_methods), enable "Apple Pay" and verify your domain.
-   - For Apple Pay domain verification, Stripe will prompt you to serve a file at `/.well-known/apple-developer-merchantid-domain-association`. If you use the Stripe-hosted Checkout page (which this app does by default), this is handled automatically by Stripe — **no extra file is needed on your server**.
-   - If you switch to Stripe Elements (custom payment form) in the future, you must add the domain verification file manually.
-
-4. **Payment flow when enabled**: The booking page detects `APP_PAYMENTS_ENABLED` via `GET /api/payments/status` and redirects the user to Stripe's hosted checkout page. After payment, Stripe calls the webhook which creates the booking in the database and sends the confirmation email. The success page polls `GET /api/bookings/by-stripe-session/{id}` to display booking details.
-
----
-
-## Production Build
-
-### Frontend
+### Static/frontend deployment
 
 ```bash
 cd frontend
-cp .env.example .env.production
-# Update VITE_API_URL before building if the frontend is hosted separately
+npm install
 npm run build
-# Output: frontend/dist/
 ```
 
-### Backend
+Deploy `frontend/dist/` to the static web root.
+
+### Backend deployment
 
 ```bash
 cd backend
-cp .env.example .env
-# Update the values in .env or export them directly in your shell
-export SPRING_PROFILES_ACTIVE=prod
-mvn package -DskipTests
+mvn -q -DskipTests clean package
 java -jar target/kante-elite-training-1.0.0.jar
 ```
 
----
+## Data and Uploads
 
-## AWS Deployment Notes
+- Flyway migrations are stored in `backend/src/main/resources/db/migration/`
+- Runtime uploads should live under `APP_UPLOADS_DIR`
+- `backend/uploads/` is treated as runtime storage and is ignored for new files
 
-Recommended setup:
+Do not use this repository as a source of truth for production user-uploaded content.
 
-- Frontend: S3 + CloudFront
-- Backend: EC2
-- Database: RDS PostgreSQL
+## Notes for Future Developers
 
-Checklist:
+- This is not a Next.js app. Routing is defined manually in `frontend/src/App.tsx`.
+- The live booking flow is `POST /api/bookings`.
+- Keep docs and marketing copy aligned with the current direct booking flow.
+- Avoid re-introducing removed staff/player/parent portal complexity unless there is a real product requirement.
 
-1. Set `VITE_API_URL` before running the frontend build if S3 or CloudFront will not proxy `/api`.
-2. Set `SPRING_PROFILES_ACTIVE=prod` on the backend.
-3. Set `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_NAME` before the first production boot.
-4. Set `JWT_SECRET` to a long random secret.
-5. Set `CORS_ALLOWED_ORIGINS` to your real frontend domains, comma separated.
-6. Point `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` at RDS.
-7. Make sure the EC2 security group allows the backend port you actually expose.
-8. Configure CloudFront or S3 static hosting to serve `index.html` on client-side route refreshes.
+## License
 
-Important:
-
-- The app will refuse to start with default admin credentials when `SPRING_PROFILES_ACTIVE=prod`.
-- Production uses `application-prod.properties`, which switches JPA to `validate` and disables Open Session in View.
-
----
-
-## Database Migrations (Flyway)
-
-| Migration | Content |
-|-----------|---------|
-| `V1` | Programs table |
-| `V2` | Events table |
-| `V3` | Bookings table |
-| `V4` | Testimonials table |
-| `V5` | Contact messages table |
-| `V6` | Seed data |
-| `V7` | Users table + JWT auth |
-| `V8` | Tournaments and team registrations |
-| `V9` | Tournament matches |
-| `V10` | Audit logs |
-| `V11` | Tournament enrichment (entry fee, format, divisions) |
-| `V12` | Password reset tokens |
-| `V13` | Refresh tokens |
-| `V14` | Coach profiles |
-| `V15` | Player profiles |
-| `V16` | Tournament + team enrichment (age group, notes) |
-| `V17` | Notification scaffold |
-| `V18` | Team registration public flow enhancements |
-| `V19` | Tournament workflow tables (matches, standings) |
-| `V20` | Group count added to tournaments |
-| `V21` | Program/event scheduling and participants |
-| `V22` | Media posts table |
-| `V23` | Media visibility fields |
-| `V24` | Website content table |
-| `V25` | Attendance records |
-| `V26` | Messages |
-| `V27` | Waiver templates, signed waivers, player documents |
-| `V28` | Program enrollments |
-| `V29` | Calendar events |
-| `V30` | Player progress notes |
-| `V31` | iCal hardening and progress note ID fix |
-| `V32` | Media category field |
-| `V33` | Family onboarding: phone/emergency contact on users, booking series |
-| `V34` | Allow standalone player profiles (parent_user_id nullable) |
-
+This repository includes the existing [LICENSE](/C:/Users/moham/OneDrive/Documents/kante-elite-training/LICENSE).

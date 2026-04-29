@@ -1,11 +1,15 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import CTASection from '../components/CTASection'
+import MediaAsset from '../components/MediaAsset'
 import MediaLightbox from '../components/MediaLightbox'
 import MediaPostCard from '../components/MediaPostCard'
 import PageSkeleton from '../components/PageSkeleton'
+import { ABOUT_FALLBACK_MEDIA, COACH_PROFILE_MEDIA } from '../content/mediaFallbacks'
 import { defaultWebsiteContent } from '../content/defaultWebsiteContent'
 import { getMediaPosts, getWebsiteContent } from '../services/api'
 import type { MediaPost, WebsiteContent } from '../types'
+import { getMediaAlt, sortMediaPosts } from '../utils/media'
 
 export default function AboutMediaPage() {
   const [mediaPosts, setMediaPosts] = useState<MediaPost[]>([])
@@ -40,21 +44,19 @@ export default function AboutMediaPage() {
   }, [])
 
   const aboutMediaPosts = useMemo(
-    () => mediaPosts.filter((post) => post.showOnAbout),
+    () => sortMediaPosts(mediaPosts.filter((post) => post.showOnAbout), 'about'),
     [mediaPosts],
   )
 
-  const aboutDisplayPosts = useMemo(
-    () => aboutMediaPosts.slice(0, 12),
-    [aboutMediaPosts],
+  const heroPost = useMemo(
+    () => mediaPosts.find((post) => post.featured) ?? aboutMediaPosts[0] ?? ABOUT_FALLBACK_MEDIA[0],
+    [aboutMediaPosts, mediaPosts],
   )
 
-  const heroPost = mediaPosts.find((post) => post.featured) ?? null
-
-  const galleryPosts = useMemo(
-    () => aboutDisplayPosts.filter((post) => post.id !== heroPost?.id).slice(0, 11),
-    [aboutDisplayPosts, heroPost],
-  )
+  const galleryPosts = useMemo(() => {
+    const sourcePosts = aboutMediaPosts.length > 0 ? aboutMediaPosts : ABOUT_FALLBACK_MEDIA
+    return sourcePosts.filter((post) => post.id !== heroPost?.id).slice(0, 5)
+  }, [aboutMediaPosts, heroPost])
 
   if (loading) {
     return (
@@ -71,24 +73,15 @@ export default function AboutMediaPage() {
       <section className="relative overflow-hidden px-4 py-16 sm:py-20">
         {heroPost ? (
           <div className="absolute inset-0">
-            {heroPost.mediaType === 'VIDEO' ? (
-              <video
-                src={heroPost.mediaUrl}
-                autoPlay
-                muted
-                loop
-                playsInline
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <img
-                src={heroPost.mediaUrl}
-                alt={heroPost.caption?.trim() || content.aboutHeroTitle || 'Kante Elite training banner'}
-                loading="eager"
-                fetchPriority="high"
-                className="h-full w-full object-cover animate-hero-zoom"
-              />
-            )}
+            <MediaAsset
+              src={heroPost.mediaUrl}
+              type={heroPost.mediaType}
+              alt={getMediaAlt(heroPost, content.aboutHeroTitle || 'Kante Elite training banner')}
+              loading="eager"
+              fetchPriority="high"
+              playbackMode="hero"
+              className="h-full w-full object-cover animate-hero-zoom"
+            />
             <div className="absolute inset-0 bg-black/60" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.32),_transparent_42%)]" />
             <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/80" />
@@ -131,41 +124,44 @@ export default function AboutMediaPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8 items-start">
-            <div className="flex flex-col items-center text-center lg:items-start lg:text-left gap-4 max-w-xs mx-auto lg:mx-0">
-              <img
-                src="/images/Coach.png"
-                alt="Coach Mohamed Sheik Kante"
-                loading="eager"
-                fetchPriority="high"
-                className="w-48 h-48 rounded-2xl object-cover object-top ring-2 ring-amber-500 shadow-xl"
-              />
+          <div className="grid items-start gap-8 lg:grid-cols-[auto_1fr]">
+            <div className="mx-auto flex max-w-xs flex-col items-center gap-4 text-center lg:mx-0 lg:items-start lg:text-left">
+              <div className="overflow-hidden rounded-2xl ring-2 ring-amber-500 shadow-xl">
+                <MediaAsset
+                  src={COACH_PROFILE_MEDIA.mediaUrl}
+                  type={COACH_PROFILE_MEDIA.mediaType}
+                  alt={getMediaAlt(COACH_PROFILE_MEDIA)}
+                  loading="eager"
+                  fetchPriority="high"
+                  className="h-48 w-48 object-cover object-top"
+                />
+              </div>
               <div>
-                <p className="text-white font-black text-xl">Mohamed Sheik</p>
-                <p className="text-amber-500 text-sm font-semibold uppercase tracking-widest">Coach Kante</p>
-                <p className="text-gray-500 text-xs mt-1">Head Coach & Founder · Est. 2024</p>
+                <p className="text-xl font-black text-white">Mohamed Sheik</p>
+                <p className="text-sm font-semibold uppercase tracking-widest text-amber-500">Coach Kante</p>
+                <p className="mt-1 text-xs text-gray-500">Head Coach & Founder · Est. 2024</p>
               </div>
             </div>
 
             <div className="rounded-2xl border border-[#222] bg-[#1a1a1a] p-5 sm:p-8">
               <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {(content.aboutExperiencePoints?.length
-                ? content.aboutExperiencePoints
-                : defaultWebsiteContent.aboutExperiencePoints
-              ).map((point) => (
-                <li
-                  key={point}
-                  className="flex items-start gap-3 rounded-xl border border-[#1f1f1f] bg-[#111] px-4 py-4"
-                >
-                  <span className="mt-0.5 flex-shrink-0 text-amber-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                    </svg>
-                  </span>
-                  <span className="text-sm font-semibold leading-relaxed text-white">{point}</span>
-                </li>
-              ))}
-            </ul>
+                {(content.aboutExperiencePoints?.length
+                  ? content.aboutExperiencePoints
+                  : defaultWebsiteContent.aboutExperiencePoints
+                ).map((point) => (
+                  <li
+                    key={point}
+                    className="flex items-start gap-3 rounded-xl border border-[#1f1f1f] bg-[#111] px-4 py-4"
+                  >
+                    <span className="mt-0.5 flex-shrink-0 text-amber-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                      </svg>
+                    </span>
+                    <span className="text-sm font-semibold leading-relaxed text-white">{point}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
@@ -173,46 +169,55 @@ export default function AboutMediaPage() {
 
       <section className="bg-black px-4 py-16">
         <div className="page-shell max-w-6xl">
-          <div className="mb-8 text-center">
-            <span className="section-label">In Action</span>
-            <h2 className="text-3xl font-black text-white sm:text-4xl">
-              Coach <span className="gradient-text">Kante</span>
-            </h2>
+          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-2xl">
+              <span className="section-label">{content.aboutGalleryTitle || defaultWebsiteContent.aboutGalleryTitle}</span>
+              <h2 className="text-3xl font-black text-white sm:text-4xl">
+                Coach <span className="gradient-text">Kante</span> In Action
+              </h2>
+              <p className="mt-4 text-sm leading-relaxed text-gray-400">
+                {content.aboutGalleryDescription || defaultWebsiteContent.aboutGalleryDescription}
+              </p>
+            </div>
+            <Link to="/media" className="btn-secondary w-full text-sm md:w-auto">
+              View Full Media Library
+            </Link>
           </div>
 
-          {/* Dynamic media from admin (showOnAbout flag) takes priority over static photos */}
           {galleryPosts.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {galleryPosts.slice(0, 4).map((post, index) => (
-                <button
-                  key={post.id}
-                  type="button"
-                  onClick={() => setActiveMediaIndex(index)}
-                  className="block w-full text-left rounded-2xl overflow-hidden aspect-[3/4] bg-[#111] border border-[#1e1e1e]"
-                >
-                  <MediaPostCard post={post} aspectClassName="aspect-[3/4]" showDate={false} imageLoading="lazy" />
-                </button>
-              ))}
+            <div className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+              <button
+                type="button"
+                onClick={() => setActiveMediaIndex(0)}
+                className="block h-full w-full text-left"
+              >
+                <MediaPostCard
+                  post={galleryPosts[0]}
+                  aspectClassName="aspect-[4/5] lg:aspect-[5/6]"
+                  imageLoading="eager"
+                  imageFetchPriority="high"
+                />
+              </button>
+
+              <div className="grid grid-cols-2 gap-4">
+                {galleryPosts.slice(1, 5).map((post, index) => (
+                  <button
+                    key={post.id}
+                    type="button"
+                    onClick={() => setActiveMediaIndex(index + 1)}
+                    className="block h-full w-full text-left"
+                  >
+                    <MediaPostCard
+                      post={post}
+                      aspectClassName="aspect-[3/4]"
+                      showDate={false}
+                      imageLoading="lazy"
+                    />
+                  </button>
+                ))}
+              </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { src: '/images/Coach.png', alt: 'Coach Kante' },
-                { src: '/images/D26A0694.jpeg', alt: 'Coach Kante on the field' },
-                { src: '/images/D26A0746.jpeg', alt: 'Coach Kante training' },
-                { src: '/images/IMG_3599.jpeg', alt: 'Coach Kante in action' },
-              ].map((photo) => (
-                <div key={photo.src} className="rounded-2xl overflow-hidden aspect-[3/4] bg-[#111] border border-[#1e1e1e]">
-                  <img
-                    src={photo.src}
-                    alt={photo.alt}
-                    className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
+          ) : null}
         </div>
       </section>
 

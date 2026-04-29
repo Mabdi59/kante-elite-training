@@ -84,7 +84,7 @@ export default function EventCard({ event }: EventCardProps) {
         {isSoldOut ? (
           <span className="text-gray-500 text-sm font-bold">Registration Closed</span>
         ) : (
-          <Link to="/contact" className="btn-primary w-full px-5 py-2 text-sm sm:w-auto">
+          <Link to={`/events/${event.id}/register`} className="btn-primary w-full px-5 py-2 text-sm sm:w-auto">
             Register Now
           </Link>
         )}

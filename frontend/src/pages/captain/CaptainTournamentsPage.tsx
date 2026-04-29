@@ -6,6 +6,11 @@ import type { TeamRegistration, TeamRegistrationFormData, Tournament } from '../
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorBanner from '../../components/ErrorBanner'
 import StatusBadge from '../../components/StatusBadge'
+import {
+  formatTournamentDate,
+  formatTournamentDateRange,
+  getTournamentRegistrationState,
+} from '../../utils/tournament'
 
 const emptyForm = (
   tournamentId: number,
@@ -194,16 +199,9 @@ export default function CaptainTournamentsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {tournaments.map((tournament) => {
-          const spotsLeft = tournament.maxTeams - tournament.registeredTeams
-          const isDeadlinePassed =
-            tournament.registrationDeadline
-              ? new Date(tournament.registrationDeadline) < new Date()
-              : false
-          const canRegister =
-            spotsLeft > 0 &&
-            tournament.status !== 'COMPLETED' &&
-            tournament.status !== 'CANCELLED' &&
-            !isDeadlinePassed
+          const registrationState = getTournamentRegistrationState(tournament)
+          const spotsLeft = registrationState.spotsLeft
+          const canRegister = registrationState.canRegister
           const ownedCount = registrationCounts[tournament.id] ?? 0
 
           return (
@@ -214,9 +212,9 @@ export default function CaptainTournamentsPage() {
                     <h3 className="text-white font-bold text-lg">{tournament.name}</h3>
                     <StatusBadge status={tournament.status} />
                   </div>
-                  <p className="text-gray-400 text-sm mt-1">
-                    {tournament.location}, {tournament.startDate}
-                    {tournament.endDate ? ` to ${tournament.endDate}` : ''}
+                  <p className="text-gray-400 text-sm mt-1">{tournament.location}</p>
+                  <p className="text-gray-500 text-xs mt-1">
+                    {formatTournamentDateRange(tournament.startDate, tournament.endDate)}
                   </p>
                 </div>
                 {ownedCount > 0 ? (
@@ -240,10 +238,17 @@ export default function CaptainTournamentsPage() {
                   <p className="text-white">
                     {tournament.registeredTeams} / {tournament.maxTeams}
                   </p>
+                  <p className="text-gray-500 text-xs mt-1">
+                    {spotsLeft > 0 ? `${spotsLeft} spots left` : 'Full'}
+                  </p>
                 </div>
                 <div className="bg-[#1a1a1a] rounded-lg p-3">
                   <p className="text-gray-500 text-xs mb-1">Deadline</p>
-                  <p className="text-white">{tournament.registrationDeadline || 'Open'}</p>
+                  <p className={registrationState.isDeadlinePassed ? 'text-red-400' : 'text-white'}>
+                    {tournament.registrationDeadline
+                      ? formatTournamentDate(tournament.registrationDeadline)
+                      : 'Open'}
+                  </p>
                 </div>
               </div>
 
@@ -264,7 +269,7 @@ export default function CaptainTournamentsPage() {
                     ? 'Tournament ended.'
                     : tournament.status === 'CANCELLED'
                       ? 'Tournament cancelled.'
-                      : isDeadlinePassed
+                      : registrationState.isDeadlinePassed
                         ? 'Registration closed.'
                         : 'Team spots are full.'}
                 </div>
