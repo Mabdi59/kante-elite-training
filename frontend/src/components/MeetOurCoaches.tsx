@@ -1,5 +1,9 @@
 import { Link } from 'react-router-dom'
 
+// 117% padding-bottom gives each card a roughly 6:7 portrait ratio,
+// which frames both promo graphics comfortably without cropping key details.
+const COACH_CARD_ASPECT = '117%'
+
 const coaches = [
   {
     name: 'Coach Kante',
@@ -66,7 +70,7 @@ export default function MeetOurCoaches() {
               </div>
 
               {/* Aspect ratio wrapper — same ratio for both cards */}
-              <div className="relative w-full" style={{ paddingBottom: '117%' }}>
+              <div className="relative w-full" style={{ paddingBottom: COACH_CARD_ASPECT }}>
                 <img
                   src={coach.src}
                   alt={coach.alt}
@@ -117,4 +121,3 @@ export default function MeetOurCoaches() {
     </section>
   )
 }
-
