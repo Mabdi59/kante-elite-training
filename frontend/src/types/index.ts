@@ -443,11 +443,7 @@ export interface BookingFormData {
 
 export interface EventRegistrationFormData {
   playerName: string
-  playerAge: string
-  parentName: string
   email: string
-  phone: string
-  notes: string
 }
 
 export interface ContactFormData {

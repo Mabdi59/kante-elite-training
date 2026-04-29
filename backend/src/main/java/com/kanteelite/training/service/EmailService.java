@@ -4,6 +4,7 @@ import com.kanteelite.training.dto.request.ContactRequest;
 import com.kanteelite.training.dto.response.BookingResponse;
 import com.kanteelite.training.dto.response.BookingSeriesResponse;
 import com.kanteelite.training.dto.response.TeamRegistrationResponse;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,13 +38,32 @@ public class EmailService {
     @Value("${app.email.enabled:false}")
     private boolean emailEnabled;
 
+    @Value("${spring.mail.username:}")
+    private String mailUsername;
+
+    @Value("${spring.mail.password:}")
+    private String mailPassword;
+
     public EmailService(ObjectProvider<JavaMailSender> mailSenderProvider, TemplateEngine templateEngine) {
         this.mailSender = mailSenderProvider.getIfAvailable();
         this.templateEngine = templateEngine;
     }
 
+    @PostConstruct
+    void configureEmailDelivery() {
+        if (!emailEnabled && hasSmtpCredentials()) {
+            emailEnabled = true;
+            log.info("Email delivery enabled automatically because SMTP credentials are configured.");
+            return;
+        }
+
+        if (emailEnabled && !hasSmtpCredentials()) {
+            log.warn("Email is enabled but SMTP credentials are incomplete. Delivery attempts may fail.");
+        }
+    }
+
     public boolean isEmailDeliveryAvailable() {
-        return emailEnabled && mailSender != null;
+        return emailEnabled && mailSender != null && hasSmtpCredentials();
     }
 
     public boolean sendBookingConfirmation(BookingResponse booking) {
@@ -631,6 +651,10 @@ public class EmailService {
     private String capitalize(String s) {
         if (!StringUtils.hasText(s)) return s;
         return Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase();
+    }
+
+    private boolean hasSmtpCredentials() {
+        return StringUtils.hasText(mailUsername) && StringUtils.hasText(mailPassword);
     }
 
     private String formatEnumLabel(String value) {

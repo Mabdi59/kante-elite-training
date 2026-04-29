@@ -607,7 +607,7 @@ export default function HomePage() {
               What Columbus Families <span className="gradient-text">Are Saying</span>
             </h2>
             <p className="text-gray-400 mt-4 max-w-lg mx-auto text-sm">
-              Real feedback from parents and players who trained with Coach Kante.
+              Real feedback from parents and players who train with Kante Elite.
             </p>
           </div>
 
@@ -670,7 +670,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="order-1 lg:order-2">
-              <span className="section-label">The Coach</span>
+              <span className="section-label">Coaching Leadership</span>
               <h2 className="mb-5 text-3xl font-black text-white sm:text-4xl">
                 Coaching built on <span className="gradient-text">real experience</span> and real standards
               </h2>
@@ -680,6 +680,9 @@ export default function HomePage() {
                 </p>
                 <p>
                   {siteContent.aboutBody || defaultWebsiteContent.aboutBody}
+                </p>
+                <p>
+                  Coach Kante leads the year-round training standards at Kante Elite, and select summer events also feature Coach Tony as part of the coaching staff.
                 </p>
               </div>
               <div className="mb-8 mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -704,7 +707,7 @@ export default function HomePage() {
                 ))}
               </div>
               <Link to="/about" className="btn-secondary w-full text-sm sm:w-auto">
-                Coach Kante&apos;s Full Story
+                Read Coach Kante&apos;s Story
               </Link>
             </div>
           </div>

@@ -33,6 +33,10 @@ export default function EventsPage() {
   // Split by spots remaining: spotsLeft === 0 means full (sold out), regardless of status label.
   const openEvents = visibleEvents.filter((e) => e.spotsLeft === null || e.spotsLeft > 0)
   const soldOutEvents = visibleEvents.filter((e) => e.spotsLeft !== null && e.spotsLeft === 0)
+  const summerTrainingEvents = openEvents.filter((event) => {
+    const haystack = `${event.title} ${event.coachName ?? ''}`.toLowerCase()
+    return haystack.includes('summer camp') || haystack.includes('summer training')
+  })
 
   const coachDisplayName = coachFilter
     ? events.find((e) => (e.coachName ?? '').toLowerCase().includes(coachFilter))?.coachName ?? coachFilter
@@ -62,6 +66,22 @@ export default function EventsPage() {
               >
                 View all events
               </Link>
+            </div>
+          )}
+
+          {!coachDisplayName && summerTrainingEvents.length > 0 && (
+            <div
+              id="summer-training"
+              className="mb-10 overflow-hidden rounded-[28px] border border-amber-500/20 bg-[linear-gradient(135deg,rgba(120,53,15,0.24),rgba(10,10,10,0.96))] p-6 sm:p-8"
+            >
+              <p className="section-label">Summer Training</p>
+              <h2 className="mt-2 text-2xl font-black text-white sm:text-3xl">
+                Coach Kante and Coach Tony are leading this summer together
+              </h2>
+              <p className="mt-3 max-w-3xl text-sm leading-relaxed text-gray-300">
+                Our summer camp weeks live in the Events system so families can compare dates and register quickly.
+                Choose the week that fits your schedule and reserve a spot online in just a minute.
+              </p>
             </div>
           )}
 
@@ -166,7 +186,7 @@ export default function EventsPage() {
         secondaryHref="/training"
         proofPoints={[
           'Join the updates list',
-          'Fast answers from Coach Kante',
+          'Fast answers from the Kante Elite team',
           'Year-round training programs',
         ]}
       />

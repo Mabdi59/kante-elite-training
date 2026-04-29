@@ -160,6 +160,9 @@ public class EventService {
             if (!StringUtils.hasText(manualName) || !StringUtils.hasText(manualEmail)) {
                 throw new IllegalArgumentException("Manual participants need both a name and email.");
             }
+            if (eventParticipantRepository.existsByEventIdAndManualEmailIgnoreCase(eventId, manualEmail)) {
+                throw new IllegalArgumentException("That email is already registered for this event.");
+            }
             participant.setManualName(manualName);
             participant.setManualEmail(manualEmail);
         }

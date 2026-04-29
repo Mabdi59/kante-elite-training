@@ -11,5 +11,6 @@ public interface EventParticipantRepository extends JpaRepository<EventParticipa
     long countByEventId(Long eventId);
     boolean existsByEventIdAndUserId(Long eventId, Long userId);
     boolean existsByEventIdAndPlayerProfileId(Long eventId, Long playerProfileId);
+    boolean existsByEventIdAndManualEmailIgnoreCase(Long eventId, String manualEmail);
     Optional<EventParticipant> findByIdAndEventId(Long id, Long eventId);
 }
