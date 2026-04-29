@@ -8,7 +8,7 @@ const coaches = [
   {
     name: 'Coach Kante',
     label: 'Founder & Elite Trainer',
-    src: 'https://github.com/user-attachments/assets/04d4698b-38fc-4576-9d23-f3e0612a7f8e',
+    src: 'https://github.com/user-attachments/assets/c11a0a39-8a1f-470c-83a1-354b0085e4e4',
     alt: 'Coach Kante – promo card. Former Division 2 player at Ohio Dominican University, G-MAC 2nd and 3rd team All-Conference honoree, Three-time team MVP, Somali National Team player, USSF licensed coach and founder of Kante Elite Training.',
     width: 720,
     height: 864,
@@ -16,7 +16,7 @@ const coaches = [
   {
     name: 'Coach Tony',
     label: 'Elite Trainer',
-    src: 'https://github.com/user-attachments/assets/fc63ec53-589f-4339-b0b4-e25ad6845a6e',
+    src: 'https://github.com/user-attachments/assets/5c4c6725-8476-4a1c-a6f7-72a940c60d0d',
     alt: 'Coach Tony – Summer Training promo card. Former Division 1 player at Wright State University, Semi-Pro at Vagnharads VSK (Sweden) and Pittsburgh Riverhounds, USSF and UEFA licensed coach at Reynoldsburg High School.',
     width: 620,
     height: 713,
