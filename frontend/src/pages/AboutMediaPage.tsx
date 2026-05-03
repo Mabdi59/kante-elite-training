@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import CTASection from '../components/CTASection'
 import MediaAsset from '../components/MediaAsset'
 import MediaLightbox from '../components/MediaLightbox'
 import MediaPostCard from '../components/MediaPostCard'
@@ -254,18 +253,6 @@ export default function AboutMediaPage() {
             </div>
           ) : null}
       </Section>
-
-      <CTASection
-        eyebrow="Train With Intention"
-        title="Train With Confidence"
-        subtitle="Book a session with a coach who brings real playing experience and a clear plan for development."
-        urgencyLine="Limited spots available each week"
-        proofPoints={[
-          'Coach-led sessions',
-          'Real playing experience',
-          'Book online when ready',
-        ]}
-      />
 
       <MediaLightbox
         posts={galleryPosts}

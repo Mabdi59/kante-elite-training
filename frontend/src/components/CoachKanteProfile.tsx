@@ -57,10 +57,10 @@ export default function CoachKanteProfile({
   const title = coach?.roleTitle || 'Founder & Elite Trainer'
   const bio =
     coach?.bio ||
-    'Coach Kante leads Kante Elite Training with competitive playing experience, high standards, and a development-first approach for players who want to improve with purpose.'
+    'Coach Kante leads Kante Elite Training as a personal coaching brand for players who need focused attention and honest correction.'
   const bioParagraphs = [
     bio,
-    'His sessions are direct, intentional, and built around the details players need in real matches: technique, confidence, decision-making, and competitive habits.',
+    'His sessions are shaped by the player in front of him: the habits that need fixing, the decisions that need speeding up, and the confidence that needs building.',
   ]
 
   return (

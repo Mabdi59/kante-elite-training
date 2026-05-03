@@ -6,7 +6,6 @@ import HeroSection from '../components/HeroSection'
 import MediaAsset from '../components/MediaAsset'
 import ProgramCard from '../components/ProgramCard'
 import TestimonialCard from '../components/TestimonialCard'
-import CTASection from '../components/CTASection'
 import PublicProofBand from '../components/PublicProofBand'
 import { Section, SectionHeader } from '../components/Section'
 import { getMediaAlt, getPostsByPlacement } from '../utils/media'
@@ -119,7 +118,7 @@ const trainingProofItems = [
   },
   {
     icon: (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><rect x="3" y="4" width="18" height="17" rx="2" /><path strokeLinecap="round" strokeLinejoin="round" d="M3 9h18M8 2v4M16 2v4" /></svg>),
-    label: 'Live booking availability',
+    label: 'Current session options',
     href: '/book',
   },
   {
@@ -180,7 +179,7 @@ export default function TrainingPage() {
       <HeroSection
         badge="What We Offer"
         title="Training Programs"
-        subtitle="From first touch to high-level performance, every program is structured, focused, and personal."
+        subtitle="Compare the available training formats and choose the option that fits your player's goals, schedule, and level."
         mediaPlacement="TRAINING_HERO"
       />
 
@@ -196,7 +195,7 @@ export default function TrainingPage() {
                 Private <span className="gradient-text">Training</span>
               </h2>
               <p className="text-gray-400 text-sm leading-relaxed mb-8">
-                One-on-one sessions are tailored to the player, the position, and the current goal. Book online, choose a time, and get confirmation right away without waiting on a back-and-forth.
+                One-on-one sessions are built around the player in front of Coach Kante: current level, position, confidence, and the skill that needs the most attention next.
               </p>
               <ul className="space-y-3">
                 {[
@@ -215,7 +214,6 @@ export default function TrainingPage() {
               </ul>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link to="/book" className="btn-primary">Book Private Session</Link>
-                <Link to="/book" className="btn-secondary">View Availability</Link>
               </div>
             </div>
             <div className="overflow-hidden rounded-2xl border border-[#1e1e1e] bg-[#111]">
@@ -235,7 +233,7 @@ export default function TrainingPage() {
                 <div className="absolute bottom-0 left-0 right-0 p-6">
                   <p className="text-xs font-black uppercase text-amber-500">Coach-led sessions</p>
                   <p className="mt-2 max-w-sm text-sm leading-relaxed text-gray-200">
-                    Focused technical work with standards players can feel right away and families can understand after the session.
+                    Individual work gives Coach Kante room to slow details down, correct habits, and build repetition without rushing.
                   </p>
                 </div>
               </div>
@@ -251,7 +249,7 @@ export default function TrainingPage() {
                 ))}
               </div>
               <div className="px-5 pb-5 text-sm leading-relaxed text-gray-400">
-                The direct booking path is active, so families can choose a session without waiting for manual registration.
+                Families can book directly online and arrive with the player details already shared.
               </div>
             </div>
           </div>
@@ -266,7 +264,7 @@ export default function TrainingPage() {
               Choose the Right <span className="gradient-text">Fit</span>
             </h2>
             <p className="text-gray-400 mt-4 max-w-xl mx-auto">
-              Every program is built around real development goals. Browse the options and book the one that fits your player best.
+              Use this page to compare the training formats. Summer Training appears here as a seasonal program, while private and group sessions stay available as regular options.
             </p>
           </div>
 
@@ -312,7 +310,7 @@ export default function TrainingPage() {
               What Players <span className="gradient-text">Develop</span>
             </h2>
             <p className="text-gray-400 mt-4 max-w-xl mx-auto text-sm">
-              Every session is built around real growth. These are the four areas Coach Kante focuses on in every program.
+              These are the core areas that shape the training plan, whether the session is private, small group, or seasonal.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -334,35 +332,6 @@ export default function TrainingPage() {
         </div>
       </section>
 
-      <section className="bg-[#0a0a0a] py-16 px-4 border-t border-[#1a1a1a]">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
-            <span className="section-label">Simple Process</span>
-            <h2 className="text-white font-black text-4xl">
-              Book a Session in <span className="gradient-text">4 Steps</span>
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
-            <div className="hidden md:block absolute top-8 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-amber-500/30 via-amber-500/10 to-amber-500/30" />
-            {[
-              { step: '01', title: 'Choose Program', desc: 'Pick the training type that matches your goals and schedule.', icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg> },
-              { step: '02', title: 'Pick Date & Time', desc: 'Browse live availability and choose the session that works best for you.', icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg> },
-              { step: '03', title: 'Enter Details', desc: 'Share quick player information. It takes less than two minutes.', icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg> },
-              { step: '04', title: 'Confirm Spot', desc: 'Review your details and lock in your training time right away.', icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg> },
-            ].map((item) => (
-              <div key={item.step} className="text-center relative">
-                <div className="w-16 h-16 rounded-2xl bg-[#111] border border-[#222] flex items-center justify-center mx-auto mb-4 relative z-10">
-                  {item.icon}
-                </div>
-                <div className="text-amber-500 font-black text-xs mb-1">{item.step}</div>
-                <h3 className="text-white font-black text-base mb-2">{item.title}</h3>
-                <p className="text-gray-400 text-xs leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Testimonials */}
       {(loading || testimonials.length > 0) && (
         <section className="bg-black py-16 px-4 border-t border-[#1a1a1a]">
@@ -373,7 +342,7 @@ export default function TrainingPage() {
                 Real Feedback from <span className="gradient-text">Columbus Families</span>
               </h2>
               <p className="text-gray-400 mt-4 max-w-lg mx-auto text-sm">
-                Parents and players share their experience training with Coach Kante.
+                Parent and player feedback from the training experience.
               </p>
             </div>
             {loading ? (
@@ -400,17 +369,6 @@ export default function TrainingPage() {
 
       <FAQ faqs={faqs} loading={loading} />
 
-      <CTASection
-        eyebrow="Build The Base"
-        title="Ready to Start Training?"
-        subtitle="Choose a program, book your first session, and start with a plan that matches the player."
-        urgencyLine="Live online booking is open"
-        proofPoints={[
-          'Private and small group options',
-          'Choose from live availability',
-          'Confirmation email right away',
-        ]}
-      />
     </div>
   )
 }

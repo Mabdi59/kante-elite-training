@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CATEGORY_OPTIONS } from '../components/CategoryBadge'
-import CTASection from '../components/CTASection'
 import MediaLightbox from '../components/MediaLightbox'
 import MediaPostCard from '../components/MediaPostCard'
 import PageSkeleton from '../components/PageSkeleton'
@@ -75,9 +74,6 @@ export default function MediaPage() {
               A closer look at the sessions, the standards, and the work behind each week of development.
             </p>
             <div className="button-stack-mobile mt-8">
-              <Link to="/book" className="btn-primary w-full sm:w-auto">
-                Book a Session
-              </Link>
               <Link to="/about" className="btn-secondary w-full sm:w-auto">
                 Meet Coach Kante
               </Link>
@@ -229,21 +225,6 @@ export default function MediaPage() {
             </div>
           ) : null}
       </Section>
-
-      <CTASection
-        eyebrow="Step Into The Work"
-        title="Ready to Build Your Own Highlights"
-        subtitle="Book a session and train in an environment built for steady growth, confident play, and real progress."
-        primaryLabel="Start Training"
-        primaryHref="/book"
-        secondaryLabel="View Programs"
-        secondaryHref="/training"
-        proofPoints={[
-          'Real session footage',
-          'Private and small group options',
-          'Book online when ready',
-        ]}
-      />
 
       <MediaLightbox
         posts={lightboxPosts}

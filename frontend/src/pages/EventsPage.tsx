@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom'
 import { getEvents } from '../services/api'
 import type { Event, TrainingSession } from '../types'
 import HeroSection from '../components/HeroSection'
-import EventCard from '../components/EventCard'
-import CTASection from '../components/CTASection'
 
 function formatSessionDate(dateStr: string) {
   return new Date(`${dateStr}T12:00:00`).toLocaleDateString('en-US', {
@@ -56,7 +54,6 @@ export default function EventsPage() {
   const mediaUrls = summerTraining?.mediaUrls?.length
     ? summerTraining.mediaUrls
     : [summerTraining?.primaryMediaUrl, summerTraining?.secondaryMediaUrl].filter(Boolean) as string[]
-  const weekCount = new Set((summerTraining?.trainingSessions ?? []).map((session) => session.sessionSeriesId ?? session.scheduledDate)).size
   const weekGroups = buildWeekGroups(summerTraining?.trainingSessions ?? [])
   const bookingHref = summerTraining ? `/events/${summerTraining.id}/register` : '/contact'
 
@@ -65,7 +62,7 @@ export default function EventsPage() {
       <HeroSection
         badge="Upcoming"
         title="Summer Training"
-        subtitle="The live summer offering from Kante Elite Training. Train hard. Improve. Compete."
+        subtitle="A three-week seasonal program with weekly options, daily sessions, limited spots, and clear pricing for families."
         mediaPlacement="EVENTS_HERO"
       />
 
@@ -93,10 +90,10 @@ export default function EventsPage() {
               >
                 <p className="section-label">Only Live Event</p>
                 <h2 className="mt-2 text-2xl font-black text-white sm:text-3xl">
-                  Coach Kante and Coach Tony are leading this summer together
+                  One summer program, three weekly blocks
                 </h2>
                 <p className="mt-3 text-sm leading-relaxed text-gray-300">
-                  Summer Training is one event with {weekCount || 3} weekly blocks and Tuesday through Saturday training sessions. Choose a full week or register for a drop-in day.
+                  Choose a full Tuesday-through-Saturday week or register for individual drop-in sessions. Coach Tony appears here as part of this specific summer collaboration.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3 text-sm font-semibold text-white">
                   <span className="rounded-full border border-amber-500/30 bg-black/30 px-4 py-2">5 Days of Training</span>
@@ -109,17 +106,17 @@ export default function EventsPage() {
                 <div className="rounded-xl border border-amber-500/25 bg-[#101010] p-5">
                   <p className="text-xs font-bold uppercase text-amber-500">Full Week</p>
                   <p className="mt-2 text-3xl font-black text-white">$125</p>
-                  <p className="mt-2 text-sm text-gray-400">Five training days, Tuesday through Saturday.</p>
+                  <p className="mt-2 text-sm text-gray-400">Five sessions in the same week, Tuesday through Saturday.</p>
                 </div>
                 <div className="rounded-xl border border-green-500/25 bg-[#101010] p-5">
                   <p className="text-xs font-bold uppercase text-green-400">Best Value</p>
                   <p className="mt-2 text-3xl font-black text-white">$25/day</p>
-                  <p className="mt-2 text-sm text-gray-400">Only $25 per day with the full-week option.</p>
+                  <p className="mt-2 text-sm text-gray-400">The best price for families who want the complete weekly block.</p>
                 </div>
                 <div className="rounded-xl border border-[#2a2a2a] bg-[#101010] p-5">
                   <p className="text-xs font-bold uppercase text-amber-500">Drop-in</p>
                   <p className="mt-2 text-3xl font-black text-white">$30</p>
-                  <p className="mt-2 text-sm text-gray-400">Register for a single training session.</p>
+                  <p className="mt-2 text-sm text-gray-400">A flexible option for players who can only attend one day.</p>
                 </div>
               </div>
 
@@ -148,18 +145,13 @@ export default function EventsPage() {
                 </div>
               ) : null}
 
-              <EventCard event={summerTraining} />
-
               {weekGroups.length ? (
                 <div className="mt-10">
                   <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                     <div>
                       <p className="section-label">Schedule</p>
-                      <h2 className="mt-1 text-3xl font-black text-white">Choose a week, then pick your sessions</h2>
+                      <h2 className="mt-1 text-3xl font-black text-white">Weekly schedule</h2>
                     </div>
-                    <Link to={bookingHref} className="btn-primary justify-center">
-                      Book Summer Training
-                    </Link>
                   </div>
 
                   <div className="space-y-6">
@@ -200,12 +192,6 @@ export default function EventsPage() {
                       </div>
                     ))}
                   </div>
-
-                  <div className="mt-8 text-center">
-                    <Link to={bookingHref} className="btn-primary justify-center px-8 py-4">
-                      Book Summer Training
-                    </Link>
-                  </div>
                 </div>
               ) : null}
             </div>
@@ -222,12 +208,12 @@ export default function EventsPage() {
           <div className="space-y-4">
             {[
               {
-                q: 'What should my child bring to camp?',
-                a: 'Bring cleats, shin guards, athletic clothing, a water bottle, and a packed lunch for full-day camps. A ball is recommended, and we also provide extras.',
+                q: 'What should my child bring?',
+                a: 'Bring cleats, shin guards, athletic clothing, and a water bottle. A ball is helpful but not required.',
               },
               {
-                q: 'What age groups do events cover?',
-                a: 'We run events for players ages 8 to 18. Each listing includes the specific age range for that event.',
+                q: 'Can I book only one day?',
+                a: 'Yes. Choose the drop-in option if your player can only attend a single session.',
               },
               {
                 q: 'What happens if I need to cancel after booking?',
@@ -246,17 +232,6 @@ export default function EventsPage() {
           </div>
         </div>
       </section>
-
-      <CTASection
-        eyebrow="Summer Training"
-        title="Train Hard. Improve. Compete."
-        subtitle="This is the live event offering. Register online or contact Coach Kante with questions before reserving a spot."
-        primaryLabel="Book Summer Training"
-        primaryHref={bookingHref}
-        secondaryLabel="Ask a Question"
-        secondaryHref="/contact"
-        proofPoints={['Technical', 'Athletic', 'Tactical', 'Mental']}
-      />
     </div>
   )
 }

@@ -24,7 +24,7 @@ export default function MediaAsset({
   if (type === 'VIDEO') {
     const heroVideo = playbackMode === 'hero'
     const immersiveVideo = playbackMode === 'immersive'
-    const videoPreload = heroVideo ? 'auto' : immersiveVideo ? 'metadata' : 'none'
+    const videoPreload = heroVideo ? 'auto' : immersiveVideo ? 'metadata' : 'metadata'
 
     return (
       <video

@@ -14,7 +14,6 @@ import type { Program, Testimonial, Event, Tournament, MediaPost, WebsiteContent
 import ProgramCard from '../components/ProgramCard'
 import TestimonialCard from '../components/TestimonialCard'
 import EventCard from '../components/EventCard'
-import CTASection from '../components/CTASection'
 import MediaAsset from '../components/MediaAsset'
 import MediaPostCard from '../components/MediaPostCard'
 import MediaLightbox from '../components/MediaLightbox'
@@ -28,25 +27,19 @@ const audiences = [
     icon: (<svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>),
     title: 'Parents',
     headline: 'You want the right environment for your child.',
-    desc: 'We give families a clear path to real development, with focused coaching and progress you can see.',
-    cta: 'Book a Session',
-    href: '/book',
+    desc: 'Get a session that feels organized, purposeful, and easy to understand after your player leaves the field.',
   },
   {
     icon: (<svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>),
     title: 'Young Athletes',
     headline: 'You want to improve with purpose.',
-    desc: 'Our sessions sharpen technique, build stronger habits, and help players feel more confident on the ball.',
-    cta: 'See Programs',
-    href: '/training',
+    desc: 'Learn the details behind cleaner touches, faster choices, and more confidence during real play.',
   },
   {
     icon: (<svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>),
     title: 'Competitive Players',
     headline: 'You need an edge that shows up in games.',
-    desc: 'We help serious players improve the details that matter in matches, tryouts, and higher-level environments.',
-    cta: 'View Results',
-    href: '/results',
+    desc: 'Work on the details coaches notice: tempo, body shape, first touch, movement, and composure.',
   },
 ]
 
@@ -75,8 +68,7 @@ const homeProofBaseItems = [
   },
   {
     icon: (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><rect x="3" y="4" width="18" height="17" rx="2" /><path strokeLinecap="round" strokeLinejoin="round" d="M3 9h18M8 2v4M16 2v4" /></svg>),
-    label: 'Book online in minutes',
-    href: '/book',
+    label: 'Direct Coach Kante training',
   },
   {
     icon: (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>),
@@ -87,21 +79,6 @@ const homeProofBaseItems = [
     icon: (<svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>),
     label: '@kanteelitetraining_',
     href: 'https://www.instagram.com/kanteelitetraining_/',
-  },
-]
-
-const coachStandards = [
-  {
-    title: 'Clear session objectives',
-    desc: 'Players know what the session is working on and families can understand why it matters.',
-  },
-  {
-    title: 'Honest, usable feedback',
-    desc: 'Progress is explained in plain language so the next step never feels vague.',
-  },
-  {
-    title: 'Game-ready habits',
-    desc: 'The work is coached to carry into confidence, decisions, and match performance.',
   },
 ]
 
@@ -270,7 +247,7 @@ export default function HomePage() {
             </p>
 
             <div className="mb-8 grid max-w-2xl grid-cols-2 gap-x-3 gap-y-3 sm:flex sm:flex-wrap sm:gap-4">
-              {['Competitive playing background', 'All skill levels', 'Flexible scheduling', 'Fast booking confirmation'].map((t) => (
+                  {['Coach-led sessions', 'Ages 8-18', 'Private or small group', 'Online scheduling'].map((t) => (
                 <span
                   key={t}
                   className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-sm font-medium text-gray-300 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
@@ -327,7 +304,7 @@ export default function HomePage() {
               Who We Train
             </h2>
             <p className="text-gray-400 mt-4 max-w-lg mx-auto">
-              Whether you want steady development or a sharper competitive edge, we offer a clear path forward.
+              Different players need different kinds of attention. Start with the path that fits your player today.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -341,16 +318,7 @@ export default function HomePage() {
                 </div>
                 <span className="section-label">{a.title}</span>
                 <h3 className="text-white font-black text-xl mb-3 leading-tight">{a.headline}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed flex-1 mb-6">{a.desc}</p>
-                <Link
-                  to={a.href}
-                  className="inline-flex items-center gap-2 text-amber-500 font-bold text-sm group-hover:gap-3 transition-all"
-                >
-                  {a.cta}
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                  </svg>
-                </Link>
+                <p className="text-gray-400 text-sm leading-relaxed flex-1">{a.desc}</p>
               </div>
             ))}
           </div>
@@ -595,7 +563,7 @@ export default function HomePage() {
                     Real moments from the work players are doing each week
                   </h3>
                   <p className="mt-3 text-sm leading-relaxed text-gray-400">
-                    Open any highlight for a closer look at the details, tempo, and environment behind Kante Elite sessions.
+                    Open any highlight for a closer look at the pace, standards, and atmosphere around the training.
                   </p>
                 </div>
 
@@ -631,7 +599,7 @@ export default function HomePage() {
                 What Columbus Families <span className="gradient-text">Are Saying</span>
               </h2>
               <p className="text-gray-400 mt-4 max-w-lg mx-auto text-sm">
-                Real feedback from parents and players who train with Kante Elite.
+                Feedback from families who have seen the environment up close.
               </p>
             </div>
 
@@ -657,166 +625,6 @@ export default function HomePage() {
           </div>
         </section>
       )}
-
-      <section className="bg-black py-16 px-4">
-        <div className="page-shell">
-          <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
-            <div className="relative order-2 min-h-80 overflow-hidden rounded-2xl border border-[#1e1e1e] bg-[#111] lg:order-1">
-              {coachSpotlightMedia ? (
-                <MediaAsset
-                  src={coachSpotlightMedia.mediaUrl}
-                  type={coachSpotlightMedia.mediaType}
-                  alt={getMediaAlt(coachSpotlightMedia)}
-                  loading="eager"
-                  className="absolute inset-0 h-full w-full object-cover object-center"
-                />
-              ) : (
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.22),_transparent_42%)]" />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-black/10" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.22),_transparent_42%)]" />
-              <div className="relative flex h-full items-end p-6 sm:p-8">
-                <div className="max-w-sm rounded-2xl border border-white/10 bg-black/65 p-5 backdrop-blur">
-                  <div className="flex items-center gap-3">
-                    {coachKante?.headshotUrl ? (
-                      <MediaAsset
-                        src={coachKante.headshotUrl}
-                        type={coachKante.headshotMediaType ?? 'IMAGE'}
-                        alt={`${coachKante.displayName} headshot`}
-                        loading="eager"
-                        className="h-14 w-14 rounded-full object-cover object-top ring-2 ring-amber-500"
-                      />
-                    ) : coachProfileMedia ? (
-                      <MediaAsset
-                        src={coachProfileMedia.mediaUrl}
-                        type={coachProfileMedia.mediaType}
-                        alt={getMediaAlt(coachProfileMedia)}
-                        loading="eager"
-                        className="h-14 w-14 rounded-full object-cover object-top ring-2 ring-amber-500"
-                      />
-                    ) : (
-                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-500 text-lg font-black text-black ring-2 ring-amber-500">
-                        K
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-sm font-black uppercase text-amber-500">
-                        {coachKante?.displayName || 'Coach Kante'}
-                      </p>
-                      <p className="text-sm text-gray-300">{coachKante?.roleTitle || 'Founder & Elite Trainer'}</p>
-                    </div>
-                  </div>
-                  <p className="mt-4 text-sm leading-relaxed text-gray-200">
-                    {coachKante?.bio || 'Focused coaching, clear standards, and training designed to carry into real match habits.'}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="order-1 lg:order-2">
-              <span className="section-label">Coaching Leadership</span>
-              <h2 className="mb-5 text-3xl font-black text-white sm:text-4xl">
-                Coaching built on <span className="gradient-text">real experience</span> and real standards
-              </h2>
-              <div className="space-y-4 text-gray-400 leading-relaxed text-sm">
-                <p>
-                  {siteContent.aboutIntro || defaultWebsiteContent.aboutIntro}
-                </p>
-                <p>
-                  {siteContent.aboutBody || defaultWebsiteContent.aboutBody}
-                </p>
-                <p>
-                  Coach Kante leads the training standard through clear expectations, thoughtful feedback, and sessions built to carry into real match habits.
-                </p>
-              </div>
-              <div className="mb-8 mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {(siteContent.aboutExperiencePoints?.length
-                  ? siteContent.aboutExperiencePoints
-                  : defaultWebsiteContent.aboutExperiencePoints
-                ).slice(0, 4).map((cred) => (
-                  <div key={cred} className="flex items-center gap-2 bg-[#111] border border-[#222] rounded-xl p-3 hover:border-amber-500/20 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                    </svg>
-                    <span className="text-white text-xs font-semibold">{cred}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="mb-8 grid grid-cols-1 gap-3">
-                {coachStandards.map((item) => (
-                  <div key={item.title} className="rounded-2xl border border-[#222] bg-[#111] px-4 py-4">
-                    <p className="text-sm font-black text-white">{item.title}</p>
-                    <p className="mt-1 text-sm leading-relaxed text-gray-400">{item.desc}</p>
-                  </div>
-                ))}
-              </div>
-              <Link to="/about" className="btn-secondary w-full text-sm sm:w-auto">
-                Read Coach Kante&apos;s Story
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-[#0a0a0a] py-16 px-4 border-t border-[#1a1a1a]">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
-            <span className="section-label">Simple Process</span>
-            <h2 className="text-white font-black text-4xl md:text-5xl text-balance">
-              What Happens <span className="gradient-text">After You Book</span>
-            </h2>
-            <p className="text-gray-400 mt-4 max-w-md mx-auto text-sm">
-              A simple path from booking to your first training session.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-            <div className="hidden md:block absolute top-10 left-[20%] right-[20%] h-px bg-gradient-to-r from-amber-500/30 via-amber-500/20 to-amber-500/30" />
-            {[
-              {
-                step: '01',
-                icon: (<svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>),
-                title: 'Book Your Session',
-                desc: 'Choose your program, pick a date and time, and confirm your session. It only takes a few minutes.',
-              },
-              {
-                step: '02',
-                icon: (<svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><path d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>),
-                title: 'Confirmation and Follow Up',
-                desc: "You will get a confirmation email right away. Coach Kante will follow up before the first session to learn the player's goals.",
-              },
-              {
-                step: '03',
-                icon: (<svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/><path d="M4.9 4.9 7.5 7.5"/><path d="M19.1 4.9 16.5 7.5"/></svg>),
-                title: 'Train With a Clear Plan',
-                desc: "Each session is built around the player's needs, with progress tracked and the work adjusted over time.",
-              },
-            ].map((item, i) => (
-              <div key={item.step} className="relative text-center group">
-                <div className="w-20 h-20 rounded-2xl bg-[#111] border border-[#222] flex items-center justify-center mx-auto mb-5 relative z-10 group-hover:border-amber-500/30 transition-colors duration-300">
-                  {item.icon}
-                </div>
-                <div className="text-amber-500 font-black text-xs mb-2">{item.step}</div>
-                <h3 className="text-white font-black text-lg mb-3">{item.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed max-w-xs mx-auto">{item.desc}</p>
-                {i < 2 && (
-                  <div className="flex md:hidden justify-center mt-6 mb-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-amber-500/40 rotate-90" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                    </svg>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-10">
-            <Link to="/book" className="btn-primary text-base px-10 py-4 gap-2">
-              Book Your Session Now
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-              </svg>
-            </Link>
-          </div>
-        </div>
-      </section>
 
       {(loading || homeFaqs.length > 0) && (
         <section className="bg-[#050505] border-t border-[#1a1a1a] py-20 px-4">
@@ -893,21 +701,6 @@ export default function HomePage() {
           </div>
         </section>
       )}
-
-      <CTASection
-        eyebrow="Start Strong"
-        title="Your Player&apos;s Best Season Starts Now"
-        subtitle="Book a session today and give your player focused training, clear feedback, and a plan for progress."
-        primaryLabel="Book Your First Session"
-        secondaryLabel="Learn About Programs"
-        secondaryHref="/training"
-        urgencyLine="Weekend sessions fill fast"
-        proofPoints={[
-          'Book online in minutes',
-          'Confirmation email right away',
-          'Coach follow-up before the first session',
-        ]}
-      />
 
       <MediaLightbox
         posts={homeMediaPosts}

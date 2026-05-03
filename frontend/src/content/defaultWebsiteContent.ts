@@ -3,26 +3,26 @@ import type { WebsiteContent } from '../types'
 export const defaultWebsiteContent: WebsiteContent = {
   id: 0,
   homeBadge: 'Columbus youth soccer training',
-  homeHeadline: 'Train Like an Elite Player.',
+  homeHeadline: 'Private Soccer Training in Columbus.',
   homeDescription:
-    'Private and small group soccer training for Columbus players ages 8 to 18. Every player gets focused coaching, a clear plan, and progress you can see.',
+    'Focused sessions for players ages 8 to 18 who need better habits, sharper technique, and a coach who explains the next step clearly.',
   homeHighlightsTitle: 'Latest Highlights',
   homeHighlightsDescription:
-    'Fresh photos and videos from sessions, events, and the work players put in every week.',
+    'Photos and videos from the training environment, player work, and moments families can recognize.',
   aboutBadge: 'About',
   aboutHeroTitle: 'Mohamed Sheik Kante',
-  aboutHeroDescription: 'Founder and Head Coach. Known as Coach Kante.',
+  aboutHeroDescription: 'Founder and Head Coach of Kante Elite Training.',
   aboutHeadline: 'Built on real playing experience and high level competition',
   aboutIntro:
-    'Training built from national team, college, and high level competition experience.',
+    'Coach Kante brings national team, college, and competitive playing experience into a practical training environment.',
   aboutBody:
-    'Sessions are direct, performance focused, and built to help players improve with purpose.',
-  aboutTrustStatement: 'Trusted by players and families across Columbus.',
+    'The work is direct and player-specific: clean technique, better decisions, confidence under pressure, and standards that transfer into games.',
+  aboutTrustStatement: 'A personal training brand led by Coach Kante.',
   aboutGalleryTitle: 'Inside the Work',
   aboutGalleryDescription:
-    'A look at the sessions, the standards, and the work behind every week of training.',
+    'A closer look at Coach Kante, the players, and the training environment.',
   aboutExperienceTitle: 'Coaching and Playing Experience',
-  aboutExperienceDescription: 'Real experience that shapes every session.',
+  aboutExperienceDescription: 'Credentials that inform how Coach Kante teaches, corrects, and challenges players.',
   aboutExperiencePoints: [
     'Somalia National Team player',
     'Ohio Dominican University Mens Soccer captain and starter',

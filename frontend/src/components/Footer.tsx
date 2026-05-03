@@ -9,7 +9,6 @@ const footerLinks = [
   { href: '/faq', label: 'FAQ' },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
-  { href: '/book', label: 'Book a Session' },
 ]
 
 const accountLinks = [
@@ -20,33 +19,6 @@ const accountLinks = [
 export default function Footer() {
   return (
     <footer className="border-t border-[#1a1a1a] bg-[#0a0a0a] pb-[calc(env(safe-area-inset-bottom)+6.75rem)] md:pb-0">
-      <div className="relative overflow-hidden border-b border-[#1a1a1a] bg-black px-4 py-12">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(245,158,11,0.12)_0%,_transparent_48%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(120,53,15,0.18)_0%,_transparent_52%)]" />
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
-
-        <div className="page-shell relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <p className="section-label">Ready When You Are</p>
-            <h2 className="mb-3 text-2xl font-black text-white md:text-3xl">
-              Book online, get confirmation right away, and start with a clear next step.
-            </h2>
-            <p className="max-w-xl text-sm leading-relaxed text-gray-400 sm:text-base">
-              Questions before you book? Call, email, or send a message. The direct booking flow is live whenever you are ready.
-            </p>
-          </div>
-
-          <div className="button-stack-mobile lg:justify-end">
-            <Link to="/book" className="btn-primary w-full sm:w-auto">
-              Book a Session
-            </Link>
-            <Link to="/contact" className="btn-secondary w-full sm:w-auto">
-              Ask a Question
-            </Link>
-          </div>
-        </div>
-      </div>
-
       {/* Main Footer Grid */}
       <div className="page-shell grid grid-cols-1 gap-10 py-12 md:grid-cols-4">
         {/* Brand */}

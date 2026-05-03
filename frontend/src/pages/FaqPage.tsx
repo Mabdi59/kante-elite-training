@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import CTASection from '../components/CTASection'
 import HeroSection from '../components/HeroSection'
 import PublicProofBand from '../components/PublicProofBand'
 import { Section, SectionHeader } from '../components/Section'
@@ -14,7 +13,7 @@ const faqProofItems = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 9h18M8 2v4M16 2v4" />
       </svg>
     ),
-    label: 'Live booking availability',
+    label: 'Live training availability',
     href: '/book',
   },
   {
@@ -35,7 +34,7 @@ const faqProofItems = [
         <line x1="9" y1="17" x2="15" y2="17" />
       </svg>
     ),
-    label: 'Manage bookings and player profiles',
+    label: 'Manage sessions and player profiles',
     href: '/login',
   },
   {
@@ -44,7 +43,7 @@ const faqProofItems = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
       </svg>
     ),
-    label: 'Send booking and tournament questions online',
+    label: 'Send training and tournament questions online',
     href: '/contact',
   },
 ]
@@ -65,7 +64,7 @@ export default function FaqPage() {
       <HeroSection
         badge="Help Center"
         title="Frequently Asked Questions"
-        subtitle="Answers on training, booking, tournaments, accounts, and team registration. If you still need help, contact Coach Kante directly."
+        subtitle="Answers on training, sessions, tournaments, accounts, and team registration. If you still need help, contact Coach Kante directly."
         mediaPlacement="FAQ_HERO"
       />
 
@@ -126,20 +125,6 @@ export default function FaqPage() {
           )}
       </Section>
 
-      <CTASection
-        eyebrow="Still Need Help"
-        title="Need a Direct Answer?"
-        subtitle="If you are between programs, unsure about scheduling, or need tournament help, send a message and we&apos;ll point you in the right direction."
-        primaryLabel="Contact Coach Kante"
-        primaryHref="/contact"
-        secondaryLabel="Book a Session"
-        secondaryHref="/book"
-        proofPoints={[
-          'Reply usually within 24 hours',
-          'Direct booking is open now',
-          'Team registration support available',
-        ]}
-      />
     </div>
   )
 }

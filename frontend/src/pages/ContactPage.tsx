@@ -36,15 +36,6 @@ const contactProofItems = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 9h18M8 2v4M16 2v4" />
       </svg>
     ),
-    label: 'Book online in minutes',
-    href: '/book',
-  },
-  {
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-      </svg>
-    ),
     label: 'Reply usually within 24 hours',
   },
   {
@@ -167,23 +158,14 @@ export default function ContactPage() {
               <div className="mb-5">
                 <BrandMark size="footer" />
               </div>
-              <p className="section-label">Fastest Next Step</p>
+              <p className="section-label">Need Help Choosing?</p>
               <h2 className="mb-4 text-3xl font-black text-white">
-                Book Online or <span className="text-amber-500">Reach Out</span>
+                Reach Coach <span className="text-amber-500">Directly</span>
               </h2>
               <p className="text-sm leading-relaxed text-gray-400">
-                Most families can book directly online in minutes. If you want help choosing the right fit first, send a message and Coach Kante will point you in the right direction.
+                Send a message if you want help choosing the right fit, confirming an age group, or planning the next step for your player.
               </p>
               <div className="mt-6 space-y-3">
-                <Link
-                  to="/book"
-                  className="flex items-center justify-between rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm font-semibold text-white transition-colors hover:border-amber-500/40 hover:bg-amber-500/15"
-                >
-                  Book a Session
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2.25} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                  </svg>
-                </Link>
                 <Link
                   to="/training"
                   className="flex items-center justify-between rounded-xl border border-[#2a2a2a] bg-[#0d0d0d] px-4 py-3 text-sm font-semibold text-gray-200 transition-colors hover:border-[#3a3a3a] hover:text-white"
@@ -271,8 +253,8 @@ export default function ContactPage() {
                   >
                     Send Another Message
                   </button>
-                  <Link to="/book" className="btn-primary text-sm">
-                    Book a Session
+                  <Link to="/training" className="btn-primary text-sm">
+                    View Programs
                   </Link>
                 </div>
               </div>

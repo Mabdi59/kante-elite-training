@@ -21,9 +21,9 @@ export default function CTASection({
   secondaryHref,
   eyebrow,
   proofPoints = [
-    'Book online in minutes',
-    'Confirmation email right away',
-    'Coach follow-up before the first session',
+    'Clear next steps',
+    'Player details included',
+    'Coach-led training',
   ],
   urgencyLine,
 }: CTASectionProps) {

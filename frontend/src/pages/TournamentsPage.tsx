@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { getTournaments } from '../services/api'
 import type { Tournament } from '../types'
 import StatusBadge from '../components/StatusBadge'
-import CTASection from '../components/CTASection'
 import HeroSection from '../components/HeroSection'
 import {
   formatTournamentDate,
@@ -198,9 +197,6 @@ export default function TournamentsPage() {
               <Link to="/contact" className="btn-primary justify-center px-5 py-2.5 text-sm">
                 Contact us
               </Link>
-              <Link to="/book" className="btn-secondary justify-center px-5 py-2.5 text-sm">
-                Book training instead
-              </Link>
             </div>
           </div>
         ) : filteredActive.length === 0 ? (
@@ -256,21 +252,6 @@ export default function TournamentsPage() {
           </div>
         )}
       </div>
-      <CTASection
-        eyebrow="Stay Sharp"
-        title="Train With the Best, Compete With Confidence"
-        subtitle="Kante Elite Training prepares players for competitive environments. Join a program and step onto the pitch ready."
-        primaryLabel="Book a Session"
-        primaryHref="/book"
-        secondaryLabel="View Programs"
-        secondaryHref="/training"
-        urgencyLine="Now Enrolling"
-        proofPoints={[
-          'Competitive environment prep',
-          'Private and small group options',
-          'Direct online booking',
-        ]}
-      />
     </div>
   )
 }

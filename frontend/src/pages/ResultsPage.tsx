@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getPrograms, getTestimonials } from '../services/api'
 import type { Program, Testimonial } from '../types'
-import CTASection from '../components/CTASection'
 import EmptyState from '../components/EmptyState'
 import HeroSection from '../components/HeroSection'
 import { Section, SectionHeader } from '../components/Section'
@@ -131,20 +130,6 @@ export default function ResultsPage() {
           )}
       </Section>
 
-      <CTASection
-        eyebrow="Your Turn"
-        title="Ready to Start Your Player's Story?"
-        subtitle="Every result starts with a first session. Book now and begin with a clear plan."
-        primaryLabel="Book a Session"
-        primaryHref="/book"
-        secondaryLabel="View Programs"
-        secondaryHref="/training"
-        proofPoints={[
-          'Published family reviews',
-          'Current programs listed online',
-          'Direct online booking',
-        ]}
-      />
     </div>
   )
 }
