@@ -5,13 +5,11 @@ import MediaLightbox from '../components/MediaLightbox'
 import MediaPostCard from '../components/MediaPostCard'
 import PageSkeleton from '../components/PageSkeleton'
 import CoachKanteProfile from '../components/CoachKanteProfile'
-import { Section, SectionHeader } from '../components/Section'
+import { Section } from '../components/Section'
 import { defaultWebsiteContent } from '../content/defaultWebsiteContent'
 import { getMediaPosts, getPublicCoaches, getWebsiteContent } from '../services/api'
 import type { CoachProfile, MediaPost, WebsiteContent } from '../types'
 import { getMediaAlt, getPostsByPlacement } from '../utils/media'
-
-const COACH_KANTE_PROFILE_IMAGE = '/images/coach-kante-profile.png'
 
 export default function AboutMediaPage() {
   const [mediaPosts, setMediaPosts] = useState<MediaPost[]>([])
@@ -124,82 +122,45 @@ export default function AboutMediaPage() {
         </div>
       </section>
 
+      <CoachKanteProfile
+        coach={coachKante}
+        imagePost={coachProfilePost}
+        compact
+        secondaryCta={{ label: 'Contact Coach Kante', to: '/contact' }}
+      />
+
       <Section tone="raised" shellClassName="max-w-6xl">
-          <SectionHeader
-            eyebrow="Experience"
-            title={content.aboutExperienceTitle || defaultWebsiteContent.aboutExperienceTitle}
-            description={content.aboutExperienceDescription || defaultWebsiteContent.aboutExperienceDescription}
-            className="mb-8"
-          />
-
-          <div className="grid items-start gap-8 lg:grid-cols-[auto_1fr]">
-            <div className="mx-auto flex max-w-xs flex-col items-center gap-4 text-center lg:mx-0 lg:items-start lg:text-left">
-              {coachKante?.headshotUrl ? (
-                <div className="overflow-hidden rounded-2xl ring-2 ring-amber-500 shadow-xl">
-                  <MediaAsset
-                    src={coachKante.headshotUrl}
-                    type={coachKante.headshotMediaType ?? 'IMAGE'}
-                    alt={`${coachKante.displayName} headshot`}
-                    loading="eager"
-                    className="h-48 w-48 object-cover object-top"
-                  />
-                </div>
-              ) : coachProfilePost ? (
-                <div className="overflow-hidden rounded-2xl ring-2 ring-amber-500 shadow-xl">
-                  <MediaAsset
-                    src={coachProfilePost.mediaUrl}
-                    type={coachProfilePost.mediaType}
-                    alt={getMediaAlt(coachProfilePost)}
-                    loading="eager"
-                    className="h-48 w-48 object-cover object-top"
-                  />
-                </div>
-              ) : (
-                <div className="overflow-hidden rounded-2xl ring-2 ring-amber-500 shadow-xl">
-                  <MediaAsset
-                    src={COACH_KANTE_PROFILE_IMAGE}
-                    type="IMAGE"
-                    alt="Coach Kante headshot"
-                    loading="eager"
-                    className="h-48 w-48 object-cover object-top"
-                  />
-                </div>
-              )}
-              <div>
-                <p className="text-xl font-black text-white">{coachKante?.displayName || 'Coach Kante'}</p>
-                <p className="text-sm font-semibold uppercase text-amber-500">
-                  {coachKante?.roleTitle || 'Founder & Elite Trainer'}
-                </p>
-                {coachKante?.certifications ? (
-                  <p className="mt-1 text-xs text-gray-500">{coachKante.certifications}</p>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-[#222] bg-[#1a1a1a] p-5 sm:p-8">
-              <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {(content.aboutExperiencePoints?.length
-                  ? content.aboutExperiencePoints
-                  : defaultWebsiteContent.aboutExperiencePoints
-                ).map((point) => (
-                  <li
-                    key={point}
-                    className="flex items-start gap-3 rounded-xl border border-[#1f1f1f] bg-[#111] px-4 py-4"
-                  >
-                    <span className="mt-0.5 flex-shrink-0 text-amber-500">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                      </svg>
-                    </span>
-                    <span className="text-sm font-semibold leading-relaxed text-white">{point}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+        <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
+          <div>
+            <span className="section-label">Training Standard</span>
+            <h2 className="mt-3 text-3xl font-black text-white sm:text-4xl">What Players Can Expect</h2>
+            <p className="mt-4 text-base leading-relaxed text-gray-400">
+              The work stays practical: clear feedback, focused reps, and habits players can carry into their next match.
+            </p>
           </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[
+              {
+                title: 'Clear Plan',
+                body: 'Each session starts with the player in front of him, not a generic workout.',
+              },
+              {
+                title: 'Direct Correction',
+                body: 'Technique, movement, and decision-making get coached in real time.',
+              },
+              {
+                title: 'Game Speed',
+                body: 'Drills build toward the moments players actually face on the field.',
+              },
+            ].map((item) => (
+              <div key={item.title} className="border border-white/10 bg-black/35 p-5">
+                <h3 className="text-lg font-black text-white">{item.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-gray-400">{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </Section>
-
-      <CoachKanteProfile coach={coachKante} imagePost={coachProfilePost} compact />
 
       <Section divider={false} shellClassName="max-w-6xl">
           <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">

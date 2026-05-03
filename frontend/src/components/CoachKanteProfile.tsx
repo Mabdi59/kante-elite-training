@@ -22,6 +22,10 @@ interface CoachKanteProfileProps {
   imagePost?: MediaPost | null
   loading?: boolean
   compact?: boolean
+  secondaryCta?: {
+    label: string
+    to: string
+  }
 }
 
 export default function CoachKanteProfile({
@@ -29,6 +33,7 @@ export default function CoachKanteProfile({
   imagePost,
   loading = false,
   compact = false,
+  secondaryCta = { label: 'About Coach Kante', to: '/about' },
 }: CoachKanteProfileProps) {
   if (loading) {
     return (
@@ -143,8 +148,8 @@ export default function CoachKanteProfile({
             <Link to="/book" className="btn-primary justify-center px-8 py-3 text-sm">
               Book Training
             </Link>
-            <Link to="/about" className="btn-secondary justify-center px-8 py-3 text-sm">
-              About Coach Kante
+            <Link to={secondaryCta.to} className="btn-secondary justify-center px-8 py-3 text-sm">
+              {secondaryCta.label}
             </Link>
           </div>
         </div>
