@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { Event } from '../types'
+import SocialSharePanel from './SocialSharePanel'
 
 interface EventCardProps {
   event: Event
@@ -18,6 +19,7 @@ export default function EventCard({ event }: EventCardProps) {
   const isSoldOut = event.status === 'SOLD_OUT' || event.spotsLeft === 0
   const isLimited = !isSoldOut && event.spotsLeft !== null && event.spotsLeft <= 5
   const mediaUrl = event.mediaUrls?.[0] ?? event.primaryMediaUrl
+  const registerHref = `/events/${event.id}/register`
 
   const statusBadge = isSoldOut
     ? { label: 'Sold Out', cls: 'bg-red-900/40 text-red-400 border-red-500/30' }
@@ -104,11 +106,23 @@ export default function EventCard({ event }: EventCardProps) {
         {isSoldOut ? (
           <span className="text-gray-500 text-sm font-bold">Registration Closed</span>
         ) : (
-          <Link to={`/events/${event.id}/register`} className="btn-primary w-full px-5 py-2 text-sm sm:w-auto">
+          <Link to={registerHref} className="btn-primary w-full px-5 py-2 text-sm sm:w-auto">
             Register Now
           </Link>
         )}
       </div>
+      {!isSoldOut ? (
+        <div className="border-t border-[#222] px-5 pb-5 sm:px-6 sm:pb-6">
+          <SocialSharePanel
+            title={event.title}
+            text={`${event.description} Full week $${event.price.toFixed(0)}. Drop-in from $30/day.`}
+            url={registerHref}
+            imageUrl={mediaUrl}
+            imageType="IMAGE"
+            variant="compact"
+          />
+        </div>
+      ) : null}
     </div>
   )
 }

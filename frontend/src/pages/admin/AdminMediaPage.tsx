@@ -13,6 +13,7 @@ import ErrorBanner from '../../components/ErrorBanner'
 import EmptyState from '../../components/EmptyState'
 import MediaPostCard from '../../components/MediaPostCard'
 import PageSkeleton from '../../components/PageSkeleton'
+import SocialSharePanel from '../../components/SocialSharePanel'
 import { MEDIA_PLACEMENT_OPTIONS, sortMediaPosts } from '../../utils/media'
 
 const MAX_MEDIA_FILE_SIZE = 20 * 1024 * 1024
@@ -295,15 +296,6 @@ export default function AdminMediaPage() {
         ...current,
         placements: [...placements, { key, displayOrder: 0 }],
       }
-    })
-  }
-
-  const toggleCreatePlacement = (key: MediaPlacementKey, enabled: boolean) => {
-    setCreatePlacements((current) => {
-      if (key === 'MEDIA_LIBRARY') return current
-      if (!enabled) return current.filter((item) => item !== key)
-      if (current.includes(key)) return current
-      return [...current, key]
     })
   }
 
@@ -632,6 +624,14 @@ export default function AdminMediaPage() {
                       {deletingId === post.id ? 'Deleting...' : 'Delete'}
                     </button>
                   </div>
+                  <SocialSharePanel
+                    title={post.caption?.trim() || 'Kante Elite Training'}
+                    text="Book a session with Coach Kante."
+                    url="/book"
+                    imageUrl={post.mediaType === 'IMAGE' ? post.mediaUrl : undefined}
+                    imageType={post.mediaType}
+                    variant="compact"
+                  />
                 </div>
               ))}
             </div>
@@ -842,26 +842,19 @@ export default function AdminMediaPage() {
               </div>
 
               <div className="rounded-xl border border-gray-800 bg-black p-4">
-                <p className="text-xs font-semibold uppercase text-gray-500">Use this image on</p>
+                <p className="text-xs font-semibold uppercase text-gray-500">Share this post</p>
                 <p className="mt-1 text-xs text-gray-500">
-                  Pick any public page sections where this upload should appear. It will always stay in the Media Library too.
+                  Copy the caption and booking link, or download a Story image for Instagram and Snapchat.
                 </p>
-                <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                  {MEDIA_PLACEMENT_OPTIONS.filter((option) => option.value !== 'MEDIA_LIBRARY').map((option) => (
-                    <label
-                      key={option.value}
-                      className="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-800 bg-gray-950/80 px-3 py-2 text-sm text-gray-200"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={createPlacements.includes(option.value)}
-                        onChange={(event) => toggleCreatePlacement(option.value, event.target.checked)}
-                        className="h-4 w-4 rounded border-gray-700 accent-amber-500"
-                      />
-                      {option.label}
-                    </label>
-                  ))}
-                </div>
+                <SocialSharePanel
+                  title={editForm.caption?.trim() || editingPost.caption?.trim() || 'Kante Elite Training'}
+                  text="Book a session with Coach Kante."
+                  url="/book"
+                  imageUrl={editingPost.mediaType === 'IMAGE' ? editingPost.mediaUrl : undefined}
+                  imageType={editingPost.mediaType}
+                  variant="compact"
+                  className="mt-4"
+                />
               </div>
 
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">

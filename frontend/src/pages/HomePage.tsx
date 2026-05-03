@@ -19,6 +19,7 @@ import MediaPostCard from '../components/MediaPostCard'
 import MediaLightbox from '../components/MediaLightbox'
 import PublicProofBand from '../components/PublicProofBand'
 import CoachKanteProfile from '../components/CoachKanteProfile'
+import SocialSharePanel from '../components/SocialSharePanel'
 import { defaultWebsiteContent } from '../content/defaultWebsiteContent'
 import { getMediaAlt, getPostsByPlacement } from '../utils/media'
 
@@ -232,6 +233,7 @@ export default function HomePage() {
         <div className="absolute bottom-1/4 left-10 w-64 h-64 bg-amber-900/20 rounded-full blur-2xl pointer-events-none" />
 
         <div className="page-shell relative w-full pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:pb-16 sm:pt-[calc(env(safe-area-inset-top)+6.5rem)]">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_390px] lg:items-center">
           <div className="max-w-3xl animate-fade-up">
             <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase px-4 py-1.5 rounded-full mb-6">
               <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
@@ -282,6 +284,16 @@ export default function HomePage() {
               </Link>
             </div>
 
+            <SocialSharePanel
+              title="Book Kante Elite Training"
+              text="Coach-led youth soccer training in Columbus. Private, small group, and Summer Training options."
+              url="/book"
+              imageUrl={(heroMedia ?? coachSpotlightMedia)?.mediaUrl}
+              imageType={(heroMedia ?? coachSpotlightMedia)?.mediaType}
+              variant="hero"
+              className="mt-6 lg:hidden"
+            />
+
             <div className="mt-8 grid grid-cols-2 gap-4 border-t border-[#222] pt-8 sm:mt-10 sm:gap-6 md:grid-cols-4 md:pt-10">
               {stats.map((stat) => (
                 <div key={stat.label}>
@@ -290,6 +302,45 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
+          </div>
+          <div className="hidden animate-fade-up lg:block">
+            <div className="overflow-hidden rounded-3xl border border-amber-500/25 bg-black/55 shadow-2xl shadow-black/50 backdrop-blur">
+              <div className="relative aspect-[4/5] bg-[#080808]">
+                {(heroMedia ?? coachSpotlightMedia) ? (
+                  <MediaAsset
+                    src={(heroMedia ?? coachSpotlightMedia)!.mediaUrl}
+                    type={(heroMedia ?? coachSpotlightMedia)!.mediaType}
+                    alt={getMediaAlt(heroMedia ?? coachSpotlightMedia!, 'Kante Elite training story visual')}
+                    loading="eager"
+                    fetchPriority="high"
+                    playbackMode="hero"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.25),_transparent_55%)]" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/25 to-black/10" />
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <p className="text-xs font-black uppercase text-amber-500">Share-ready booking</p>
+                  <h2 className="mt-2 text-3xl font-black leading-tight text-white">
+                    Post the Story. Families tap to book.
+                  </h2>
+                  <p className="mt-3 text-sm leading-relaxed text-gray-300">
+                    Copy the booking link, download a Story image, and send parents directly to the booking flow.
+                  </p>
+                </div>
+              </div>
+              <SocialSharePanel
+                title="Book Kante Elite Training"
+                text="Coach-led youth soccer training in Columbus. Private, small group, and Summer Training options."
+                url="/book"
+                imageUrl={(heroMedia ?? coachSpotlightMedia)?.mediaUrl}
+                imageType={(heroMedia ?? coachSpotlightMedia)?.mediaType}
+                variant="hero"
+                className="rounded-none border-x-0 border-b-0 border-t border-amber-500/20 bg-black/80"
+              />
+            </div>
+          </div>
           </div>
         </div>
       </section>

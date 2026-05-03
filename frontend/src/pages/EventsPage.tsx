@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { getEvents } from '../services/api'
 import type { Event, TrainingSession } from '../types'
 import HeroSection from '../components/HeroSection'
+import SocialSharePanel from '../components/SocialSharePanel'
 
 function formatSessionDate(dateStr: string) {
   return new Date(`${dateStr}T12:00:00`).toLocaleDateString('en-US', {
@@ -129,6 +130,15 @@ export default function EventsPage() {
                   Book Summer Training
                 </Link>
               </div>
+
+              <SocialSharePanel
+                title="Summer Training"
+                text="Full week $125. Only $25/day. Drop-in $30. Limited spots for Coach Kante and Coach Tony's summer training program."
+                url={bookingHref}
+                imageUrl={mediaUrls[0]}
+                imageType="IMAGE"
+                className="mb-8"
+              />
 
               {mediaUrls.length ? (
                 <div className="mb-8 grid gap-4 md:grid-cols-2">
