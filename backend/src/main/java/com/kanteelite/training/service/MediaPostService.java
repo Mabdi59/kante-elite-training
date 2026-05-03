@@ -110,6 +110,42 @@ public class MediaPostService {
     }
 
     @Transactional
+    public MediaPostResponse replacePostMedia(Long id, MultipartFile file) {
+        MediaPost mediaPost = mediaPostRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("MediaPost", id));
+
+        String previousUrl = mediaPost.getMediaUrl();
+        MediaStorageService.StoredMedia storedMedia;
+        try {
+            storedMedia = mediaStorageService.storePostMedia(file);
+        } catch (IOException ex) {
+            log.error("Failed to store replacement media upload for post {}.", id, ex);
+            throw new IllegalStateException("Could not store the replacement media file.");
+        }
+
+        try {
+            mediaPost.setMediaUrl(storedMedia.getPublicUrl());
+            mediaPost.setMediaType(storedMedia.getMediaType());
+            MediaPost saved = mediaPostRepository.save(mediaPost);
+
+            try {
+                mediaStorageService.deleteStoredMedia(previousUrl);
+            } catch (RuntimeException | IOException cleanupEx) {
+                log.warn("Failed to clean up replaced media file for post {} at {}", id, previousUrl, cleanupEx);
+            }
+
+            return toResponse(saved);
+        } catch (RuntimeException ex) {
+            try {
+                mediaStorageService.deleteStoredMedia(storedMedia.getPublicUrl());
+            } catch (RuntimeException | IOException cleanupEx) {
+                log.warn("Failed to clean up replacement media file after update failure: {}", storedMedia.getPublicUrl(), cleanupEx);
+            }
+            throw ex;
+        }
+    }
+
+    @Transactional
     public void deletePost(Long id) {
         MediaPost mediaPost = mediaPostRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("MediaPost", id));

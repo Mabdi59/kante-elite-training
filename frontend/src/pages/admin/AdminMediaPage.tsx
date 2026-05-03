@@ -1,6 +1,12 @@
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { createMediaPost, deleteMediaPost, getMediaPosts, updateMediaPost } from '../../services/api'
+import {
+  createMediaPost,
+  deleteMediaPost,
+  getMediaPosts,
+  replaceMediaPostFile,
+  updateMediaPost,
+} from '../../services/api'
 import type { MediaCategory, MediaPlacementKey, MediaPost, MediaPostUpdateFormData, MediaType } from '../../types'
 import CategoryBadge, { CATEGORY_OPTIONS, getCategoryLabel } from '../../components/CategoryBadge'
 import ErrorBanner from '../../components/ErrorBanner'
@@ -43,6 +49,10 @@ export default function AdminMediaPage() {
   // Edit state
   const [editingPost, setEditingPost] = useState<MediaPost | null>(null)
   const [editForm, setEditForm] = useState<MediaPostUpdateFormData>({})
+  const [editReplacementFile, setEditReplacementFile] = useState<File | null>(null)
+  const [editReplacementPreviewUrl, setEditReplacementPreviewUrl] = useState('')
+  const [editFileInputKey, setEditFileInputKey] = useState(0)
+  const [replacingFile, setReplacingFile] = useState(false)
   const [saving, setSaving] = useState(false)
 
 
@@ -69,6 +79,17 @@ export default function AdminMediaPage() {
     setPreviewUrl(objectUrl)
     return () => URL.revokeObjectURL(objectUrl)
   }, [selectedFile])
+
+  useEffect(() => {
+    if (!editReplacementFile) {
+      setEditReplacementPreviewUrl('')
+      return
+    }
+
+    const objectUrl = URL.createObjectURL(editReplacementFile)
+    setEditReplacementPreviewUrl(objectUrl)
+    return () => URL.revokeObjectURL(objectUrl)
+  }, [editReplacementFile])
 
   const previewPost = useMemo<MediaPost | null>(() => {
     if (!selectedFile || !previewUrl) return null
@@ -129,6 +150,36 @@ export default function AdminMediaPage() {
     setSelectedFile(file)
   }
 
+  const handleEditReplacementFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setError('')
+    const file = event.target.files?.[0] ?? null
+    if (!file) {
+      setEditReplacementFile(null)
+      return
+    }
+
+    if (!ALLOWED_MEDIA_TYPES.includes(file.type)) {
+      setEditReplacementFile(null)
+      setEditFileInputKey((prev) => prev + 1)
+      setError('Only JPG, PNG, WEBP, and MP4 uploads are supported.')
+      return
+    }
+
+    if (file.size > MAX_MEDIA_FILE_SIZE) {
+      setEditReplacementFile(null)
+      setEditFileInputKey((prev) => prev + 1)
+      setError('Media files must be 20 MB or smaller.')
+      return
+    }
+
+    setEditReplacementFile(file)
+  }
+
+  const clearEditReplacementFile = () => {
+    setEditReplacementFile(null)
+    setEditFileInputKey((prev) => prev + 1)
+  }
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     if (!selectedFile) return
@@ -181,6 +232,9 @@ export default function AdminMediaPage() {
 
   const openEdit = (post: MediaPost) => {
     setEditingPost(post)
+    setEditReplacementFile(null)
+    setEditReplacementPreviewUrl('')
+    setEditFileInputKey((prev) => prev + 1)
     setEditForm({
       caption: post.caption ?? '',
       altText: post.altText ?? '',
@@ -243,6 +297,28 @@ export default function AdminMediaPage() {
       setError(message)
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleReplaceEditFile = async () => {
+    if (!editingPost || !editReplacementFile) return
+
+    setReplacingFile(true)
+    setError('')
+    try {
+      const updated = await replaceMediaPostFile(editingPost.id, editReplacementFile)
+      setPosts((prev) => prev.map((item) => (item.id === editingPost.id ? updated : item)))
+      setEditingPost(updated)
+      clearEditReplacementFile()
+    } catch (err: unknown) {
+      const response = (err as { response?: { status?: number; data?: { error?: string } } })?.response
+      const message =
+        response?.status === 413
+          ? 'This file is too large to upload. Please keep media files at 20 MB or smaller.'
+          : response?.data?.error ?? 'Could not replace this media file.'
+      setError(message)
+    } finally {
+      setReplacingFile(false)
     }
   }
 
@@ -340,7 +416,7 @@ export default function AdminMediaPage() {
                     <div className="text-sm text-gray-300">
                       <p className="font-medium text-white">{selectedFile.name}</p>
                       <p className="text-xs text-gray-500">
-                        {getPreviewType(selectedFile)} · {formatFileSize(selectedFile.size)}
+                        {getPreviewType(selectedFile)} - {formatFileSize(selectedFile.size)}
                       </p>
                     </div>
                     <button
@@ -580,6 +656,84 @@ export default function AdminMediaPage() {
             </div>
 
             <form onSubmit={handleSaveEdit} className="space-y-4">
+              <div className="rounded-xl border border-gray-800 bg-black p-4">
+                <div className="mb-3">
+                  <p className="text-xs font-semibold uppercase text-gray-500">Replace image or video</p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Upload a new file from your computer. Captions and page placements will stay attached to this post.
+                  </p>
+                </div>
+
+                <div className="overflow-hidden rounded-xl border border-gray-800 bg-gray-950">
+                  {editReplacementPreviewUrl ? (
+                    getPreviewType(editReplacementFile as File) === 'VIDEO' ? (
+                      <video
+                        src={editReplacementPreviewUrl}
+                        controls
+                        className="h-52 w-full bg-black object-contain"
+                      />
+                    ) : (
+                      <img
+                        src={editReplacementPreviewUrl}
+                        alt="Replacement media preview"
+                        className="h-52 w-full object-contain"
+                      />
+                    )
+                  ) : editingPost.mediaType === 'VIDEO' ? (
+                    <video
+                      src={editingPost.mediaUrl}
+                      controls
+                      className="h-52 w-full bg-black object-contain"
+                    />
+                  ) : (
+                    <img
+                      src={editingPost.mediaUrl}
+                      alt={editingPost.altText || editingPost.caption || 'Current media preview'}
+                      className="h-52 w-full object-contain"
+                    />
+                  )}
+                </div>
+
+                <div className="mt-3">
+                  <label className="inline-flex cursor-pointer rounded-lg bg-amber-500 px-4 py-3 text-sm font-bold text-black hover:bg-amber-400">
+                    Choose new file
+                    <input
+                      key={editFileInputKey}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,video/mp4"
+                      onChange={handleEditReplacementFileChange}
+                      className="hidden"
+                    />
+                  </label>
+                  {editReplacementFile ? (
+                    <div className="mt-3 rounded-lg border border-gray-800 bg-gray-950 p-3 text-sm text-gray-300">
+                      <p className="font-semibold text-white">{editReplacementFile.name}</p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        {getPreviewType(editReplacementFile)} - {formatFileSize(editReplacementFile.size)}
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={handleReplaceEditFile}
+                          disabled={replacingFile}
+                          className="rounded-lg bg-amber-500 px-4 py-2 text-xs font-bold text-black hover:bg-amber-400 disabled:opacity-50"
+                        >
+                          {replacingFile ? 'Replacing...' : 'Replace media file'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={clearEditReplacementFile}
+                          disabled={replacingFile}
+                          className="rounded-lg bg-gray-800 px-4 py-2 text-xs font-semibold text-gray-300 hover:bg-gray-700 disabled:opacity-50"
+                        >
+                          Cancel file
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+
               <div>
                 <label className="mb-2 block text-sm text-gray-400">Caption</label>
                 <textarea

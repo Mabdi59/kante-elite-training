@@ -56,6 +56,17 @@ public class AdminMediaController {
         return ResponseEntity.ok(ApiResponse.success("Media post updated.", updated));
     }
 
+    @PatchMapping(value = "/{id}/file", consumes = "multipart/form-data")
+    public ResponseEntity<ApiResponse<MediaPostResponse>> replaceMediaPostFile(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal UserDetails principal) {
+        MediaPostResponse updated = mediaPostService.replacePostMedia(id, file);
+        String actor = principal != null ? principal.getUsername() : "admin";
+        auditLogService.log(actor, "UPDATE", "MediaPost", id, "Replaced media post file.");
+        return ResponseEntity.ok(ApiResponse.success("Media file replaced.", updated));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteMediaPost(
             @PathVariable Long id,

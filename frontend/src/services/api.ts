@@ -599,6 +599,15 @@ export const updateMediaPost = async (
   return res.data.data!
 }
 
+export const replaceMediaPostFile = async (id: number, file: File): Promise<MediaPost> => {
+  const formData = new FormData()
+  formData.append('file', file)
+  const res = await api.patch<ApiResponse<MediaPost>>(`/admin/media/${id}/file`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return res.data.data!
+}
+
 export const deleteMediaPost = async (id: number): Promise<void> => {
   await api.delete(`/admin/media/${id}`)
 }
