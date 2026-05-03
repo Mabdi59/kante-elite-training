@@ -4,6 +4,7 @@ import { getTournaments } from '../services/api'
 import type { Tournament } from '../types'
 import StatusBadge from '../components/StatusBadge'
 import CTASection from '../components/CTASection'
+import HeroSection from '../components/HeroSection'
 import {
   formatTournamentDate,
   formatTournamentDateRange,
@@ -135,17 +136,16 @@ export default function TournamentsPage() {
   })
 
   return (
-    <div className="min-h-screen bg-black px-4 py-20">
-      <div className="page-shell max-w-6xl">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase px-4 py-1.5 rounded-full mb-5">
-            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
-            Competition
-          </div>
-          <h1 className="mb-4 text-3xl font-black text-white sm:text-4xl md:text-5xl">Tournaments</h1>
-          <p className="mx-auto max-w-2xl text-base text-gray-400 sm:text-lg">
-            Public registration is open. Review the details, choose your tournament, and register your team in a few minutes.
-          </p>
+    <div className="min-h-screen bg-black pt-20">
+      <HeroSection
+        badge="Competition"
+        title="Tournaments"
+        subtitle="Public registration is open. Review the details, choose your tournament, and register your team in a few minutes."
+        mediaPlacement="TOURNAMENTS_HERO"
+      />
+
+      <div className="page-shell max-w-6xl px-4 py-16">
+        <div className="mb-12 text-center">
           {!loading && activeTournaments.length > 0 ? (
             <div className="mx-auto mt-8 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="bg-[#111] border border-[#222] rounded-xl p-5">

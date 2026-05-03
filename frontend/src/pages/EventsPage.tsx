@@ -66,6 +66,7 @@ export default function EventsPage() {
         badge="Upcoming"
         title="Summer Training"
         subtitle="The live summer offering from Kante Elite Training. Train hard. Improve. Compete."
+        mediaPlacement="EVENTS_HERO"
       />
 
       <section className="bg-black py-16 px-4">

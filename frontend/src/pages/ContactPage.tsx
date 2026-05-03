@@ -156,6 +156,7 @@ export default function ContactPage() {
         badge="Get in Touch"
         title="Contact Coach Kante"
         subtitle="Need help choosing the right program, booking a session, or planning your player's next step? Reach out and we usually reply within 24 hours."
+        mediaPlacement="CONTACT_HERO"
       />
 
       <PublicProofBand items={contactProofItems} />

@@ -66,6 +66,7 @@ export default function FaqPage() {
         badge="Help Center"
         title="Frequently Asked Questions"
         subtitle="Answers on training, booking, tournaments, accounts, and team registration. If you still need help, contact Coach Kante directly."
+        mediaPlacement="FAQ_HERO"
       />
 
       <PublicProofBand items={faqProofItems} />

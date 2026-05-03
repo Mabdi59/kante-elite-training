@@ -181,6 +181,7 @@ export default function TrainingPage() {
         badge="What We Offer"
         title="Training Programs"
         subtitle="From first touch to high-level performance, every program is structured, focused, and personal."
+        mediaPlacement="TRAINING_HERO"
       />
 
       <PublicProofBand items={trainingProofItems} />

@@ -78,6 +78,7 @@ export default function ResultsPage() {
         badge="Real Results"
         title="Real Progress. Real Results."
         subtitle="We measure success by player growth, confidence, and the opportunities earned through consistent training."
+        mediaPlacement="RESULTS_HERO"
       />
 
       <Section tone="raised">

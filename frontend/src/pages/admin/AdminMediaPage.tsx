@@ -35,6 +35,7 @@ export default function AdminMediaPage() {
   const [caption, setCaption] = useState('')
   const [altText, setAltText] = useState('')
   const [category, setCategory] = useState<MediaCategory | ''>('')
+  const [createPlacements, setCreatePlacements] = useState<MediaPlacementKey[]>(['MEDIA_LIBRARY'])
   const [filterCategory, setFilterCategory] = useState<FilterCategory>('ALL')
   const [error, setError] = useState('')
   const [postPendingDelete, setPostPendingDelete] = useState<MediaPost | null>(null)
@@ -78,10 +79,10 @@ export default function AdminMediaPage() {
       caption: caption.trim() || 'Preview',
       altText: altText.trim() || undefined,
       mediaCategory: category || undefined,
-      placements: [{ key: 'MEDIA_LIBRARY', displayOrder: 0 }],
+      placements: createPlacements.map((key) => ({ key, displayOrder: key === 'MEDIA_LIBRARY' ? 0 : 1 })),
       createdAt: new Date().toISOString(),
     }
-  }, [altText, caption, category, previewUrl, selectedFile])
+  }, [altText, caption, category, createPlacements, previewUrl, selectedFile])
 
   const filteredPosts = useMemo(() => {
     const orderedPosts = sortMediaPosts(posts, 'feed')
@@ -94,6 +95,7 @@ export default function AdminMediaPage() {
     setCaption('')
     setAltText('')
     setCategory('')
+    setCreatePlacements(['MEDIA_LIBRARY'])
     setFileInputKey((prev) => prev + 1)
   }
 
@@ -139,7 +141,14 @@ export default function AdminMediaPage() {
     setError('')
     try {
       const created = await createMediaPost(selectedFile, caption, category, altText)
-      setPosts((prev) => [created, ...prev])
+      const placementPayload = Array.from(
+        new Set<MediaPlacementKey>(['MEDIA_LIBRARY', ...createPlacements]),
+      ).map((key) => ({
+        key,
+        displayOrder: key === 'MEDIA_LIBRARY' ? 0 : 1,
+      }))
+      const placed = await updateMediaPost(created.id, { placements: placementPayload })
+      setPosts((prev) => [placed, ...prev])
       resetForm()
     } catch (err: unknown) {
       const response = (err as { response?: { status?: number; data?: { error?: string } } })?.response
@@ -197,6 +206,15 @@ export default function AdminMediaPage() {
         ...current,
         placements: [...placements, { key, displayOrder: 0 }],
       }
+    })
+  }
+
+  const toggleCreatePlacement = (key: MediaPlacementKey, enabled: boolean) => {
+    setCreatePlacements((current) => {
+      if (key === 'MEDIA_LIBRARY') return current
+      if (!enabled) return current.filter((item) => item !== key)
+      if (current.includes(key)) return current
+      return [...current, key]
     })
   }
 
@@ -642,6 +660,29 @@ export default function AdminMediaPage() {
                     </div>
                   )
                 })}
+              </div>
+
+              <div className="rounded-xl border border-gray-800 bg-black p-4">
+                <p className="text-xs font-semibold uppercase text-gray-500">Use this image on</p>
+                <p className="mt-1 text-xs text-gray-500">
+                  Pick any public page sections where this upload should appear. It will always stay in the Media Library too.
+                </p>
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {MEDIA_PLACEMENT_OPTIONS.filter((option) => option.value !== 'MEDIA_LIBRARY').map((option) => (
+                    <label
+                      key={option.value}
+                      className="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-800 bg-gray-950/80 px-3 py-2 text-sm text-gray-200"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={createPlacements.includes(option.value)}
+                        onChange={(event) => toggleCreatePlacement(option.value, event.target.checked)}
+                        className="h-4 w-4 rounded border-gray-700 accent-amber-500"
+                      />
+                      {option.label}
+                    </label>
+                  ))}
+                </div>
               </div>
 
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
