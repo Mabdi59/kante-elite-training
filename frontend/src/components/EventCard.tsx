@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 import type { Event } from '../types'
-import SocialSharePanel from './SocialSharePanel'
 
 interface EventCardProps {
   event: Event
@@ -20,7 +19,6 @@ export default function EventCard({ event }: EventCardProps) {
   const isLimited = !isSoldOut && event.spotsLeft !== null && event.spotsLeft <= 5
   const mediaUrl = event.mediaUrls?.[0] ?? event.primaryMediaUrl
   const registerHref = `/events/${event.id}/register`
-  const shareHref = `/api/share/events/${event.id}`
 
   const statusBadge = isSoldOut
     ? { label: 'Sold Out', cls: 'bg-red-900/40 text-red-400 border-red-500/30' }
@@ -112,18 +110,6 @@ export default function EventCard({ event }: EventCardProps) {
           </Link>
         )}
       </div>
-      {!isSoldOut ? (
-        <div className="border-t border-[#222] px-5 pb-5 sm:px-6 sm:pb-6">
-          <SocialSharePanel
-            title={event.title}
-            text={`${event.description} Full week $${event.price.toFixed(0)}. Drop-in from $30/day.`}
-            url={shareHref}
-            imageUrl={mediaUrl}
-            imageType="IMAGE"
-            variant="compact"
-          />
-        </div>
-      ) : null}
     </div>
   )
 }

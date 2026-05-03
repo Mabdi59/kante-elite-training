@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { Program } from '../types'
 import MediaAsset from './MediaAsset'
-import SocialSharePanel from './SocialSharePanel'
 
 interface ProgramCardProps {
   program: Program
@@ -36,16 +35,11 @@ function getProgramBookHref(program: Program) {
 export default function ProgramCard({ program, featured = false, variant = 'default' }: ProgramCardProps) {
   const isFeatured = featured || program.featured === true
   const bookHref = getProgramBookHref(program)
-  const shareHref = `/api/share/programs/${encodeURIComponent(String(program.slug || program.id))}`
   const ctaLabel = program.ctaLabel || 'Book Your Session'
   const isPromoOffering = Boolean(program.campaignLabel || program.secondaryMediaUrl || program.seasonLabel)
   const coachLine = program.coachNames?.length ? `with ${program.coachNames.join(' + ')}` : ''
   const mediaFrameClass = isPromoOffering ? 'aspect-[4/5] bg-black p-2' : 'aspect-[16/10] bg-[#111]'
   const mediaClass = isPromoOffering ? 'object-contain' : 'object-cover'
-  const shareText = [
-    program.campaignLabel || program.shortDescription,
-    program.priceLabel ? `Price: ${program.priceLabel}` : '',
-  ].filter(Boolean).join(' ')
 
   if (variant === 'compact') {
     return (
@@ -181,15 +175,6 @@ export default function ProgramCard({ program, featured = false, variant = 'defa
         <Link to={bookHref} className="btn-primary mt-auto w-full text-center text-sm">
           {ctaLabel}
         </Link>
-        <SocialSharePanel
-          title={program.name}
-          text={shareText}
-          url={shareHref}
-          imageUrl={program.mediaUrl}
-          imageType={program.mediaType}
-          variant="compact"
-          className="mt-4"
-        />
       </div>
     </div>
   )
