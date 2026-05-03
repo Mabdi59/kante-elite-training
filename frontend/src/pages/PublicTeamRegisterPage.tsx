@@ -293,7 +293,7 @@ export default function PublicTeamRegisterPage() {
 
           <aside className="lg:pt-14">
             <div className="bg-[#111] border border-[#222] rounded-2xl p-6 sticky top-24">
-              <p className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-4">
+              <p className="text-amber-400 text-xs font-bold uppercase mb-4">
                 Tournament Details
               </p>
 

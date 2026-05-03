@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -15,12 +16,7 @@ public class MediaPostResponse {
     private MediaType mediaType;
     private String caption;
     private String altText;
-    private boolean featured;
-    private boolean showOnHome;
-    private boolean showOnAbout;
     private MediaCategory mediaCategory;
-    private int displayOrder;
-    private int homeDisplayOrder;
-    private int aboutDisplayOrder;
+    private List<MediaPlacementResponse> placements;
     private LocalDateTime createdAt;
 }

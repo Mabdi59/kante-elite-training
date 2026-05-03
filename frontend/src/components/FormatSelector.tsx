@@ -94,7 +94,7 @@ const FORMAT_OPTIONS: FormatOption[] = [
 export default function FormatSelector({ value, onChange }: FormatSelectorProps) {
   return (
     <div className="col-span-full">
-      <p className="text-center text-gray-300 text-sm font-semibold uppercase tracking-widest mb-5">
+      <p className="text-center text-gray-300 text-sm font-semibold uppercase mb-5">
         Choose a tournament format
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import BrandMark from './BrandMark'
 
 const footerLinks = [
   { href: '/training', label: 'Programs' },
@@ -51,17 +52,7 @@ export default function Footer() {
         {/* Brand */}
         <div className="md:col-span-1">
           <div className="mb-4 flex items-center gap-3">
-            <img
-              src="/images/464169962_1489362111765457_2497551385302895846_n.jpg"
-              alt="Kante Elite Training logo"
-              className="h-11 w-11 rounded-full object-cover ring-2 ring-amber-500"
-            />
-            <div>
-              <span className="text-white font-black text-lg leading-none block">KANTE ELITE</span>
-              <span className="text-amber-500 text-[10px] tracking-widest uppercase leading-none font-semibold">
-                Training
-              </span>
-            </div>
+            <BrandMark size="footer" showText />
           </div>
           <p className="text-gray-400 text-sm leading-relaxed mb-5">
             Columbus-based soccer training for players who want focused coaching, clear feedback, and a real plan for improvement.
@@ -92,7 +83,7 @@ export default function Footer() {
 
         {/* Navigation */}
         <div>
-          <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-white">Explore</h4>
+          <h4 className="mb-4 text-xs font-bold uppercase text-white">Explore</h4>
           <ul className="space-y-2.5">
             {footerLinks.map((link) => (
               <li key={link.href}>
@@ -109,7 +100,7 @@ export default function Footer() {
 
         {/* Account */}
         <div>
-          <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-white">Account</h4>
+          <h4 className="mb-4 text-xs font-bold uppercase text-white">Account</h4>
           <ul className="space-y-2.5">
             {accountLinks.map((link) => (
               <li key={link.href}>
@@ -126,7 +117,7 @@ export default function Footer() {
 
         {/* Contact */}
         <div>
-          <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-white">Contact</h4>
+          <h4 className="mb-4 text-xs font-bold uppercase text-white">Contact</h4>
           <ul className="space-y-4">
             <li className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0">

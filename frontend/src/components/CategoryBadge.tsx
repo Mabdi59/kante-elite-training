@@ -54,7 +54,7 @@ export default function CategoryBadge({
 
   return (
     <span
-      className={`inline-flex items-center rounded-full border uppercase tracking-[0.18em] ${sizeClass} ${config.colorClass} ${className}`}
+      className={`inline-flex items-center rounded-full border uppercase ${sizeClass} ${config.colorClass} ${className}`}
     >
       {config.label}
     </span>

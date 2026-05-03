@@ -9,7 +9,8 @@ import java.util.Optional;
 
 @Repository
 public interface ProgramRepository extends JpaRepository<Program, Long> {
-    List<Program> findByActiveTrueOrderByDisplayOrderAsc();
+    List<Program> findByActiveTrueOrderByDisplayOrderAscCreatedAtAsc();
+    List<Program> findAllByOrderByDisplayOrderAscCreatedAtAsc();
     Optional<Program> findBySlug(String slug);
     Optional<Program> findBySlugAndActiveTrue(String slug);
 }

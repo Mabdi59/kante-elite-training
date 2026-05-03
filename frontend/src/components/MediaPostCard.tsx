@@ -1,7 +1,7 @@
 import CategoryBadge from './CategoryBadge'
 import MediaAsset from './MediaAsset'
 import type { MediaPost } from '../types'
-import { formatMediaDate, getMediaAlt, getMediaCaption } from '../utils/media'
+import { MEDIA_PLACEMENT_LABELS, formatMediaDate, getMediaAlt, getMediaCaption } from '../utils/media'
 
 interface MediaPostCardProps {
   post: MediaPost
@@ -19,15 +19,16 @@ export default function MediaPostCard({
   aspectClassName = 'aspect-video',
   showCaption = true,
   showDate = true,
-  imageLoading = 'lazy',
+  imageLoading = 'eager',
   imageFetchPriority = 'auto',
 }: MediaPostCardProps) {
   const mediaLabel = post.mediaType === 'VIDEO' ? 'Video' : 'Photo'
   const caption = getMediaCaption(post)
+  const placementLabels = (post.placements ?? []).map((placement) => MEDIA_PLACEMENT_LABELS[placement.key])
 
   return (
     <article
-      className={`group flex h-full flex-col overflow-hidden rounded-[26px] border border-[#222] bg-[#101010] shadow-[0_20px_60px_rgba(0,0,0,0.22)] transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/30 ${className}`}
+      className={`group flex h-full flex-col overflow-hidden rounded-2xl border border-[#222] bg-[#101010] shadow-[0_20px_60px_rgba(0,0,0,0.22)] transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/30 ${className}`}
     >
       <div className={`relative overflow-hidden bg-black ${aspectClassName}`}>
         <MediaAsset
@@ -42,7 +43,7 @@ export default function MediaPostCard({
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
 
         <div className="pointer-events-none absolute left-4 top-4 flex flex-wrap gap-1.5">
-          <span className="rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-white backdrop-blur">
+          <span className="rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[11px] font-semibold uppercase text-white backdrop-blur">
             {mediaLabel}
           </span>
           {post.mediaCategory ? <CategoryBadge category={post.mediaCategory} /> : null}
@@ -64,14 +65,12 @@ export default function MediaPostCard({
         <div className="flex flex-1 flex-col gap-3 p-4 sm:p-5">
           {showDate ? (
             <div className="flex flex-wrap items-center gap-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-400">
+              <p className="text-xs font-semibold uppercase text-amber-400">
                 {formatMediaDate(post.createdAt)}
               </p>
-              {(post.showOnHome || post.showOnAbout || post.featured) ? (
+              {placementLabels.length > 0 ? (
                 <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-gray-500">
-                  {post.featured ? <span>Hero</span> : null}
-                  {post.showOnHome ? <span>Home</span> : null}
-                  {post.showOnAbout ? <span>About</span> : null}
+                  {placementLabels.slice(0, 3).map((label) => <span key={label}>{label}</span>)}
                 </div>
               ) : null}
             </div>

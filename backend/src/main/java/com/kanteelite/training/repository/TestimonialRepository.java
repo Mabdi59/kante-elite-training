@@ -8,6 +8,7 @@ import java.util.List;
 
 @Repository
 public interface TestimonialRepository extends JpaRepository<Testimonial, Long> {
-    List<Testimonial> findByFeaturedTrueOrderByDisplayOrderAsc();
-    List<Testimonial> findAllByOrderByDisplayOrderAsc();
+    List<Testimonial> findByActiveTrueOrderByDisplayOrderAscCreatedAtAsc();
+    List<Testimonial> findByActiveTrueAndFeaturedTrueOrderByDisplayOrderAscCreatedAtAsc();
+    List<Testimonial> findAllByOrderByDisplayOrderAscCreatedAtAsc();
 }

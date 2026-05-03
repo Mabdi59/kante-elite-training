@@ -1,7 +1,8 @@
-﻿import { useMemo, useState, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { register } from '../services/api'
 import { useAuth } from '../context/AuthContext'
+import BrandMark from '../components/BrandMark'
 import type { AuthUser, UserRole } from '../types'
 import { getPostAuthRedirect } from '../utils/portal'
 
@@ -48,9 +49,8 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-black flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex flex-col items-center gap-0.5">
-            <span className="text-2xl font-black tracking-tight text-white">KANTÉ ELITE</span>
-            <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-500">Training</span>
+          <Link to="/" className="inline-flex">
+            <BrandMark size="auth" showText />
           </Link>
           <p className="text-gray-400 mt-4 text-sm">
             {isTournamentIntent ? 'Create your team manager account' : 'Create your account'}
@@ -82,7 +82,7 @@ export default function RegisterPage() {
           )}
 
           <div>
-            <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Full Name</label>
+            <label className="block text-gray-400 text-xs font-semibold uppercase mb-2">Full Name</label>
             <input
               type="text"
               required
@@ -94,7 +94,7 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Email</label>
+            <label className="block text-gray-400 text-xs font-semibold uppercase mb-2">Email</label>
             <input
               type="email"
               required
@@ -106,7 +106,7 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Password</label>
+            <label className="block text-gray-400 text-xs font-semibold uppercase mb-2">Password</label>
             <input
               type="password"
               required

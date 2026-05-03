@@ -5,15 +5,13 @@ import com.kanteelite.training.dto.request.ProgramRequest;
 import com.kanteelite.training.dto.response.ManagedParticipantResponse;
 import com.kanteelite.training.dto.response.ProgramResponse;
 import com.kanteelite.training.dto.response.ProgramWorkflowResponse;
-import com.kanteelite.training.entity.PlayerProfile;
 import com.kanteelite.training.entity.Program;
-import com.kanteelite.training.entity.ProgramParticipant;
-import com.kanteelite.training.entity.User;
+import com.kanteelite.training.entity.MediaPost;
+import com.kanteelite.training.enums.RegistrationActorType;
+import com.kanteelite.training.enums.RegistrationOfferingType;
 import com.kanteelite.training.exception.ResourceNotFoundException;
-import com.kanteelite.training.repository.PlayerProfileRepository;
-import com.kanteelite.training.repository.ProgramParticipantRepository;
 import com.kanteelite.training.repository.ProgramRepository;
-import com.kanteelite.training.repository.UserRepository;
+import com.kanteelite.training.repository.MediaPostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,15 +28,14 @@ public class ProgramService {
     private static final List<String> ALLOWED_STATUSES = List.of("UPCOMING", "ACTIVE", "COMPLETED");
 
     private final ProgramRepository programRepository;
-    private final ProgramParticipantRepository programParticipantRepository;
-    private final UserRepository userRepository;
-    private final PlayerProfileRepository playerProfileRepository;
+    private final MediaPostRepository mediaPostRepository;
     private final NotificationService notificationService;
     private final EmailService emailService;
+    private final RegistrationService registrationService;
 
     @Transactional(readOnly = true)
     public List<ProgramResponse> getAllActivePrograms() {
-        return programRepository.findByActiveTrueOrderByDisplayOrderAsc()
+        return programRepository.findByActiveTrueOrderByDisplayOrderAscCreatedAtAsc()
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -46,7 +43,7 @@ public class ProgramService {
 
     @Transactional(readOnly = true)
     public List<ProgramResponse> getAllPrograms() {
-        return programRepository.findAll()
+        return programRepository.findAllByOrderByDisplayOrderAscCreatedAtAsc()
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -67,16 +64,13 @@ public class ProgramService {
     @Transactional(readOnly = true)
     public ProgramWorkflowResponse getProgramWorkflow(Long id) {
         Program program = getProgramEntityById(id);
-        List<ManagedParticipantResponse> participants = programParticipantRepository.findByProgramIdOrderByCreatedAtAsc(id)
-                .stream()
-                .map(this::toParticipantResponse)
-                .toList();
+        List<ManagedParticipantResponse> participants = registrationService.getProgramParticipants(id);
         long participantCount = participants.size();
         return ProgramWorkflowResponse.builder()
                 .program(toResponse(program))
                 .participants(participants)
                 .participantCount(participantCount)
-                .capacityReached(isCapacityReached(program.getCapacity(), participantCount))
+                .capacityReached(isCapacityReached(program.getCapacity(), registrationService.countProgramRoster(id)))
                 .build();
     }
 
@@ -92,6 +86,12 @@ public class ProgramService {
                 .slug(req.getSlug())
                 .description(req.getDescription())
                 .shortDescription(req.getShortDescription())
+                .category(trimToNull(req.getCategory()))
+                .mediaPost(resolveMediaPost(req.getMediaPostId()))
+                .secondaryMediaPost(resolveMediaPost(req.getSecondaryMediaPostId()))
+                .coachNames(req.getCoachNames())
+                .seasonLabel(trimToNull(req.getSeasonLabel()))
+                .campaignLabel(trimToNull(req.getCampaignLabel()))
                 .location(trimToNull(req.getLocation()))
                 .startAt(req.getStartAt())
                 .endAt(req.getEndAt())
@@ -103,7 +103,11 @@ public class ProgramService {
                 .features(req.getFeatures())
                 .icon(req.getIcon())
                 .whoItsFor(req.getWhoItsFor())
+                .ctaLabel(trimToNull(req.getCtaLabel()))
+                .ctaUrl(trimToNull(req.getCtaUrl()))
+                .featured(req.isFeatured())
                 .active(req.isActive())
+                .allowWaitlist(req.isAllowWaitlist())
                 .displayOrder(req.getDisplayOrder() != null ? req.getDisplayOrder() : 0)
                 .build();
         return toResponse(programRepository.save(program));
@@ -116,6 +120,12 @@ public class ProgramService {
         program.setSlug(req.getSlug());
         program.setDescription(req.getDescription());
         program.setShortDescription(req.getShortDescription());
+        program.setCategory(trimToNull(req.getCategory()));
+        program.setMediaPost(resolveMediaPost(req.getMediaPostId()));
+        program.setSecondaryMediaPost(resolveMediaPost(req.getSecondaryMediaPostId()));
+        program.setCoachNames(req.getCoachNames());
+        program.setSeasonLabel(trimToNull(req.getSeasonLabel()));
+        program.setCampaignLabel(trimToNull(req.getCampaignLabel()));
         program.setLocation(trimToNull(req.getLocation()));
         program.setStartAt(req.getStartAt());
         program.setEndAt(req.getEndAt());
@@ -127,60 +137,32 @@ public class ProgramService {
         program.setFeatures(req.getFeatures());
         program.setIcon(req.getIcon());
         program.setWhoItsFor(req.getWhoItsFor());
+        program.setCtaLabel(trimToNull(req.getCtaLabel()));
+        program.setCtaUrl(trimToNull(req.getCtaUrl()));
+        program.setFeatured(req.isFeatured());
         program.setActive(req.isActive());
+        program.setAllowWaitlist(req.isAllowWaitlist());
         if (req.getDisplayOrder() != null) program.setDisplayOrder(req.getDisplayOrder());
         return toResponse(programRepository.save(program));
     }
 
     @Transactional
     public ManagedParticipantResponse addParticipant(Long programId, ParticipantAssignmentRequest request) {
+        ManagedParticipantResponse response = registrationService.createAdminEntryFromAssignment(
+                RegistrationOfferingType.PROGRAM, programId, request, "admin");
         Program program = getProgramEntityById(programId);
-        long participantCount = programParticipantRepository.countByProgramId(programId);
-        if (isCapacityReached(program.getCapacity(), participantCount)) {
-            throw new IllegalArgumentException("Program capacity has been reached.");
-        }
-
-        ProgramParticipant participant = ProgramParticipant.builder()
-                .program(program)
-                .build();
-
-        if (request.getUserId() != null) {
-            if (programParticipantRepository.existsByProgramIdAndUserId(programId, request.getUserId())) {
-                throw new IllegalArgumentException("That user is already in this program.");
-            }
-            User user = userRepository.findById(request.getUserId())
-                    .orElseThrow(() -> new ResourceNotFoundException("User", request.getUserId()));
-            participant.setUser(user);
-        } else if (request.getPlayerProfileId() != null) {
-            if (programParticipantRepository.existsByProgramIdAndPlayerProfileId(programId, request.getPlayerProfileId())) {
-                throw new IllegalArgumentException("That player is already in this program.");
-            }
-            PlayerProfile playerProfile = playerProfileRepository.findById(request.getPlayerProfileId())
-                    .orElseThrow(() -> new ResourceNotFoundException("PlayerProfile", request.getPlayerProfileId()));
-            participant.setPlayerProfile(playerProfile);
-        } else {
-            String manualName = trimToNull(request.getManualName());
-            String manualEmail = normalizeEmail(request.getManualEmail());
-            if (!StringUtils.hasText(manualName) || !StringUtils.hasText(manualEmail)) {
-                throw new IllegalArgumentException("Manual participants need both a name and email.");
-            }
-            participant.setManualName(manualName);
-            participant.setManualEmail(manualEmail);
-        }
-
-        ProgramParticipant saved = programParticipantRepository.save(participant);
-        ManagedParticipantResponse response = toParticipantResponse(saved);
         notifyParticipantAssignment(program, response, true);
         return response;
     }
 
     @Transactional
     public void removeParticipant(Long programId, Long participantId) {
-        ProgramParticipant participant = programParticipantRepository.findByIdAndProgramId(participantId, programId)
-                .orElseThrow(() -> new ResourceNotFoundException("ProgramParticipant", participantId));
-        ManagedParticipantResponse participantResponse = toParticipantResponse(participant);
-        Program program = participant.getProgram();
-        programParticipantRepository.delete(participant);
+        ManagedParticipantResponse participantResponse = registrationService.getProgramParticipants(programId).stream()
+                .filter(p -> p.getId().equals(participantId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Registration", participantId));
+        Program program = getProgramEntityById(programId);
+        registrationService.cancelRegistration(participantId, "Removed from program roster.", "admin", RegistrationActorType.ADMIN);
         notifyParticipantAssignment(program, participantResponse, false);
     }
 
@@ -193,14 +175,22 @@ public class ProgramService {
     }
 
     private ProgramResponse toResponse(Program program) {
+        MediaPost mediaPost = program.getMediaPost();
+        MediaPost secondaryMediaPost = program.getSecondaryMediaPost();
         List<String> features = program.getFeatures() != null
                 ? Arrays.stream(program.getFeatures().split("\\|"))
                 .map(String::trim)
                 .filter(StringUtils::hasText)
                 .toList()
                 : List.of();
+        List<String> coachNames = program.getCoachNames() != null
+                ? Arrays.stream(program.getCoachNames().split("\\|"))
+                .map(String::trim)
+                .filter(StringUtils::hasText)
+                .toList()
+                : List.of();
         long participantCount = program.getId() != null
-                ? programParticipantRepository.countByProgramId(program.getId())
+                ? registrationService.countProgramRoster(program.getId())
                 : 0;
         return ProgramResponse.builder()
                 .id(program.getId())
@@ -208,6 +198,16 @@ public class ProgramService {
                 .slug(program.getSlug())
                 .description(program.getDescription())
                 .shortDescription(program.getShortDescription())
+                .category(program.getCategory())
+                .mediaPostId(mediaPost != null ? mediaPost.getId() : null)
+                .mediaUrl(mediaPost != null ? mediaPost.getMediaUrl() : null)
+                .mediaType(mediaPost != null ? mediaPost.getMediaType() : null)
+                .secondaryMediaPostId(secondaryMediaPost != null ? secondaryMediaPost.getId() : null)
+                .secondaryMediaUrl(secondaryMediaPost != null ? secondaryMediaPost.getMediaUrl() : null)
+                .secondaryMediaType(secondaryMediaPost != null ? secondaryMediaPost.getMediaType() : null)
+                .coachNames(coachNames)
+                .seasonLabel(program.getSeasonLabel())
+                .campaignLabel(program.getCampaignLabel())
                 .location(program.getLocation())
                 .startAt(program.getStartAt())
                 .endAt(program.getEndAt())
@@ -220,39 +220,19 @@ public class ProgramService {
                 .features(features)
                 .icon(program.getIcon())
                 .whoItsFor(program.getWhoItsFor())
+                .ctaLabel(program.getCtaLabel())
+                .ctaUrl(program.getCtaUrl())
+                .featured(program.isFeatured())
+                .active(program.isActive())
+                .allowWaitlist(program.isAllowWaitlist())
                 .displayOrder(program.getDisplayOrder())
                 .build();
     }
 
-    private ManagedParticipantResponse toParticipantResponse(ProgramParticipant participant) {
-        if (participant.getUser() != null) {
-            return ManagedParticipantResponse.builder()
-                    .id(participant.getId())
-                    .userId(participant.getUser().getId())
-                    .participantType("USER")
-                    .name(participant.getUser().getName())
-                    .email(participant.getUser().getEmail())
-                    .createdAt(participant.getCreatedAt())
-                    .build();
-        }
-        if (participant.getPlayerProfile() != null) {
-            User parentUser = participant.getPlayerProfile().getParentUser();
-            return ManagedParticipantResponse.builder()
-                    .id(participant.getId())
-                    .playerProfileId(participant.getPlayerProfile().getId())
-                    .participantType("PLAYER")
-                    .name(participant.getPlayerProfile().getName())
-                    .email(parentUser != null ? parentUser.getEmail() : null)
-                    .createdAt(participant.getCreatedAt())
-                    .build();
-        }
-        return ManagedParticipantResponse.builder()
-                .id(participant.getId())
-                .participantType("MANUAL")
-                .name(participant.getManualName())
-                .email(participant.getManualEmail())
-                .createdAt(participant.getCreatedAt())
-                .build();
+    private MediaPost resolveMediaPost(Long mediaPostId) {
+        if (mediaPostId == null) return null;
+        return mediaPostRepository.findById(mediaPostId)
+                .orElseThrow(() -> new ResourceNotFoundException("MediaPost", mediaPostId));
     }
 
     private int normalizeCapacity(Integer value) {

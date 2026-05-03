@@ -17,13 +17,14 @@ export default function MediaAsset({
   type,
   alt,
   className = '',
-  loading = 'lazy',
+  loading = 'eager',
   fetchPriority = 'auto',
   playbackMode = 'card',
 }: MediaAssetProps) {
   if (type === 'VIDEO') {
     const heroVideo = playbackMode === 'hero'
     const immersiveVideo = playbackMode === 'immersive'
+    const videoPreload = heroVideo ? 'auto' : immersiveVideo ? 'metadata' : 'none'
 
     return (
       <video
@@ -35,7 +36,7 @@ export default function MediaAsset({
         loop={heroVideo}
         muted={heroVideo || !immersiveVideo}
         playsInline
-        preload="metadata"
+        preload={videoPreload}
         controlsList={immersiveVideo ? 'nodownload noplaybackrate' : undefined}
         className={className}
       />
@@ -52,6 +53,7 @@ export default function MediaAsset({
       src={src}
       alt={alt}
       loading={loading}
+      decoding="async"
       {...imagePriorityProps}
       className={className}
     />

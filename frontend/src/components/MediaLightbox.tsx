@@ -93,7 +93,7 @@ export default function MediaLightbox({
         className="relative mx-auto flex h-full max-w-[96rem] flex-col px-4 py-4 sm:px-6"
       >
         <div className="mb-4 flex items-center justify-between gap-3">
-          <div className="rounded-full border border-white/10 bg-black/60 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white backdrop-blur">
+          <div className="rounded-full border border-white/10 bg-black/60 px-4 py-2 text-xs font-semibold uppercase text-white backdrop-blur">
             {activeIndex + 1} / {posts.length}
           </div>
           <button
@@ -110,7 +110,7 @@ export default function MediaLightbox({
           </button>
         </div>
 
-        <div className="relative min-h-0 flex-1 overflow-hidden rounded-[28px] border border-white/10 bg-[#050505] shadow-2xl">
+          <div className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-[#050505] shadow-2xl">
           {canGoPrev ? (
             <button
               type="button"
@@ -154,11 +154,11 @@ export default function MediaLightbox({
 
           <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/85 to-transparent px-4 pb-5 pt-14 sm:px-6">
             <div className="mb-2 flex flex-wrap items-center gap-3">
-              <span className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white backdrop-blur">
+              <span className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-[11px] font-semibold uppercase text-white backdrop-blur">
                 {post.mediaType === 'VIDEO' ? 'Video' : 'Photo'}
               </span>
               {post.mediaCategory ? <CategoryBadge category={post.mediaCategory} size="sm" /> : null}
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-400">
+              <span className="text-xs font-semibold uppercase text-amber-400">
                 {formatMediaDate(post.createdAt)}
               </span>
             </div>

@@ -58,29 +58,26 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 // Public read endpoints
                 .requestMatchers(HttpMethod.GET, "/api/programs/**").permitAll()
-                .requestMatchers(HttpMethod.HEAD, "/api/programs/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
-                .requestMatchers(HttpMethod.HEAD, "/api/events/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/content/**").permitAll()
-                .requestMatchers(HttpMethod.HEAD, "/api/content/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/media/**").permitAll()
-                .requestMatchers(HttpMethod.HEAD, "/api/media/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/uploads/**").permitAll()
-                .requestMatchers(HttpMethod.HEAD, "/api/uploads/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/testimonials/**").permitAll()
-                .requestMatchers(HttpMethod.HEAD, "/api/testimonials/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/faqs").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/faqs/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/availability/**").permitAll()
-                .requestMatchers(HttpMethod.HEAD, "/api/availability/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/tournaments/*/registrations").hasAnyRole("ADMIN", "STAFF")
                 // Token-based registration access is public (opaque token acts as credential)
                 .requestMatchers("/api/tournaments/registrations/access/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/tournaments/**").permitAll()
-                .requestMatchers(HttpMethod.HEAD, "/api/tournaments/**").permitAll()
                 // Public write endpoints
                 .requestMatchers(HttpMethod.POST, "/api/bookings").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/contact").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/events/*/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/events/*/requests").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/registrations/*").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/registrations/code/*").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/registrations/by-stripe-session/*").permitAll()
                 // Team registration requires authentication
                 .requestMatchers(HttpMethod.POST, "/api/teams/register").authenticated()
                 // Admin-only: tournament mutations and admin panel
@@ -88,48 +85,21 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/tournaments/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/tournaments/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                // Staff operations endpoints
-                .requestMatchers("/api/staff/**").hasAnyRole("ADMIN", "STAFF")
                 // Team captain endpoints
                 .requestMatchers("/api/captain/**").hasAnyRole("ADMIN", "TEAM_CAPTAIN", "COACH")
                 // Coach public endpoint
                 .requestMatchers(HttpMethod.GET, "/api/coach/public").permitAll()
-                // Coach authenticated endpoints
-                .requestMatchers("/api/coach/**").hasAnyRole("ADMIN", "COACH")
                 // Stripe webhook (public); /api/payments/my requires authentication
                 .requestMatchers(HttpMethod.GET, "/api/payments/my").authenticated()
                 .requestMatchers("/api/payments/**").permitAll()
-                // Attendance (coach, admin, staff can record; players/parents can read their own)
-                .requestMatchers(HttpMethod.POST, "/api/attendance").hasAnyRole("ADMIN", "STAFF", "COACH")
-                .requestMatchers(HttpMethod.DELETE, "/api/attendance/**").hasAnyRole("ADMIN", "STAFF", "COACH")
-                .requestMatchers(HttpMethod.GET, "/api/attendance/booking/**").hasAnyRole("ADMIN", "STAFF", "COACH")
-                .requestMatchers(HttpMethod.GET, "/api/attendance/range").hasAnyRole("ADMIN", "STAFF", "COACH")
-                .requestMatchers(HttpMethod.GET, "/api/attendance/player/**").authenticated()
-                .requestMatchers(HttpMethod.GET, "/api/attendance/player").authenticated()
                 // Messages (all authenticated users)
                 .requestMatchers("/api/messages/**").authenticated()
                 // Notifications (all authenticated users)
                 .requestMatchers("/api/notifications/**").authenticated()
-                // Waivers
-                .requestMatchers(HttpMethod.GET, "/api/waivers/templates").authenticated()
-                .requestMatchers("/api/waivers/**").authenticated()
-                .requestMatchers("/api/documents/**").authenticated()
-                .requestMatchers("/api/admin/waivers/**").hasRole("ADMIN")
-                .requestMatchers("/api/admin/documents/**").hasAnyRole("ADMIN", "STAFF")
-                // Enrollments
-                .requestMatchers("/api/enrollments/**").authenticated()
-                .requestMatchers("/api/admin/enrollments/**").hasAnyRole("ADMIN", "STAFF")
-                // Calendar (iCal endpoint uses opaque token, not guessable email)
-                .requestMatchers(HttpMethod.GET, "/api/calendar/ical/*.ics").permitAll()
-                .requestMatchers("/api/calendar/**").authenticated()
-                // Dashboard trend reporting
+                // Search
+                .requestMatchers("/api/search/**").hasAnyRole("ADMIN", "STAFF", "COACH")
+                // Reports
                 .requestMatchers("/api/admin/reports/**").hasRole("ADMIN")
-                // Progress notes
-                .requestMatchers("/api/coach/progress-notes/**").hasAnyRole("ADMIN", "COACH")
-                .requestMatchers(HttpMethod.GET, "/api/player/progress-notes").authenticated()
-                .requestMatchers(HttpMethod.GET, "/api/parent/progress-notes/**").authenticated()
-                .requestMatchers(HttpMethod.GET, "/api/players/*/progress-notes").hasAnyRole("ADMIN", "STAFF", "COACH")
-                .requestMatchers(HttpMethod.GET, "/api/bookings/*/progress-notes").hasAnyRole("ADMIN", "STAFF", "COACH")
                 // All other requests require authentication
                 .anyRequest().authenticated()
             )

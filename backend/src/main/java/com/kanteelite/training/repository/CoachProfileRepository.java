@@ -16,7 +16,8 @@ public interface CoachProfileRepository extends JpaRepository<CoachProfile, Long
     @Query("SELECT c FROM CoachProfile c WHERE c.user.email = :email")
     Optional<CoachProfile> findByUserEmail(@Param("email") String email);
 
-    List<CoachProfile> findByActiveTrueOrderByCreatedAtDesc();
-    List<CoachProfile> findAllByOrderByCreatedAtDesc();
+    List<CoachProfile> findByActiveTrueOrderByDisplayOrderAscCreatedAtAsc();
+    List<CoachProfile> findByActiveTrueAndFeaturedTrueOrderByDisplayOrderAscCreatedAtAsc();
+    List<CoachProfile> findAllByOrderByDisplayOrderAscCreatedAtAsc();
     long countByActiveTrue();
 }

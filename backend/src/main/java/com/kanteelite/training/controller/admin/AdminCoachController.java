@@ -27,8 +27,16 @@ public class AdminCoachController {
     @PostMapping("/{userId}")
     public ResponseEntity<ApiResponse<CoachProfileResponse>> createCoachProfile(
             @PathVariable Long userId,
-            @RequestBody CoachProfileRequest request) {
+            @Valid @RequestBody CoachProfileRequest request) {
         CoachProfileResponse created = coachProfileService.create(userId, request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Coach profile created.", created));
+    }
+
+    @PostMapping
+    public ResponseEntity<ApiResponse<CoachProfileResponse>> createStandaloneCoachProfile(
+            @Valid @RequestBody CoachProfileRequest request) {
+        CoachProfileResponse created = coachProfileService.createStandalone(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Coach profile created.", created));
     }
@@ -36,7 +44,7 @@ public class AdminCoachController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<CoachProfileResponse>> updateCoachProfile(
             @PathVariable Long id,
-            @RequestBody CoachProfileRequest request) {
+            @Valid @RequestBody CoachProfileRequest request) {
         return ResponseEntity.ok(ApiResponse.success("Coach profile updated.",
                 coachProfileService.update(id, request)));
     }

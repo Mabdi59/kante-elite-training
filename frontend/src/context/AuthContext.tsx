@@ -85,6 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null)
     setRefreshToken(null)
     setUser(null)
+    window.dispatchEvent(new Event('auth-state-changed'))
   }
 
   return (

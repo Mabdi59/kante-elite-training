@@ -6,16 +6,16 @@ import com.kanteelite.training.dto.response.AdminDashboardResponse;
 import com.kanteelite.training.dto.response.ApiResponse;
 import com.kanteelite.training.dto.response.AuditLogResponse;
 import com.kanteelite.training.dto.response.UserResponse;
-import com.kanteelite.training.enums.BookingStatus;
+import com.kanteelite.training.enums.RegistrationStatus;
 import com.kanteelite.training.enums.TeamRegistrationStatus;
 import com.kanteelite.training.enums.UserRole;
-import com.kanteelite.training.repository.BookingRepository;
-import com.kanteelite.training.repository.BookingSeriesRepository;
 import com.kanteelite.training.repository.CoachProfileRepository;
 import com.kanteelite.training.repository.ContactMessageRepository;
 import com.kanteelite.training.repository.EventRepository;
 import com.kanteelite.training.repository.PlayerProfileRepository;
 import com.kanteelite.training.repository.ProgramRepository;
+import com.kanteelite.training.repository.RegistrationRepository;
+import com.kanteelite.training.repository.SessionSeriesRepository;
 import com.kanteelite.training.repository.TeamRegistrationRepository;
 import com.kanteelite.training.repository.TournamentRepository;
 import com.kanteelite.training.repository.UserRepository;
@@ -35,7 +35,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AdminController {
 
-    private final BookingRepository bookingRepository;
     private final ProgramRepository programRepository;
     private final EventRepository eventRepository;
     private final TournamentRepository tournamentRepository;
@@ -46,17 +45,20 @@ public class AdminController {
     private final CoachProfileRepository coachProfileRepository;
     private final PlayerProfileRepository playerProfileRepository;
     private final TeamRegistrationRepository teamRegistrationRepository;
-    private final BookingSeriesRepository bookingSeriesRepository;
+    private final SessionSeriesRepository sessionSeriesRepository;
+    private final RegistrationRepository registrationRepository;
 
     @GetMapping("/dashboard")
     public ResponseEntity<ApiResponse<AdminDashboardResponse>> getDashboard() {
         AdminDashboardResponse stats = AdminDashboardResponse.builder()
-                .totalBookings(bookingRepository.count())
-                .confirmedBookings(bookingRepository.countByBookingStatus(BookingStatus.CONFIRMED))
-                .pendingBookings(bookingRepository.countByBookingStatus(BookingStatus.RESERVED))
-                .cancelledBookings(bookingRepository.countByBookingStatus(BookingStatus.CANCELLED))
+                .totalRegistrations(registrationRepository.count())
+                .confirmedRegistrations(registrationRepository.countByStatus(RegistrationStatus.CONFIRMED))
+                .pendingWaitlistRegistrations(registrationRepository.countByStatusIn(List.of(
+                        RegistrationStatus.PENDING,
+                        RegistrationStatus.WAITLISTED)))
+                .cancelledRegistrations(registrationRepository.countByStatus(RegistrationStatus.CANCELLED))
                 .totalPrograms(programRepository.count())
-                .activePrograms(programRepository.findByActiveTrueOrderByDisplayOrderAsc().size())
+                .activePrograms(programRepository.findByActiveTrueOrderByDisplayOrderAscCreatedAtAsc().size())
                 .totalEvents(eventRepository.count())
                 .totalTournaments(tournamentRepository.count())
                 .totalUsers(userRepository.count())
@@ -68,7 +70,7 @@ public class AdminController {
                 .usersWithRoleCoach(userRepository.countByRole(UserRole.COACH))
                 .usersWithRoleUser(userRepository.countByRole(UserRole.USER))
                 .totalFamilies(userRepository.countByRole(UserRole.PARENT))
-                .totalActiveSeries(bookingSeriesRepository.countByActiveTrue())
+                .totalActiveSeries(sessionSeriesRepository.countByActiveTrue())
                 .build();
         return ResponseEntity.ok(ApiResponse.success(stats));
     }

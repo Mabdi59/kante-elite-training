@@ -2,11 +2,14 @@ package com.kanteelite.training.service;
 
 import com.kanteelite.training.dto.request.EventRequest;
 import com.kanteelite.training.dto.request.EventParticipationRequest;
+import com.kanteelite.training.dto.response.ManagedParticipantResponse;
 import com.kanteelite.training.entity.Event;
-import com.kanteelite.training.entity.EventParticipant;
-import com.kanteelite.training.repository.EventParticipantRepository;
+import com.kanteelite.training.entity.Registration;
+import com.kanteelite.training.enums.RegistrationStatus;
 import com.kanteelite.training.repository.EventRepository;
 import com.kanteelite.training.repository.PlayerProfileRepository;
+import com.kanteelite.training.repository.RegistrationRepository;
+import com.kanteelite.training.repository.TrainingSessionRepository;
 import com.kanteelite.training.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,6 +23,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
@@ -31,11 +35,13 @@ import static org.mockito.Mockito.when;
 class EventServiceTest {
 
     @Mock private EventRepository eventRepository;
-    @Mock private EventParticipantRepository eventParticipantRepository;
+    @Mock private RegistrationRepository registrationRepository;
+    @Mock private TrainingSessionRepository trainingSessionRepository;
     @Mock private UserRepository userRepository;
     @Mock private PlayerProfileRepository playerProfileRepository;
     @Mock private NotificationService notificationService;
     @Mock private EmailService emailService;
+    @Mock private TrainingSessionService trainingSessionService;
 
     @InjectMocks
     private EventService eventService;
@@ -71,14 +77,13 @@ class EventServiceTest {
         request.setPrice(BigDecimal.valueOf(60));
         request.setStatus("ACTIVE");
 
-        EventParticipant p1 = EventParticipant.builder().event(event).manualName("Alex").manualEmail("alex@test.com").build();
-        EventParticipant p2 = EventParticipant.builder().event(event).manualName("Alex Duplicate").manualEmail("alex@test.com").build();
-        EventParticipant p3 = EventParticipant.builder().event(event).manualName("Blake").manualEmail("blake@test.com").build();
+        Registration p1 = eventRegistration("Alex", "alex@test.com");
+        Registration p2 = eventRegistration("Alex Duplicate", "alex@test.com");
+        Registration p3 = eventRegistration("Blake", "blake@test.com");
 
         when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
         when(eventRepository.save(any(Event.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(eventParticipantRepository.findByEventIdOrderByCreatedAtAsc(1L)).thenReturn(List.of(p1, p2, p3));
-        when(eventParticipantRepository.countByEventId(1L)).thenReturn(2L);
+        when(registrationRepository.findByEventIdOrderByCreatedAtAsc(1L)).thenReturn(List.of(p1, p2, p3));
 
         eventService.updateEvent(1L, request);
 
@@ -94,10 +99,10 @@ class EventServiceTest {
 
     @Test
     void deleteEvent_notifiesParticipantsAndDeletesEvent() {
-        EventParticipant p1 = EventParticipant.builder().event(event).manualName("Alex").manualEmail("alex@test.com").build();
+        Registration p1 = eventRegistration("Alex", "alex@test.com");
 
         when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
-        when(eventParticipantRepository.findByEventIdOrderByCreatedAtAsc(1L)).thenReturn(List.of(p1));
+        when(registrationRepository.findByEventIdOrderByCreatedAtAsc(1L)).thenReturn(List.of(p1));
 
         eventService.deleteEvent(1L);
 
@@ -115,19 +120,31 @@ class EventServiceTest {
         request.setEmail("casey@test.com");
 
         when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
-        when(eventParticipantRepository.countByEventId(1L)).thenReturn(0L);
-        when(eventParticipantRepository.save(any(EventParticipant.class))).thenAnswer(invocation -> {
-            EventParticipant participant = invocation.getArgument(0);
-            participant.setId(100L);
-            return participant;
+        when(registrationRepository.existsByEventIdAndGuardianEmailIgnoreCaseAndStatusNot(
+                1L, "casey@test.com", RegistrationStatus.CANCELLED)).thenReturn(false);
+        when(registrationRepository.save(any(Registration.class))).thenAnswer(invocation -> {
+            Registration registration = invocation.getArgument(0);
+            registration.setId(100L);
+            return registration;
         });
 
-        eventService.requestParticipation(1L, request);
+        ManagedParticipantResponse response = eventService.requestParticipation(1L, request);
 
+        assertEquals("casey@test.com", response.getEmail());
         verify(notificationService).send(
                 eq("casey@test.com"), eq("EVENT_REGISTRATION"), eq("Event registration confirmed"), contains("registered"), eq("Event"), eq(1L));
-        verify(emailService).sendEventParticipantEmail(
-                eq("casey@test.com"), eq("Casey"), eq("Spring Skills Camp"), eq(true));
+    }
+
+    private Registration eventRegistration(String name, String email) {
+        return Registration.builder()
+                .event(event)
+                .participantName(name)
+                .participantEmail(email)
+                .guardianName(name)
+                .guardianEmail(email)
+                .status(RegistrationStatus.CONFIRMED)
+                .createdAt(java.time.LocalDateTime.now())
+                .build();
     }
 }
 

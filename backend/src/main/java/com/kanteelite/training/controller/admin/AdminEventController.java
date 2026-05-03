@@ -57,28 +57,44 @@ public class AdminEventController {
     }
 
     @PostMapping("/{id}/participants")
-    public ResponseEntity<ApiResponse<ManagedParticipantResponse>> addParticipant(
+    public ResponseEntity<ApiResponse<ManagedParticipantResponse>> addRosterRegistrationViaParticipantPath(
+            @PathVariable Long id,
+            @RequestBody ParticipantAssignmentRequest request,
+            @AuthenticationPrincipal UserDetails principal) {
+        return addRosterRegistration(id, request, principal);
+    }
+
+    @PostMapping("/{id}/registrations")
+    public ResponseEntity<ApiResponse<ManagedParticipantResponse>> addRosterRegistration(
             @PathVariable Long id,
             @RequestBody ParticipantAssignmentRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         ManagedParticipantResponse created = eventService.addParticipant(id, request);
         String actor = principal != null ? principal.getUsername() : "admin";
-        auditLogService.log(actor, "CREATE", "EventParticipant", created.getId(),
-                "Added participant to event #" + id);
+        auditLogService.log(actor, "CREATE", "EventRegistration", created.getId(),
+                "Added roster registration to event #" + id);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Participant added.", created));
+                .body(ApiResponse.success("Roster registration added.", created));
     }
 
     @DeleteMapping("/{id}/participants/{participantId}")
-    public ResponseEntity<ApiResponse<Void>> removeParticipant(
+    public ResponseEntity<ApiResponse<Void>> removeRosterRegistrationViaParticipantPath(
             @PathVariable Long id,
             @PathVariable Long participantId,
             @AuthenticationPrincipal UserDetails principal) {
-        eventService.removeParticipant(id, participantId);
+        return removeRosterRegistration(id, participantId, principal);
+    }
+
+    @DeleteMapping("/{id}/registrations/{registrationId}")
+    public ResponseEntity<ApiResponse<Void>> removeRosterRegistration(
+            @PathVariable Long id,
+            @PathVariable Long registrationId,
+            @AuthenticationPrincipal UserDetails principal) {
+        eventService.removeParticipant(id, registrationId);
         String actor = principal != null ? principal.getUsername() : "admin";
-        auditLogService.log(actor, "DELETE", "EventParticipant", participantId,
-                "Removed participant from event #" + id);
-        return ResponseEntity.ok(ApiResponse.success("Participant removed.", null));
+        auditLogService.log(actor, "DELETE", "EventRegistration", registrationId,
+                "Removed roster registration from event #" + id);
+        return ResponseEntity.ok(ApiResponse.success("Roster registration removed.", null));
     }
 
     @DeleteMapping("/{id}")

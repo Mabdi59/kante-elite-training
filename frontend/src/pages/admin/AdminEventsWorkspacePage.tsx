@@ -1,8 +1,9 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   addAdminEventParticipant,
   createEvent,
+  createMediaPost,
   deleteEvent,
   getAdminEventWorkflow,
   getAdminEvents,
@@ -46,7 +47,11 @@ type EventFormState = {
   ageGroup: string
   intensity: string
   coachName: string
+  primaryMediaUrl: string
+  secondaryMediaUrl: string
   price: number
+  featured: boolean
+  active: boolean
   displayOrder: number
 }
 
@@ -65,7 +70,11 @@ const emptyForm: EventFormState = {
   ageGroup: '',
   intensity: '',
   coachName: '',
+  primaryMediaUrl: '',
+  secondaryMediaUrl: '',
   price: 0,
+  featured: false,
+  active: true,
   displayOrder: 0,
 }
 
@@ -98,7 +107,11 @@ function toFormState(event?: Event): EventFormState {
     ageGroup: event.ageGroup ?? '',
     intensity: event.intensity ?? '',
     coachName: event.coachName ?? '',
+    primaryMediaUrl: event.primaryMediaUrl ?? '',
+    secondaryMediaUrl: event.secondaryMediaUrl ?? '',
     price: Number(event.price ?? 0),
+    featured: event.featured ?? false,
+    active: event.active ?? true,
     displayOrder: Number(event.displayOrder ?? 0),
   }
 }
@@ -122,9 +135,43 @@ function buildEventPayload(form: EventFormState): Partial<Event> {
     ageGroup: form.ageGroup.trim(),
     intensity: form.intensity.trim(),
     coachName: form.coachName.trim() || undefined,
+    primaryMediaUrl: form.primaryMediaUrl.trim() || undefined,
+    secondaryMediaUrl: form.secondaryMediaUrl.trim() || undefined,
     price: Number(form.price) || 0,
+    featured: form.featured,
+    active: form.active,
     displayOrder: Math.max(0, Number(form.displayOrder) || 0),
   }
+}
+
+function EventMediaPreview({ src, label }: { src: string; label: string }) {
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    setFailed(false)
+  }, [src])
+
+  if (!src) {
+    return <span className="text-sm text-gray-500">No {label.toLowerCase()} selected</span>
+  }
+
+  if (failed) {
+    return (
+      <div className="px-4 text-center">
+        <p className="text-sm font-semibold text-red-300">Image could not load.</p>
+        <p className="mt-2 break-all text-xs text-gray-500">{src}</p>
+      </div>
+    )
+  }
+
+  return (
+    <img
+      src={src}
+      alt={`${label} preview`}
+      onError={() => setFailed(true)}
+      className="h-full w-full object-contain"
+    />
+  )
 }
 
 function formatSchedule(startAt?: string, endAt?: string, startDate?: string, endDate?: string) {
@@ -152,9 +199,11 @@ export default function AdminEventsWorkspacePage() {
   const [saveError, setSaveError] = useState('')
   const [participantError, setParticipantError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [mediaUploadingSlot, setMediaUploadingSlot] = useState<'primary' | 'secondary' | null>(null)
   const [participantSaving, setParticipantSaving] = useState(false)
   const [removingParticipantId, setRemovingParticipantId] = useState<number | null>(null)
   const [search, setSearch] = useState('')
+  const [visibilityFilter, setVisibilityFilter] = useState<'ACTIVE' | 'ARCHIVED'>('ACTIVE')
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null)
   const [creatingNew, setCreatingNew] = useState(false)
   const [form, setForm] = useState<EventFormState>(emptyForm)
@@ -163,10 +212,12 @@ export default function AdminEventsWorkspacePage() {
   const [participantForm, setParticipantForm] = useState<ParticipantAssignmentFormData>({})
 
   const filteredEvents = useMemo(() => events.filter((event) => {
+    if (visibilityFilter === 'ACTIVE' && event.active === false) return false
+    if (visibilityFilter === 'ARCHIVED' && event.active !== false) return false
     const term = search.trim().toLowerCase()
     if (!term) return true
     return event.title.toLowerCase().includes(term) || event.location.toLowerCase().includes(term) || (event.type ?? '').toLowerCase().includes(term)
-  }), [events, search])
+  }), [events, search, visibilityFilter])
 
   const filteredUsers = useMemo(() => users.filter((user) => {
     const term = participantSearch.trim().toLowerCase()
@@ -196,7 +247,8 @@ export default function AdminEventsWorkspacePage() {
         setEvents(eventData)
         setUsers(userData)
         setPlayers(playerData)
-        if (eventData.length > 0) setSelectedEventId(eventData[0].id)
+        const firstActive = eventData.find((event) => event.active !== false)
+        if (firstActive) setSelectedEventId(firstActive.id)
       })
       .catch(() => setError('Failed to load event scheduling.'))
       .finally(() => setLoading(false))
@@ -283,6 +335,30 @@ export default function AdminEventsWorkspacePage() {
       setSaveError(message)
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleMediaUpload = async (slot: 'primary' | 'secondary', file?: File) => {
+    if (!file) return
+
+    setMediaUploadingSlot(slot)
+    setSaveError('')
+    try {
+      const media = await createMediaPost(
+        file,
+        `${form.title || 'Summer Training'} promotional poster`,
+        'TRAINING_PHOTO',
+        `${form.title || 'Summer Training'} ${slot === 'primary' ? 'primary' : 'secondary'} promotional poster`,
+      )
+      const field = slot === 'primary' ? 'primaryMediaUrl' : 'secondaryMediaUrl'
+      setForm((prev) => ({ ...prev, [field]: media.mediaUrl }))
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        'Could not upload this event image.'
+      setSaveError(message)
+    } finally {
+      setMediaUploadingSlot(null)
     }
   }
 
@@ -384,6 +460,22 @@ export default function AdminEventsWorkspacePage() {
       <div className="grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
         <div className="space-y-4">
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <div className="mb-4 grid grid-cols-2 gap-2 rounded-lg border border-gray-800 bg-black p-1">
+              {(['ACTIVE', 'ARCHIVED'] as const).map((filter) => (
+                <button
+                  key={filter}
+                  type="button"
+                  onClick={() => setVisibilityFilter(filter)}
+                  className={`rounded-md px-3 py-2 text-xs font-bold uppercase transition-colors ${
+                    visibilityFilter === filter
+                      ? 'bg-amber-500 text-black'
+                      : 'text-gray-400 hover:bg-gray-900 hover:text-white'
+                  }`}
+                >
+                  {filter === 'ACTIVE' ? 'Active' : 'Archived'}
+                </button>
+              ))}
+            </div>
             <label className="block text-gray-400 text-sm mb-2">Find event</label>
             <input
               type="text"
@@ -453,7 +545,7 @@ export default function AdminEventsWorkspacePage() {
               <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-amber-500 mb-2">
+                    <p className="text-xs uppercase text-amber-500 mb-2">
                       Event Workspace
                     </p>
                     <h2 className="text-white text-2xl font-black">{currentEventTitle}</h2>
@@ -630,6 +722,107 @@ export default function AdminEventsWorkspacePage() {
                             className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
                           />
                         </div>
+
+                        <div>
+                          <label className="flex items-center gap-2 text-sm text-gray-300">
+                            <input
+                              type="checkbox"
+                              checked={form.featured}
+                              onChange={(e) => setForm((prev) => ({ ...prev, featured: e.target.checked }))}
+                              className="w-4 h-4 accent-amber-500"
+                            />
+                            Featured event
+                          </label>
+                        </div>
+
+                        <div>
+                          <label className="flex items-center gap-2 text-sm text-gray-300">
+                            <input
+                              type="checkbox"
+                              checked={form.active}
+                              onChange={(e) => setForm((prev) => ({ ...prev, active: e.target.checked }))}
+                              className="w-4 h-4 accent-green-500"
+                            />
+                            Visible on the public site
+                          </label>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+                      <div className="mb-5">
+                        <h3 className="text-white font-bold text-xl">Event Media</h3>
+                        <p className="text-gray-400 text-sm mt-1">
+                          Upload the Summer Training promotional posters here, then save changes so they appear on the public pages.
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                        <div className="rounded-xl border border-gray-800 bg-black p-4">
+                          <div className="flex items-center justify-between gap-3 mb-3">
+                            <div>
+                              <p className="text-white font-semibold">Primary poster</p>
+                              <p className="text-gray-500 text-xs">Used first on Events and featured cards.</p>
+                            </div>
+                            {mediaUploadingSlot === 'primary' ? (
+                              <span className="text-xs font-bold uppercase text-amber-400">Uploading...</span>
+                            ) : null}
+                          </div>
+
+                          <div className="mb-4 flex aspect-[4/3] items-center justify-center overflow-hidden rounded-lg border border-gray-800 bg-gray-950">
+                            <EventMediaPreview src={form.primaryMediaUrl} label="Primary event promotional poster" />
+                          </div>
+
+                          <label className="block text-gray-400 text-sm mb-1">Upload image</label>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            disabled={mediaUploadingSlot !== null}
+                            onChange={(e) => handleMediaUpload('primary', e.target.files?.[0])}
+                            className="mb-3 block w-full text-sm text-gray-300 file:mr-3 file:rounded-lg file:border-0 file:bg-amber-500 file:px-3 file:py-2 file:text-sm file:font-bold file:text-black hover:file:bg-amber-400 disabled:opacity-50"
+                          />
+
+                          <label className="block text-gray-400 text-sm mb-1">Image URL</label>
+                          <input
+                            value={form.primaryMediaUrl}
+                            onChange={(e) => setForm((prev) => ({ ...prev, primaryMediaUrl: e.target.value }))}
+                            className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
+                            placeholder="/api/uploads/media/example.jpg"
+                          />
+                        </div>
+
+                        <div className="rounded-xl border border-gray-800 bg-black p-4">
+                          <div className="flex items-center justify-between gap-3 mb-3">
+                            <div>
+                              <p className="text-white font-semibold">Secondary poster</p>
+                              <p className="text-gray-500 text-xs">Used as supporting promo media.</p>
+                            </div>
+                            {mediaUploadingSlot === 'secondary' ? (
+                              <span className="text-xs font-bold uppercase text-amber-400">Uploading...</span>
+                            ) : null}
+                          </div>
+
+                          <div className="mb-4 flex aspect-[4/3] items-center justify-center overflow-hidden rounded-lg border border-gray-800 bg-gray-950">
+                            <EventMediaPreview src={form.secondaryMediaUrl} label="Secondary event promotional poster" />
+                          </div>
+
+                          <label className="block text-gray-400 text-sm mb-1">Upload image</label>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            disabled={mediaUploadingSlot !== null}
+                            onChange={(e) => handleMediaUpload('secondary', e.target.files?.[0])}
+                            className="mb-3 block w-full text-sm text-gray-300 file:mr-3 file:rounded-lg file:border-0 file:bg-amber-500 file:px-3 file:py-2 file:text-sm file:font-bold file:text-black hover:file:bg-amber-400 disabled:opacity-50"
+                          />
+
+                          <label className="block text-gray-400 text-sm mb-1">Image URL</label>
+                          <input
+                            value={form.secondaryMediaUrl}
+                            onChange={(e) => setForm((prev) => ({ ...prev, secondaryMediaUrl: e.target.value }))}
+                            className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
+                            placeholder="/api/uploads/media/example.jpg"
+                          />
+                        </div>
                       </div>
                     </section>
 
@@ -698,7 +891,7 @@ export default function AdminEventsWorkspacePage() {
                         )}
                         <button
                           type="submit"
-                          disabled={saving}
+                          disabled={saving || mediaUploadingSlot !== null}
                           className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 py-2 rounded-lg text-sm disabled:opacity-50"
                         >
                           {saving ? 'Saving...' : creatingNew ? 'Create Event' : 'Save Changes'}

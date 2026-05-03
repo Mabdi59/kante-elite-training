@@ -41,7 +41,7 @@ export default function HeroSection({
         }`}
       >
         {badge && (
-          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-5">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase px-4 py-1.5 rounded-full mb-5">
             <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
             {badge}
           </div>

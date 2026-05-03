@@ -1,11 +1,12 @@
 package com.kanteelite.training.controller.admin;
 
 import jakarta.validation.Valid;
-import com.kanteelite.training.dto.request.BookingSeriesRequest;
+import com.kanteelite.training.dto.request.SessionSeriesRequest;
 import com.kanteelite.training.dto.response.ApiResponse;
-import com.kanteelite.training.dto.response.BookingSeriesPreviewItem;
-import com.kanteelite.training.dto.response.BookingSeriesResponse;
-import com.kanteelite.training.service.RecurringScheduleService;
+import com.kanteelite.training.dto.response.SessionSeriesPreviewItem;
+import com.kanteelite.training.dto.response.SessionSeriesResponse;
+import com.kanteelite.training.dto.response.TrainingSessionResponse;
+import com.kanteelite.training.service.SessionSeriesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -22,31 +23,46 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AdminRecurringScheduleController {
 
-    private final RecurringScheduleService recurringScheduleService;
+    private final SessionSeriesService sessionSeriesService;
 
     @PostMapping("/preview")
-    public ResponseEntity<ApiResponse<List<BookingSeriesPreviewItem>>> previewSeries(
-            @Valid @RequestBody BookingSeriesRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(recurringScheduleService.previewSeries(request)));
+    public ResponseEntity<ApiResponse<List<SessionSeriesPreviewItem>>> previewSeries(
+            @Valid @RequestBody SessionSeriesRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(sessionSeriesService.previewSeries(request)));
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<BookingSeriesResponse>> createSeries(
-            @Valid @RequestBody BookingSeriesRequest request,
+    public ResponseEntity<ApiResponse<SessionSeriesResponse>> createSeries(
+            @Valid @RequestBody SessionSeriesRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         String actor = principal != null ? principal.getUsername() : "admin";
         return ResponseEntity.ok(ApiResponse.success("Recurring schedule created.",
-                recurringScheduleService.createSeries(request, actor)));
+                sessionSeriesService.createSeries(request, actor)));
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<BookingSeriesResponse>>> getAllSeries() {
-        return ResponseEntity.ok(ApiResponse.success(recurringScheduleService.getAllSeries()));
+    public ResponseEntity<ApiResponse<List<SessionSeriesResponse>>> getAllSeries() {
+        return ResponseEntity.ok(ApiResponse.success(sessionSeriesService.getAllSeries()));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<BookingSeriesResponse>> getSeries(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.success(recurringScheduleService.getSeries(id)));
+    public ResponseEntity<ApiResponse<SessionSeriesResponse>> getSeries(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(sessionSeriesService.getSeries(id)));
+    }
+
+    @GetMapping("/{id}/sessions")
+    public ResponseEntity<ApiResponse<List<TrainingSessionResponse>>> getGeneratedSessions(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(sessionSeriesService.getGeneratedSessions(id)));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<SessionSeriesResponse>> updateSeries(
+            @PathVariable Long id,
+            @Valid @RequestBody SessionSeriesRequest request,
+            @AuthenticationPrincipal UserDetails principal) {
+        String actor = principal != null ? principal.getUsername() : "admin";
+        return ResponseEntity.ok(ApiResponse.success("Recurring schedule updated.",
+                sessionSeriesService.updateSeries(id, request, actor)));
     }
 
     @DeleteMapping("/{id}")
@@ -54,7 +70,7 @@ public class AdminRecurringScheduleController {
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetails principal) {
         String actor = principal != null ? principal.getUsername() : "admin";
-        recurringScheduleService.deleteSeries(id, actor);
+        sessionSeriesService.deleteSeries(id, actor);
         return ResponseEntity.ok(ApiResponse.success("Series deleted and future sessions cancelled.", null));
     }
 
@@ -67,16 +83,17 @@ public class AdminRecurringScheduleController {
         LocalDate fromDate = body != null && body.containsKey("fromDate")
                 ? LocalDate.parse(body.get("fromDate"))
                 : LocalDate.now();
-        recurringScheduleService.cancelFutureSessions(id, fromDate, actor);
+        sessionSeriesService.cancelFutureSessions(id, fromDate, actor);
         return ResponseEntity.ok(ApiResponse.success("Future sessions cancelled.", null));
     }
 
-    @DeleteMapping("/sessions/{bookingId}")
+    @DeleteMapping("/sessions/{sessionId}")
     public ResponseEntity<ApiResponse<Void>> cancelSession(
-            @PathVariable Long bookingId,
+            @PathVariable Long sessionId,
             @AuthenticationPrincipal UserDetails principal) {
         String actor = principal != null ? principal.getUsername() : "admin";
-        recurringScheduleService.cancelSession(bookingId, actor);
+        sessionSeriesService.cancelSession(sessionId, actor);
         return ResponseEntity.ok(ApiResponse.success("Session cancelled.", null));
     }
+
 }

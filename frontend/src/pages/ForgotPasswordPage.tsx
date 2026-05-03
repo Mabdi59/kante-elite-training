@@ -1,5 +1,6 @@
-﻿import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import BrandMark from '../components/BrandMark'
 import { forgotPassword } from '../services/api'
 import type { ForgotPasswordResult } from '../types'
 
@@ -29,9 +30,8 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen bg-black flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex flex-col items-center gap-0.5">
-            <span className="text-2xl font-black tracking-tight text-white">KANTÉ ELITE</span>
-            <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-500">Training</span>
+          <Link to="/" className="inline-flex">
+            <BrandMark size="auth" showText />
           </Link>
           <h1 className="text-white text-3xl font-black mt-6 mb-2">Forgot Password</h1>
           <p className="text-gray-400 text-sm">Enter your email and we will guide you through the next step.</p>
@@ -55,14 +55,14 @@ export default function ForgotPasswordPage() {
                 to="/reset-password"
                 className="inline-block mt-5 text-amber-500 hover:text-amber-400 text-sm font-semibold transition-colors"
               >
-                Enter your reset code →
+                Enter your reset code &rarr;
               </Link>
             ) : (
               <Link
                 to="/contact"
                 className="inline-block mt-5 text-amber-500 hover:text-amber-400 text-sm font-semibold transition-colors"
               >
-                Contact support →
+                Contact support &rarr;
               </Link>
             )}
           </div>
@@ -81,7 +81,7 @@ export default function ForgotPasswordPage() {
             )}
 
             <div>
-              <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Email address</label>
+              <label className="block text-gray-400 text-xs font-semibold uppercase mb-2">Email address</label>
               <input
                 type="email"
                 value={email}

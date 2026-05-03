@@ -31,7 +31,7 @@ export default function LoadingSpinner({ size = 'md', label }: Props) {
           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
         />
       </svg>
-      {label ? <span className="text-sm font-medium tracking-wide">{label}</span> : null}
+      {label ? <span className="text-sm font-medium">{label}</span> : null}
       <span className="sr-only">{label ?? 'Loading'}</span>
     </div>
   )

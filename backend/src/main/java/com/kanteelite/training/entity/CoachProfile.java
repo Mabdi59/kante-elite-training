@@ -21,17 +21,44 @@ public class CoachProfile {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @JoinColumn(name = "user_id", unique = true)
     private User user;
+
+    @Column(name = "display_name", nullable = false, length = 120)
+    private String displayName;
+
+    @Column(name = "role_title", length = 120)
+    private String roleTitle;
 
     @Column(columnDefinition = "TEXT")
     private String bio;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "headshot_media_post_id")
+    private MediaPost headshotMediaPost;
 
     @Column(length = 500)
     private String specialties;
 
     @Column(length = 500)
     private String certifications;
+
+    @Column(name = "instagram_url", length = 500)
+    private String instagramUrl;
+
+    @Column(name = "website_url", length = 500)
+    private String websiteUrl;
+
+    @Column(name = "booking_url", length = 500)
+    private String bookingUrl;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean featured = false;
+
+    @Builder.Default
+    @Column(name = "display_order", nullable = false)
+    private int displayOrder = 0;
 
     @Column(nullable = false)
     @Builder.Default

@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getTournaments } from '../services/api'
 import type { Tournament } from '../types'
@@ -9,8 +9,6 @@ import {
   formatTournamentDateRange,
   getTournamentRegistrationState,
 } from '../utils/tournament'
-
-const POLL_INTERVAL_MS = 60_000
 
 function TournamentCard({ tournament: t }: { tournament: Tournament }) {
   const registrationState = getTournamentRegistrationState(t)
@@ -26,9 +24,8 @@ function TournamentCard({ tournament: t }: { tournament: Tournament }) {
   return (
     <Link
       to={`/tournaments/${t.id}`}
-      className="block bg-[#111] border border-[#222] hover:border-amber-500/30 rounded-2xl p-6 flex flex-col transition-all duration-300 hover:-translate-y-0.5 group"
+      className="flex flex-col rounded-2xl border border-[#222] bg-[#111] p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-amber-500/30 group"
     >
-      {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div>
           <h3 className="text-white text-xl font-black leading-tight group-hover:text-amber-400 transition-colors">{t.name}</h3>
@@ -38,7 +35,6 @@ function TournamentCard({ tournament: t }: { tournament: Tournament }) {
         <StatusBadge status={t.status} className="ml-2 shrink-0 mt-0.5" />
       </div>
 
-      {/* Tags */}
       <div className="flex flex-wrap gap-2 mb-4">
         {t.ageGroup && (
           <span className="text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full">
@@ -57,7 +53,6 @@ function TournamentCard({ tournament: t }: { tournament: Tournament }) {
         )}
       </div>
 
-      {/* Details */}
       <div className="space-y-2 text-sm text-gray-400 mb-4 flex-1">
         <div className="flex justify-between">
           <span>Dates</span>
@@ -104,35 +99,25 @@ function TournamentCard({ tournament: t }: { tournament: Tournament }) {
 export default function TournamentsPage() {
   const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [showPast, setShowPast] = useState(false)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
-    document.title = 'Tournaments | Kante Elite Training'
-    return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
-  }, [])
-
-  const fetchTournaments = () => {
     getTournaments()
-      .then(setTournaments)
-      .catch(() => { /* silenced */ })
+      .then((nextTournaments) => {
+        setTournaments(nextTournaments)
+        setLoadError('')
+      })
+      .catch(() => {
+        setLoadError('Tournament listings are temporarily unavailable. Please try again shortly.')
+      })
       .finally(() => setLoading(false))
-  }
-
-  useEffect(() => {
-    fetchTournaments()
-    intervalRef.current = setInterval(fetchTournaments, POLL_INTERVAL_MS)
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current)
-    }
   }, [])
 
-  // Active = anything that is not finished or cancelled
   const activeTournaments = tournaments.filter(
     (t) => t.status !== 'COMPLETED' && t.status !== 'CANCELLED',
   )
-  // Past = completed only (cancelled are hidden entirely from the public view)
   const pastTournaments = tournaments.filter((t) => t.status === 'COMPLETED')
 
   const activeStatuses = [...new Set(activeTournaments.map((t) => t.status))]
@@ -153,7 +138,7 @@ export default function TournamentsPage() {
     <div className="min-h-screen bg-black px-4 py-20">
       <div className="page-shell max-w-6xl">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-5">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase px-4 py-1.5 rounded-full mb-5">
             <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
             Competition
           </div>
@@ -173,7 +158,7 @@ export default function TournamentsPage() {
               </div>
               <div className="bg-[#111] border border-[#222] rounded-xl p-5">
                 <p className="text-gray-400 text-sm mb-2">Total Listings</p>
-                <p className="text-3xl font-black text-white">{activeTournaments.length}</p>
+                <p className="text-3xl font-black text-white">{tournaments.length}</p>
               </div>
             </div>
           ) : null}
@@ -182,7 +167,9 @@ export default function TournamentsPage() {
         {!loading && activeTournaments.length > 0 && (
           <div className="mb-10 flex flex-wrap justify-center gap-2">
             <button
+              type="button"
               onClick={() => setFilterStatus('')}
+              aria-pressed={!filterStatus}
               className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors ${!filterStatus ? 'bg-amber-500 text-black border-amber-500' : 'border-[#333] text-gray-400 hover:border-[#555] hover:text-gray-300'}`}
             >
               All
@@ -190,7 +177,9 @@ export default function TournamentsPage() {
             {activeStatuses.map((s) => (
               <button
                 key={s}
+                type="button"
                 onClick={() => setFilterStatus(s)}
+                aria-pressed={filterStatus === s}
                 className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors ${filterStatus === s ? 'bg-amber-500 text-black border-amber-500' : 'border-[#333] text-gray-400 hover:border-[#555] hover:text-gray-300'}`}
               >
                 {s}
@@ -200,7 +189,20 @@ export default function TournamentsPage() {
         )}
 
         {loading ? (
-          <p className="text-gray-400 text-center">Loading tournaments…</p>
+          <p className="text-gray-400 text-center">Loading tournaments...</p>
+        ) : loadError ? (
+          <div className="rounded-2xl border border-red-500/20 bg-red-500/5 px-6 py-12 text-center">
+            <p className="text-lg font-semibold text-white">We couldn&apos;t load the tournament listings.</p>
+            <p className="mt-3 text-sm leading-relaxed text-gray-400">{loadError}</p>
+            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+              <Link to="/contact" className="btn-primary justify-center px-5 py-2.5 text-sm">
+                Contact us
+              </Link>
+              <Link to="/book" className="btn-secondary justify-center px-5 py-2.5 text-sm">
+                Book training instead
+              </Link>
+            </div>
+          </div>
         ) : filteredActive.length === 0 ? (
           <div className="text-center text-gray-400 py-16">
             <div className="w-16 h-16 rounded-2xl bg-[#111] border border-[#222] flex items-center justify-center mx-auto mb-5">
@@ -221,11 +223,12 @@ export default function TournamentsPage() {
           </div>
         )}
 
-        {/* Past tournaments | collapsed by default */}
         {!loading && pastTournaments.length > 0 && (
           <div className="mt-16">
             <button
+              type="button"
               onClick={() => setShowPast((v) => !v)}
+              aria-expanded={showPast}
               className="flex items-center gap-2 text-gray-500 hover:text-gray-300 text-sm font-semibold transition-colors mx-auto"
             >
               <svg

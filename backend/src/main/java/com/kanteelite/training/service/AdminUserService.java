@@ -134,6 +134,8 @@ public class AdminUserService {
 
         CoachProfile profile = CoachProfile.builder()
                 .user(user)
+                .displayName(user.getName())
+                .roleTitle("Coach")
                 .bio("")
                 .specialties("")
                 .certifications("")

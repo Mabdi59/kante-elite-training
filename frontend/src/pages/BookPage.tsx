@@ -1,9 +1,10 @@
-﻿import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import api, { createBookingCheckout, getAvailability, getPaymentsEnabled, getPrograms } from '../services/api'
-import type { ApiResponse, Program, AvailabilityData, BookingFormData, Booking } from '../types'
+import { createProgramCheckout, createProgramRegistration, getAvailability, getEvents, getPaymentsEnabled, getPrograms } from '../services/api'
+import type { Event, Program, AvailabilityData, ProgramBookingFormData } from '../types'
 import { useAuth } from '../context/AuthContext'
 import { getPortalDestination } from '../utils/portal'
+import MediaAsset from '../components/MediaAsset'
 
 const experienceLevels = [
   { value: 'beginner', label: 'Beginner, just starting out' },
@@ -35,6 +36,17 @@ function formatDisplayDate(dateStr: string) {
     month: 'long',
     day: 'numeric',
   })
+}
+
+function isPromotionalProgram(program?: Program | null) {
+  return Boolean(program?.campaignLabel || program?.secondaryMediaUrl || program?.seasonLabel)
+}
+
+function isSummerTrainingProgram(program?: Program | null) {
+  if (!program) return false
+  return `${program.name} ${program.slug} ${program.campaignLabel ?? ''}`
+    .toLowerCase()
+    .includes('summer')
 }
 
 function validateField(name: string, value: string): string {
@@ -106,14 +118,24 @@ function BookingSidebar({ program, date, time, playerName }: SidebarProps) {
       <div className="space-y-4 lg:sticky lg:top-24">
         <div className="bg-[#111] border border-[#222] rounded-2xl overflow-hidden">
           <div className="px-5 py-4 border-b border-[#222] bg-[#161616]">
-            <p className="text-amber-500 text-xs font-bold uppercase tracking-widest">Your Booking</p>
+            <p className="text-amber-500 text-xs font-bold uppercase">Your Booking</p>
             <p className="text-gray-600 text-xs mt-0.5">Most bookings take less than a minute.</p>
           </div>
           <div className="p-5">
             {program ? (
               <div className="space-y-4">
                 <div className="flex items-center gap-3 pb-4 border-b border-[#1e1e1e]">
-                  <span className="text-2xl">{program.icon}</span>
+                  {program.mediaUrl ? (
+                    <MediaAsset
+                      src={program.mediaUrl}
+                      type={program.mediaType ?? 'IMAGE'}
+                      alt={`${program.name} program`}
+                      loading="eager"
+                      className={`h-12 w-12 rounded-xl bg-black ${isPromotionalProgram(program) ? 'object-contain p-1' : 'object-cover'}`}
+                    />
+                  ) : (
+                    <span className="text-2xl">{program.icon}</span>
+                  )}
                   <div>
                     <p className="text-white font-bold text-sm leading-tight">{program.name}</p>
                     <p className="text-amber-500 font-black text-sm">{program.priceLabel}</p>
@@ -190,7 +212,7 @@ interface FieldProps {
 function Field({ label, htmlFor, required, error, children }: FieldProps) {
   return (
     <div>
-      <label htmlFor={htmlFor} className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
+      <label htmlFor={htmlFor} className="block text-gray-400 text-xs font-semibold uppercase mb-2">
         {label}
         {required && <span className="text-amber-500 ml-1">*</span>}
       </label>
@@ -207,7 +229,7 @@ function Field({ label, htmlFor, required, error, children }: FieldProps) {
   )
 }
 
-const INITIAL_FORM: Omit<BookingFormData, 'programId'> = {
+const INITIAL_FORM: Omit<ProgramBookingFormData, 'programId'> = {
   bookingDate: '',
   bookingTime: '',
   playerName: '',
@@ -223,13 +245,14 @@ export default function BookPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  // Accept both ?program=slug-or-id and ?programId=123 for direct or legacy booking links.
+    // Accept both ?program=slug-or-id and ?programId=123 for direct links.
   const preselectedProgramId = searchParams.get('programId') ?? searchParams.get('program')
   const preselectedDate = searchParams.get('date') ?? ''
   const preselectedTime = searchParams.get('time') ?? ''
   const topRef = useRef<HTMLDivElement | null>(null)
 
   const [programs, setPrograms] = useState<Program[]>([])
+  const [summerTrainingEvent, setSummerTrainingEvent] = useState<Event | null>(null)
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null)
   const [availability, setAvailability] = useState<AvailabilityData | null>(null)
   const [form, setForm] = useState(INITIAL_FORM)
@@ -243,12 +266,13 @@ export default function BookPage() {
   const [paymentsEnabled, setPaymentsEnabled] = useState(false)
 
   useEffect(() => {
-    document.title = 'Book a Session | Kante Elite Training'
-    return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
-  }, [])
-
-  useEffect(() => {
     getPaymentsEnabled().then(setPaymentsEnabled).catch(() => {})
+    getEvents()
+      .then((events) => {
+        const event = events.find((item) => item.title.toLowerCase() === 'summer training') ?? null
+        setSummerTrainingEvent(event)
+      })
+      .catch(() => setSummerTrainingEvent(null))
     getPrograms()
       .then((p) => {
         setPrograms(p)
@@ -257,6 +281,10 @@ export default function BookPage() {
             (prog) => prog.slug === preselectedProgramId || prog.id === Number(preselectedProgramId),
           )
           if (found) {
+            if (isSummerTrainingProgram(found)) {
+              setSelectedProgram(found)
+              return
+            }
             setSelectedProgram(found)
             if (preselectedDate && preselectedTime) {
               setForm((prev) => ({
@@ -279,6 +307,12 @@ export default function BookPage() {
       })
       .finally(() => setLoadingPrograms(false))
   }, [preselectedProgramId, preselectedDate, preselectedTime])
+
+  useEffect(() => {
+    if (selectedProgram && summerTrainingEvent && isSummerTrainingProgram(selectedProgram)) {
+      navigate(`/events/${summerTrainingEvent.id}/register`, { replace: true })
+    }
+  }, [navigate, selectedProgram, summerTrainingEvent])
 
   useEffect(() => {
     if (!user) return
@@ -372,12 +406,12 @@ export default function BookPage() {
     setSubmitting(true)
     setError('')
 
-    const payload: BookingFormData = { programId: selectedProgram.id, ...form }
+    const payload: ProgramBookingFormData = { programId: selectedProgram.id, ...form }
 
     if (paymentsEnabled) {
       // Stripe checkout: redirect to hosted Stripe page (supports Apple Pay, Google Pay, card)
       try {
-        const checkoutUrl = await createBookingCheckout(payload)
+        const checkoutUrl = await createProgramCheckout(payload)
         window.location.href = checkoutUrl
       } catch (err: unknown) {
         const message =
@@ -392,10 +426,10 @@ export default function BookPage() {
 
     // Direct booking (no payment required)
     try {
-      const res = await api.post<ApiResponse<Booking>>('/bookings', payload)
-      const booking = res.data.data
-      if (!booking) throw new Error('No booking details returned')
-      navigate(`/book/success?booking_id=${booking.id}`, { state: { booking } })
+      const registration = await createProgramRegistration(payload)
+      navigate(`/book/success?registration_id=${registration.id}&registration_code=${registration.registrationCode}`, {
+        state: { registration },
+      })
     } catch (err: unknown) {
       const message =
         err && typeof err === 'object' && 'response' in err
@@ -480,7 +514,12 @@ export default function BookPage() {
                       {programs.map((program) => (
                         <button
                           key={program.id}
+                          type="button"
                           onClick={() => {
+                            if (isSummerTrainingProgram(program) && summerTrainingEvent) {
+                              navigate(`/events/${summerTrainingEvent.id}/register`)
+                              return
+                            }
                             setSelectedProgram(program)
                             setStep(2)
                           }}
@@ -488,7 +527,17 @@ export default function BookPage() {
                         >
                           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <div className="flex items-start gap-4">
-                              <span className="text-3xl flex-shrink-0">{program.icon}</span>
+                              {program.mediaUrl ? (
+                                <MediaAsset
+                                  src={program.mediaUrl}
+                                  type={program.mediaType ?? 'IMAGE'}
+                                  alt={`${program.name} program`}
+                                  loading="eager"
+                                  className={`h-14 w-14 flex-shrink-0 rounded-xl bg-black ${isPromotionalProgram(program) ? 'object-contain p-1' : 'object-cover'}`}
+                                />
+                              ) : (
+                                <span className="text-3xl flex-shrink-0">{program.icon}</span>
+                              )}
                               <div className="min-w-0">
                               <p className="text-white font-bold text-sm">{program.name}</p>
                               <p className="text-gray-500 text-xs mt-0.5">{program.shortDescription}</p>
@@ -514,6 +563,7 @@ export default function BookPage() {
               {step === 2 && selectedProgram && (
                 <div className="card p-6 sm:p-8">
                   <button
+                    type="button"
                     onClick={() => setStep(1)}
                     className="flex items-center gap-1.5 text-gray-500 hover:text-white text-sm mb-6 transition-colors"
                   >
@@ -543,7 +593,7 @@ export default function BookPage() {
 
                   {form.bookingDate && (
                     <div className="mt-7">
-                      <p id="available-time-slots-label" className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-3">
+                      <p id="available-time-slots-label" className="block text-gray-400 text-xs font-semibold uppercase mb-3">
                         Available Time Slots <span className="text-amber-500">*</span>
                       </p>
                       {loadingSlots ? (
@@ -565,7 +615,9 @@ export default function BookPage() {
                           {availability.availableSlots.map((slot) => (
                             <button
                               key={slot}
+                              type="button"
                               onClick={() => setForm((prev) => ({ ...prev, bookingTime: slot }))}
+                              aria-pressed={form.bookingTime === slot}
                               className={`py-2.5 rounded-lg text-sm font-semibold transition-all duration-150 ${
                                 form.bookingTime === slot
                                   ? 'bg-amber-500 text-black shadow-amber'
@@ -581,6 +633,7 @@ export default function BookPage() {
                   )}
 
                   <button
+                    type="button"
                     className="btn-primary w-full justify-center mt-6 py-4 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none"
                     onClick={() => setStep(3)}
                     disabled={!form.bookingDate || !form.bookingTime}
@@ -593,6 +646,7 @@ export default function BookPage() {
               {step === 3 && selectedProgram && (
                 <div className="card p-6 sm:p-8">
                   <button
+                    type="button"
                     onClick={() => setStep(2)}
                     className="flex items-center gap-1.5 text-gray-500 hover:text-white text-sm mb-6 transition-colors"
                   >
@@ -718,6 +772,7 @@ export default function BookPage() {
                   </div>
 
                   <button
+                    type="button"
                     className="btn-primary w-full justify-center mt-6 py-4 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none"
                     onClick={() => {
                       if (validateStep3()) setStep(4)
@@ -732,6 +787,7 @@ export default function BookPage() {
               {step === 4 && selectedProgram && (
                 <div className="card p-6 sm:p-8">
                   <button
+                    type="button"
                     onClick={() => setStep(3)}
                     className="flex items-center gap-1.5 text-gray-500 hover:text-white text-sm mb-6 transition-colors"
                   >
@@ -746,7 +802,17 @@ export default function BookPage() {
 
                   <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-xl overflow-hidden mb-6">
                     <div className="flex items-center gap-3 px-6 py-5 border-b border-[#1e1e1e] bg-[#111]">
-                      <span className="text-3xl">{selectedProgram.icon}</span>
+                      {selectedProgram.mediaUrl ? (
+                        <MediaAsset
+                          src={selectedProgram.mediaUrl}
+                          type={selectedProgram.mediaType ?? 'IMAGE'}
+                          alt={`${selectedProgram.name} program`}
+                          loading="eager"
+                          className={`h-14 w-14 rounded-xl bg-black ${isPromotionalProgram(selectedProgram) ? 'object-contain p-1' : 'object-cover'}`}
+                        />
+                      ) : (
+                        <span className="text-3xl">{selectedProgram.icon}</span>
+                      )}
                       <div>
                         <p className="text-white font-black text-base">{selectedProgram.name}</p>
                         <p className="text-amber-500 font-bold text-sm">{selectedProgram.priceLabel}</p>
@@ -789,6 +855,7 @@ export default function BookPage() {
                   )}
 
                   <button
+                    type="button"
                     onClick={handleCheckout}
                     disabled={submitting}
                     className="btn-primary w-full justify-center text-base py-4 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none"

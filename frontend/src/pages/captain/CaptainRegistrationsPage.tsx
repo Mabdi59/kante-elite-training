@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import {
   buildTournamentRosterDownloadUrl,
@@ -449,7 +449,7 @@ export default function CaptainRegistrationsPage() {
         <section className="bg-[#111] border border-[#222] rounded-2xl p-6 space-y-6">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <p className="text-orange-400 text-xs font-bold uppercase tracking-widest mb-3">
+              <p className="text-orange-400 text-xs font-bold uppercase mb-3">
                 Team Registration Workspace
               </p>
               <h2 className="text-white text-2xl font-black">
@@ -682,7 +682,7 @@ export default function CaptainRegistrationsPage() {
 
               <div className="space-y-6">
                 <section className="bg-black/30 border border-[#222] rounded-xl p-5">
-                  <p className="text-orange-400 text-xs font-bold uppercase tracking-widest mb-4">
+                  <p className="text-orange-400 text-xs font-bold uppercase mb-4">
                     What Happens Next
                   </p>
                   <ul className="space-y-3 text-sm">
@@ -696,7 +696,7 @@ export default function CaptainRegistrationsPage() {
                 </section>
 
                 <section className="bg-black/30 border border-[#222] rounded-xl p-5">
-                  <p className="text-orange-400 text-xs font-bold uppercase tracking-widest mb-4">
+                  <p className="text-orange-400 text-xs font-bold uppercase mb-4">
                     Team Portal
                   </p>
                   <p className="text-gray-400 text-sm leading-relaxed">
@@ -706,7 +706,7 @@ export default function CaptainRegistrationsPage() {
 
                 {workspace.lastFollowUpSentAt ? (
                   <section className="bg-black/30 border border-[#222] rounded-xl p-5">
-                    <p className="text-orange-400 text-xs font-bold uppercase tracking-widest mb-4">
+                    <p className="text-orange-400 text-xs font-bold uppercase mb-4">
                       Last Update
                     </p>
                     <p className="text-white font-semibold">{workspace.lastFollowUpSentAt}</p>

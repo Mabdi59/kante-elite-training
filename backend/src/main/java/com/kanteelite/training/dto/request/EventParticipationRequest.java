@@ -17,4 +17,3 @@ public class EventParticipationRequest {
     @Size(max = 150)
     private String email;
 }
-

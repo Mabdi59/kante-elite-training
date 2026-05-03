@@ -5,7 +5,6 @@ import lombok.Data;
 
 @Data
 public class RegistrationPaymentStatusRequest {
-
     @NotBlank
     private String paymentStatus;
 }

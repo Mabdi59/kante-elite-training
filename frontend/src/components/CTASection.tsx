@@ -49,7 +49,7 @@ export default function CTASection({
         {eyebrow && <p className="section-label">{eyebrow}</p>}
 
         {urgencyLine && (
-          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-6">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold uppercase px-4 py-1.5 rounded-full mb-6">
             <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
             {urgencyLine}
           </div>

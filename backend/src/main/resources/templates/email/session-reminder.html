@@ -44,35 +44,35 @@
 
   <div class="content">
     <p class="greeting">
-      Hi <strong th:text="${booking.parentName != null and !booking.parentName.isEmpty()} ? ${booking.parentName} : ${booking.playerName}">there</strong>,<br>
-      This is your reminder that <strong th:text="${booking.playerName}">your player</strong> has a session <strong>tomorrow</strong>. We look forward to seeing you!
+      Hi <strong th:text="${registration.guardianName != null and !registration.guardianName.isEmpty()} ? ${registration.guardianName} : ${registration.participantName}">there</strong>,<br>
+      This is your reminder that <strong th:text="${registration.participantName}">your player</strong> has a session <strong>tomorrow</strong>. We look forward to seeing you!
     </p>
 
     <div class="booking-card">
       <h3>Session Details</h3>
       <div class="detail-row">
         <span class="detail-label">Program</span>
-        <span class="detail-value" th:text="${booking.programName}">Program</span>
+        <span class="detail-value" th:text="${registration.programName}">Program</span>
       </div>
       <div class="detail-row">
         <span class="detail-label">Date</span>
-        <span class="detail-value" th:text="${#temporals.format(booking.bookingDate, 'EEEE, MMMM d, yyyy')}">Date</span>
+        <span class="detail-value" th:text="${#temporals.format(registration.scheduledDate, 'EEEE, MMMM d, yyyy')}">Date</span>
       </div>
       <div class="detail-row">
         <span class="detail-label">Time</span>
-        <span class="detail-value" th:text="${booking.bookingTime}">Time</span>
+        <span class="detail-value" th:text="${registration.scheduledStartTime}">Time</span>
       </div>
       <div class="detail-row">
         <span class="detail-label">Player</span>
-        <span class="detail-value" th:text="${booking.playerName}">Player Name</span>
+        <span class="detail-value" th:text="${registration.participantName}">Player Name</span>
       </div>
-      <div class="detail-row" th:if="${booking.parentName != null and !booking.parentName.isEmpty()}">
+      <div class="detail-row" th:if="${registration.guardianName != null and !registration.guardianName.isEmpty()}">
         <span class="detail-label">Parent / Guardian</span>
-        <span class="detail-value" th:text="${booking.parentName}">Parent Name</span>
+        <span class="detail-value" th:text="${registration.guardianName}">Parent Name</span>
       </div>
       <div class="detail-row">
-        <span class="detail-label">Booking ID</span>
-        <span class="detail-value" th:text="'#' + ${booking.id}">ID</span>
+        <span class="detail-label">Registration Code</span>
+        <span class="detail-value" th:text="${registration.registrationCode}">REG-123</span>
       </div>
     </div>
 

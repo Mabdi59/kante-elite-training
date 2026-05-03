@@ -37,6 +37,26 @@ public class Program {
     @Column(name = "short_description", length = 255)
     private String shortDescription;
 
+    @Column(length = 80)
+    private String category;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "media_post_id")
+    private MediaPost mediaPost;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "secondary_media_post_id")
+    private MediaPost secondaryMediaPost;
+
+    @Column(name = "coach_names", columnDefinition = "TEXT")
+    private String coachNames;
+
+    @Column(name = "season_label", length = 80)
+    private String seasonLabel;
+
+    @Column(name = "campaign_label", length = 120)
+    private String campaignLabel;
+
     @Column(length = 200)
     private String location;
 
@@ -72,9 +92,23 @@ public class Program {
     @Column(name = "who_its_for", columnDefinition = "TEXT")
     private String whoItsFor;
 
+    @Column(name = "cta_label", length = 80)
+    private String ctaLabel;
+
+    @Column(name = "cta_url", length = 500)
+    private String ctaUrl;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean featured = false;
+
     @Column(nullable = false)
     @Builder.Default
     private boolean active = true;
+
+    @Column(name = "allow_waitlist", nullable = false)
+    @Builder.Default
+    private boolean allowWaitlist = true;
 
     @Column(name = "display_order")
     @Builder.Default

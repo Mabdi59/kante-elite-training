@@ -57,5 +57,17 @@ public class EventRequest {
     @Size(max = 100)
     private String coachName;
 
+    @Size(max = 500)
+    private String primaryMediaUrl;
+
+    @Size(max = 500)
+    private String secondaryMediaUrl;
+
+    private boolean featured = false;
+
+    private boolean active = true;
+
+    private boolean allowWaitlist = true;
+
     private Integer displayOrder = 0;
 }

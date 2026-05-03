@@ -1,7 +1,8 @@
-﻿import { useMemo, useState, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { login } from '../services/api'
 import { useAuth } from '../context/AuthContext'
+import BrandMark from '../components/BrandMark'
 import type { AuthUser, UserRole } from '../types'
 import { getPostAuthRedirect } from '../utils/portal'
 
@@ -47,9 +48,8 @@ export default function LoginPage() {
     <div className="min-h-screen bg-black flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex flex-col items-center gap-0.5">
-            <span className="text-2xl font-black tracking-tight text-white">KANTÉ ELITE</span>
-            <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-500">Training</span>
+          <Link to="/" className="inline-flex">
+            <BrandMark size="auth" showText />
           </Link>
           <p className="text-gray-400 mt-4 text-sm">
             {isTournamentIntent ? 'Sign in to manage your tournament entry' : 'Sign in to your account'}
@@ -81,7 +81,7 @@ export default function LoginPage() {
           )}
 
           <div>
-            <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Email</label>
+            <label className="block text-gray-400 text-xs font-semibold uppercase mb-2">Email</label>
             <input
               type="email"
               required
@@ -95,7 +95,7 @@ export default function LoginPage() {
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider">Password</label>
+              <label className="block text-gray-400 text-xs font-semibold uppercase">Password</label>
               <Link to="/forgot-password" className="text-xs text-gray-500 hover:text-amber-500 transition-colors">
                 Forgot password?
               </Link>

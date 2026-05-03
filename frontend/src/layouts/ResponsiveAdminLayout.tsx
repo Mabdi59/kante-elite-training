@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AdminSidebarNav from '../components/AdminSidebarNav'
 import AdminQuickActionFab from '../components/AdminQuickActionFab'
+import BrandMark from '../components/BrandMark'
 import NotificationBell from '../components/NotificationBell'
 import { useAuth } from '../context/AuthContext'
 
@@ -25,12 +26,9 @@ export default function ResponsiveAdminLayout({ children }: { children: ReactNod
     <div className="min-h-screen bg-gray-950 lg:flex">
       <div className="sticky top-0 z-40 flex items-center justify-between gap-4 border-b border-gray-800 bg-gray-950 px-4 py-4 lg:hidden">
         <div className="min-w-0">
-          <Link to="/" className="block text-lg font-black text-white">
-            KANTE ELITE
+          <Link to="/" className="block">
+            <BrandMark size="compact" showText label="Admin Panel" />
           </Link>
-          <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-500">
-            Admin Panel
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <NotificationBell />
@@ -65,12 +63,9 @@ export default function ResponsiveAdminLayout({ children }: { children: ReactNod
       >
         <div className="flex items-start justify-between gap-3 border-b border-gray-800 p-5 lg:p-6">
           <div className="min-w-0">
-            <Link to="/" className="block text-lg font-black text-white lg:text-xl">
-              KANTE ELITE
+            <Link to="/" className="block">
+              <BrandMark size="portal" showText label="Admin Panel" />
             </Link>
-            <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-500">
-              Admin Panel
-            </p>
           </div>
           <button
             type="button"

@@ -1,68 +1,51 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getPrograms, getFeaturedTestimonials } from '../services/api'
-import type { Program, Testimonial } from '../types'
+import { getPrograms, getFeaturedTestimonials, getMediaPosts, getFaqs, getEvents } from '../services/api'
+import type { Event, FaqItem, MediaPost, Program, Testimonial } from '../types'
 import HeroSection from '../components/HeroSection'
 import MediaAsset from '../components/MediaAsset'
 import ProgramCard from '../components/ProgramCard'
 import TestimonialCard from '../components/TestimonialCard'
 import CTASection from '../components/CTASection'
 import PublicProofBand from '../components/PublicProofBand'
-import { COACH_SPOTLIGHT_MEDIA } from '../content/mediaFallbacks'
-import { getMediaAlt } from '../utils/media'
+import { Section, SectionHeader } from '../components/Section'
+import { getMediaAlt, getPostsByPlacement } from '../utils/media'
 
-const faqs = [
-  {
-    q: 'What age groups do you train?',
-    a: "We train players from U8 through 18+. Each program is tailored to the player's age, development stage, and goals.",
-  },
-  {
-    q: 'How many players are in a small group session?',
-    a: 'Small group sessions are capped at 4 players, so every athlete gets personal coaching time and clear feedback.',
-  },
-  {
-    q: 'Do I need to bring my own ball?',
-    a: 'Bring a ball if you have one, but it is not required. Coach Kante provides equipment for every session.',
-  },
-  {
-    q: 'What if I need to cancel or reschedule?',
-    a: 'Please give at least 24 hours notice if you need to cancel or reschedule. Use the contact form and we will help you update your session.',
-  },
-  {
-    q: 'How quickly will I see improvement?',
-    a: 'Many players feel a difference after 3 to 4 focused sessions. Players who train 1 to 2 times per week often show clear progress within 4 to 6 weeks.',
-  },
-  {
-    q: 'Is training available year round?',
-    a: 'Yes. Training runs year round, indoors or outdoors depending on the season and weather. Summer sessions fill quickly, so early booking helps.',
-  },
-]
-
-function FAQ() {
+function FAQ({ faqs, loading }: { faqs: FaqItem[]; loading: boolean }) {
   const [open, setOpen] = useState<number | null>(null)
 
+  if (!loading && faqs.length === 0) return null
+
   return (
-    <section className="bg-black py-16 px-4">
-      <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-8">
-          <span className="section-label">Common Questions</span>
-          <h2 className="text-white font-black text-4xl">
-            Everything You Need to <span className="gradient-text">Know</span>
-          </h2>
-        </div>
+    <Section shellClassName="max-w-3xl" divider={false}>
+        <SectionHeader
+          eyebrow="Common Questions"
+          title={<>Everything You Need to <span className="gradient-text">Know</span></>}
+          className="mb-8"
+        />
+        {loading ? (
+          <div className="space-y-3">
+            {[...Array(4)].map((_, index) => (
+              <div key={index} className="h-20 animate-pulse rounded-xl border border-[#1e1e1e] bg-[#111]" />
+            ))}
+          </div>
+        ) : (
         <div className="space-y-3">
           {faqs.map((faq, i) => (
             <div
-              key={i}
+              key={faq.id}
               className={`bg-[#111] border rounded-xl overflow-hidden transition-colors duration-200 ${
                 open === i ? 'border-amber-500/30' : 'border-[#1e1e1e] hover:border-[#2a2a2a]'
               }`}
             >
               <button
+                type="button"
+                aria-expanded={open === i}
+                aria-controls={`training-faq-${faq.id}`}
                 className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left"
                 onClick={() => setOpen(open === i ? null : i)}
               >
-                <span className="text-white font-semibold text-sm">{faq.q}</span>
+                <span className="text-white font-semibold text-sm">{faq.question}</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className={`w-4 h-4 text-amber-500 flex-shrink-0 transition-transform duration-300 ${open === i ? 'rotate-180' : ''}`}
@@ -75,15 +58,15 @@ function FAQ() {
                 </svg>
               </button>
               {open === i && (
-                <div className="px-6 pb-5">
-                  <p className="text-gray-400 text-sm leading-relaxed">{faq.a}</p>
+                <div id={`training-faq-${faq.id}`} className="px-6 pb-5">
+                  <p className="text-gray-400 text-sm leading-relaxed">{faq.answer}</p>
                 </div>
               )}
             </div>
           ))}
         </div>
-      </div>
-    </section>
+        )}
+    </Section>
   )
 }
 
@@ -149,24 +132,48 @@ const trainingProofItems = [
   },
 ]
 
+function isSummerTrainingProgram(program: Program) {
+  const haystack = [
+    program.name,
+    program.slug,
+    program.seasonLabel,
+    program.campaignLabel,
+  ].filter(Boolean).join(' ').toLowerCase()
+  return haystack.includes('summer') && haystack.includes('training')
+}
+
 export default function TrainingPage() {
   const [programs, setPrograms] = useState<Program[]>([])
+  const [events, setEvents] = useState<Event[]>([])
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
+  const [mediaPosts, setMediaPosts] = useState<MediaPost[]>([])
+  const [faqs, setFaqs] = useState<FaqItem[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    document.title = 'Training Programs | Kante Elite Training'
-    return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
-  }, [])
-
-  useEffect(() => {
-    Promise.allSettled([getPrograms(), getFeaturedTestimonials()])
-      .then(([programResult, testimonialResult]) => {
+    Promise.allSettled([getPrograms(), getFeaturedTestimonials(), getMediaPosts(), getFaqs({ featured: true }), getEvents()])
+      .then(([programResult, testimonialResult, mediaResult, faqResult, eventResult]) => {
         if (programResult.status === 'fulfilled') setPrograms(programResult.value)
         if (testimonialResult.status === 'fulfilled') setTestimonials(testimonialResult.value.slice(0, 3))
+        if (mediaResult.status === 'fulfilled') setMediaPosts(mediaResult.value)
+        if (faqResult.status === 'fulfilled') setFaqs(faqResult.value.slice(0, 6))
+        if (eventResult.status === 'fulfilled') setEvents(eventResult.value)
       })
       .finally(() => setLoading(false))
   }, [])
+
+  const coachSpotlightMedia = getPostsByPlacement(mediaPosts, 'HOME_FEATURED')[0] ?? getPostsByPlacement(mediaPosts, 'ABOUT_GALLERY')[0] ?? null
+  const summerTrainingEvent = events.find((event) => event.title.toLowerCase() === 'summer training')
+  const displayPrograms = programs.map((program) => {
+    if (!summerTrainingEvent || !isSummerTrainingProgram(program)) return program
+    return {
+      ...program,
+      mediaUrl: summerTrainingEvent.primaryMediaUrl || program.mediaUrl,
+      mediaType: summerTrainingEvent.primaryMediaUrl ? 'IMAGE' as const : program.mediaType,
+      secondaryMediaUrl: summerTrainingEvent.secondaryMediaUrl || program.secondaryMediaUrl,
+      secondaryMediaType: summerTrainingEvent.secondaryMediaUrl ? 'IMAGE' as const : program.secondaryMediaType,
+    }
+  })
 
   return (
     <div className="pt-20">
@@ -212,17 +219,20 @@ export default function TrainingPage() {
             </div>
             <div className="overflow-hidden rounded-2xl border border-[#1e1e1e] bg-[#111]">
               <div className="relative aspect-[4/5] sm:aspect-[16/10] lg:aspect-[4/5]">
-                <MediaAsset
-                  src={COACH_SPOTLIGHT_MEDIA.mediaUrl}
-                  type={COACH_SPOTLIGHT_MEDIA.mediaType}
-                  alt={getMediaAlt(COACH_SPOTLIGHT_MEDIA, 'Coach Kante working with players during private training')}
-                  loading="eager"
-                  fetchPriority="high"
-                  className="h-full w-full object-cover object-center"
-                />
+                {coachSpotlightMedia ? (
+                  <MediaAsset
+                    src={coachSpotlightMedia.mediaUrl}
+                    type={coachSpotlightMedia.mediaType}
+                    alt={getMediaAlt(coachSpotlightMedia, 'Coach Kante working with players during private training')}
+                    loading="eager"
+                    className="h-full w-full object-cover object-center"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.26),_transparent_48%)]" />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-black/10" />
                 <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-500">Coach-led sessions</p>
+                  <p className="text-xs font-black uppercase text-amber-500">Coach-led sessions</p>
                   <p className="mt-2 max-w-sm text-sm leading-relaxed text-gray-200">
                     Focused technical work with standards players can feel right away and families can understand after the session.
                   </p>
@@ -250,7 +260,7 @@ export default function TrainingPage() {
       <section className="bg-black py-16 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
-            <span className="section-label">{programs.length > 0 ? `${programs.length} Programs Available` : 'Training Programs'}</span>
+            <span className="section-label">{displayPrograms.length > 0 ? `${displayPrograms.length} Programs Available` : 'Training Programs'}</span>
             <h2 className="text-white font-black text-4xl">
               Choose the Right <span className="gradient-text">Fit</span>
             </h2>
@@ -267,7 +277,7 @@ export default function TrainingPage() {
                 </div>
               ))}
             </div>
-          ) : programs.length === 0 ? (
+          ) : displayPrograms.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-[#2a2a2a] bg-[#0f0f0f] px-6 py-16 text-center max-w-xl mx-auto">
               <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
@@ -284,8 +294,8 @@ export default function TrainingPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {programs.map((program, i) => (
-                <ProgramCard key={program.id} program={program} featured={i === 0} />
+              {displayPrograms.map((program) => (
+                <ProgramCard key={program.id} program={program} />
               ))}
             </div>
           )}
@@ -314,7 +324,7 @@ export default function TrainingPage() {
                 <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-5 text-amber-500">
                   {item.icon}
                 </div>
-                <div className="text-amber-500 font-black text-xs tracking-widest mb-2">0{i + 1}</div>
+                <div className="text-amber-500 font-black text-xs mb-2">0{i + 1}</div>
                 <h3 className="text-white font-black text-lg mb-2">{item.title}</h3>
                 <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
               </div>
@@ -343,7 +353,7 @@ export default function TrainingPage() {
                 <div className="w-16 h-16 rounded-2xl bg-[#111] border border-[#222] flex items-center justify-center mx-auto mb-4 relative z-10">
                   {item.icon}
                 </div>
-                <div className="text-amber-500 font-black text-xs tracking-widest mb-1">{item.step}</div>
+                <div className="text-amber-500 font-black text-xs mb-1">{item.step}</div>
                 <h3 className="text-white font-black text-base mb-2">{item.title}</h3>
                 <p className="text-gray-400 text-xs leading-relaxed">{item.desc}</p>
               </div>
@@ -387,7 +397,7 @@ export default function TrainingPage() {
         </section>
       )}
 
-      <FAQ />
+      <FAQ faqs={faqs} loading={loading} />
 
       <CTASection
         eyebrow="Build The Base"

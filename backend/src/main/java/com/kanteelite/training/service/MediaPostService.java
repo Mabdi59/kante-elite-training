@@ -1,10 +1,15 @@
 package com.kanteelite.training.service;
 
 import com.kanteelite.training.dto.request.MediaPostUpdateRequest;
+import com.kanteelite.training.dto.request.MediaPlacementRequest;
+import com.kanteelite.training.dto.response.MediaPlacementResponse;
 import com.kanteelite.training.dto.response.MediaPostResponse;
+import com.kanteelite.training.entity.MediaPlacement;
 import com.kanteelite.training.entity.MediaPost;
 import com.kanteelite.training.enums.MediaCategory;
+import com.kanteelite.training.enums.MediaPlacementKey;
 import com.kanteelite.training.exception.ResourceNotFoundException;
+import com.kanteelite.training.repository.MediaPlacementRepository;
 import com.kanteelite.training.repository.MediaPostRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -15,6 +20,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -24,13 +30,13 @@ public class MediaPostService {
     private static final Logger log = LoggerFactory.getLogger(MediaPostService.class);
 
     private final MediaPostRepository mediaPostRepository;
+    private final MediaPlacementRepository mediaPlacementRepository;
     private final MediaStorageService mediaStorageService;
 
     @Transactional(readOnly = true)
-    public List<MediaPostResponse> getPublicFeed(MediaCategory category) {
-        List<MediaPost> posts = (category != null)
-                ? mediaPostRepository.findByCategoryForDisplay(category)
-                : mediaPostRepository.findAllForDisplay();
+    public List<MediaPostResponse> getPublicFeed(MediaCategory category, MediaPlacementKey placement) {
+        MediaPlacementKey resolvedPlacement = placement == null ? MediaPlacementKey.MEDIA_LIBRARY : placement;
+        List<MediaPost> posts = mediaPostRepository.findByPlacementAndCategoryForDisplay(resolvedPlacement, category);
         return posts.stream().map(this::toResponse).toList();
     }
 
@@ -64,6 +70,11 @@ public class MediaPostService {
                     .altText(StringUtils.hasText(altText) ? altText.trim() : null)
                     .mediaCategory(category)
                     .build());
+            mediaPlacementRepository.save(MediaPlacement.builder()
+                    .mediaPost(saved)
+                    .placementKey(MediaPlacementKey.MEDIA_LIBRARY)
+                    .displayOrder(0)
+                    .build());
             return toResponse(saved);
         } catch (RuntimeException ex) {
             try {
@@ -86,31 +97,13 @@ public class MediaPostService {
         if (request.getAltText() != null) {
             mediaPost.setAltText(StringUtils.hasText(request.getAltText()) ? request.getAltText().trim() : null);
         }
-        if (Boolean.TRUE.equals(request.getFeatured())) {
-            mediaPostRepository.clearFeaturedForOtherPosts(id);
-            mediaPost.setFeatured(true);
-        } else if (request.getFeatured() != null) {
-            mediaPost.setFeatured(false);
-        }
-        if (request.getShowOnHome() != null) {
-            mediaPost.setShowOnHome(request.getShowOnHome());
-        }
-        if (request.getShowOnAbout() != null) {
-            mediaPost.setShowOnAbout(request.getShowOnAbout());
-        }
         if (request.isClearMediaCategory()) {
             mediaPost.setMediaCategory(null);
         } else if (request.getMediaCategory() != null) {
             mediaPost.setMediaCategory(request.getMediaCategory());
         }
-        if (request.getDisplayOrder() != null) {
-            mediaPost.setDisplayOrder(request.getDisplayOrder());
-        }
-        if (request.getHomeDisplayOrder() != null) {
-            mediaPost.setHomeDisplayOrder(request.getHomeDisplayOrder());
-        }
-        if (request.getAboutDisplayOrder() != null) {
-            mediaPost.setAboutDisplayOrder(request.getAboutDisplayOrder());
+        if (request.getPlacements() != null) {
+            replacePlacements(mediaPost, request.getPlacements());
         }
 
         return toResponse(mediaPostRepository.save(mediaPost));
@@ -129,20 +122,46 @@ public class MediaPostService {
         }
     }
 
+    private void replacePlacements(MediaPost mediaPost, List<MediaPlacementRequest> placementRequests) {
+        mediaPlacementRepository.deleteByMediaPost(mediaPost);
+        List<MediaPlacement> placements = placementRequests.stream()
+                .filter(request -> request.getKey() != null)
+                .collect(java.util.stream.Collectors.toMap(
+                        MediaPlacementRequest::getKey,
+                        request -> request,
+                        (left, right) -> right
+                ))
+                .values()
+                .stream()
+                .map(request -> MediaPlacement.builder()
+                        .mediaPost(mediaPost)
+                        .placementKey(request.getKey())
+                        .displayOrder(request.getDisplayOrder() == null ? 0 : request.getDisplayOrder())
+                        .build())
+                .toList();
+        mediaPlacementRepository.saveAll(placements);
+    }
+
     private MediaPostResponse toResponse(MediaPost mediaPost) {
+        List<MediaPlacementResponse> placements = mediaPlacementRepository.findByMediaPost(mediaPost)
+                .stream()
+                .sorted(Comparator
+                        .comparing(MediaPlacement::getPlacementKey)
+                        .thenComparingInt(MediaPlacement::getDisplayOrder))
+                .map(placement -> MediaPlacementResponse.builder()
+                        .key(placement.getPlacementKey())
+                        .displayOrder(placement.getDisplayOrder())
+                        .build())
+                .toList();
+
         return MediaPostResponse.builder()
                 .id(mediaPost.getId())
                 .mediaUrl(mediaPost.getMediaUrl())
                 .mediaType(mediaPost.getMediaType())
                 .caption(mediaPost.getCaption())
                 .altText(mediaPost.getAltText())
-                .featured(mediaPost.isFeatured())
-                .showOnHome(mediaPost.isShowOnHome())
-                .showOnAbout(mediaPost.isShowOnAbout())
                 .mediaCategory(mediaPost.getMediaCategory())
-                .displayOrder(mediaPost.getDisplayOrder())
-                .homeDisplayOrder(mediaPost.getHomeDisplayOrder())
-                .aboutDisplayOrder(mediaPost.getAboutDisplayOrder())
+                .placements(placements)
                 .createdAt(mediaPost.getCreatedAt())
                 .build();
     }

@@ -1,14 +1,13 @@
-﻿import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { createMediaPost, deleteMediaPost, getMediaPosts, updateMediaPost } from '../../services/api'
-import type { MediaCategory, MediaPost, MediaPostUpdateFormData, MediaType } from '../../types'
+import type { MediaCategory, MediaPlacementKey, MediaPost, MediaPostUpdateFormData, MediaType } from '../../types'
 import CategoryBadge, { CATEGORY_OPTIONS, getCategoryLabel } from '../../components/CategoryBadge'
 import ErrorBanner from '../../components/ErrorBanner'
 import EmptyState from '../../components/EmptyState'
 import MediaPostCard from '../../components/MediaPostCard'
 import PageSkeleton from '../../components/PageSkeleton'
-import { MEDIA_FALLBACK_POSTS } from '../../content/mediaFallbacks'
-import { sortMediaPosts } from '../../utils/media'
+import { MEDIA_PLACEMENT_OPTIONS, sortMediaPosts } from '../../utils/media'
 
 const MAX_MEDIA_FILE_SIZE = 20 * 1024 * 1024
 const ALLOWED_MEDIA_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4']
@@ -78,13 +77,8 @@ export default function AdminMediaPage() {
       mediaType: getPreviewType(selectedFile),
       caption: caption.trim() || 'Preview',
       altText: altText.trim() || undefined,
-      featured: false,
-      showOnHome: false,
-      showOnAbout: false,
       mediaCategory: category || undefined,
-      displayOrder: 0,
-      homeDisplayOrder: 0,
-      aboutDisplayOrder: 0,
+      placements: [{ key: 'MEDIA_LIBRARY', displayOrder: 0 }],
       createdAt: new Date().toISOString(),
     }
   }, [altText, caption, category, previewUrl, selectedFile])
@@ -94,16 +88,6 @@ export default function AdminMediaPage() {
     if (filterCategory === 'ALL') return orderedPosts
     return orderedPosts.filter((post) => post.mediaCategory === filterCategory)
   }, [posts, filterCategory])
-
-  const fallbackPhotoPosts = useMemo(
-    () => MEDIA_FALLBACK_POSTS.filter((post) => post.mediaType === 'IMAGE'),
-    [],
-  )
-
-  const fallbackVideoPosts = useMemo(
-    () => MEDIA_FALLBACK_POSTS.filter((post) => post.mediaType === 'VIDEO'),
-    [],
-  )
 
   const resetForm = () => {
     setSelectedFile(null)
@@ -191,12 +175,38 @@ export default function AdminMediaPage() {
     setEditForm({
       caption: post.caption ?? '',
       altText: post.altText ?? '',
-      featured: post.featured,
-      showOnHome: post.showOnHome,
-      showOnAbout: post.showOnAbout,
       mediaCategory: post.mediaCategory,
+      placements: post.placements?.length ? post.placements : [{ key: 'MEDIA_LIBRARY', displayOrder: 0 }],
       clearMediaCategory: false,
     })
+  }
+
+  const toggleEditPlacement = (key: MediaPlacementKey, enabled: boolean) => {
+    setEditForm((current) => {
+      const placements = current.placements ?? []
+      if (!enabled) {
+        return {
+          ...current,
+          placements: placements.filter((placement) => placement.key !== key),
+        }
+      }
+
+      if (placements.some((placement) => placement.key === key)) return current
+
+      return {
+        ...current,
+        placements: [...placements, { key, displayOrder: 0 }],
+      }
+    })
+  }
+
+  const updateEditPlacementOrder = (key: MediaPlacementKey, displayOrder: number) => {
+    setEditForm((current) => ({
+      ...current,
+      placements: (current.placements ?? []).map((placement) =>
+        placement.key === key ? { ...placement, displayOrder } : placement,
+      ),
+    }))
   }
 
   const handleSaveEdit = async (event: FormEvent) => {
@@ -248,10 +258,10 @@ export default function AdminMediaPage() {
       <div className="mb-6 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
         <p className="text-amber-400 font-bold text-sm mb-2">How media works</p>
         <ul className="space-y-1 text-xs text-gray-400">
-          <li><span className="text-white font-semibold">All uploads</span> → appear on the Media page</li>
-          <li><span className="text-white font-semibold">Show on About</span> → replaces the static coach photos on the About page</li>
-          <li><span className="text-white font-semibold">Show on Home</span> → appears in the homepage highlights section</li>
-          <li><span className="text-white font-semibold">Featured</span> → pinned as the hero banner on the About page</li>
+          <li><span className="text-white font-semibold">Media page</span> controls the public gallery.</li>
+          <li><span className="text-white font-semibold">Homepage hero/highlights</span> control the first impression and proof section.</li>
+          <li><span className="text-white font-semibold">About hero/profile/gallery</span> control Coach Kante story visuals.</li>
+          <li><span className="text-white font-semibold">Display order</span> lets you pin the most important media first.</li>
         </ul>
       </div>
 
@@ -473,7 +483,7 @@ export default function AdminMediaPage() {
                 <div key={post.id} className="space-y-3">
                   <MediaPostCard
                     post={post}
-                    imageLoading={index < 4 ? 'eager' : 'lazy'}
+                    imageLoading="eager"
                     imageFetchPriority={index < 2 ? 'high' : 'auto'}
                   />
                   <div className="flex gap-2 justify-end">
@@ -504,7 +514,7 @@ export default function AdminMediaPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl border border-gray-800 bg-gray-900 p-6 shadow-2xl">
             <div className="mb-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-red-400">
+              <p className="text-xs font-semibold uppercase text-red-400">
                 Confirm Delete
               </p>
               <h3 className="mt-2 text-xl font-bold text-white">Delete this media post?</h3>
@@ -547,7 +557,7 @@ export default function AdminMediaPage() {
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 px-4 py-8 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl border border-gray-800 bg-gray-900 p-6 shadow-2xl">
             <div className="mb-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-500">Edit Post</p>
+              <p className="text-xs font-semibold uppercase text-amber-500">Edit Post</p>
               <h3 className="mt-2 text-xl font-bold text-white">Update this media post</h3>
             </div>
 
@@ -596,22 +606,42 @@ export default function AdminMediaPage() {
               </div>
 
               <div className="space-y-3 rounded-xl border border-gray-800 bg-black p-4">
-                <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">Placement</p>
-                {([
-                  { key: 'featured', label: 'Featured (hero image on About page)' },
-                  { key: 'showOnHome', label: 'Show on Homepage highlights' },
-                  { key: 'showOnAbout', label: 'Show in About gallery' },
-                ] as { key: keyof MediaPostUpdateFormData; label: string }[]).map(({ key, label }) => (
-                  <label key={key} className="flex cursor-pointer items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(editForm[key])}
-                      onChange={(e) => setEditForm((prev) => ({ ...prev, [key]: e.target.checked }))}
-                      className="h-4 w-4 rounded border-gray-700 accent-cyan-500"
-                    />
-                    <span className="text-sm text-gray-300">{label}</span>
-                  </label>
-                ))}
+                <p className="text-xs font-semibold uppercase text-gray-500">Site placement</p>
+                {MEDIA_PLACEMENT_OPTIONS.map((option) => {
+                  const placement = editForm.placements?.find((item) => item.key === option.value)
+                  return (
+                    <div key={option.value} className="rounded-xl border border-gray-800 bg-gray-950/80 p-3">
+                      <label className="flex cursor-pointer items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(placement)}
+                          onChange={(e) => toggleEditPlacement(option.value, e.target.checked)}
+                          className="h-4 w-4 rounded border-gray-700 accent-amber-500"
+                        />
+                        <span className="text-sm font-semibold text-gray-200">{option.label}</span>
+                      </label>
+                      {placement ? (
+                        <label className="mt-3 block">
+                          <span className="mb-1 block text-[11px] font-semibold uppercase text-gray-500">
+                            Display order
+                          </span>
+                          <input
+                            type="number"
+                            min={0}
+                            value={placement.displayOrder}
+                            onChange={(event) =>
+                              updateEditPlacementOrder(
+                                option.value,
+                                Math.max(0, Number.parseInt(event.target.value || '0', 10)),
+                              )
+                            }
+                            className="w-full rounded-lg border border-gray-800 bg-black px-3 py-2 text-sm text-white"
+                          />
+                        </label>
+                      ) : null}
+                    </div>
+                  )
+                })}
               </div>
 
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
@@ -635,42 +665,6 @@ export default function AdminMediaPage() {
         </div>
       ) : null}
 
-      {/* Static fallback assets section */}
-      <div className="mt-10 rounded-2xl border border-[#222] bg-[#111] p-6">
-        <div className="mb-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-500">Static Fallback Assets</p>
-          <h2 className="mt-1 text-lg font-bold text-white">Built-in Photos &amp; Videos</h2>
-          <p className="mt-1 text-xs text-gray-500">
-            These files are bundled with the site and used as fallbacks. They show on the <strong className="text-gray-300">About</strong> page and <strong className="text-gray-300">Media</strong> page when no uploaded content is available.
-            To replace them, upload new media above and toggle <strong className="text-gray-300">Show on About</strong> or set a category; your uploads will take priority.
-          </p>
-        </div>
-
-        <div className="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-widest">Coach Photos (About page)</div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-6">
-          {fallbackPhotoPosts.map((post) => (
-            <MediaPostCard
-              key={post.id}
-              post={post}
-              aspectClassName="aspect-[3/4]"
-              showDate={false}
-              imageLoading="lazy"
-            />
-          ))}
-        </div>
-
-        <div className="mb-3 text-xs font-semibold text-gray-500 uppercase tracking-widest">Training Videos (Media page)</div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {fallbackVideoPosts.map((post) => (
-            <MediaPostCard
-              key={post.id}
-              post={post}
-              showDate={false}
-              imageLoading="lazy"
-            />
-          ))}
-        </div>
-      </div>
     </div>
   )
 }

@@ -75,6 +75,24 @@ public class Event {
     @Column(name = "coach_name", length = 100)
     private String coachName;
 
+    @Column(name = "primary_media_url", length = 500)
+    private String primaryMediaUrl;
+
+    @Column(name = "secondary_media_url", length = 500)
+    private String secondaryMediaUrl;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean featured = false;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean active = true;
+
+    @Column(name = "allow_waitlist", nullable = false)
+    @Builder.Default
+    private boolean allowWaitlist = true;
+
     @Column(name = "display_order")
     @Builder.Default
     private Integer displayOrder = 0;

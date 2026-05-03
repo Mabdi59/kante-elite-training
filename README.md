@@ -126,8 +126,9 @@ Key backend areas:
 ### Admin
 
 - `/admin`
-- `/admin/bookings`
+- `/admin/registrations`
 - `/admin/availability`
+- `/admin/recurring-sessions`
 - `/admin/programs`
 - `/admin/events`
 - `/admin/tournaments`
@@ -135,6 +136,8 @@ Key backend areas:
 - `/admin/content`
 - `/admin/media`
 - `/admin/testimonials`
+- `/admin/coaches`
+- `/admin/faqs`
 - `/admin/messages`
 - `/admin/users`
 - `/admin/payments`

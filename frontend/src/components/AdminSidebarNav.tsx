@@ -25,14 +25,14 @@ const navItems: NavItem[] = [
     ),
   },
   {
-    path: '/admin/bookings',
-    label: 'Bookings',
+    path: '/admin/registrations',
+    label: 'Registrations',
     icon: (
       <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M8 2v4" />
-        <path d="M16 2v4" />
-        <rect x="3" y="5" width="18" height="16" rx="2" />
-        <path d="M3 10h18" />
+        <path d="M8 7h8" />
+        <path d="M8 12h8" />
+        <path d="M8 17h5" />
+        <rect x="4" y="3" width="16" height="18" rx="2" />
       </svg>
     ),
   },
@@ -46,6 +46,18 @@ const navItems: NavItem[] = [
         <rect x="3" y="5" width="18" height="16" rx="2" />
         <path d="M3 10h18" />
         <path d="M8 14h8" />
+      </svg>
+    ),
+  },
+  {
+    path: '/admin/recurring-sessions',
+    label: 'Recurring',
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M3 12a9 9 0 0 1 15.3-6.4" />
+        <path d="M18 3v5h-5" />
+        <path d="M21 12a9 9 0 0 1-15.3 6.4" />
+        <path d="M6 21v-5h5" />
       </svg>
     ),
   },
@@ -120,6 +132,27 @@ const navItems: NavItem[] = [
     ),
   },
   {
+    path: '/admin/coaches',
+    label: 'Coach Profiles',
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <circle cx="12" cy="7" r="4" />
+        <path d="M5.5 21a6.5 6.5 0 0 1 13 0" />
+      </svg>
+    ),
+  },
+  {
+    path: '/admin/faqs',
+    label: 'FAQs',
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M9.09 9a3 3 0 1 1 5.82 1c0 2-3 2-3 4" />
+        <path d="M12 17h.01" />
+        <circle cx="12" cy="12" r="9" />
+      </svg>
+    ),
+  },
+  {
     path: '/admin/messages',
     label: 'Messages',
     icon: (
@@ -156,7 +189,7 @@ const navItems: NavItem[] = [
 export default function AdminSidebarNav({ pathname }: { pathname: string }) {
   return (
     <nav className="flex-1 overflow-y-auto p-4">
-      <p className="px-3 pb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
+      <p className="px-3 pb-3 text-[11px] font-semibold uppercase text-gray-500">
         Launch Operations
       </p>
 

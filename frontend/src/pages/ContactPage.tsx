@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import BrandMark from '../components/BrandMark'
 import ErrorBanner from '../components/ErrorBanner'
 import HeroSection from '../components/HeroSection'
 import PublicProofBand from '../components/PublicProofBand'
+import { Section } from '../components/Section'
 import { useAuth } from '../context/AuthContext'
 import { submitContact } from '../services/api'
 import type { ContactFormData } from '../types'
@@ -115,11 +117,6 @@ export default function ContactPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    document.title = 'Contact | Kante Elite Training'
-    return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
-  }, [])
-
-  useEffect(() => {
     if (!user) return
     setForm((prev) => ({
       ...prev,
@@ -163,10 +160,12 @@ export default function ContactPage() {
 
       <PublicProofBand items={contactProofItems} />
 
-      <section className="bg-black px-4 py-16">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-12 lg:grid-cols-5">
+      <Section divider={false} shellClassName="grid max-w-6xl grid-cols-1 gap-12 lg:grid-cols-5">
           <div className="space-y-8 lg:col-span-2">
             <div className="rounded-2xl border border-[#222] bg-[#111111] p-6">
+              <div className="mb-5">
+                <BrandMark size="footer" />
+              </div>
               <p className="section-label">Fastest Next Step</p>
               <h2 className="mb-4 text-3xl font-black text-white">
                 Book Online or <span className="text-amber-500">Reach Out</span>
@@ -217,7 +216,7 @@ export default function ContactPage() {
                       {item.icon}
                     </div>
                     <div>
-                      <p className="mb-0.5 text-xs font-semibold uppercase tracking-widest text-gray-400">{item.label}</p>
+                      <p className="mb-0.5 text-xs font-semibold uppercase text-gray-400">{item.label}</p>
                       {item.href ? (
                         <a href={item.href} className="text-sm font-semibold text-white transition-colors hover:text-amber-400">
                           {item.value}
@@ -283,7 +282,7 @@ export default function ContactPage() {
 
                 <div className="mb-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-400">
+                    <label className="mb-2 block text-xs font-semibold uppercase text-gray-400">
                       Full Name <span className="text-amber-500">*</span>
                     </label>
                     <input
@@ -297,7 +296,7 @@ export default function ContactPage() {
                     />
                   </div>
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-400">
+                    <label className="mb-2 block text-xs font-semibold uppercase text-gray-400">
                       Email Address <span className="text-amber-500">*</span>
                     </label>
                     <input
@@ -315,7 +314,7 @@ export default function ContactPage() {
 
                 <div className="mb-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-400">
+                    <label className="mb-2 block text-xs font-semibold uppercase text-gray-400">
                       Phone Number
                     </label>
                     <input
@@ -329,7 +328,7 @@ export default function ContactPage() {
                     />
                   </div>
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-400">
+                    <label className="mb-2 block text-xs font-semibold uppercase text-gray-400">
                       Subject
                     </label>
                     <select
@@ -349,7 +348,7 @@ export default function ContactPage() {
                 </div>
 
                 <div className="mb-6">
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-400">
+                  <label className="mb-2 block text-xs font-semibold uppercase text-gray-400">
                     Message <span className="text-amber-500">*</span>
                   </label>
                   <textarea
@@ -392,8 +391,7 @@ export default function ContactPage() {
               </form>
             )}
           </div>
-        </div>
-      </section>
+      </Section>
     </div>
   )
 }

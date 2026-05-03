@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import {
   buildTournamentRosterDownloadUrl,
@@ -433,7 +433,7 @@ export default function TournamentRegistrationDashboardPage() {
 
           <aside className="space-y-6">
             <section className="bg-[#111] border border-[#222] rounded-2xl p-6">
-              <p className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-4">
+              <p className="text-amber-400 text-xs font-bold uppercase mb-4">
                 What Happens Next
               </p>
               <ul className="space-y-3 text-sm">
@@ -447,7 +447,7 @@ export default function TournamentRegistrationDashboardPage() {
             </section>
 
             <section className="bg-[#111] border border-[#222] rounded-2xl p-6">
-              <p className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-4">
+              <p className="text-amber-400 text-xs font-bold uppercase mb-4">
                 Team Portal
               </p>
               <p className="text-gray-400 text-sm leading-relaxed mb-4">
@@ -474,7 +474,7 @@ export default function TournamentRegistrationDashboardPage() {
 
             {dashboard.lastFollowUpSentAt ? (
               <section className="bg-[#111] border border-[#222] rounded-2xl p-6">
-                <p className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-4">
+                <p className="text-amber-400 text-xs font-bold uppercase mb-4">
                   Last Update
                 </p>
                 <p className="text-white font-semibold">{dashboard.lastFollowUpSentAt}</p>

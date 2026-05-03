@@ -1,67 +1,76 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getTestimonials } from '../services/api'
-import type { Testimonial } from '../types'
+import { getPrograms, getTestimonials } from '../services/api'
+import type { Program, Testimonial } from '../types'
 import CTASection from '../components/CTASection'
 import EmptyState from '../components/EmptyState'
 import HeroSection from '../components/HeroSection'
+import { Section, SectionHeader } from '../components/Section'
 import TestimonialCard from '../components/TestimonialCard'
-
-const achievements = [
-  {
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-      </svg>
-    ),
-    stat: '100+',
-    label: 'Players Trained',
-  },
-  {
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
-      </svg>
-    ),
-    stat: '95%',
-    label: 'Show Clear Improvement',
-  },
-  {
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-      </svg>
-    ),
-    stat: 'Columbus',
-    label: 'Ohio Based',
-  },
-  {
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
-      </svg>
-    ),
-    stat: 'U8–18+',
-    label: 'Age Groups Served',
-  },
-]
 
 export default function ResultsPage() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
+  const [programs, setPrograms] = useState<Program[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    document.title = 'Player Results | Kante Elite Training'
-    return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
-  }, [])
-
-  useEffect(() => {
-    getTestimonials()
-      .then(setTestimonials)
-      .catch(() => { /* Page still works without testimonials. */ })
+    Promise.allSettled([getTestimonials(), getPrograms()])
+      .then(([testimonialResult, programResult]) => {
+        if (testimonialResult.status === 'fulfilled') {
+          setTestimonials(testimonialResult.value)
+        }
+        if (programResult.status === 'fulfilled') {
+          setPrograms(programResult.value)
+        }
+      })
       .finally(() => setLoading(false))
   }, [])
+
+  const averageRating =
+    testimonials.length > 0
+      ? (testimonials.reduce((sum, testimonial) => sum + testimonial.rating, 0) / testimonials.length).toFixed(1)
+      : null
+
+  const achievements = [
+    {
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+        </svg>
+      ),
+      stat: loading ? '...' : testimonials.length.toString(),
+      label: 'Published Reviews',
+    },
+    {
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="m11.48 3.499-1.43 2.936-3.24.477 2.345 2.318-.554 3.269 2.879-1.534 2.879 1.534-.554-3.27 2.345-2.317-3.24-.477-1.43-2.936Z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="m5.25 14.25-.75 1.5-1.5.22 1.08 1.06-.255 1.47 1.335-.72 1.34.72-.255-1.47 1.08-1.06-1.5-.22-.825-1.5Zm13.5 0-.75 1.5-1.5.22 1.08 1.06-.255 1.47 1.335-.72 1.34.72-.255-1.47 1.08-1.06-1.5-.22-.825-1.5Z" />
+        </svg>
+      ),
+      stat: loading ? '...' : averageRating ? `${averageRating}/5` : 'New',
+      label: 'Average Rating',
+    },
+    {
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+        </svg>
+      ),
+      stat: loading ? '...' : testimonials.filter((testimonial) => testimonial.featured).length.toString(),
+      label: 'Featured Stories',
+    },
+    {
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5.25h6M9 8.25h6m-8.25 3h10.5m-10.5 3h10.5m-12 4.5h13.5A2.25 2.25 0 0 0 21 16.5v-9A2.25 2.25 0 0 0 18.75 5.25H5.25A2.25 2.25 0 0 0 3 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+        </svg>
+      ),
+      stat: loading ? '...' : programs.length.toString(),
+      label: 'Training Programs',
+    },
+  ]
 
   return (
     <div className="min-h-screen bg-black pt-20">
@@ -71,34 +80,27 @@ export default function ResultsPage() {
         subtitle="We measure success by player growth, confidence, and the opportunities earned through consistent training."
       />
 
-      <section className="border-t border-[#1a1a1a] bg-[#0a0a0a] px-4 py-16">
-        <div className="page-shell">
+      <Section tone="raised">
           <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-            {achievements.map((a) => (
+            {achievements.map((achievement) => (
               <div
-                key={a.label}
-                className="card p-8 text-center hover:border-amber-500/30 transition-colors"
+                key={achievement.label}
+                className="card p-5 text-center transition-colors hover:border-amber-500/30 sm:p-8"
               >
-                <div className="flex justify-center mb-3">{a.icon}</div>
-                <p className="text-amber-500 font-black text-4xl mb-1">{a.stat}</p>
-                <p className="text-gray-400 text-sm">{a.label}</p>
+                <div className="flex justify-center mb-3">{achievement.icon}</div>
+                <p className="mb-1 text-3xl font-black text-amber-500 sm:text-4xl">{achievement.stat}</p>
+                <p className="text-gray-400 text-sm">{achievement.label}</p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+      </Section>
 
-      <section className="border-t border-[#1a1a1a] bg-black px-4 py-16">
-        <div className="page-shell">
-          <div className="mb-10 text-center">
-            <span className="section-label">What Families Say</span>
-            <h2 className="text-white font-black text-4xl text-balance">
-              Honest Reviews from Real Families
-            </h2>
-            <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-gray-400">
-              Parents and players share their experience training with Coach Kante.
-            </p>
-          </div>
+      <Section>
+          <SectionHeader
+            eyebrow="What Families Say"
+            title="Honest Reviews from Real Families"
+            description="Parents and players share their experience training with Coach Kante."
+          />
 
           {loading ? (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -121,13 +123,12 @@ export default function ResultsPage() {
             />
           ) : (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {testimonials.map((t) => (
-                <TestimonialCard key={t.id} testimonial={t} />
+              {testimonials.map((testimonial) => (
+                <TestimonialCard key={testimonial.id} testimonial={testimonial} />
               ))}
             </div>
           )}
-        </div>
-      </section>
+      </Section>
 
       <CTASection
         eyebrow="Your Turn"
@@ -138,9 +139,9 @@ export default function ResultsPage() {
         secondaryLabel="View Programs"
         secondaryHref="/training"
         proofPoints={[
-          'Trusted by Columbus families',
-          'Programs for U8-18+',
-          'Clear feedback after every session',
+          'Published family reviews',
+          'Current programs listed online',
+          'Direct online booking',
         ]}
       />
     </div>

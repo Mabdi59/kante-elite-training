@@ -40,7 +40,19 @@ export interface Program {
   slug: string
   description: string
   shortDescription: string
+  category?: string
+  mediaPostId?: number
+  mediaUrl?: string
+  mediaType?: MediaType
+  secondaryMediaPostId?: number
+  secondaryMediaUrl?: string
+  secondaryMediaType?: MediaType
+  coachNames?: string[]
+  seasonLabel?: string
+  campaignLabel?: string
   active?: boolean
+  allowWaitlist?: boolean
+  featured?: boolean
   location?: string
   startAt?: string
   endAt?: string
@@ -53,6 +65,8 @@ export interface Program {
   features: string[]
   icon: string
   whoItsFor: string
+  ctaLabel?: string
+  ctaUrl?: string
   displayOrder: number
 }
 
@@ -76,6 +90,13 @@ export interface Event {
   type: string
   intensity?: string
   coachName?: string
+  primaryMediaUrl?: string
+  secondaryMediaUrl?: string
+  mediaUrls?: string[]
+  trainingSessions?: TrainingSession[]
+  featured?: boolean
+  active?: boolean
+  allowWaitlist?: boolean
   displayOrder: number
 }
 
@@ -83,19 +104,28 @@ export type MediaType = 'IMAGE' | 'VIDEO'
 
 export type MediaCategory = 'TRAINING_PHOTO' | 'MATCH_HIGHLIGHT' | 'SKILL_CLIP' | 'TESTIMONIAL'
 
+export type MediaPlacementKey =
+  | 'HOME_HERO'
+  | 'HOME_FEATURED'
+  | 'HOME_GALLERY'
+  | 'ABOUT_HERO'
+  | 'ABOUT_PROFILE'
+  | 'ABOUT_GALLERY'
+  | 'MEDIA_LIBRARY'
+
+export interface MediaPlacement {
+  key: MediaPlacementKey
+  displayOrder: number
+}
+
 export interface MediaPost {
   id: number
   mediaUrl: string
   mediaType: MediaType
   caption?: string
   altText?: string
-  featured: boolean
-  showOnHome: boolean
-  showOnAbout: boolean
   mediaCategory?: MediaCategory
-  displayOrder: number
-  homeDisplayOrder: number
-  aboutDisplayOrder: number
+  placements?: MediaPlacement[]
   createdAt: string
 }
 
@@ -125,32 +155,73 @@ export interface WebsiteContent {
 export interface Testimonial {
   id: number
   name: string
-  roleOrContext: string
+  roleOrContext?: string
+  storyTitle?: string
   quote: string
+  mediaPostId?: number
+  mediaUrl?: string
+  mediaType?: MediaType
+  playerMetadata?: string
+  teamMetadata?: string
+  programId?: number
+  programName?: string
+  coachProfileId?: number
+  coachName?: string
   rating: number
   featured: boolean
+  active: boolean
   displayOrder: number
 }
 
-export interface Booking {
+export interface TestimonialFormData {
+  name: string
+  roleOrContext?: string
+  storyTitle?: string
+  quote: string
+  mediaPostId?: number
+  playerMetadata?: string
+  teamMetadata?: string
+  programId?: number
+  coachProfileId?: number
+  rating: number
+  featured: boolean
+  active: boolean
+  displayOrder: number
+}
+
+export interface CoachProfile {
   id: number
-  programId: number
-  programName: string
-  programSlug: string
-  bookingDate: string
-  bookingTime: string
-  playerName: string
-  playerAge?: string
-  parentName?: string
-  email: string
-  phone: string
-  experienceLevel?: string
-  notes?: string
-  paymentStatus: string
-  bookingStatus: string
-  stripeSessionId?: string
-  confirmationEmailAvailable?: boolean
-  createdAt: string
+  userId?: number
+  userName?: string
+  userEmail?: string
+  displayName: string
+  roleTitle?: string
+  bio?: string
+  headshotMediaPostId?: number
+  headshotUrl?: string
+  headshotMediaType?: MediaType
+  specialties?: string
+  certifications?: string
+  instagramUrl?: string
+  websiteUrl?: string
+  bookingUrl?: string
+  featured: boolean
+  displayOrder: number
+  active: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface FaqItem {
+  id: number
+  question: string
+  answer: string
+  category?: string
+  active: boolean
+  featured: boolean
+  displayOrder: number
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface ForgotPasswordResult {
@@ -354,10 +425,10 @@ export interface ContactMessage {
 }
 
 export interface AdminDashboard {
-  totalBookings: number
-  confirmedBookings: number
-  pendingBookings: number
-  cancelledBookings: number
+  totalRegistrations: number
+  confirmedRegistrations: number
+  pendingWaitlistRegistrations: number
+  cancelledRegistrations: number
   totalPrograms: number
   activePrograms: number
   totalEvents: number
@@ -428,7 +499,7 @@ export interface Notification {
 
 // ─── Request Types ────────────────────────────────────────────────────────────
 
-export interface BookingFormData {
+export interface ProgramBookingFormData {
   programId: number
   bookingDate: string
   bookingTime: string
@@ -444,6 +515,201 @@ export interface BookingFormData {
 export interface EventRegistrationFormData {
   playerName: string
   email: string
+  phone?: string
+  playerAge?: string
+  packageType?: 'FULL_WEEK' | 'DROP_IN'
+  trainingSessionIds?: number[]
+}
+
+export type RegistrationOfferingType = 'PROGRAM' | 'EVENT'
+export type RegistrationType = 'PROGRAM_BOOKING' | 'EVENT_REGISTRATION' | 'ADMIN_ENTRY'
+export type RegistrationStatus = 'PENDING' | 'CONFIRMED' | 'WAITLISTED' | 'CANCELLED' | 'COMPLETED' | 'NO_SHOW'
+export type RegistrationPaymentStatus = 'NOT_REQUIRED' | 'UNPAID' | 'PENDING' | 'PAID' | 'PARTIALLY_PAID' | 'REFUNDED' | 'WAIVED'
+
+export interface RegistrationHistory {
+  id: number
+  eventType: string
+  message?: string
+  previousStatus?: RegistrationStatus
+  newStatus?: RegistrationStatus
+  previousPaymentStatus?: RegistrationPaymentStatus
+  newPaymentStatus?: RegistrationPaymentStatus
+  actorType: string
+  actorLabel?: string
+  createdAt: string
+}
+
+export interface Registration {
+  id: number
+  registrationCode: string
+  offeringType: RegistrationOfferingType
+  programId?: number
+  programName?: string
+  programSlug?: string
+  trainingSessionId?: number
+  sessionCoachLabel?: string
+  sessionLocation?: string
+  eventId?: number
+  eventTitle?: string
+  registrationType: RegistrationType
+  status: RegistrationStatus
+  paymentStatus: RegistrationPaymentStatus
+  source: string
+  participantName: string
+  participantAge?: string
+  participantEmail?: string
+  participantPhone?: string
+  guardianName?: string
+  guardianEmail: string
+  guardianPhone?: string
+  emergencyContactName?: string
+  emergencyContactPhone?: string
+  medicalNotes?: string
+  experienceLevel?: string
+  scheduledDate?: string
+  scheduledStartTime?: string
+  scheduledEndTime?: string
+  timezone?: string
+  priceAmount?: number
+  currency?: string
+  amountPaid?: number
+  waiverAccepted: boolean
+  customerNotes?: string
+  adminNotes?: string
+  waitlistPosition?: number
+  waitlistedAt?: string
+  cancelledAt?: string
+  cancelledByType?: string
+  cancelledByLabel?: string
+  cancellationReason?: string
+  confirmedAt?: string
+  completedAt?: string
+  paymentRecordId?: number
+  paymentProvider?: string
+  stripeSessionId?: string
+  paymentIntentId?: string
+  paymentAmount?: number
+  amountRefunded?: number
+  paymentRefundable?: boolean
+  confirmationEmailAvailable?: boolean
+  createdAt: string
+  updatedAt?: string
+  history?: RegistrationHistory[]
+}
+
+export interface RegistrationFormData {
+  programId?: number
+  eventId?: number
+  trainingSessionId?: number
+  registrationType?: RegistrationType
+  status?: RegistrationStatus
+  paymentStatus?: RegistrationPaymentStatus
+  participantName: string
+  participantAge?: string
+  participantEmail?: string
+  participantPhone?: string
+  guardianName?: string
+  guardianEmail: string
+  guardianPhone?: string
+  emergencyContactName?: string
+  emergencyContactPhone?: string
+  medicalNotes?: string
+  experienceLevel?: string
+  scheduledDate?: string
+  scheduledStartTime?: string
+  scheduledEndTime?: string
+  timezone?: string
+  priceAmount?: number | ''
+  amountPaid?: number | ''
+  currency?: string
+  waiverAccepted?: boolean
+  customerNotes?: string
+  adminNotes?: string
+}
+
+export type TrainingSessionStatus = 'SCHEDULED' | 'COMPLETED' | 'CANCELLED'
+
+export interface TrainingSession {
+  id: number
+  programId?: number
+  programName?: string
+  programSlug?: string
+  eventId?: number
+  eventTitle?: string
+  scheduledDate: string
+  startTime: string
+  endTime?: string
+  timezone?: string
+  location?: string
+  coachUserId?: number
+  coachName?: string
+  coachEmail?: string
+  coachLabel?: string
+  capacity: number
+  registrationCount: number
+  roster?: Registration[]
+  status: TrainingSessionStatus
+  notes?: string
+  sessionSeriesId?: number
+  createdAt: string
+  updatedAt?: string
+}
+
+export interface SessionSeries {
+  id: number
+  coachUserId?: number
+  coachName?: string
+  coachEmail?: string
+  programId: number
+  programName?: string
+  title?: string
+  startDate: string
+  endDate: string
+  weekdays: string
+  startTime: string
+  durationMinutes: number
+  capacity: number
+  location?: string
+  notes?: string
+  active: boolean
+  createdAt: string
+  updatedAt?: string
+  players: Array<{
+    id: number
+    name: string
+    parentUserEmail?: string
+  }>
+  totalSessions: number
+  completedSessions: number
+  upcomingSessions: number
+  cancelledSessions: number
+}
+
+export interface SessionSeriesFormData {
+  programId: number
+  coachUserId?: number
+  playerProfileIds?: number[]
+  title?: string
+  startDate: string
+  endDate?: string
+  numberOfWeeks?: number
+  weekdays: string
+  startTime: string
+  durationMinutes: number
+  capacity: number
+  location?: string
+  notes?: string
+  active: boolean
+}
+
+export interface SessionSeriesPreviewItem {
+  date: string
+  dayOfWeek: string
+  startTime: string
+  coachName?: string
+  programName?: string
+  conflict: boolean
+  conflictReason?: string
 }
 
 export interface ContactFormData {
@@ -527,14 +793,33 @@ export interface ParticipantAssignmentFormData {
 export interface MediaPostUpdateFormData {
   caption?: string
   altText?: string
-  featured?: boolean
-  showOnHome?: boolean
-  showOnAbout?: boolean
   mediaCategory?: MediaCategory
-  displayOrder?: number
-  homeDisplayOrder?: number
-  aboutDisplayOrder?: number
+  placements?: MediaPlacement[]
   clearMediaCategory?: boolean
+}
+
+export interface FaqItemFormData {
+  question: string
+  answer: string
+  category?: string
+  active: boolean
+  featured: boolean
+  displayOrder: number
+}
+
+export interface CoachProfileFormData {
+  displayName: string
+  roleTitle?: string
+  bio?: string
+  headshotMediaPostId?: number
+  specialties?: string
+  certifications?: string
+  instagramUrl?: string
+  websiteUrl?: string
+  bookingUrl?: string
+  featured: boolean
+  displayOrder: number
+  active: boolean
 }
 
 export interface WebsiteContentFormData {

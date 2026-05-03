@@ -1,19 +1,28 @@
 package com.kanteelite.training.controller;
 
-import jakarta.validation.Valid;
 import com.kanteelite.training.dto.request.ChangePasswordRequest;
 import com.kanteelite.training.dto.request.PlayerProfileRequest;
 import com.kanteelite.training.dto.response.ApiResponse;
-import com.kanteelite.training.dto.response.BookingResponse;
 import com.kanteelite.training.dto.response.PlayerProfileResponse;
-import com.kanteelite.training.service.BookingService;
+import com.kanteelite.training.dto.response.RegistrationResponse;
 import com.kanteelite.training.service.PlayerProfileService;
+import com.kanteelite.training.service.RegistrationService;
+import com.kanteelite.training.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -22,28 +31,24 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AccountController {
 
-    private final BookingService bookingService;
+    private final RegistrationService registrationService;
     private final PlayerProfileService playerProfileService;
-    private final com.kanteelite.training.service.UserService userService;
+    private final UserService userService;
 
-    // ─── Bookings ─────────────────────────────────────────────────────────────
-
-    @GetMapping("/bookings")
-    public ResponseEntity<ApiResponse<List<BookingResponse>>> getMyBookings(
+    @GetMapping("/registrations")
+    public ResponseEntity<ApiResponse<List<RegistrationResponse>>> getMyRegistrations(
             @AuthenticationPrincipal UserDetails principal) {
-        List<BookingResponse> bookings = bookingService.getBookingsByEmail(principal.getUsername());
-        return ResponseEntity.ok(ApiResponse.success(bookings));
+        return ResponseEntity.ok(ApiResponse.success(
+                registrationService.getAccountRegistrations(principal.getUsername())));
     }
 
-    @PatchMapping("/bookings/{id}/cancel")
-    public ResponseEntity<ApiResponse<BookingResponse>> cancelBooking(
+    @PatchMapping("/registrations/{id}/cancel")
+    public ResponseEntity<ApiResponse<RegistrationResponse>> cancelRegistration(
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetails principal) {
-        BookingResponse response = bookingService.cancelOwnBooking(id, principal.getUsername());
-        return ResponseEntity.ok(ApiResponse.success("Booking cancelled.", response));
+        RegistrationResponse response = registrationService.cancelOwnRegistration(id, principal.getUsername());
+        return ResponseEntity.ok(ApiResponse.success("Registration cancelled.", response));
     }
-
-    // ─── Password ─────────────────────────────────────────────────────────────
 
     @PatchMapping("/password")
     public ResponseEntity<ApiResponse<Void>> changePassword(
@@ -52,8 +57,6 @@ public class AccountController {
         userService.changePassword(principal.getUsername(), request);
         return ResponseEntity.ok(ApiResponse.success("Password updated successfully.", null));
     }
-
-    // ─── Player Profiles ──────────────────────────────────────────────────────
 
     @GetMapping("/players")
     public ResponseEntity<ApiResponse<List<PlayerProfileResponse>>> getMyPlayers(

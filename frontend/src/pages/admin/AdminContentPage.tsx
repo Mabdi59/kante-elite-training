@@ -1,19 +1,10 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import CategoryBadge, { CATEGORY_OPTIONS, getCategoryLabel } from '../../components/CategoryBadge'
-import EmptyState from '../../components/EmptyState'
 import ErrorBanner from '../../components/ErrorBanner'
-import MediaPostCard from '../../components/MediaPostCard'
 import PageSkeleton from '../../components/PageSkeleton'
 import { defaultWebsiteContent } from '../../content/defaultWebsiteContent'
-import {
-  getAdminWebsiteContent,
-  getMediaPosts,
-  updateMediaPost,
-  updateWebsiteContent,
-} from '../../services/api'
-import type { MediaCategory, MediaPost, WebsiteContent } from '../../types'
-import { sortMediaPosts } from '../../utils/media'
+import { getAdminWebsiteContent, updateWebsiteContent } from '../../services/api'
+import type { WebsiteContent } from '../../types'
 
 function TextField({
   label,
@@ -45,14 +36,12 @@ function TextAreaField({
   value,
   onChange,
   rows = 4,
-  placeholder,
   helper,
 }: {
   label: string
   value: string
   onChange: (value: string) => void
   rows?: number
-  placeholder?: string
   helper?: string
 }) {
   return (
@@ -65,91 +54,7 @@ function TextAreaField({
         rows={rows}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
         className="w-full rounded-xl border border-gray-800 bg-black px-4 py-3 text-sm text-white"
-      />
-    </label>
-  )
-}
-
-function ToggleButton({
-  badge,
-  label,
-  active,
-  disabled,
-  onClick,
-}: {
-  badge: string
-  label: string
-  active: boolean
-  disabled?: boolean
-  onClick: () => void
-}) {
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={onClick}
-      className={`w-full rounded-2xl px-3 py-2 text-left text-xs font-semibold transition-colors sm:w-auto sm:rounded-full ${
-        active
-          ? 'bg-amber-500 text-black'
-          : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-      } disabled:opacity-50`}
-    >
-      <span className={`mr-2 inline-flex rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.18em] ${
-        active ? 'bg-black/15 text-black' : 'bg-black text-gray-200'
-      }`}>
-        {badge}
-      </span>
-      {label}
-    </button>
-  )
-}
-
-function MediaOrderField({
-  label,
-  value,
-  disabled,
-  onCommit,
-}: {
-  label: string
-  value: number
-  disabled?: boolean
-  onCommit: (value: number) => void
-}) {
-  const [draft, setDraft] = useState(String(value ?? 0))
-
-  useEffect(() => {
-    setDraft(String(value ?? 0))
-  }, [value])
-
-  const commit = () => {
-    const parsed = Number.parseInt(draft, 10)
-    const normalized = Number.isFinite(parsed) && parsed > 0 ? parsed : 0
-    setDraft(String(normalized))
-    if (normalized !== value) {
-      onCommit(normalized)
-    }
-  }
-
-  return (
-    <label className="block">
-      <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
-        {label}
-      </span>
-      <input
-        type="number"
-        min={0}
-        value={draft}
-        disabled={disabled}
-        onChange={(event) => setDraft(event.target.value)}
-        onBlur={commit}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') {
-            event.currentTarget.blur()
-          }
-        }}
-        className="w-full rounded-xl border border-gray-700 bg-black px-3 py-2 text-sm text-white disabled:opacity-50"
       />
     </label>
   )
@@ -178,25 +83,22 @@ export default function AdminContentPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [status, setStatus] = useState('')
-  const [savingPostIds, setSavingPostIds] = useState<number[]>([])
   const [content, setContent] = useState<WebsiteContent>(defaultWebsiteContent)
   const [experiencePointsText, setExperiencePointsText] = useState(
     defaultWebsiteContent.aboutExperiencePoints.join('\n'),
   )
-  const [posts, setPosts] = useState<MediaPost[]>([])
-  const [filterCategory, setFilterCategory] = useState<MediaCategory | 'ALL'>('ALL')
-  const [editingCategoryPostId, setEditingCategoryPostId] = useState<number | null>(null)
-
 
   useEffect(() => {
     document.title = 'Content | Kante Elite Training'
-    return () => { document.title = 'Kante Elite Training' }
+    return () => {
+      document.title = 'Kante Elite Training'
+    }
   }, [])
 
   useEffect(() => {
     setLoading(true)
-    Promise.all([getAdminWebsiteContent(), getMediaPosts()])
-      .then(([websiteContent, mediaPosts]) => {
+    getAdminWebsiteContent()
+      .then((websiteContent) => {
         const mergedContent = {
           ...defaultWebsiteContent,
           ...websiteContent,
@@ -207,22 +109,10 @@ export default function AdminContentPage() {
         }
         setContent(mergedContent)
         setExperiencePointsText(mergedContent.aboutExperiencePoints.join('\n'))
-        setPosts(mediaPosts)
       })
       .catch(() => setError('Could not load website content.'))
       .finally(() => setLoading(false))
   }, [])
-
-  const featuredPostCount = useMemo(
-    () => posts.filter((post) => post.featured).length,
-    [posts],
-  )
-
-  const filteredPosts = useMemo(() => {
-    const orderedPosts = sortMediaPosts(posts, 'feed')
-    if (filterCategory === 'ALL') return orderedPosts
-    return orderedPosts.filter((post) => post.mediaCategory === filterCategory)
-  }, [posts, filterCategory])
 
   const updateContentField = (key: EditableContentField, value: string) => {
     setStatus('')
@@ -283,34 +173,6 @@ export default function AdminContentPage() {
     }
   }
 
-  const togglePost = async (postId: number, patch: Partial<MediaPost>) => {
-    setSavingPostIds((current) => [...current, postId])
-    setError('')
-    setStatus('')
-
-    try {
-      await updateMediaPost(postId, {
-        altText: patch.altText,
-        featured: patch.featured,
-        showOnHome: patch.showOnHome,
-        showOnAbout: patch.showOnAbout,
-        mediaCategory: patch.mediaCategory,
-        displayOrder: patch.displayOrder,
-        homeDisplayOrder: patch.homeDisplayOrder,
-        aboutDisplayOrder: patch.aboutDisplayOrder,
-      })
-      const refreshedPosts = await getMediaPosts()
-      setPosts(refreshedPosts)
-    } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        'Could not update media placement.'
-      setError(message)
-    } finally {
-      setSavingPostIds((current) => current.filter((id) => id !== postId))
-    }
-  }
-
   if (loading) {
     return <PageSkeleton titleWidthClassName="w-56" count={4} />
   }
@@ -322,12 +184,15 @@ export default function AdminContentPage() {
           <div>
             <h1 className="text-2xl font-black text-white sm:text-3xl">Content</h1>
             <p className="mt-1 text-sm text-gray-400">
-              Control homepage copy, about page content, and where each media post appears.
+              Manage public homepage and about page copy. Visual placement is handled in Media.
             </p>
           </div>
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
-            <Link to="/admin/media" className="w-full rounded-lg bg-gray-800 px-4 py-3 text-center text-sm font-semibold text-gray-200 hover:bg-gray-700 sm:w-auto">
-              Upload Media
+            <Link
+              to="/admin/media"
+              className="w-full rounded-lg bg-gray-800 px-4 py-3 text-center text-sm font-semibold text-gray-200 hover:bg-gray-700 sm:w-auto"
+            >
+              Open Media
             </Link>
             <button
               type="button"
@@ -485,156 +350,21 @@ export default function AdminContentPage() {
         </section>
 
         <section className="rounded-2xl border border-gray-800 bg-gray-900 p-6">
-          <div className="mb-6 flex flex-col gap-4 md:flex-row md:flex-wrap md:items-end md:justify-between">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <span className="section-label">Media Placement</span>
-              <h2 className="text-2xl font-black text-white">Choose what appears on each page</h2>
-              <p className="mt-2 text-sm text-gray-400">
-                Featured media becomes the hero background on Home and About. If nothing is featured, the site keeps the default hero instead of switching to the newest upload.
-              </p>
-              <p className="mt-2 text-xs font-medium uppercase tracking-[0.18em] text-amber-400">
-                Only one featured hero is active at a time.
-              </p>
-              <p className="mt-2 text-xs leading-relaxed text-gray-500">
-                Set any order field to `0` to keep automatic newest-first sorting. Use positive numbers to pin an item higher on that surface.
+              <span className="section-label">Media</span>
+              <h2 className="text-2xl font-black text-white">Manage visuals in the media library</h2>
+              <p className="mt-2 max-w-2xl text-sm text-gray-400">
+                Uploads, hero/profile/gallery assignments, and display order live in the media workspace.
               </p>
             </div>
-            <div className="rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-300">
-              {featuredPostCount} featured
-            </div>
+            <Link
+              to="/admin/media"
+              className="w-full rounded-lg bg-amber-500 px-4 py-3 text-center text-sm font-bold text-black hover:bg-amber-400 md:w-auto"
+            >
+              Open Media Library
+            </Link>
           </div>
-
-          {posts.length > 0 ? (
-            <div className="mb-6 flex flex-wrap gap-2">
-              {(['ALL', ...CATEGORY_OPTIONS.map((o) => o.value)] as (MediaCategory | 'ALL')[]).map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setFilterCategory(cat)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    filterCategory === cat
-                      ? 'bg-amber-500 text-black'
-                      : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                  }`}
-                >
-                  {cat === 'ALL' ? `All (${posts.length})` : `${getCategoryLabel(cat)} (${posts.filter((p) => p.mediaCategory === cat).length})`}
-                </button>
-              ))}
-            </div>
-          ) : null}
-
-          {posts.length === 0 ? (
-            <EmptyState
-              icon="Media"
-              title="No media posts yet"
-              description="Upload your first image or video before placing content on the homepage and about page."
-              action={
-                <Link
-                  to="/admin/media"
-                  className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-black hover:bg-amber-400"
-                >
-                  Go to Media Uploads
-                </Link>
-              }
-            />
-          ) : (
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 2xl:grid-cols-3">
-              {filteredPosts.map((post, index) => {
-                const isSavingPost = savingPostIds.includes(post.id)
-                const isEditingCategory = editingCategoryPostId === post.id
-
-                return (
-                  <div key={post.id} className="rounded-2xl border border-gray-800 bg-black/40 p-4">
-                    <MediaPostCard
-                      post={post}
-                      imageLoading={index < 4 ? 'eager' : 'lazy'}
-                      imageFetchPriority={index < 2 ? 'high' : 'auto'}
-                    />
-                    <div className="mt-3 flex items-center justify-between gap-2">
-                      {post.mediaCategory ? (
-                        <CategoryBadge category={post.mediaCategory} size="sm" />
-                      ) : (
-                        <span className="text-xs text-gray-500">No category</span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => setEditingCategoryPostId(isEditingCategory ? null : post.id)}
-                        className="rounded-lg bg-gray-800 px-3 py-1.5 text-xs font-medium text-gray-300 hover:bg-gray-700"
-                      >
-                        {isEditingCategory ? 'Cancel' : 'Edit Category'}
-                      </button>
-                    </div>
-                    {isEditingCategory ? (
-                      <div className="mt-3">
-                        <select
-                          defaultValue={post.mediaCategory ?? ''}
-                          disabled={isSavingPost}
-                          onChange={async (e) => {
-                            const val = e.target.value as MediaCategory
-                            if (val) {
-                              await togglePost(post.id, { mediaCategory: val })
-                              setEditingCategoryPostId(null)
-                            }
-                          }}
-                          className="w-full rounded-xl border border-gray-700 bg-black px-3 py-2 text-sm text-white"
-                        >
-                          <option value="">Select category…</option>
-                          {CATEGORY_OPTIONS.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    ) : null}
-                    <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                      <ToggleButton
-                        badge="Home"
-                        label={post.showOnHome ? 'Showing on Home Page' : 'Show on Home Page'}
-                        active={post.showOnHome}
-                        disabled={isSavingPost}
-                        onClick={() => togglePost(post.id, { showOnHome: !post.showOnHome })}
-                      />
-                      <ToggleButton
-                        badge="About"
-                        label={post.showOnAbout ? 'Showing on About Page' : 'Show on About Page'}
-                        active={post.showOnAbout}
-                        disabled={isSavingPost}
-                        onClick={() => togglePost(post.id, { showOnAbout: !post.showOnAbout })}
-                      />
-                      <ToggleButton
-                        badge="Hero"
-                        label={post.featured ? 'Featured for Hero' : 'Feature for Hero'}
-                        active={post.featured}
-                        disabled={isSavingPost}
-                        onClick={() => togglePost(post.id, { featured: !post.featured })}
-                      />
-                    </div>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                      <MediaOrderField
-                        label="Feed order"
-                        value={post.displayOrder}
-                        disabled={isSavingPost}
-                        onCommit={(value) => togglePost(post.id, { displayOrder: value })}
-                      />
-                      <MediaOrderField
-                        label="Home order"
-                        value={post.homeDisplayOrder}
-                        disabled={isSavingPost || !post.showOnHome}
-                        onCommit={(value) => togglePost(post.id, { homeDisplayOrder: value })}
-                      />
-                      <MediaOrderField
-                        label="About order"
-                        value={post.aboutDisplayOrder}
-                        disabled={isSavingPost || !post.showOnAbout}
-                        onCommit={(value) => togglePost(post.id, { aboutDisplayOrder: value })}
-                      />
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
         </section>
       </div>
     </div>

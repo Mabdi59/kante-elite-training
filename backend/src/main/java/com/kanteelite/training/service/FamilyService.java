@@ -2,18 +2,21 @@ package com.kanteelite.training.service;
 
 import com.kanteelite.training.dto.request.FamilyOnboardingRequest;
 import com.kanteelite.training.dto.response.AdminFamiliesListResponse;
-import com.kanteelite.training.dto.response.BookingSeriesResponse;
 import com.kanteelite.training.dto.response.FamilyDetailResponse;
-import com.kanteelite.training.entity.Booking;
-import com.kanteelite.training.entity.BookingSeries;
+import com.kanteelite.training.dto.response.SessionSeriesResponse;
 import com.kanteelite.training.entity.PlayerProfile;
+import com.kanteelite.training.entity.Registration;
+import com.kanteelite.training.entity.SessionSeries;
+import com.kanteelite.training.entity.TrainingSession;
 import com.kanteelite.training.entity.User;
-import com.kanteelite.training.enums.BookingStatus;
+import com.kanteelite.training.enums.RegistrationStatus;
+import com.kanteelite.training.enums.TrainingSessionStatus;
 import com.kanteelite.training.enums.UserRole;
 import com.kanteelite.training.exception.ResourceNotFoundException;
-import com.kanteelite.training.repository.BookingRepository;
-import com.kanteelite.training.repository.BookingSeriesRepository;
 import com.kanteelite.training.repository.PlayerProfileRepository;
+import com.kanteelite.training.repository.RegistrationRepository;
+import com.kanteelite.training.repository.SessionSeriesRepository;
+import com.kanteelite.training.repository.TrainingSessionRepository;
 import com.kanteelite.training.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -33,10 +37,17 @@ import java.util.stream.Collectors;
 @Slf4j
 public class FamilyService {
 
+    private static final Set<RegistrationStatus> ACTIVE_REGISTRATION_STATUSES = Set.of(
+            RegistrationStatus.PENDING,
+            RegistrationStatus.CONFIRMED,
+            RegistrationStatus.WAITLISTED
+    );
+
     private final UserRepository userRepository;
     private final PlayerProfileRepository playerProfileRepository;
-    private final BookingRepository bookingRepository;
-    private final BookingSeriesRepository bookingSeriesRepository;
+    private final RegistrationRepository registrationRepository;
+    private final SessionSeriesRepository sessionSeriesRepository;
+    private final TrainingSessionRepository trainingSessionRepository;
     private final PasswordEncoder passwordEncoder;
 
     public FamilyDetailResponse onboardFamily(FamilyOnboardingRequest request, String actorEmail) {
@@ -133,10 +144,9 @@ public class FamilyService {
 
     private AdminFamiliesListResponse toAdminFamilyListItem(User parent) {
         long playerCount = playerProfileRepository.countByParentUserId(parent.getId());
-        long upcomingSessionCount = bookingRepository.findByEmailIgnoreCaseOrderByCreatedAtDesc(parent.getEmail())
+        long upcomingSessionCount = registrationRepository.findAccountHistoryByEmail(parent.getEmail())
                 .stream()
-                .filter(b -> b.getBookingDate() != null && !b.getBookingDate().isBefore(LocalDate.now())
-                        && b.getBookingStatus() != BookingStatus.CANCELLED)
+                .filter(this::isUpcomingActiveRegistration)
                 .count();
         return AdminFamiliesListResponse.builder()
                 .id(parent.getId())
@@ -163,40 +173,31 @@ public class FamilyService {
                         .build())
                 .collect(Collectors.toList());
 
-        List<Booking> bookings = bookingRepository.findByEmailIgnoreCaseOrderByCreatedAtDesc(parent.getEmail());
-
-        LocalDate today = LocalDate.now();
-        int totalBookings = bookings.size();
-        int upcomingBookings = (int) bookings.stream()
-                .filter(b -> b.getBookingDate() != null && !b.getBookingDate().isBefore(today)
-                        && b.getBookingStatus() != BookingStatus.CANCELLED)
-                .count();
-        int completedBookings = (int) bookings.stream()
-                .filter(b -> b.getBookingStatus() == BookingStatus.COMPLETED)
+        List<Registration> registrations = registrationRepository.findAccountHistoryByEmail(parent.getEmail());
+        int totalBookings = registrations.size();
+        int upcomingBookings = (int) registrations.stream().filter(this::isUpcomingActiveRegistration).count();
+        int completedBookings = (int) registrations.stream()
+                .filter(registration -> registration.getStatus() == RegistrationStatus.COMPLETED)
                 .count();
 
-        List<FamilyDetailResponse.RecentBookingItem> recentBookings = bookings.stream()
+        List<FamilyDetailResponse.RecentBookingItem> recentBookings = registrations.stream()
                 .limit(10)
-                .map(b -> FamilyDetailResponse.RecentBookingItem.builder()
-                        .id(b.getId())
-                        .date(b.getBookingDate())
-                        .time(b.getBookingTime())
-                        .programName(b.getProgram() != null ? b.getProgram().getName() : null)
-                        .status(b.getBookingStatus().name())
-                        .playerName(b.getPlayerName())
+                .map(registration -> FamilyDetailResponse.RecentBookingItem.builder()
+                        .id(registration.getId())
+                        .date(registration.getScheduledDate())
+                        .time(registration.getScheduledStartTime())
+                        .programName(registration.getProgram() != null ? registration.getProgram().getName() : null)
+                        .status(registration.getStatus().name())
+                        .playerName(registration.getParticipantName())
                         .build())
                 .collect(Collectors.toList());
 
-        // Load active series linked to players in this family (targeted query, no full-table scan)
         List<Long> playerIds = profiles.stream().map(PlayerProfile::getId).collect(Collectors.toList());
-        List<BookingSeriesResponse> seriesResponses;
-        if (playerIds.isEmpty()) {
-            seriesResponses = List.of();
-        } else {
-            seriesResponses = bookingSeriesRepository.findActiveSeriesByPlayerIds(playerIds).stream()
-                    .map(this::toSeriesResponse)
-                    .collect(Collectors.toList());
-        }
+        List<SessionSeriesResponse> seriesResponses = playerIds.isEmpty()
+                ? List.of()
+                : sessionSeriesRepository.findActiveSeriesByPlayerIds(playerIds).stream()
+                        .map(this::toSeriesResponse)
+                        .collect(Collectors.toList());
 
         return FamilyDetailResponse.builder()
                 .parentId(parent.getId())
@@ -213,46 +214,61 @@ public class FamilyService {
                 .build();
     }
 
-    private BookingSeriesResponse toSeriesResponse(BookingSeries series) {
-        List<Booking> sessions = bookingRepository.findBySeriesIdOrderByBookingDateAsc(series.getId());
+    private SessionSeriesResponse toSeriesResponse(SessionSeries series) {
+        List<TrainingSession> sessions = trainingSessionRepository
+                .findBySessionSeriesIdOrderByScheduledDateAscStartTimeAsc(series.getId());
         LocalDate today = LocalDate.now();
         int completed = (int) sessions.stream()
-                .filter(b -> b.getBookingStatus() == BookingStatus.COMPLETED
-                        || (b.getBookingDate() != null && b.getBookingDate().isBefore(today)))
+                .filter(session -> session.getStatus() == TrainingSessionStatus.COMPLETED
+                        || (session.getScheduledDate() != null && session.getScheduledDate().isBefore(today)))
                 .count();
         int upcoming = (int) sessions.stream()
-                .filter(b -> b.getBookingDate() != null && !b.getBookingDate().isBefore(today)
-                        && b.getBookingStatus() != BookingStatus.CANCELLED)
+                .filter(session -> session.getScheduledDate() != null && !session.getScheduledDate().isBefore(today)
+                        && session.getStatus() != TrainingSessionStatus.CANCELLED)
+                .count();
+        int cancelled = (int) sessions.stream()
+                .filter(session -> session.getStatus() == TrainingSessionStatus.CANCELLED)
                 .count();
 
-        List<BookingSeriesResponse.PlayerSummary> playerSummaries = series.getPlayers().stream()
-                .map(p -> BookingSeriesResponse.PlayerSummary.builder()
-                        .id(p.getId())
-                        .name(p.getName())
-                        .parentUserEmail(p.getParentUser() != null ? p.getParentUser().getEmail() : null)
+        List<SessionSeriesResponse.PlayerSummary> playerSummaries = series.getPlayers().stream()
+                .map(player -> SessionSeriesResponse.PlayerSummary.builder()
+                        .id(player.getId())
+                        .name(player.getName())
+                        .parentUserEmail(player.getParentUser() != null ? player.getParentUser().getEmail() : null)
                         .build())
                 .collect(Collectors.toList());
 
-        return BookingSeriesResponse.builder()
+        return SessionSeriesResponse.builder()
                 .id(series.getId())
                 .coachUserId(series.getCoachUser() != null ? series.getCoachUser().getId() : null)
                 .coachName(series.getCoachUser() != null ? series.getCoachUser().getName() : null)
+                .coachEmail(series.getCoachUser() != null ? series.getCoachUser().getEmail() : null)
                 .programId(series.getProgram() != null ? series.getProgram().getId() : null)
                 .programName(series.getProgram() != null ? series.getProgram().getName() : null)
                 .title(series.getTitle())
                 .startDate(series.getStartDate())
                 .endDate(series.getEndDate())
                 .weekdays(series.getWeekdays())
-                .bookingTime(series.getBookingTime())
+                .startTime(series.getStartTime())
                 .durationMinutes(series.getDurationMinutes())
+                .capacity(series.getCapacity())
+                .location(series.getLocation())
                 .notes(series.getNotes())
                 .active(series.isActive())
                 .createdAt(series.getCreatedAt())
+                .updatedAt(series.getUpdatedAt())
                 .players(playerSummaries)
                 .totalSessions(sessions.size())
                 .completedSessions(completed)
                 .upcomingSessions(upcoming)
+                .cancelledSessions(cancelled)
                 .build();
+    }
+
+    private boolean isUpcomingActiveRegistration(Registration registration) {
+        return registration.getScheduledDate() != null
+                && !registration.getScheduledDate().isBefore(LocalDate.now())
+                && ACTIVE_REGISTRATION_STATUSES.contains(registration.getStatus());
     }
 
     private Integer resolveAge(String dateOfBirth, Integer fallbackAge) {

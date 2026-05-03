@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getPublicTournamentView } from '../services/api'
 import type { StandingEntry, TournamentMatch, TournamentWorkflow, TournamentWorkflowTeam } from '../types'
@@ -22,14 +22,6 @@ export default function TournamentDetailPage() {
       .catch(() => setError('Could not load tournament details.'))
       .finally(() => setLoading(false))
   }, [id])
-
-  useEffect(() => {
-    const name = data?.tournament.name
-    if (name) {
-      document.title = `${name} | Kante Elite Training`
-    }
-    return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
-  }, [data?.tournament.name])
 
   const isKnockout = data?.tournament.formatType === 'KNOCKOUT'
   const hasKnockoutMatches = data?.matches.some((m) => m.stageName === 'Knockout') ?? false
@@ -56,7 +48,7 @@ export default function TournamentDetailPage() {
           <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-4"><svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></div>
           <p className="text-white text-xl font-bold mb-2">Tournament Not Found</p>
           <p className="text-gray-400 text-sm mb-6">{error || 'This tournament does not exist.'}</p>
-          <Link to="/tournaments" className="text-amber-500 hover:text-amber-400 text-sm">← Back to Tournaments</Link>
+          <Link to="/tournaments" className="text-amber-500 hover:text-amber-400 text-sm">Back to Tournaments</Link>
         </div>
       </div>
     )
@@ -144,6 +136,7 @@ export default function TournamentDetailPage() {
               key={tabItem.key}
               type="button"
               onClick={() => setTab(tabItem.key)}
+              aria-pressed={tab === tabItem.key}
               className={`min-h-11 whitespace-nowrap rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
                 tab === tabItem.key
                   ? 'bg-amber-500/15 text-amber-400'
@@ -182,7 +175,7 @@ function StatCard({ label, value, color = 'text-white' }: { label: string; value
   )
 }
 
-// ─── Overview Tab ─────────────────────────────────────────────────────────────
+// --- Overview Tab -------------------------------------------------------------
 
 function OverviewTab({ tournament: t }: { tournament: TournamentWorkflow['tournament'] }) {
   return (
@@ -223,7 +216,7 @@ function OverviewTab({ tournament: t }: { tournament: TournamentWorkflow['tourna
   )
 }
 
-// ─── Teams Tab ────────────────────────────────────────────────────────────────
+// --- Teams Tab ----------------------------------------------------------------
 
 function TeamsTab({ teams }: { teams: TournamentWorkflowTeam[] }) {
   if (teams.length === 0) {
@@ -270,7 +263,7 @@ function TeamCard({ team }: { team: TournamentWorkflowTeam }) {
   )
 }
 
-// ─── Schedule Tab ─────────────────────────────────────────────────────────────
+// --- Schedule Tab -------------------------------------------------------------
 
 function ScheduleTab({ matches }: { matches: TournamentMatch[] }) {
   const grouped = useMemo(() => {
@@ -302,7 +295,7 @@ function ScheduleTab({ matches }: { matches: TournamentMatch[] }) {
     <div className="space-y-8">
       {Array.from(grouped.entries()).map(([stage, stageMatches]) => (
         <section key={stage}>
-          <h2 className="text-amber-500 text-xs font-bold uppercase tracking-widest mb-4">{stage}</h2>
+          <h2 className="text-amber-500 text-xs font-bold uppercase mb-4">{stage}</h2>
           <div className="space-y-3">
             {stageMatches.map((m) => <MatchRow key={m.id} match={m} />)}
           </div>
@@ -321,7 +314,7 @@ function MatchRow({ match: m }: { match: TournamentMatch }) {
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-2xl border border-[#222] bg-black/30 p-3 sm:p-4">
           <span className="truncate text-right text-sm font-semibold text-white sm:text-base">{m.homeTeamName ?? 'TBD'}</span>
           <div className={`rounded-xl px-4 py-3 text-center text-xl font-black tabular-nums sm:text-2xl ${isFinal ? 'bg-amber-500/10 text-amber-400' : 'bg-[#1a1a1a] text-gray-400'}`}>
-            <div className="mb-1 text-[10px] uppercase tracking-[0.18em] sm:text-xs">{isFinal ? 'Final' : 'Match'}</div>
+            <div className="mb-1 text-[10px] uppercase sm:text-xs">{isFinal ? 'Final' : 'Match'}</div>
             {isFinal ? `${m.homeScore ?? 0} – ${m.awayScore ?? 0}` : 'vs'}
           </div>
           <span className="truncate text-sm font-semibold text-white sm:text-base">{m.awayTeamName ?? 'TBD'}</span>
@@ -340,7 +333,7 @@ function MatchRow({ match: m }: { match: TournamentMatch }) {
   )
 }
 
-// ─── Standings Tab ────────────────────────────────────────────────────────────
+// --- Standings Tab ------------------------------------------------------------
 
 function StandingsTab({ standings }: { standings: StandingEntry[] }) {
   const groups = useMemo(() => {
@@ -358,7 +351,7 @@ function StandingsTab({ standings }: { standings: StandingEntry[] }) {
     <div className="space-y-8">
       {Array.from(groups.entries()).map(([groupName, rows]) => (
         <section key={groupName}>
-          <h2 className="text-amber-500 text-xs font-bold uppercase tracking-widest mb-4">{groupName}</h2>
+          <h2 className="text-amber-500 text-xs font-bold uppercase mb-4">{groupName}</h2>
           <div className="overflow-x-auto rounded-xl border border-[#222]">
             <table className="w-full text-sm">
               <thead>
@@ -401,7 +394,7 @@ function StandingsTab({ standings }: { standings: StandingEntry[] }) {
   )
 }
 
-// ─── Bracket Tab ──────────────────────────────────────────────────────────────
+// --- Bracket Tab --------------------------------------------------------------
 
 function BracketTab({ matches }: { matches: TournamentMatch[] }) {
   // Only show matches in the Knockout stage (works for both KNOCKOUT and GROUP_STAGE formats)
@@ -458,7 +451,7 @@ function BracketTab({ matches }: { matches: TournamentMatch[] }) {
         <div className="flex min-w-max items-start gap-6 pr-4 sm:gap-8 sm:pr-0">
           {(rounds as [string, TournamentMatch[]][]).map(([roundName, roundMatches]) => (
             <div key={roundName} className="flex w-[220px] shrink-0 snap-start flex-col">
-              <h3 className={`text-xs font-bold uppercase tracking-widest text-center mb-3 ${roundName === 'Final' ? 'text-amber-400' : roundName === 'Third Place' ? 'text-gray-400' : 'text-amber-500/70'}`}>
+              <h3 className={`text-xs font-bold uppercase text-center mb-3 ${roundName === 'Final' ? 'text-amber-400' : roundName === 'Third Place' ? 'text-gray-400' : 'text-amber-500/70'}`}>
                 {roundName}
               </h3>
               <div className="flex flex-col gap-4">
@@ -498,7 +491,7 @@ function BracketTeamRow({ name, score, won, seeded }: { name: string; score?: nu
   return (
     <div className={`flex items-center justify-between px-3 py-2.5 gap-3 ${won ? 'bg-green-500/10' : ''}`}>
       <span className={`font-semibold truncate ${won ? 'text-green-300' : seeded ? 'text-gray-200' : 'text-gray-600 italic'}`}>
-        {won && '▶ '}{name}
+        {won && '? '}{name}
       </span>
       {score != null && (
         <span className={`tabular-nums font-black shrink-0 text-base ${won ? 'text-green-300' : 'text-gray-400'}`}>{score}</span>

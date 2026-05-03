@@ -1,5 +1,4 @@
 ﻿import type { ReactNode } from 'react'
-import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
 const LAST_UPDATED = 'April 25, 2025'
@@ -7,11 +6,6 @@ const BUSINESS_NAME = 'Kante Elite Training'
 const BUSINESS_EMAIL = 'kanteelitetraining@gmail.com'
 
 export default function CookiePolicyPage() {
-  useEffect(() => {
-    document.title = 'Cookie Policy | Kante Elite Training'
-    return () => { document.title = 'Kante Elite Training' }
-  }, [])
-
   return (
     <div className="min-h-screen bg-black px-4 py-16">
       <div className="max-w-3xl mx-auto">

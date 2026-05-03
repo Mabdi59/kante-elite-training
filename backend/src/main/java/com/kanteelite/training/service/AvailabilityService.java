@@ -7,10 +7,14 @@ import com.kanteelite.training.dto.response.AvailabilityRuleResponse;
 import com.kanteelite.training.dto.response.BlockedSlotResponse;
 import com.kanteelite.training.entity.AvailabilityRule;
 import com.kanteelite.training.entity.BlockedSlot;
+import com.kanteelite.training.entity.TrainingSession;
+import com.kanteelite.training.enums.RegistrationStatus;
+import com.kanteelite.training.enums.TrainingSessionStatus;
 import com.kanteelite.training.exception.ResourceNotFoundException;
 import com.kanteelite.training.repository.AvailabilityRuleRepository;
 import com.kanteelite.training.repository.BlockedSlotRepository;
-import com.kanteelite.training.repository.BookingRepository;
+import com.kanteelite.training.repository.RegistrationRepository;
+import com.kanteelite.training.repository.TrainingSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +32,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AvailabilityService {
 
-    private final BookingRepository bookingRepository;
+    private static final Set<RegistrationStatus> CAPACITY_HOLDING_STATUSES = Set.of(
+            RegistrationStatus.PENDING,
+            RegistrationStatus.CONFIRMED
+    );
+
+    private final TrainingSessionRepository trainingSessionRepository;
+    private final RegistrationRepository registrationRepository;
     private final AvailabilityRuleRepository availabilityRuleRepository;
     private final BlockedSlotRepository blockedSlotRepository;
 
@@ -38,7 +48,14 @@ public class AvailabilityService {
     private static final int SLOT_MINUTES = 60;
 
     public AvailabilityResponse getAvailability(Long programId, LocalDate date) {
-        List<String> booked = bookingRepository.findBookedTimesByProgramAndDate(programId, date);
+        List<String> booked = trainingSessionRepository
+                .findByProgramIdAndScheduledDateAndStatusNotOrderByStartTimeAsc(
+                        programId, date, TrainingSessionStatus.CANCELLED)
+                .stream()
+                .filter(this::isSessionAtCapacity)
+                .map(TrainingSession::getStartTime)
+                .distinct()
+                .toList();
 
         // Get all blocked times for this date (null slot_time = whole day blocked)
         List<BlockedSlot> blocked = blockedSlotRepository.findBySlotDateOrderBySlotTimeAsc(date);
@@ -69,6 +86,23 @@ public class AvailabilityService {
 
     public boolean isSlotBlocked(LocalDate date, String time) {
         return !blockedSlotRepository.findBlockingSlots(date, time).isEmpty();
+    }
+
+    public boolean isProgramSlotAtCapacity(Long programId, LocalDate date, String time, Long currentTrainingSessionId) {
+        return trainingSessionRepository
+                .findByProgramIdAndScheduledDateAndStatusNotOrderByStartTimeAsc(
+                        programId, date, TrainingSessionStatus.CANCELLED)
+                .stream()
+                .filter(session -> time.equals(session.getStartTime()))
+                .filter(session -> currentTrainingSessionId == null || !currentTrainingSessionId.equals(session.getId()))
+                .anyMatch(this::isSessionAtCapacity);
+    }
+
+    private boolean isSessionAtCapacity(TrainingSession session) {
+        long used = registrationRepository.countByTrainingSessionIdAndStatusIn(
+                session.getId(), CAPACITY_HOLDING_STATUSES);
+        int capacity = session.getCapacity() != null && session.getCapacity() > 0 ? session.getCapacity() : 1;
+        return used >= capacity;
     }
 
     private List<String> generateTimeSlotsForDate(LocalDate date) {

@@ -2,6 +2,7 @@ package com.kanteelite.training.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
+import com.kanteelite.training.enums.MediaType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,6 +16,16 @@ public class ProgramResponse {
     private String slug;
     private String description;
     private String shortDescription;
+    private String category;
+    private Long mediaPostId;
+    private String mediaUrl;
+    private MediaType mediaType;
+    private Long secondaryMediaPostId;
+    private String secondaryMediaUrl;
+    private MediaType secondaryMediaType;
+    private List<String> coachNames;
+    private String seasonLabel;
+    private String campaignLabel;
     private String location;
     private LocalDateTime startAt;
     private LocalDateTime endAt;
@@ -27,5 +38,10 @@ public class ProgramResponse {
     private List<String> features;
     private String icon;
     private String whoItsFor;
+    private String ctaLabel;
+    private String ctaUrl;
+    private boolean featured;
+    private boolean active;
+    private boolean allowWaitlist;
     private Integer displayOrder;
 }

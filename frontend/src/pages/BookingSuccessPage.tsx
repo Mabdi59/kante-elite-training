@@ -1,9 +1,13 @@
-﻿import { useCallback, useEffect, useRef, useState } from 'react'
-import { useLocation, useSearchParams, Link } from 'react-router-dom'
-import api, { getBookingByStripeSession } from '../services/api'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
+import {
+  getRegistrationByStripeSession,
+  getPublicRegistration,
+  getPublicRegistrationByCode,
+} from '../services/api'
 import EmptyState from '../components/EmptyState'
 import LoadingSpinner from '../components/LoadingSpinner'
-import type { ApiResponse, Booking } from '../types'
+import type { Registration } from '../types'
 import { useAuth } from '../context/AuthContext'
 import { getPortalDestination } from '../utils/portal'
 
@@ -16,45 +20,83 @@ function formatDate(dateStr: string) {
   })
 }
 
+interface ConfirmationDetails {
+  id: number
+  code?: string
+  programName?: string
+  date?: string
+  time?: string
+  participantName: string
+  participantAge?: string
+  guardianName?: string
+  email: string
+  phone?: string
+  status: string
+  confirmationEmailAvailable?: boolean
+}
+
+function fromRegistration(registration: Registration): ConfirmationDetails {
+  return {
+    id: registration.id,
+    code: registration.registrationCode,
+    programName: registration.programName,
+    date: registration.scheduledDate,
+    time: registration.scheduledStartTime,
+    participantName: registration.participantName,
+    participantAge: registration.participantAge,
+    guardianName: registration.guardianName,
+    email: registration.guardianEmail,
+    phone: registration.guardianPhone,
+    status: registration.status,
+    confirmationEmailAvailable: registration.confirmationEmailAvailable,
+  }
+}
+
 export default function BookingSuccessPage() {
   const { user } = useAuth()
   const location = useLocation()
   const [searchParams] = useSearchParams()
-  const bookingId = Number(searchParams.get('booking_id'))
+  const registrationId = Number(searchParams.get('registration_id'))
+  const registrationCode = searchParams.get('registration_code') ?? ''
   const stripeSessionId = searchParams.get('session_id') ?? ''
-  const locationBooking = (location.state as { booking?: Booking } | null)?.booking ?? null
-  const [booking, setBooking] = useState<Booking | null>(locationBooking)
-  const [loading, setLoading] = useState(locationBooking === null)
-  const [stripePolling, setStripePolling] = useState(!!stripeSessionId && !locationBooking)
+  const locationState = location.state as { registration?: Registration } | null
+  const locationRegistration = locationState?.registration ?? null
+  const locationConfirmation = useMemo(
+    () => (locationRegistration ? fromRegistration(locationRegistration) : null),
+    [locationRegistration],
+  )
+
+  const [confirmation, setConfirmation] = useState<ConfirmationDetails | null>(locationConfirmation)
+  const [loading, setLoading] = useState(locationConfirmation === null)
+  const [stripePolling, setStripePolling] = useState(!!stripeSessionId && !locationConfirmation)
   const [error, setError] = useState('')
   const [showHomeButton, setShowHomeButton] = useState(false)
   const pollAttemptsRef = useRef(0)
-  const confirmationEmailAvailable = booking?.confirmationEmailAvailable === true
+  const confirmationEmailAvailable = confirmation?.confirmationEmailAvailable === true
   const portal = getPortalDestination(user?.role)
   const portalPath = portal?.path ?? null
   const portalLabel = portal?.returnLabel ?? ''
 
-  const pollStripeBooking = useCallback(async () => {
+  const pollStripeConfirmation = useCallback(async () => {
     if (!stripeSessionId) return
-    const MAX_ATTEMPTS = 10
-    const POLL_INTERVAL_MS = 2000
+    const maxAttempts = 10
+    const pollIntervalMs = 2000
 
     const attempt = async (): Promise<void> => {
-      if (pollAttemptsRef.current >= MAX_ATTEMPTS) {
+      if (pollAttemptsRef.current >= maxAttempts) {
         setStripePolling(false)
         setLoading(false)
-        // Payment confirmed but booking details still processing | show a friendly state
         return
       }
       pollAttemptsRef.current += 1
-      const found = await getBookingByStripeSession(stripeSessionId)
-      if (found) {
-        setBooking(found)
+      const registration = await getRegistrationByStripeSession(stripeSessionId).catch(() => null)
+      if (registration) {
+        setConfirmation(fromRegistration(registration))
         setStripePolling(false)
         setLoading(false)
         return
       }
-      await new Promise<void>((resolve) => setTimeout(resolve, POLL_INTERVAL_MS))
+      await new Promise<void>((resolve) => setTimeout(resolve, pollIntervalMs))
       return attempt()
     }
 
@@ -67,29 +109,47 @@ export default function BookingSuccessPage() {
   }, [stripeSessionId])
 
   useEffect(() => {
-    if (locationBooking) {
-      setBooking(locationBooking)
+    if (locationConfirmation) {
+      setConfirmation(locationConfirmation)
       setLoading(false)
       return
     }
 
     if (stripeSessionId) {
-      pollStripeBooking()
+      pollStripeConfirmation()
       return
     }
 
-    if (Number.isFinite(bookingId) && bookingId > 0) {
-      api.get<ApiResponse<Booking>>(`/bookings/${bookingId}`)
-        .then((res) => {
-          const nextBooking = res.data.data ?? null
-          setBooking(nextBooking)
-          if (!nextBooking) {
-            setError('We could not find that booking confirmation.')
+    if (registrationCode) {
+      getPublicRegistrationByCode(registrationCode)
+        .then((registration) => {
+          if (registration) {
+            setConfirmation(fromRegistration(registration))
+          } else {
+            setError('We could not find that registration confirmation.')
           }
         })
         .catch(() =>
           setError(
-            'We could not retrieve your booking details right now. Please contact us directly if you need help confirming your booking.',
+            'We could not retrieve your registration details right now. Please contact us directly if you need help confirming your session.',
+          ),
+        )
+        .finally(() => setLoading(false))
+      return
+    }
+
+    if (Number.isFinite(registrationId) && registrationId > 0) {
+      getPublicRegistration(registrationId)
+        .then((registration) => {
+          if (registration) {
+            setConfirmation(fromRegistration(registration))
+          } else {
+            setError('We could not find that registration confirmation.')
+          }
+        })
+        .catch(() =>
+          setError(
+            'We could not retrieve your registration details right now. Please contact us directly if you need help confirming your session.',
           ),
         )
         .finally(() => setLoading(false))
@@ -98,7 +158,7 @@ export default function BookingSuccessPage() {
 
     setError('No booking confirmation was found.')
     setLoading(false)
-  }, [bookingId, locationBooking, pollStripeBooking, stripeSessionId])
+  }, [locationConfirmation, pollStripeConfirmation, registrationCode, registrationId, stripeSessionId])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -126,8 +186,7 @@ export default function BookingSuccessPage() {
     )
   }
 
-  // Stripe payment confirmed but webhook hasn't yet created the booking | show friendly state
-  if (stripeSessionId && !booking && !error) {
+  if (stripeSessionId && !confirmation && !error) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center px-4 pt-20">
         <div className="max-w-md w-full card p-10 text-center">
@@ -151,7 +210,7 @@ export default function BookingSuccessPage() {
     )
   }
 
-  if (error || !booking) {
+  if (error || !confirmation) {
     return (
       <div className="min-h-screen bg-black px-4 pt-20">
         <div className="mx-auto flex min-h-[70vh] max-w-3xl items-center justify-center">
@@ -162,7 +221,7 @@ export default function BookingSuccessPage() {
               </svg>
             )}
             title="Booking details unavailable"
-            description={`${error || 'We could not load your booking confirmation right now.'} If your booking was submitted, the confirmation should still appear in your portal once everything finishes syncing.`}
+            description={`${error || 'We could not load your confirmation right now.'} If your booking was submitted, the confirmation should still appear in your portal once everything finishes syncing.`}
             action={(
               <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
                 <Link to="/contact" className="btn-primary justify-center text-center">
@@ -183,6 +242,8 @@ export default function BookingSuccessPage() {
       </div>
     )
   }
+
+  const isWaitlisted = confirmation.status === 'WAITLISTED'
 
   return (
     <div className="min-h-screen bg-black px-4 pt-16 pb-16">
@@ -209,20 +270,23 @@ export default function BookingSuccessPage() {
             </svg>
           </div>
 
-          <span className="section-label">Booking Confirmed</span>
+          <span className="section-label">{isWaitlisted ? 'Waitlist Joined' : 'Booking Confirmed'}</span>
           <h1 className="text-white font-black text-4xl md:text-5xl mb-4 leading-tight">
-            You&apos;re booked, <span className="gradient-text">{booking.playerName.split(' ')[0]}</span>.
+            {isWaitlisted ? 'You&apos;re on the list, ' : 'You&apos;re booked, '}
+            <span className="gradient-text">{confirmation.participantName.split(' ')[0]}</span>.
           </h1>
           <p className="text-gray-300 text-lg max-w-md mx-auto leading-relaxed">
-            Your session is officially on the calendar.
+            {isWaitlisted
+              ? 'This session is currently full. We saved your spot on the waitlist.'
+              : 'Your session is officially on the calendar.'}
           </p>
           {confirmationEmailAvailable ? (
             <p className="text-gray-400 text-sm mt-2">
-              A confirmation email has been sent to <strong className="text-white">{booking.email}</strong>.
+              A confirmation email has been sent to <strong className="text-white">{confirmation.email}</strong>.
             </p>
           ) : (
             <p className="text-amber-300 text-sm mt-2">
-              Email confirmations are not available right now. Your booking details are saved below.
+              Email confirmations are not available right now. Your session details are saved below.
             </p>
           )}
         </div>
@@ -231,20 +295,24 @@ export default function BookingSuccessPage() {
           <div className="px-6 py-4 border-b border-[#1e1e1e] bg-[#111] flex items-center justify-between">
             <div>
               <h2 className="text-white font-black text-base">Booking Summary</h2>
-              <p className="text-gray-500 text-xs mt-0.5">Confirmation #{booking.id}</p>
+              <p className="text-gray-500 text-xs mt-0.5">
+                Confirmation {confirmation.code ?? `#${confirmation.id}`}
+              </p>
             </div>
-            <div className="badge-green">Confirmed</div>
+            <div className={isWaitlisted ? 'rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-bold uppercase text-amber-300' : 'badge-green'}>
+              {isWaitlisted ? 'Waitlisted' : 'Confirmed'}
+            </div>
           </div>
           <div className="px-6 py-6 space-y-3.5">
             {([
-              ['Program', booking.programName],
-              ['Date', formatDate(booking.bookingDate)],
-              ['Time', booking.bookingTime],
-              ['Player', booking.playerName],
-              booking.playerAge ? ['Age Group', booking.playerAge] : null,
-              booking.parentName ? ['Parent / Guardian', booking.parentName] : null,
-              ['Email', booking.email],
-              ['Phone', booking.phone],
+              ['Program', confirmation.programName],
+              confirmation.date ? ['Date', formatDate(confirmation.date)] : null,
+              confirmation.time ? ['Time', confirmation.time] : null,
+              ['Player', confirmation.participantName],
+              confirmation.participantAge ? ['Age Group', confirmation.participantAge] : null,
+              confirmation.guardianName ? ['Parent / Guardian', confirmation.guardianName] : null,
+              ['Email', confirmation.email],
+              confirmation.phone ? ['Phone', confirmation.phone] : null,
             ] as (string[] | null)[])
               .filter((row): row is string[] => row !== null)
               .map(([label, value]) => (
@@ -315,5 +383,3 @@ export default function BookingSuccessPage() {
     </div>
   )
 }
-
-

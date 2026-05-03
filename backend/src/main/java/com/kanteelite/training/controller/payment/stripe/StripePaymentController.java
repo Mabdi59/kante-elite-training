@@ -19,7 +19,7 @@ import java.util.Map;
  * Stripe payment endpoints.
  * <p>
  * Only registered when {@code app.payments.enabled=true}. While payments are disabled
- * these routes are not available — all bookings flow through {@code POST /api/bookings}.
+ * these routes are not available; program registrations use the registration checkout flow.
  */
 @RestController
 @RequestMapping("/api/payments")

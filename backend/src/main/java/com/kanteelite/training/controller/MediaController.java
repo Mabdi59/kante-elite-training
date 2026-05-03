@@ -3,6 +3,7 @@ package com.kanteelite.training.controller;
 import com.kanteelite.training.dto.response.ApiResponse;
 import com.kanteelite.training.dto.response.MediaPostResponse;
 import com.kanteelite.training.enums.MediaCategory;
+import com.kanteelite.training.enums.MediaPlacementKey;
 import com.kanteelite.training.service.MediaPostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,8 @@ public class MediaController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<MediaPostResponse>>> getPublicFeed(
-            @RequestParam(required = false) MediaCategory category) {
-        return ResponseEntity.ok(ApiResponse.success(mediaPostService.getPublicFeed(category)));
+            @RequestParam(required = false) MediaCategory category,
+            @RequestParam(required = false) MediaPlacementKey placement) {
+        return ResponseEntity.ok(ApiResponse.success(mediaPostService.getPublicFeed(category, placement)));
     }
 }

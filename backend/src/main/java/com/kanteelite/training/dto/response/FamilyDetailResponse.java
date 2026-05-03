@@ -18,7 +18,7 @@ public class FamilyDetailResponse {
     private String emergencyContact;
 
     private List<PlayerSummary> players;
-    private List<BookingSeriesResponse> activeSeries;
+    private List<SessionSeriesResponse> activeSeries;
 
     private int totalBookings;
     private int upcomingBookings;

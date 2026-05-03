@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   getPrograms,
@@ -7,8 +7,10 @@ import {
   getMediaPosts,
   getTournaments,
   getWebsiteContent,
+  getPublicCoaches,
+  getFaqs,
 } from '../services/api'
-import type { Program, Testimonial, Event, Tournament, MediaPost, WebsiteContent } from '../types'
+import type { Program, Testimonial, Event, Tournament, MediaPost, WebsiteContent, CoachProfile, FaqItem } from '../types'
 import ProgramCard from '../components/ProgramCard'
 import TestimonialCard from '../components/TestimonialCard'
 import EventCard from '../components/EventCard'
@@ -17,17 +19,9 @@ import MediaAsset from '../components/MediaAsset'
 import MediaPostCard from '../components/MediaPostCard'
 import MediaLightbox from '../components/MediaLightbox'
 import PublicProofBand from '../components/PublicProofBand'
-import MeetOurCoaches from '../components/MeetOurCoaches'
-import { COACH_PROFILE_MEDIA, COACH_SPOTLIGHT_MEDIA } from '../content/mediaFallbacks'
+import CoachKanteProfile from '../components/CoachKanteProfile'
 import { defaultWebsiteContent } from '../content/defaultWebsiteContent'
-import { getMediaAlt, sortMediaPosts } from '../utils/media'
-
-const stats = [
-  { value: '100+', label: 'Players Trained' },
-  { value: '5', label: 'Training Programs' },
-  { value: '95%', label: 'Would Recommend' },
-  { value: 'U8-18+', label: 'Age Groups Served' },
-]
+import { getMediaAlt, getPostsByPlacement } from '../utils/media'
 
 const audiences = [
   {
@@ -74,11 +68,7 @@ const pillars = [
   },
 ]
 
-const homeProofItems = [
-  {
-    icon: (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" /></svg>),
-    label: '100+ players trained',
-  },
+const homeProofBaseItems = [
   {
     icon: (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>),
     label: 'Columbus, Ohio',
@@ -132,16 +122,13 @@ export default function HomePage() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const [events, setEvents] = useState<Event[]>([])
   const [mediaPosts, setMediaPosts] = useState<MediaPost[]>([])
+  const [coaches, setCoaches] = useState<CoachProfile[]>([])
+  const [homeFaqs, setHomeFaqs] = useState<FaqItem[]>([])
   const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [siteContent, setSiteContent] = useState<WebsiteContent>(defaultWebsiteContent)
   const [activeMediaIndex, setActiveMediaIndex] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [homeFaqOpen, setHomeFaqOpen] = useState<number | null>(null)
-
-  useEffect(() => {
-    document.title = 'Kante Elite Training | Youth Soccer Academy, Columbus Ohio'
-    return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
-  }, [])
 
   useEffect(() => {
     Promise.allSettled([
@@ -151,8 +138,10 @@ export default function HomePage() {
       getMediaPosts(),
       getTournaments(),
       getWebsiteContent(),
+      getPublicCoaches(),
+      getFaqs({ featured: true }),
     ])
-      .then(([programResult, testimonialResult, eventResult, mediaResult, tournamentResult, contentResult]) => {
+      .then(([programResult, testimonialResult, eventResult, mediaResult, tournamentResult, contentResult, coachResult, faqResult]) => {
         if (programResult.status === 'fulfilled') {
           setPrograms(programResult.value)
         }
@@ -160,13 +149,13 @@ export default function HomePage() {
           setTestimonials(testimonialResult.value.slice(0, 3))
         }
         if (eventResult.status === 'fulfilled') {
-          setEvents(eventResult.value.slice(0, 3))
+          setEvents(eventResult.value)
         }
         if (mediaResult.status === 'fulfilled') {
           setMediaPosts(mediaResult.value)
         }
         if (tournamentResult.status === 'fulfilled') {
-          setTournaments(tournamentResult.value.slice(0, 3))
+          setTournaments(tournamentResult.value)
         }
         if (contentResult.status === 'fulfilled') {
           setSiteContent({
@@ -178,18 +167,64 @@ export default function HomePage() {
                 : defaultWebsiteContent.aboutExperiencePoints,
           })
         }
+        if (coachResult.status === 'fulfilled') {
+          setCoaches(coachResult.value)
+        }
+        if (faqResult.status === 'fulfilled') {
+          setHomeFaqs(faqResult.value.slice(0, 5))
+        }
       })
       .finally(() => setLoading(false))
   }, [])
 
-  const sortedMediaPosts = sortMediaPosts(mediaPosts, 'feed')
-  const heroMedia = sortedMediaPosts.find((post) => post.featured) ?? null
-  const homeMediaPosts = sortMediaPosts(
-    mediaPosts.filter((post) => post.showOnHome),
-    'home',
-  ).slice(0, 5)
+  const heroMedia = getPostsByPlacement(mediaPosts, 'HOME_HERO')[0] ?? null
+  const allHomeMediaPosts = getPostsByPlacement(mediaPosts, 'HOME_GALLERY')
+  const homeMediaPosts = allHomeMediaPosts.slice(0, 5)
+  const coachSpotlightMedia = getPostsByPlacement(mediaPosts, 'HOME_FEATURED')[0] ?? allHomeMediaPosts[0] ?? null
+  const coachProfileMedia = getPostsByPlacement(mediaPosts, 'ABOUT_PROFILE')[0] ?? null
+  const coachKante =
+    coaches.find((coach) => coach.displayName.toLowerCase().includes('kante')) ??
+    coaches.find((coach) => coach.featured) ??
+    coaches[0] ??
+    null
   const leadHomeMediaPost = homeMediaPosts[0] ?? null
   const supportingHomeMediaPosts = homeMediaPosts.slice(1, 5)
+  const featuredEvents = events.filter((event) => event.featured).slice(0, 1)
+  const liveEvent = featuredEvents[0] ?? events[0] ?? null
+  const featuredTournaments = tournaments.slice(0, 3)
+  const stats = [
+    {
+      value: loading ? '...' : programs.length.toString(),
+      label: programs.length === 1 ? 'Live Program' : 'Live Programs',
+    },
+    {
+      value: loading ? '...' : events.length.toString(),
+        label: 'Live Event',
+    },
+    {
+      value: loading ? '...' : tournaments.length.toString(),
+      label: tournaments.length === 1 ? 'Tournament Listing' : 'Tournament Listings',
+    },
+    {
+      value: loading ? '...' : allHomeMediaPosts.length.toString(),
+      label: allHomeMediaPosts.length === 1 ? 'Published Highlight' : 'Published Highlights',
+    },
+  ]
+  const homeProofItems = [
+    {
+      icon: (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" /></svg>),
+      label:
+        loading
+          ? 'Training programs live'
+          : programs.length === 0
+            ? 'Training programs published as available'
+            : programs.length === 1
+              ? '1 published training program'
+              : `${programs.length} published training programs`,
+      href: '/training',
+    },
+    ...homeProofBaseItems,
+  ]
 
   return (
     <div>
@@ -221,7 +256,7 @@ export default function HomePage() {
 
         <div className="page-shell relative w-full pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:pb-16 sm:pt-[calc(env(safe-area-inset-top)+6.5rem)]">
           <div className="max-w-3xl animate-fade-up">
-            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-6">
+            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase px-4 py-1.5 rounded-full mb-6">
               <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
               {siteContent.homeBadge || defaultWebsiteContent.homeBadge}
             </div>
@@ -343,7 +378,7 @@ export default function HomePage() {
                 <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-6">
                   {p.icon}
                 </div>
-                <div className="text-amber-500 font-black text-xs tracking-widest mb-2">0{i + 1}</div>
+                <div className="text-amber-500 font-black text-xs mb-2">0{i + 1}</div>
                 <h3 className="text-white font-black text-xl mb-3">{p.title}</h3>
                 <p className="text-gray-400 leading-relaxed text-sm">{p.desc}</p>
               </div>
@@ -352,8 +387,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <MeetOurCoaches />
+      <CoachKanteProfile coach={coachKante} imagePost={coachProfileMedia ?? coachSpotlightMedia} loading={loading} compact />
 
+      {(loading || programs.length > 0) && (
       <section className="bg-[#0a0a0a] py-16 px-4 border-t border-[#1a1a1a]">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
@@ -366,11 +402,11 @@ export default function HomePage() {
                 <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
                 Limited weekly availability. Popular programs fill quickly.
               </p>
+              </div>
+              <Link to="/training" className="btn-secondary text-sm whitespace-nowrap self-start md:self-end">
+                {programs.length > 0 ? `All ${programs.length} Programs` : 'View Programs'}
+              </Link>
             </div>
-            <Link to="/training" className="btn-secondary text-sm whitespace-nowrap self-start md:self-end">
-              All 5 Programs
-            </Link>
-          </div>
 
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -378,43 +414,42 @@ export default function HomePage() {
                 <SkeletonCard key={i} />
               ))}
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {programs.slice(0, 3).map((program, i) => (
-                <ProgramCard key={program.id} program={program} variant="compact" featured={i === 0} />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {programs.slice(0, 3).map((program) => (
+                <ProgramCard key={program.id} program={program} variant="compact" />
               ))}
-            </div>
+              </div>
           )}
         </div>
       </section>
+      )}
 
-      {(loading || events.length > 0) && (
-        <section className="bg-black py-16 px-4">
-          <div className="page-shell">
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
-              <div>
-                <span className="section-label">Upcoming</span>
-                <h2 className="text-3xl font-black text-white sm:text-4xl md:text-5xl">
-                  Camps & <span className="gradient-text">Events</span>
-                </h2>
-              </div>
+      {(loading || liveEvent) && (
+          <section className="bg-black py-16 px-4">
+            <div className="page-shell">
+              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+                <div>
+                <span className="section-label">Live Event</span>
+                  <h2 className="text-3xl font-black text-white sm:text-4xl md:text-5xl">
+                  Summer <span className="gradient-text">Training</span>
+                  </h2>
+                </div>
               <Link to="/events" className="btn-secondary w-full text-sm self-start md:w-auto md:self-end">
-                View All Events
-              </Link>
-            </div>
+                View Summer Training
+                </Link>
+              </div>
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[...Array(3)].map((_, i) => (
                   <SkeletonCard key={i} />
                 ))}
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {events.map((event) => (
-                  <EventCard key={event.id} event={event} />
-                ))}
-              </div>
-            )}
+              ) : (
+                <div className="mx-auto max-w-3xl">
+                {liveEvent ? <EventCard event={liveEvent} /> : null}
+                </div>
+              )}
           </div>
         </section>
       )}
@@ -445,7 +480,7 @@ export default function HomePage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {tournaments.map((tournament) => {
+                {featuredTournaments.map((tournament) => {
                   const spotsLeft = tournament.maxTeams - tournament.registeredTeams
                   const canRegister =
                     spotsLeft > 0 &&
@@ -548,13 +583,12 @@ export default function HomePage() {
                   className="h-full"
                   aspectClassName="aspect-[16/10]"
                   imageLoading="eager"
-                  imageFetchPriority="high"
                 />
               </button>
 
               <div className="grid gap-6">
-                <div className="rounded-[26px] border border-[#222] bg-[#111] p-6">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-400">
+                <div className="rounded-2xl border border-[#222] bg-[#111] p-6">
+                  <p className="text-xs font-semibold uppercase text-amber-400">
                     Home highlights
                   </p>
                   <h3 className="mt-3 text-2xl font-black text-white">
@@ -577,94 +611,103 @@ export default function HomePage() {
                         post={post}
                         className="h-full"
                         aspectClassName="aspect-[4/3]"
-                        imageLoading={index === 0 ? 'eager' : 'lazy'}
-                        imageFetchPriority={index === 0 ? 'high' : 'auto'}
+                        imageLoading="eager"
                       />
                     </button>
                   ))}
                 </div>
               </div>
             </div>
-          ) : (
-            <div className="rounded-2xl border border-dashed border-[#2a2a2a] bg-[#0f0f0f] px-6 py-12 text-center">
-              <p className="text-lg font-semibold text-white">Latest highlights will appear here soon.</p>
-              <p className="mt-3 text-sm leading-relaxed text-gray-400">
-                Check back after new photos and videos are published to the media feed.
+          ) : null}
+        </div>
+      </section>
+
+      {(loading || testimonials.length > 0) && (
+        <section className="bg-[#0a0a0a] py-16 px-4 border-t border-[#1a1a1a]">
+          <div className="page-shell">
+            <div className="text-center mb-10">
+              <span className="section-label">Real Results</span>
+              <h2 className="text-balance text-3xl font-black text-white sm:text-4xl md:text-5xl">
+                What Columbus Families <span className="gradient-text">Are Saying</span>
+              </h2>
+              <p className="text-gray-400 mt-4 max-w-lg mx-auto text-sm">
+                Real feedback from parents and players who train with Kante Elite.
               </p>
-              <Link to="/media" className="btn-secondary mt-6 inline-flex text-sm">
-                View all highlights
+            </div>
+
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[...Array(3)].map((_, i) => (
+                  <SkeletonCard key={i} />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {testimonials.map((t) => (
+                  <TestimonialCard key={t.id} testimonial={t} />
+                ))}
+              </div>
+            )}
+
+            <div className="text-center mt-10">
+              <Link to="/results" className="btn-ghost text-amber-500 hover:text-amber-400">
+                Read More Reviews
               </Link>
             </div>
-          )}
-        </div>
-      </section>
-
-      <section className="bg-[#0a0a0a] py-16 px-4 border-t border-[#1a1a1a]">
-        <div className="page-shell">
-          <div className="text-center mb-10">
-            <span className="section-label">Real Results</span>
-            <h2 className="text-balance text-3xl font-black text-white sm:text-4xl md:text-5xl">
-              What Columbus Families <span className="gradient-text">Are Saying</span>
-            </h2>
-            <p className="text-gray-400 mt-4 max-w-lg mx-auto text-sm">
-              Real feedback from parents and players who train with Kante Elite.
-            </p>
           </div>
-
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[...Array(3)].map((_, i) => (
-                <SkeletonCard key={i} />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {testimonials.map((t) => (
-                <TestimonialCard key={t.id} testimonial={t} />
-              ))}
-            </div>
-          )}
-
-          <div className="text-center mt-10">
-            <Link to="/results" className="btn-ghost text-amber-500 hover:text-amber-400">
-              Read More Reviews
-            </Link>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="bg-black py-16 px-4">
         <div className="page-shell">
           <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
-            <div className="relative order-2 min-h-80 overflow-hidden rounded-[1.75rem] border border-[#1e1e1e] bg-[#111] lg:order-1">
-              <MediaAsset
-                src={COACH_SPOTLIGHT_MEDIA.mediaUrl}
-                type={COACH_SPOTLIGHT_MEDIA.mediaType}
-                alt={getMediaAlt(COACH_SPOTLIGHT_MEDIA)}
-                loading="eager"
-                fetchPriority="high"
-                className="absolute inset-0 h-full w-full object-cover object-center"
-              />
+            <div className="relative order-2 min-h-80 overflow-hidden rounded-2xl border border-[#1e1e1e] bg-[#111] lg:order-1">
+              {coachSpotlightMedia ? (
+                <MediaAsset
+                  src={coachSpotlightMedia.mediaUrl}
+                  type={coachSpotlightMedia.mediaType}
+                  alt={getMediaAlt(coachSpotlightMedia)}
+                  loading="eager"
+                  className="absolute inset-0 h-full w-full object-cover object-center"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.22),_transparent_42%)]" />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-black/10" />
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.22),_transparent_42%)]" />
               <div className="relative flex h-full items-end p-6 sm:p-8">
                 <div className="max-w-sm rounded-2xl border border-white/10 bg-black/65 p-5 backdrop-blur">
                   <div className="flex items-center gap-3">
-                    <MediaAsset
-                      src={COACH_PROFILE_MEDIA.mediaUrl}
-                      type={COACH_PROFILE_MEDIA.mediaType}
-                      alt={getMediaAlt(COACH_PROFILE_MEDIA)}
-                      loading="eager"
-                      fetchPriority="high"
-                      className="h-14 w-14 rounded-full object-cover object-top ring-2 ring-amber-500"
-                    />
+                    {coachKante?.headshotUrl ? (
+                      <MediaAsset
+                        src={coachKante.headshotUrl}
+                        type={coachKante.headshotMediaType ?? 'IMAGE'}
+                        alt={`${coachKante.displayName} headshot`}
+                        loading="eager"
+                        className="h-14 w-14 rounded-full object-cover object-top ring-2 ring-amber-500"
+                      />
+                    ) : coachProfileMedia ? (
+                      <MediaAsset
+                        src={coachProfileMedia.mediaUrl}
+                        type={coachProfileMedia.mediaType}
+                        alt={getMediaAlt(coachProfileMedia)}
+                        loading="eager"
+                        className="h-14 w-14 rounded-full object-cover object-top ring-2 ring-amber-500"
+                      />
+                    ) : (
+                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-500 text-lg font-black text-black ring-2 ring-amber-500">
+                        K
+                      </div>
+                    )}
                     <div>
-                      <p className="text-sm font-black uppercase tracking-[0.2em] text-amber-500">Coach Kante</p>
-                      <p className="text-sm text-gray-300">Head Coach and Founder</p>
+                      <p className="text-sm font-black uppercase text-amber-500">
+                        {coachKante?.displayName || 'Coach Kante'}
+                      </p>
+                      <p className="text-sm text-gray-300">{coachKante?.roleTitle || 'Founder & Elite Trainer'}</p>
                     </div>
                   </div>
                   <p className="mt-4 text-sm leading-relaxed text-gray-200">
-                    Focused coaching, clear standards, and training designed to carry into real match habits.
+                    {coachKante?.bio || 'Focused coaching, clear standards, and training designed to carry into real match habits.'}
                   </p>
                 </div>
               </div>
@@ -682,7 +725,7 @@ export default function HomePage() {
                   {siteContent.aboutBody || defaultWebsiteContent.aboutBody}
                 </p>
                 <p>
-                  Coach Kante leads the year-round training standards at Kante Elite, and select summer events also feature Coach Tony as part of the coaching staff.
+                  Coach Kante leads the training standard through clear expectations, thoughtful feedback, and sessions built to carry into real match habits.
                 </p>
               </div>
               <div className="mb-8 mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -751,7 +794,7 @@ export default function HomePage() {
                 <div className="w-20 h-20 rounded-2xl bg-[#111] border border-[#222] flex items-center justify-center mx-auto mb-5 relative z-10 group-hover:border-amber-500/30 transition-colors duration-300">
                   {item.icon}
                 </div>
-                <div className="text-amber-500 font-black text-xs tracking-widest mb-2">{item.step}</div>
+                <div className="text-amber-500 font-black text-xs mb-2">{item.step}</div>
                 <h3 className="text-white font-black text-lg mb-3">{item.title}</h3>
                 <p className="text-gray-400 text-sm leading-relaxed max-w-xs mx-auto">{item.desc}</p>
                 {i < 2 && (
@@ -775,84 +818,81 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="bg-[#050505] border-t border-[#1a1a1a] py-20 px-4">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="section-label">Common Questions</p>
-            <h2 className="section-heading">
-              Answers <span className="gradient-text">Parents Ask</span>
-            </h2>
-            <p className="section-subheading">
-              Quick answers to what we hear most often. Still have questions?{' '}
-              <Link to="/contact" className="text-amber-500 hover:text-amber-400 transition-colors">
-                Contact us
-              </Link>
-              .
-            </p>
-          </div>
+      {(loading || homeFaqs.length > 0) && (
+        <section className="bg-[#050505] border-t border-[#1a1a1a] py-20 px-4">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-12">
+              <p className="section-label">Common Questions</p>
+              <h2 className="section-heading">
+                Answers <span className="gradient-text">Parents Ask</span>
+              </h2>
+              <p className="section-subheading">
+                Quick answers from the managed FAQ library. Still have questions?{' '}
+                <Link to="/contact" className="text-amber-500 hover:text-amber-400 transition-colors">
+                  Contact us
+                </Link>
+                .
+              </p>
+            </div>
 
-          <div className="space-y-3">
-            {[
-              {
-                q: 'What age groups do you train?',
-                a: 'We train players from ages 8 to 18. Each session is tailored to the player\'s age, level, and goals.',
-              },
-              {
-                q: 'Do you offer trial sessions?',
-                a: 'Yes. New players can start with a single introductory session before committing to a program. Check the Training page for current options.',
-              },
-              {
-                q: 'What is your cancellation policy?',
-                a: 'Please give at least 24 hours notice if you need to cancel or reschedule. Cancellations with less than 24 hours notice and no-shows are non-refundable. Coach-initiated cancellations receive a full refund or reschedule at your choice.',
-              },
-              {
-                q: 'Can parents watch training sessions?',
-                a: 'Yes, parents are welcome to observe sessions from designated viewing areas. We believe transparency between coaches and parents supports better player development.',
-              },
-              {
-                q: 'What should my child bring to sessions?',
-                a: 'Players should bring cleats (no metal studs on turf), shin guards, a water bottle, and athletic clothing. A ball is provided but players can bring their own.',
-              },
-            ].map((faq, i) => (
-              <div key={i} className="border border-[#222] rounded-xl overflow-hidden">
-                <button
-                  onClick={() => setHomeFaqOpen(homeFaqOpen === i ? null : i)}
-                  className="w-full flex items-center justify-between px-6 py-5 text-left bg-[#111] hover:bg-[#161616] transition-colors"
-                >
-                  <span className="text-white font-semibold pr-4">{faq.q}</span>
-                  <span
-                    className={`text-amber-500 flex-shrink-0 transition-transform duration-200 ${
-                      homeFaqOpen === i ? 'rotate-45' : 'rotate-0'
-                    }`}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                  </span>
-                </button>
-                {homeFaqOpen === i && (
-                  <div className="px-6 py-5 bg-[#0d0d0d] border-t border-[#1a1a1a]">
-                    <p className="text-gray-300 leading-relaxed">{faq.a}</p>
-                  </div>
-                )}
+            {loading ? (
+              <div className="space-y-3" aria-label="Loading featured FAQs">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="skeleton h-16 rounded-xl" />
+                ))}
               </div>
-            ))}
-          </div>
+            ) : (
+              <div className="space-y-3">
+                {homeFaqs.map((faq, i) => {
+                  const answerId = `home-faq-answer-${faq.id}`
+                  const expanded = homeFaqOpen === i
 
-          <div className="text-center mt-8">
-            <Link
-              to="/faq"
-              className="inline-flex items-center gap-2 text-amber-500 hover:text-amber-400 text-sm font-semibold transition-colors"
-            >
-              View all frequently asked questions
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-              </svg>
-            </Link>
+                  return (
+                    <div key={faq.id} className="overflow-hidden rounded-xl border border-[#222]">
+                      <button
+                        type="button"
+                        onClick={() => setHomeFaqOpen(expanded ? null : i)}
+                        aria-expanded={expanded}
+                        aria-controls={answerId}
+                        className="flex w-full items-center justify-between bg-[#111] px-6 py-5 text-left transition-colors hover:bg-[#161616]"
+                      >
+                        <span className="pr-4 font-semibold text-white">{faq.question}</span>
+                        <span
+                          className={`flex-shrink-0 text-amber-500 transition-transform duration-200 ${
+                            expanded ? 'rotate-45' : 'rotate-0'
+                          }`}
+                          aria-hidden="true"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                          </svg>
+                        </span>
+                      </button>
+                      {expanded && (
+                        <div id={answerId} className="border-t border-[#1a1a1a] bg-[#0d0d0d] px-6 py-5">
+                          <p className="leading-relaxed text-gray-300">{faq.answer}</p>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            <div className="text-center mt-8">
+              <Link
+                to="/faq"
+                className="inline-flex items-center gap-2 text-amber-500 hover:text-amber-400 text-sm font-semibold transition-colors"
+              >
+                View all frequently asked questions
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <CTASection
         eyebrow="Start Strong"

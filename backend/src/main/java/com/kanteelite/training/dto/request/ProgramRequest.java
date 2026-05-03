@@ -22,6 +22,21 @@ public class ProgramRequest {
     @Size(max = 255)
     private String shortDescription;
 
+    @Size(max = 80)
+    private String category;
+
+    private Long mediaPostId;
+
+    private Long secondaryMediaPostId;
+
+    private String coachNames;
+
+    @Size(max = 80)
+    private String seasonLabel;
+
+    @Size(max = 120)
+    private String campaignLabel;
+
     @Size(max = 200)
     private String location;
 
@@ -50,7 +65,17 @@ public class ProgramRequest {
 
     private String whoItsFor;
 
+    @Size(max = 80)
+    private String ctaLabel;
+
+    @Size(max = 500)
+    private String ctaUrl;
+
+    private boolean featured = false;
+
     private boolean active = true;
+
+    private boolean allowWaitlist = true;
 
     private Integer displayOrder = 0;
 }

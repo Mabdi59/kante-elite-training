@@ -6,6 +6,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -29,5 +30,12 @@ public class EventResponse {
     private String type;
     private String intensity;
     private String coachName;
+    private String primaryMediaUrl;
+    private String secondaryMediaUrl;
+    private List<String> mediaUrls;
+    private List<TrainingSessionResponse> trainingSessions;
+    private boolean featured;
+    private boolean active;
+    private boolean allowWaitlist;
     private Integer displayOrder;
 }

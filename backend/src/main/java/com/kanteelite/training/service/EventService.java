@@ -8,42 +8,61 @@ import com.kanteelite.training.dto.response.EventResponse;
 import com.kanteelite.training.dto.response.EventWorkflowResponse;
 import com.kanteelite.training.dto.response.ManagedParticipantResponse;
 import com.kanteelite.training.entity.Event;
-import com.kanteelite.training.entity.EventParticipant;
 import com.kanteelite.training.entity.PlayerProfile;
+import com.kanteelite.training.entity.Registration;
+import com.kanteelite.training.entity.TrainingSession;
 import com.kanteelite.training.entity.User;
+import com.kanteelite.training.enums.RegistrationOfferingType;
+import com.kanteelite.training.enums.RegistrationPaymentStatus;
+import com.kanteelite.training.enums.RegistrationSource;
+import com.kanteelite.training.enums.RegistrationStatus;
+import com.kanteelite.training.enums.RegistrationType;
 import com.kanteelite.training.exception.ResourceNotFoundException;
-import com.kanteelite.training.repository.EventParticipantRepository;
 import com.kanteelite.training.repository.EventRepository;
 import com.kanteelite.training.repository.PlayerProfileRepository;
+import com.kanteelite.training.repository.RegistrationRepository;
+import com.kanteelite.training.repository.TrainingSessionRepository;
 import com.kanteelite.training.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class EventService {
 
     private static final List<String> ALLOWED_STATUSES = List.of("UPCOMING", "ACTIVE", "COMPLETED");
+    private static final Set<RegistrationStatus> CAPACITY_HOLDING_STATUSES = EnumSet.of(
+            RegistrationStatus.PENDING,
+            RegistrationStatus.CONFIRMED,
+            RegistrationStatus.WAITLISTED
+    );
 
     private final EventRepository eventRepository;
-    private final EventParticipantRepository eventParticipantRepository;
+    private final RegistrationRepository registrationRepository;
+    private final TrainingSessionRepository trainingSessionRepository;
     private final UserRepository userRepository;
     private final PlayerProfileRepository playerProfileRepository;
     private final NotificationService notificationService;
     private final EmailService emailService;
+    private final TrainingSessionService trainingSessionService;
+    private final RegistrationService registrationService;
 
     @Transactional(readOnly = true)
     public List<EventResponse> getUpcomingEvents() {
-        return eventRepository.findByStatusNotOrderByDisplayOrderAscStartDateAsc("COMPLETED")
+        return eventRepository.findByActiveTrueAndStatusNotOrderByDisplayOrderAscStartDateAsc("COMPLETED")
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -65,7 +84,7 @@ public class EventService {
     @Transactional(readOnly = true)
     public EventWorkflowResponse getEventWorkflow(Long id) {
         Event event = getEventEntity(id);
-        List<ManagedParticipantResponse> participants = eventParticipantRepository.findByEventIdOrderByCreatedAtAsc(id)
+        List<ManagedParticipantResponse> participants = findEventRosterRegistrations(id)
                 .stream()
                 .map(this::toParticipantResponse)
                 .toList();
@@ -97,7 +116,12 @@ public class EventService {
                 .status(normalizeStatus(req.getStatus()))
                 .type(req.getType())
                 .intensity(req.getIntensity())
-                .coachName(req.getCoachName())
+                .coachName(trimToNull(req.getCoachName()))
+                .primaryMediaUrl(trimToNull(req.getPrimaryMediaUrl()))
+                .secondaryMediaUrl(trimToNull(req.getSecondaryMediaUrl()))
+                .featured(req.isFeatured())
+                .active(req.isActive())
+                .allowWaitlist(req.isAllowWaitlist())
                 .displayOrder(req.getDisplayOrder() != null ? req.getDisplayOrder() : 0)
                 .build();
         return toResponse(eventRepository.save(event));
@@ -121,7 +145,12 @@ public class EventService {
         event.setStatus(normalizeStatus(req.getStatus()));
         event.setType(req.getType());
         event.setIntensity(req.getIntensity());
-        event.setCoachName(req.getCoachName());
+        event.setCoachName(trimToNull(req.getCoachName()));
+        event.setPrimaryMediaUrl(trimToNull(req.getPrimaryMediaUrl()));
+        event.setSecondaryMediaUrl(trimToNull(req.getSecondaryMediaUrl()));
+        event.setFeatured(req.isFeatured());
+        event.setActive(req.isActive());
+        event.setAllowWaitlist(req.isAllowWaitlist());
         if (req.getDisplayOrder() != null) event.setDisplayOrder(req.getDisplayOrder());
         Event saved = eventRepository.save(event);
         notifyEventLifecycle(saved, "updated", "Event details were updated. Please review your schedule.");
@@ -131,43 +160,64 @@ public class EventService {
     @Transactional
     public ManagedParticipantResponse addParticipant(Long eventId, ParticipantAssignmentRequest request) {
         Event event = getEventEntity(eventId);
-        long participantCount = eventParticipantRepository.countByEventId(eventId);
+        long participantCount = registrationRepository.countByEventIdAndStatusIn(eventId, CAPACITY_HOLDING_STATUSES);
         if (isCapacityReached(resolveCapacity(event), participantCount)) {
             throw new IllegalArgumentException("Event capacity has been reached.");
         }
 
-        EventParticipant participant = EventParticipant.builder()
+        Registration participant = Registration.builder()
+                .registrationCode(generateCode())
+                .offeringType(RegistrationOfferingType.EVENT)
+                .registrationType(RegistrationType.EVENT_REGISTRATION)
+                .status(RegistrationStatus.CONFIRMED)
+                .paymentStatus(RegistrationPaymentStatus.UNPAID)
+                .source(RegistrationSource.PUBLIC)
                 .event(event)
+                .priceAmount(event.getPrice())
                 .build();
 
         if (request.getUserId() != null) {
-            if (eventParticipantRepository.existsByEventIdAndUserId(eventId, request.getUserId())) {
-                throw new IllegalArgumentException("That user is already in this event.");
-            }
             User user = userRepository.findById(request.getUserId())
                     .orElseThrow(() -> new ResourceNotFoundException("User", request.getUserId()));
-            participant.setUser(user);
-        } else if (request.getPlayerProfileId() != null) {
-            if (eventParticipantRepository.existsByEventIdAndPlayerProfileId(eventId, request.getPlayerProfileId())) {
-                throw new IllegalArgumentException("That player is already in this event.");
+            String userEmail = normalizeEmail(user.getEmail());
+            if (existsActiveRegistrationByEmail(eventId, userEmail)) {
+                throw new IllegalArgumentException("That user is already in this event.");
             }
+            participant.setParticipantName(user.getName());
+            participant.setParticipantEmail(userEmail);
+            participant.setGuardianName(user.getName());
+            participant.setGuardianEmail(userEmail);
+        } else if (request.getPlayerProfileId() != null) {
             PlayerProfile playerProfile = playerProfileRepository.findById(request.getPlayerProfileId())
                     .orElseThrow(() -> new ResourceNotFoundException("PlayerProfile", request.getPlayerProfileId()));
-            participant.setPlayerProfile(playerProfile);
+            User parentUser = playerProfile.getParentUser();
+            String parentEmail = parentUser != null ? normalizeEmail(parentUser.getEmail()) : null;
+            if (!StringUtils.hasText(parentEmail)) {
+                throw new IllegalArgumentException("That player profile is missing a parent email.");
+            }
+            if (existsActiveRegistrationByEmail(eventId, parentEmail)) {
+                throw new IllegalArgumentException("That player is already in this event.");
+            }
+            participant.setParticipantName(playerProfile.getName());
+            participant.setGuardianName(parentUser != null ? parentUser.getName() : playerProfile.getName());
+            participant.setGuardianEmail(parentEmail);
+            participant.setParticipantEmail(parentEmail);
         } else {
             String manualName = trimToNull(request.getManualName());
             String manualEmail = normalizeEmail(request.getManualEmail());
             if (!StringUtils.hasText(manualName) || !StringUtils.hasText(manualEmail)) {
                 throw new IllegalArgumentException("Manual participants need both a name and email.");
             }
-            if (eventParticipantRepository.existsByEventIdAndManualEmailIgnoreCase(eventId, manualEmail)) {
-                throw new IllegalArgumentException("That email is already registered for this event.");
+            if (existsActiveRegistrationByEmail(eventId, manualEmail)) {
+                throw new IllegalArgumentException("That email is already in this event.");
             }
-            participant.setManualName(manualName);
-            participant.setManualEmail(manualEmail);
+            participant.setParticipantName(manualName);
+            participant.setParticipantEmail(manualEmail);
+            participant.setGuardianName(manualName);
+            participant.setGuardianEmail(manualEmail);
         }
 
-        EventParticipant saved = eventParticipantRepository.save(participant);
+        Registration saved = registrationRepository.save(participant);
         ManagedParticipantResponse response = toParticipantResponse(saved);
         notifyParticipantAssignment(event, response, true);
         return response;
@@ -187,6 +237,46 @@ public class EventService {
      */
     @Transactional
     public ManagedParticipantResponse registerForEvent(Long eventId, SimpleEventRegistrationRequest request) {
+        if (request.getTrainingSessionIds() != null && !request.getTrainingSessionIds().isEmpty()) {
+            Event event = getEventEntity(eventId);
+            List<TrainingSession> sessions = trainingSessionRepository.findAllById(request.getTrainingSessionIds())
+                    .stream()
+                    .filter(session -> session.getEvent() != null && eventId.equals(session.getEvent().getId()))
+                    .toList();
+
+            if (sessions.size() != request.getTrainingSessionIds().size()) {
+                throw new IllegalArgumentException("One or more selected sessions are not available for this event.");
+            }
+
+            String packageType = StringUtils.hasText(request.getPackageType()) ? request.getPackageType() : "DROP_IN";
+            BigDecimal fullWeekPrice = BigDecimal.valueOf(125);
+            BigDecimal dropInPrice = BigDecimal.valueOf(30);
+            ManagedParticipantResponse first = null;
+
+            for (int index = 0; index < sessions.size(); index++) {
+                BigDecimal price = "FULL_WEEK".equalsIgnoreCase(packageType)
+                        ? (index == 0 ? fullWeekPrice : BigDecimal.ZERO)
+                        : dropInPrice;
+                var created = registrationService.createPublicEventSessionRegistration(
+                        event,
+                        sessions.get(index),
+                        request,
+                        price,
+                        packageType);
+                if (first == null) {
+                    first = ManagedParticipantResponse.builder()
+                            .id(created.getId())
+                            .participantType("REGISTRATION")
+                            .name(created.getParticipantName())
+                            .email(created.getGuardianEmail())
+                            .createdAt(created.getCreatedAt())
+                            .build();
+                }
+            }
+
+            return first;
+        }
+
         ParticipantAssignmentRequest assignment = new ParticipantAssignmentRequest();
         assignment.setManualName(request.getName());
         assignment.setManualEmail(request.getEmail());
@@ -195,18 +285,22 @@ public class EventService {
 
     @Transactional
     public void removeParticipant(Long eventId, Long participantId) {
-        EventParticipant participant = eventParticipantRepository.findByIdAndEventId(participantId, eventId)
-                .orElseThrow(() -> new ResourceNotFoundException("EventParticipant", participantId));
+        Registration participant = registrationRepository.findById(participantId)
+                .filter(registration -> registration.getEvent() != null && eventId.equals(registration.getEvent().getId()))
+                .orElseThrow(() -> new ResourceNotFoundException("EventRegistration", participantId));
         ManagedParticipantResponse participantResponse = toParticipantResponse(participant);
-        Event event = participant.getEvent();
-        eventParticipantRepository.delete(participant);
+        Event event = getEventEntity(eventId);
+        participant.setStatus(RegistrationStatus.CANCELLED);
+        participant.setCancelledAt(LocalDateTime.now());
+        participant.setCancellationReason("Removed from event roster.");
+        registrationRepository.save(participant);
         notifyParticipantAssignment(event, participantResponse, false);
     }
 
     @Transactional
     public void deleteEvent(Long id) {
         Event event = getEventEntity(id);
-        List<EventParticipant> participants = eventParticipantRepository.findByEventIdOrderByCreatedAtAsc(id);
+        List<Registration> participants = findEventRosterRegistrations(id);
         eventRepository.deleteById(id);
         notifyEventLifecycle(event, participants, "cancelled", "This event has been cancelled and removed.");
     }
@@ -218,7 +312,7 @@ public class EventService {
 
     private EventResponse toResponse(Event event) {
         long participantCount = event.getId() != null
-                ? eventParticipantRepository.countByEventId(event.getId())
+                ? registrationRepository.countByEventIdAndStatusIn(event.getId(), CAPACITY_HOLDING_STATUSES)
                 : 0;
         int capacity = resolveCapacity(event);
         int spotsLeft = Math.max(capacity - (int) participantCount, 0);
@@ -245,37 +339,38 @@ public class EventService {
                 .type(event.getType())
                 .intensity(event.getIntensity())
                 .coachName(event.getCoachName())
+                .primaryMediaUrl(event.getPrimaryMediaUrl())
+                .secondaryMediaUrl(event.getSecondaryMediaUrl())
+                .mediaUrls(java.util.stream.Stream.of(event.getPrimaryMediaUrl(), event.getSecondaryMediaUrl())
+                        .filter(StringUtils::hasText)
+                        .toList())
+                .trainingSessions(event.getId() != null
+                        ? trainingSessionRepository.findPublicEventSessions(
+                                event.getId(),
+                                com.kanteelite.training.enums.TrainingSessionStatus.CANCELLED)
+                                .stream()
+                                .map(trainingSessionService::toResponse)
+                                .toList()
+                        : List.of())
+                .featured(event.isFeatured())
+                .active(event.isActive())
+                .allowWaitlist(event.isAllowWaitlist())
                 .displayOrder(event.getDisplayOrder())
                 .build();
     }
 
-    private ManagedParticipantResponse toParticipantResponse(EventParticipant participant) {
-        if (participant.getUser() != null) {
-            return ManagedParticipantResponse.builder()
-                    .id(participant.getId())
-                    .userId(participant.getUser().getId())
-                    .participantType("USER")
-                    .name(participant.getUser().getName())
-                    .email(participant.getUser().getEmail())
-                    .createdAt(participant.getCreatedAt())
-                    .build();
-        }
-        if (participant.getPlayerProfile() != null) {
-            User parentUser = participant.getPlayerProfile().getParentUser();
-            return ManagedParticipantResponse.builder()
-                    .id(participant.getId())
-                    .playerProfileId(participant.getPlayerProfile().getId())
-                    .participantType("PLAYER")
-                    .name(participant.getPlayerProfile().getName())
-                    .email(parentUser != null ? parentUser.getEmail() : null)
-                    .createdAt(participant.getCreatedAt())
-                    .build();
-        }
+    private ManagedParticipantResponse toParticipantResponse(Registration participant) {
+        String name = StringUtils.hasText(participant.getParticipantName())
+                ? participant.getParticipantName()
+                : participant.getGuardianName();
+        String email = StringUtils.hasText(participant.getGuardianEmail())
+                ? participant.getGuardianEmail()
+                : participant.getParticipantEmail();
         return ManagedParticipantResponse.builder()
                 .id(participant.getId())
-                .participantType("MANUAL")
-                .name(participant.getManualName())
-                .email(participant.getManualEmail())
+                .participantType("REGISTRATION")
+                .name(name)
+                .email(email)
                 .createdAt(participant.getCreatedAt())
                 .build();
     }
@@ -334,14 +429,36 @@ public class EventService {
         return trimmed == null ? null : trimmed.toLowerCase(Locale.ROOT);
     }
 
+    private String generateCode() {
+        return "REG-" + UUID.randomUUID().toString().replace("-", "").substring(0, 10).toUpperCase(Locale.ROOT);
+    }
+
+    private boolean existsActiveRegistrationByEmail(Long eventId, String email) {
+        if (!StringUtils.hasText(email)) {
+            return false;
+        }
+        return registrationRepository.existsByEventIdAndGuardianEmailIgnoreCaseAndStatusNot(
+                eventId,
+                email,
+                RegistrationStatus.CANCELLED
+        );
+    }
+
+    private List<Registration> findEventRosterRegistrations(Long eventId) {
+        return registrationRepository.findByEventIdOrderByCreatedAtAsc(eventId)
+                .stream()
+                .filter(registration -> registration.getStatus() != RegistrationStatus.CANCELLED)
+                .toList();
+    }
+
     private void notifyEventLifecycle(Event event, String action, String detail) {
-        List<EventParticipant> participants = eventParticipantRepository.findByEventIdOrderByCreatedAtAsc(event.getId());
+        List<Registration> participants = findEventRosterRegistrations(event.getId());
         notifyEventLifecycle(event, participants, action, detail);
     }
 
-    private void notifyEventLifecycle(Event event, List<EventParticipant> participants, String action, String detail) {
+    private void notifyEventLifecycle(Event event, List<Registration> participants, String action, String detail) {
         Map<String, String> recipients = new LinkedHashMap<>();
-        for (EventParticipant participant : participants) {
+        for (Registration participant : participants) {
             ManagedParticipantResponse response = toParticipantResponse(participant);
             if (StringUtils.hasText(response.getEmail())) {
                 String normalizedEmail = normalizeEmail(response.getEmail());

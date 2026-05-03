@@ -5,10 +5,10 @@ import { MemoryRouter } from 'react-router-dom'
 // Mock API calls before importing the page
 vi.mock('../services/api', () => ({
   getAdminDashboard: vi.fn().mockResolvedValue({
-    totalBookings: 42,
-    confirmedBookings: 30,
-    pendingBookings: 8,
-    cancelledBookings: 4,
+    totalRegistrations: 42,
+    confirmedRegistrations: 30,
+    pendingWaitlistRegistrations: 8,
+    cancelledRegistrations: 4,
     activePrograms: 3,
     totalPrograms: 5,
     totalEvents: 7,
@@ -20,10 +20,13 @@ vi.mock('../services/api', () => ({
     totalFamilies: 15,
     totalActiveSeries: 3,
     pendingRegistrations: 5,
+    usersWithRoleAdmin: 2,
+    usersWithRoleCoach: 6,
+    usersWithRoleUser: 92,
   }),
-  getBookingsOverTime: vi.fn().mockResolvedValue([
-    { date: '2026-04-01', count: 5 },
-    { date: '2026-04-02', count: 8 },
+  getRegistrationsOverTime: vi.fn().mockResolvedValue([
+    { date: '2026-05-01', count: 2 },
+    { date: '2026-05-02', count: 4 },
   ]),
 }))
 
@@ -42,7 +45,7 @@ describe('AdminDashboardPage', () => {
     )
 
     expect(
-      await screen.findByText('Run bookings, content, and tournaments from one place.'),
+      await screen.findByText('Run registrations, content, and tournaments from one place.'),
     ).toBeInTheDocument()
     expect(screen.getByText('Launch Dashboard')).toBeInTheDocument()
   })
@@ -54,9 +57,9 @@ describe('AdminDashboardPage', () => {
       </MemoryRouter>,
     )
 
-    expect(await screen.findByText('Total Bookings')).toBeInTheDocument()
-    expect(screen.getByText('Pending Bookings')).toBeInTheDocument()
-    expect(screen.getByText('Pending Team Registrations')).toBeInTheDocument()
+    expect(await screen.findByText('Total Registrations')).toBeInTheDocument()
+    expect(screen.getByText('Pending / Waitlisted')).toBeInTheDocument()
+    expect(screen.getByText('Registration Trend')).toBeInTheDocument()
     expect(screen.getByText('Tournaments')).toBeInTheDocument()
   })
 

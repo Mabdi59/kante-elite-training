@@ -1,11 +1,40 @@
-import type { MediaPost } from '../types'
+import type { MediaPlacementKey, MediaPost } from '../types'
 
-export type MediaSurface = 'feed' | 'home' | 'about'
+export type MediaSortSurface = 'feed' | MediaPlacementKey
 
-function getMediaOrder(post: MediaPost, surface: MediaSurface) {
-  if (surface === 'home') return post.homeDisplayOrder ?? 0
-  if (surface === 'about') return post.aboutDisplayOrder ?? 0
-  return post.displayOrder ?? 0
+export const MEDIA_PLACEMENT_LABELS: Record<MediaPlacementKey, string> = {
+  HOME_HERO: 'Homepage hero',
+  HOME_FEATURED: 'Homepage feature',
+  HOME_GALLERY: 'Homepage highlights',
+  ABOUT_HERO: 'About hero',
+  ABOUT_PROFILE: 'Coach profile',
+  ABOUT_GALLERY: 'About gallery',
+  MEDIA_LIBRARY: 'Media page',
+}
+
+export const MEDIA_PLACEMENT_OPTIONS = Object.entries(MEDIA_PLACEMENT_LABELS).map(([value, label]) => ({
+  value: value as MediaPlacementKey,
+  label,
+}))
+
+export function getPlacement(post: MediaPost, key: MediaPlacementKey) {
+  return post.placements?.find((placement) => placement.key === key)
+}
+
+export function hasPlacement(post: MediaPost, key: MediaPlacementKey) {
+  return Boolean(getPlacement(post, key))
+}
+
+export function getPostsByPlacement(posts: MediaPost[], key: MediaPlacementKey) {
+  return sortMediaPosts(posts.filter((post) => hasPlacement(post, key)), key)
+}
+
+function getMediaOrder(post: MediaPost, surface: MediaSortSurface) {
+  if (surface !== 'feed') {
+    const placementOrder = getPlacement(post, surface)?.displayOrder
+    if (placementOrder !== undefined) return placementOrder
+  }
+  return 0
 }
 
 function getCreatedAtTimestamp(post: MediaPost) {
@@ -13,12 +42,8 @@ function getCreatedAtTimestamp(post: MediaPost) {
   return Number.isNaN(timestamp) ? 0 : timestamp
 }
 
-export function sortMediaPosts(posts: MediaPost[], surface: MediaSurface = 'feed') {
+export function sortMediaPosts(posts: MediaPost[], surface: MediaSortSurface = 'feed') {
   return [...posts].sort((left, right) => {
-    if (left.featured !== right.featured) {
-      return Number(right.featured) - Number(left.featured)
-    }
-
     const leftOrder = getMediaOrder(left, surface)
     const rightOrder = getMediaOrder(right, surface)
     const leftHasManualOrder = leftOrder > 0

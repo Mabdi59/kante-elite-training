@@ -40,7 +40,7 @@ export default function MobileActionBar() {
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3 md:hidden">
-      <div className="pointer-events-auto mx-auto grid max-w-lg grid-cols-3 gap-2 rounded-[1.75rem] border border-white/10 bg-black/95 p-2 shadow-[0_-12px_40px_rgba(0,0,0,0.48)] backdrop-blur">
+      <div className="pointer-events-auto mx-auto grid max-w-lg grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-black/95 p-2 shadow-[0_-12px_40px_rgba(0,0,0,0.48)] backdrop-blur">
         {actions.map((action) => {
           const active =
             location.pathname === action.href ||
@@ -50,6 +50,7 @@ export default function MobileActionBar() {
             <Link
               key={action.href}
               to={action.href}
+              aria-current={active ? 'page' : undefined}
               className={`flex min-h-[3.75rem] flex-col items-center justify-center gap-1.5 rounded-2xl px-2 py-2 text-center text-xs font-semibold transition-all ${
                 active
                   ? 'bg-amber-500 text-black shadow-[0_8px_24px_rgba(245,158,11,0.28)]'

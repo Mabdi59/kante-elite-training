@@ -5,10 +5,10 @@ import CTASection from '../components/CTASection'
 import MediaLightbox from '../components/MediaLightbox'
 import MediaPostCard from '../components/MediaPostCard'
 import PageSkeleton from '../components/PageSkeleton'
-import { MEDIA_FALLBACK_POSTS } from '../content/mediaFallbacks'
+import { Section } from '../components/Section'
 import { getMediaPosts } from '../services/api'
 import type { MediaCategory, MediaPost } from '../types'
-import { sortMediaPosts } from '../utils/media'
+import { getPostsByPlacement, sortMediaPosts } from '../utils/media'
 
 type FilterCategory = MediaCategory | 'ALL'
 
@@ -25,11 +25,6 @@ export default function MediaPage() {
   const [activeCategory, setActiveCategory] = useState<FilterCategory>('ALL')
 
   useEffect(() => {
-    document.title = 'Media & Highlights | Kante Elite Training'
-    return () => { document.title = 'Kante Elite Training, Columbus Youth Soccer Academy' }
-  }, [])
-
-  useEffect(() => {
     setLoading(true)
     getMediaPosts()
       .then(setPosts)
@@ -37,7 +32,10 @@ export default function MediaPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const orderedPosts = useMemo(() => sortMediaPosts(posts, 'feed'), [posts])
+  const orderedPosts = useMemo(() => {
+    const libraryPosts = getPostsByPlacement(posts, 'MEDIA_LIBRARY')
+    return libraryPosts.length > 0 ? libraryPosts : sortMediaPosts(posts, 'feed')
+  }, [posts])
 
   const filteredPosts = useMemo(() => {
     if (activeCategory === 'ALL') return orderedPosts
@@ -45,7 +43,7 @@ export default function MediaPage() {
   }, [activeCategory, orderedPosts])
 
   const visiblePosts = filteredPosts.slice(0, visibleCount)
-  const lightboxPosts = posts.length > 0 ? visiblePosts : MEDIA_FALLBACK_POSTS
+  const lightboxPosts = visiblePosts
   const photoCount = orderedPosts.filter((post) => post.mediaType === 'IMAGE').length
   const videoCount = orderedPosts.filter((post) => post.mediaType === 'VIDEO').length
 
@@ -66,7 +64,7 @@ export default function MediaPage() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_#78350f_0%,_transparent_60%)] opacity-20" />
         <div className="page-shell relative">
           <div className="max-w-3xl animate-fade-up">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-amber-400">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-1.5 text-xs font-bold uppercase text-amber-400">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
               Highlights
             </div>
@@ -86,15 +84,15 @@ export default function MediaPage() {
             </div>
             <div className="mt-8 grid max-w-2xl grid-cols-1 gap-3 text-sm text-gray-400 sm:grid-cols-3">
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Photos</p>
+                <p className="text-xs font-semibold uppercase text-gray-500">Photos</p>
                 <p className="mt-1 text-lg font-black text-white">{photoCount}</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Videos</p>
+                <p className="text-xs font-semibold uppercase text-gray-500">Videos</p>
                 <p className="mt-1 text-lg font-black text-white">{videoCount}</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Categories</p>
+                <p className="text-xs font-semibold uppercase text-gray-500">Categories</p>
                 <p className="mt-1 text-lg font-black text-white">{CATEGORY_OPTIONS.length}</p>
               </div>
             </div>
@@ -102,8 +100,7 @@ export default function MediaPage() {
         </div>
       </section>
 
-      <section className="border-t border-[#1a1a1a] bg-[#0a0a0a] px-4 py-16">
-        <div className="page-shell">
+      <Section tone="raised">
           {posts.length > 1 ? (
             <div className="mb-8 flex flex-wrap gap-2">
               {CATEGORY_TABS.map((tab) => {
@@ -147,19 +144,19 @@ export default function MediaPage() {
                 <button
                   type="button"
                   onClick={() => setActiveMediaIndex(0)}
+                  aria-label={`Open ${leadPost.caption || 'featured media'} in gallery`}
                   className="block h-full w-full text-left"
                 >
                   <MediaPostCard
                     post={leadPost}
                     aspectClassName="aspect-[16/10]"
                     imageLoading="eager"
-                    imageFetchPriority="high"
                   />
                 </button>
 
                 <div className="grid gap-6">
-                  <div className="rounded-[26px] border border-[#222] bg-[#111] p-6">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-400">
+              <div className="rounded-2xl border border-[#222] bg-[#111] p-6">
+                    <p className="text-xs font-semibold uppercase text-amber-400">
                       Current view
                     </p>
                     <h2 className="mt-3 text-2xl font-black text-white">
@@ -178,13 +175,13 @@ export default function MediaPage() {
                         key={post.id}
                         type="button"
                         onClick={() => setActiveMediaIndex(index + 1)}
+                        aria-label={`Open ${post.caption || 'media item'} in gallery`}
                         className="block h-full w-full text-left"
                       >
                         <MediaPostCard
                           post={post}
                           aspectClassName="aspect-[4/3]"
-                          imageLoading={index === 0 ? 'eager' : 'lazy'}
-                          imageFetchPriority={index === 0 ? 'high' : 'auto'}
+                          imageLoading="eager"
                         />
                       </button>
                     ))}
@@ -199,12 +196,12 @@ export default function MediaPage() {
                       key={post.id}
                       type="button"
                       onClick={() => setActiveMediaIndex(index + 3)}
+                      aria-label={`Open ${post.caption || 'media item'} in gallery`}
                       className="block h-full w-full text-left"
                     >
                       <MediaPostCard
                         post={post}
-                        imageLoading={index < 4 ? 'eager' : 'lazy'}
-                        imageFetchPriority={index < 2 ? 'high' : 'auto'}
+                        imageLoading="eager"
                       />
                     </button>
                   ))}
@@ -212,30 +209,11 @@ export default function MediaPage() {
               ) : null}
             </div>
           ) : (
-            <div className="space-y-8">
-              <div className="rounded-[26px] border border-dashed border-[#2a2a2a] bg-[#0f0f0f] px-6 py-10 text-center">
-                <p className="text-lg font-semibold text-white">Live uploads will appear here soon.</p>
-                <p className="mt-3 text-sm leading-relaxed text-gray-400">
-                  Until then, you can still browse built-in training moments from the site library.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {MEDIA_FALLBACK_POSTS.map((post, index) => (
-                  <button
-                    key={post.id}
-                    type="button"
-                    onClick={() => setActiveMediaIndex(index)}
-                    className="block h-full w-full text-left"
-                  >
-                    <MediaPostCard
-                      post={post}
-                      imageLoading={index < 2 ? 'eager' : 'lazy'}
-                      imageFetchPriority={index === 0 ? 'high' : 'auto'}
-                    />
-                  </button>
-                ))}
-              </div>
+              <div className="rounded-2xl border border-[#222] bg-[#101010] px-6 py-12 text-center">
+              <p className="text-lg font-semibold text-white">No media has been published yet.</p>
+              <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-gray-400">
+                Published photos and videos from Kante Elite sessions will appear here once the admin adds them to the media page.
+              </p>
             </div>
           )}
 
@@ -250,8 +228,7 @@ export default function MediaPage() {
               </button>
             </div>
           ) : null}
-        </div>
-      </section>
+      </Section>
 
       <CTASection
         eyebrow="Step Into The Work"

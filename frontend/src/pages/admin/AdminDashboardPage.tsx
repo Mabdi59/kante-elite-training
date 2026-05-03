@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { getAdminDashboard, getBookingsOverTime } from '../../services/api'
+import { getAdminDashboard, getRegistrationsOverTime } from '../../services/api'
 import type { AdminDashboard } from '../../types'
 import PageSkeleton from '../../components/PageSkeleton'
 
@@ -32,7 +32,7 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     Promise.all([
       getAdminDashboard(),
-      getBookingsOverTime(30).catch(() => {
+      getRegistrationsOverTime(30).catch(() => {
         setChartUnavailable(true)
         return []
       }),
@@ -57,10 +57,11 @@ export default function AdminDashboardPage() {
   }
 
   const operationsCards = [
-    { label: 'Total Bookings', value: stats.totalBookings, color: 'text-green-400', link: '/admin/bookings' },
-    { label: 'Pending Bookings', value: stats.pendingBookings, color: 'text-yellow-400', link: '/admin/bookings' },
+    { label: 'Total Registrations', value: stats.totalRegistrations, color: 'text-green-400', link: '/admin/registrations' },
+    { label: 'Confirmed', value: stats.confirmedRegistrations, color: 'text-blue-400', link: '/admin/registrations?status=CONFIRMED' },
+    { label: 'Pending / Waitlisted', value: stats.pendingWaitlistRegistrations, color: 'text-yellow-400', link: '/admin/registrations' },
+    { label: 'Cancelled', value: stats.cancelledRegistrations, color: 'text-red-400', link: '/admin/registrations?status=CANCELLED' },
     { label: 'Unread Messages', value: stats.unreadMessages, color: 'text-pink-400', link: '/admin/messages' },
-    { label: 'Pending Team Registrations', value: stats.pendingRegistrations ?? 0, color: 'text-amber-500', link: '/admin/tournaments' },
   ]
 
   const contentCards = [
@@ -75,15 +76,15 @@ export default function AdminDashboardPage() {
       <section className="rounded-3xl border border-gray-800 bg-[radial-gradient(circle_at_top_left,_rgba(245,158,11,0.12),_transparent_40%),_#111111] p-6 sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-500">
+            <p className="text-xs font-semibold uppercase text-amber-500">
               Launch Dashboard
             </p>
             <h1 className="mt-3 text-3xl font-black text-white sm:text-4xl">
-              Run bookings, content, and tournaments from one place.
+              Run registrations, content, and tournaments from one place.
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-gray-400 sm:text-base">
               This admin view is trimmed to the daily operating tools Kante Elite needs at launch:
-              bookings, schedule control, events, tournaments, website content, messages, and account management.
+              registrations, schedule control, events, tournaments, website content, messages, and account management.
             </p>
           </div>
 
@@ -147,7 +148,7 @@ export default function AdminDashboardPage() {
             >
               <p className="text-sm text-gray-400">{card.label}</p>
               <p className="mt-2 text-2xl font-black text-white">{card.value}</p>
-              <p className="mt-1 text-xs uppercase tracking-[0.18em] text-gray-500">{card.detail}</p>
+              <p className="mt-1 text-xs uppercase text-gray-500">{card.detail}</p>
             </Link>
           ))}
         </div>
@@ -156,8 +157,8 @@ export default function AdminDashboardPage() {
       {chartData.length > 0 ? (
         <section>
           <div className="mb-4">
-            <h2 className="text-lg font-black text-white">Booking Trend</h2>
-            <p className="text-sm text-gray-400">Last 30 days of booking volume.</p>
+            <h2 className="text-lg font-black text-white">Registration Trend</h2>
+            <p className="text-sm text-gray-400">Last 30 days of registration volume.</p>
           </div>
 
           <div className="rounded-2xl border border-gray-800 bg-gray-900 p-5 sm:p-6">
@@ -190,9 +191,9 @@ export default function AdminDashboardPage() {
         </section>
       ) : chartUnavailable ? (
         <section className="rounded-2xl border border-gray-800 bg-gray-900 p-5 sm:p-6">
-          <h2 className="text-lg font-black text-white">Booking Trend</h2>
+          <h2 className="text-lg font-black text-white">Registration Trend</h2>
           <p className="mt-2 text-sm text-gray-400">
-            Booking history is temporarily unavailable, but the rest of the dashboard is ready to use.
+            Registration history is temporarily unavailable, but the rest of the dashboard is ready to use.
           </p>
         </section>
       ) : null}

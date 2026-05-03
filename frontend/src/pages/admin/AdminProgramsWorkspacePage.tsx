@@ -1,9 +1,11 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   addAdminProgramParticipant,
   createProgram,
+  createMediaPost,
   deleteProgram,
+  getMediaPosts,
   getAdminPlayers,
   getAdminProgramWorkflow,
   getAdminPrograms,
@@ -14,6 +16,7 @@ import {
 import type {
   AdminUser,
   ManagedParticipant,
+  MediaPost,
   ParticipantAssignmentFormData,
   PlayerProfile,
   Program,
@@ -35,6 +38,12 @@ type ProgramFormState = {
   slug: string
   shortDescription: string
   description: string
+  category: string
+  mediaPostId?: number
+  secondaryMediaPostId?: number
+  coachNamesText: string
+  seasonLabel: string
+  campaignLabel: string
   location: string
   startDate: string
   startTime: string
@@ -48,6 +57,9 @@ type ProgramFormState = {
   featuresText: string
   icon: string
   whoItsFor: string
+  ctaLabel: string
+  ctaUrl: string
+  featured: boolean
   displayOrder: number
   active: boolean
 }
@@ -57,6 +69,12 @@ const emptyForm: ProgramFormState = {
   slug: '',
   shortDescription: '',
   description: '',
+  category: 'Training',
+  mediaPostId: undefined,
+  secondaryMediaPostId: undefined,
+  coachNamesText: '',
+  seasonLabel: '',
+  campaignLabel: '',
   location: '',
   startDate: '',
   startTime: '',
@@ -70,6 +88,9 @@ const emptyForm: ProgramFormState = {
   featuresText: '',
   icon: 'Soccer',
   whoItsFor: '',
+  ctaLabel: 'Book This Program',
+  ctaUrl: '/book',
+  featured: false,
   displayOrder: 0,
   active: true,
 }
@@ -93,6 +114,12 @@ function toFormState(program?: Program): ProgramFormState {
     slug: program.slug ?? '',
     shortDescription: program.shortDescription ?? '',
     description: program.description ?? '',
+    category: program.category ?? 'Training',
+    mediaPostId: program.mediaPostId,
+    secondaryMediaPostId: program.secondaryMediaPostId,
+    coachNamesText: (program.coachNames ?? []).join('\n'),
+    seasonLabel: program.seasonLabel ?? '',
+    campaignLabel: program.campaignLabel ?? '',
     location: program.location ?? '',
     startDate: start.date,
     startTime: start.time,
@@ -106,8 +133,11 @@ function toFormState(program?: Program): ProgramFormState {
     featuresText: (program.features ?? []).join('\n'),
     icon: program.icon ?? 'Soccer',
     whoItsFor: program.whoItsFor ?? '',
+    ctaLabel: program.ctaLabel ?? 'Book This Program',
+    ctaUrl: program.ctaUrl ?? '/book',
+    featured: program.featured ?? false,
     displayOrder: Number(program.displayOrder ?? 0),
-    active: true,
+    active: program.active ?? true,
   }
 }
 
@@ -117,6 +147,12 @@ function buildProgramPayload(form: ProgramFormState): Partial<Program> {
     slug: form.slug.trim(),
     shortDescription: form.shortDescription.trim(),
     description: form.description.trim(),
+    category: form.category.trim(),
+    mediaPostId: form.mediaPostId,
+    secondaryMediaPostId: form.secondaryMediaPostId,
+    coachNames: form.coachNamesText.split('\n').map((line) => line.trim()).filter(Boolean),
+    seasonLabel: form.seasonLabel.trim(),
+    campaignLabel: form.campaignLabel.trim(),
     location: form.location.trim(),
     startAt: combineDateTime(form.startDate, form.startTime),
     endAt: combineDateTime(form.endDate, form.endTime),
@@ -128,9 +164,42 @@ function buildProgramPayload(form: ProgramFormState): Partial<Program> {
     features: form.featuresText.split('\n').map((line) => line.trim()).filter(Boolean),
     icon: form.icon.trim(),
     whoItsFor: form.whoItsFor.trim(),
+    ctaLabel: form.ctaLabel.trim(),
+    ctaUrl: form.ctaUrl.trim(),
+    featured: form.featured,
     displayOrder: Math.max(0, Number(form.displayOrder) || 0),
     active: form.active,
   }
+}
+
+function ProgramMediaPreview({ media, label }: { media?: MediaPost; label: string }) {
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    setFailed(false)
+  }, [media?.mediaUrl])
+
+  if (!media?.mediaUrl) {
+    return <span className="text-sm text-gray-500">No {label.toLowerCase()} selected</span>
+  }
+
+  if (failed) {
+    return (
+      <div className="px-4 text-center">
+        <p className="text-sm font-semibold text-red-300">Image could not load.</p>
+        <p className="mt-2 break-all text-xs text-gray-500">{media.mediaUrl}</p>
+      </div>
+    )
+  }
+
+  return (
+    <img
+      src={media.mediaUrl}
+      alt={media.altText || `${label} preview`}
+      onError={() => setFailed(true)}
+      className="h-full w-full object-contain"
+    />
+  )
 }
 
 function formatSchedule(startAt?: string, endAt?: string) {
@@ -148,6 +217,7 @@ export default function AdminProgramsWorkspacePage() {
   const searchQueryParam = searchParams.get('q') ?? ''
   const requestedProgramId = Number(searchParams.get('programId') ?? '')
   const [programs, setPrograms] = useState<Program[]>([])
+  const [mediaPosts, setMediaPosts] = useState<MediaPost[]>([])
   const [users, setUsers] = useState<AdminUser[]>([])
   const [players, setPlayers] = useState<PlayerProfile[]>([])
   const [workflow, setWorkflow] = useState<ProgramWorkflow | null>(null)
@@ -157,6 +227,7 @@ export default function AdminProgramsWorkspacePage() {
   const [saveError, setSaveError] = useState('')
   const [participantError, setParticipantError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [mediaUploadingSlot, setMediaUploadingSlot] = useState<'primary' | 'secondary' | null>(null)
   const [participantSaving, setParticipantSaving] = useState(false)
   const [removingParticipantId, setRemovingParticipantId] = useState<number | null>(null)
   const [search, setSearch] = useState(searchQueryParam)
@@ -172,6 +243,19 @@ export default function AdminProgramsWorkspacePage() {
     if (!term) return true
     return program.name.toLowerCase().includes(term) || program.slug.toLowerCase().includes(term) || (program.location ?? '').toLowerCase().includes(term)
   }), [programs, search])
+
+  const imageMediaPosts = useMemo(
+    () => mediaPosts.filter((post) => post.mediaType === 'IMAGE'),
+    [mediaPosts],
+  )
+  const selectedPrimaryMedia = useMemo(
+    () => imageMediaPosts.find((post) => post.id === form.mediaPostId),
+    [form.mediaPostId, imageMediaPosts],
+  )
+  const selectedSecondaryMedia = useMemo(
+    () => imageMediaPosts.find((post) => post.id === form.secondaryMediaPostId),
+    [form.secondaryMediaPostId, imageMediaPosts],
+  )
 
   const filteredUsers = useMemo(() => users.filter((user) => {
     const term = participantSearch.trim().toLowerCase()
@@ -202,11 +286,12 @@ export default function AdminProgramsWorkspacePage() {
 
   useEffect(() => {
     setLoading(true)
-    Promise.all([getAdminPrograms(), getAdminUsers(), getAdminPlayers()])
-      .then(([programData, userData, playerData]) => {
+    Promise.all([getAdminPrograms(), getAdminUsers(), getAdminPlayers(), getMediaPosts()])
+      .then(([programData, userData, playerData, mediaData]) => {
         setPrograms(programData)
         setUsers(userData)
         setPlayers(playerData)
+        setMediaPosts(mediaData)
         if (requestedProgramId && programData.some((program) => program.id === requestedProgramId)) {
           setSelectedProgramId(requestedProgramId)
         } else if (programData.length > 0) {
@@ -305,6 +390,36 @@ export default function AdminProgramsWorkspacePage() {
       setSaveError(message)
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleMediaUpload = async (slot: 'primary' | 'secondary', file?: File) => {
+    if (!file) return
+
+    setMediaUploadingSlot(slot)
+    setSaveError('')
+    try {
+      const media = await createMediaPost(
+        file,
+        `${form.name || 'Program'} ${slot === 'primary' ? 'primary' : 'secondary'} image`,
+        'TRAINING_PHOTO',
+        `${form.name || 'Program'} ${slot === 'primary' ? 'primary' : 'secondary'} image`,
+      )
+      setMediaPosts((prev) => {
+        const withoutDuplicate = prev.filter((post) => post.id !== media.id)
+        return [media, ...withoutDuplicate]
+      })
+      setForm((prev) => ({
+        ...prev,
+        [slot === 'primary' ? 'mediaPostId' : 'secondaryMediaPostId']: media.id,
+      }))
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        'Could not upload this program image.'
+      setSaveError(message)
+    } finally {
+      setMediaUploadingSlot(null)
     }
   }
 
@@ -474,7 +589,7 @@ export default function AdminProgramsWorkspacePage() {
               <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-amber-500 mb-2">
+                    <p className="text-xs uppercase text-amber-500 mb-2">
                       Program Workspace
                     </p>
                     <h2 className="text-white text-2xl font-black">{currentProgramTitle}</h2>
@@ -554,6 +669,127 @@ export default function AdminProgramsWorkspacePage() {
                             onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
                             className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm resize-none"
                             placeholder="Describe what this program covers and who it helps."
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-400 text-sm mb-1">Category / Type</label>
+                          <input
+                            value={form.category}
+                            onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
+                            className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
+                            placeholder="Private training, clinics, camps..."
+                          />
+                        </div>
+
+                        <div className="md:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-5">
+                          <div className="rounded-xl border border-gray-800 bg-black p-4">
+                            <div className="mb-3 flex items-start justify-between gap-3">
+                              <div>
+                                <p className="text-white font-semibold">Program image</p>
+                                <p className="text-gray-500 text-xs">Main image shown on program cards.</p>
+                              </div>
+                              {mediaUploadingSlot === 'primary' ? (
+                                <span className="text-xs font-bold uppercase text-amber-400">Uploading...</span>
+                              ) : null}
+                            </div>
+
+                            <div className="mb-4 flex aspect-[16/10] items-center justify-center overflow-hidden rounded-lg border border-gray-800 bg-gray-950">
+                              <ProgramMediaPreview media={selectedPrimaryMedia} label="Program image" />
+                            </div>
+
+                            <label className="block text-gray-400 text-sm mb-1">Choose from media library</label>
+                            <select
+                              value={form.mediaPostId ?? ''}
+                              onChange={(e) => setForm((prev) => ({ ...prev, mediaPostId: e.target.value ? Number(e.target.value) : undefined }))}
+                              className="mb-3 w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
+                            >
+                              <option value="">No image</option>
+                              {imageMediaPosts.map((post) => (
+                                <option key={post.id} value={post.id}>
+                                  #{post.id} {post.caption || post.altText || 'Untitled image'}
+                                </option>
+                              ))}
+                            </select>
+
+                            <label className="block text-gray-400 text-sm mb-1">Upload from device</label>
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              disabled={mediaUploadingSlot !== null}
+                              onChange={(e) => handleMediaUpload('primary', e.target.files?.[0])}
+                              className="block w-full text-sm text-gray-300 file:mr-3 file:rounded-lg file:border-0 file:bg-amber-500 file:px-3 file:py-2 file:text-sm file:font-bold file:text-black hover:file:bg-amber-400 disabled:opacity-50"
+                            />
+                          </div>
+
+                          <div className="rounded-xl border border-gray-800 bg-black p-4">
+                            <div className="mb-3 flex items-start justify-between gap-3">
+                              <div>
+                                <p className="text-white font-semibold">Secondary promo image</p>
+                                <p className="text-gray-500 text-xs">Optional extra poster or supporting image.</p>
+                              </div>
+                              {mediaUploadingSlot === 'secondary' ? (
+                                <span className="text-xs font-bold uppercase text-amber-400">Uploading...</span>
+                              ) : null}
+                            </div>
+
+                            <div className="mb-4 flex aspect-[16/10] items-center justify-center overflow-hidden rounded-lg border border-gray-800 bg-gray-950">
+                              <ProgramMediaPreview media={selectedSecondaryMedia} label="Secondary promo image" />
+                            </div>
+
+                            <label className="block text-gray-400 text-sm mb-1">Choose from media library</label>
+                            <select
+                              value={form.secondaryMediaPostId ?? ''}
+                              onChange={(e) => setForm((prev) => ({ ...prev, secondaryMediaPostId: e.target.value ? Number(e.target.value) : undefined }))}
+                              className="mb-3 w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
+                            >
+                              <option value="">No secondary image</option>
+                              {imageMediaPosts.map((post) => (
+                                <option key={post.id} value={post.id}>
+                                  #{post.id} {post.caption || post.altText || 'Untitled image'}
+                                </option>
+                              ))}
+                            </select>
+
+                            <label className="block text-gray-400 text-sm mb-1">Upload from device</label>
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              disabled={mediaUploadingSlot !== null}
+                              onChange={(e) => handleMediaUpload('secondary', e.target.files?.[0])}
+                              className="block w-full text-sm text-gray-300 file:mr-3 file:rounded-lg file:border-0 file:bg-amber-500 file:px-3 file:py-2 file:text-sm file:font-bold file:text-black hover:file:bg-amber-400 disabled:opacity-50"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-400 text-sm mb-1">Season Label</label>
+                          <input
+                            value={form.seasonLabel}
+                            onChange={(e) => setForm((prev) => ({ ...prev, seasonLabel: e.target.value }))}
+                            className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
+                            placeholder="Summer"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-400 text-sm mb-1">Campaign Message</label>
+                          <input
+                            value={form.campaignLabel}
+                            onChange={(e) => setForm((prev) => ({ ...prev, campaignLabel: e.target.value }))}
+                            className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
+                            placeholder="Train hard. Improve. Compete."
+                          />
+                        </div>
+
+                        <div className="md:col-span-2">
+                          <label className="block text-gray-400 text-sm mb-1">Associated Coaches</label>
+                          <textarea
+                            rows={3}
+                            value={form.coachNamesText}
+                            onChange={(e) => setForm((prev) => ({ ...prev, coachNamesText: e.target.value }))}
+                            className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm resize-none"
+                            placeholder={'One coach or collaborator per line\nCoach Kante\nGuest collaborator'}
                           />
                         </div>
 
@@ -649,12 +885,32 @@ export default function AdminProgramsWorkspacePage() {
                         </div>
 
                         <div>
-                          <label className="block text-gray-400 text-sm mb-1">Icon Label</label>
+                          <label className="block text-gray-400 text-sm mb-1">Fallback Icon/Initials</label>
                           <input
                             value={form.icon}
                             onChange={(e) => setForm((prev) => ({ ...prev, icon: e.target.value }))}
                             className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
                             placeholder="Soccer"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-400 text-sm mb-1">CTA Label</label>
+                          <input
+                            value={form.ctaLabel}
+                            onChange={(e) => setForm((prev) => ({ ...prev, ctaLabel: e.target.value }))}
+                            className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
+                            placeholder="Book This Program"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-400 text-sm mb-1">CTA Link</label>
+                          <input
+                            value={form.ctaUrl}
+                            onChange={(e) => setForm((prev) => ({ ...prev, ctaUrl: e.target.value }))}
+                            className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
+                            placeholder="/book"
                           />
                         </div>
 
@@ -669,7 +925,19 @@ export default function AdminProgramsWorkspacePage() {
                           />
                         </div>
 
-                        <div className="md:col-span-2">
+                        <div>
+                          <label className="flex items-center gap-2 text-sm text-gray-300">
+                            <input
+                              type="checkbox"
+                              checked={form.featured}
+                              onChange={(e) => setForm((prev) => ({ ...prev, featured: e.target.checked }))}
+                              className="w-4 h-4 accent-amber-500"
+                            />
+                            Featured offering
+                          </label>
+                        </div>
+
+                        <div>
                           <label className="flex items-center gap-2 text-sm text-gray-300">
                             <input
                               type="checkbox"
@@ -748,7 +1016,7 @@ export default function AdminProgramsWorkspacePage() {
                         )}
                         <button
                           type="submit"
-                          disabled={saving}
+                          disabled={saving || mediaUploadingSlot !== null}
                           className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 py-2 rounded-lg text-sm disabled:opacity-50"
                         >
                           {saving ? 'Saving...' : creatingNew ? 'Create Program' : 'Save Changes'}

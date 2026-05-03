@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import FormatSelector from '../../components/FormatSelector'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
@@ -403,7 +403,7 @@ export default function AdminTournamentWorkflowPage() {
   const [editingMatch, setEditingMatch] = useState<TournamentMatch | null>(null)
   const [showMatchForm, setShowMatchForm] = useState(false)
 
-  // Inline result editing: matchId → { homeScore, awayScore, status }
+  // Inline result editing: matchId ? { homeScore, awayScore, status }
   const [inlineResults, setInlineResults] = useState<
     Record<number, { homeScore: string; awayScore: string; status: string }>
   >({})
@@ -781,7 +781,7 @@ export default function AdminTournamentWorkflowPage() {
       })
       await loadWorkflow(tournamentId)
       if (updated.warning) {
-        setBracketWarning('⚠ Result saved, but bracket advancement was blocked: ' + updated.warning)
+        setBracketWarning('? Result saved, but bracket advancement was blocked: ' + updated.warning)
       } else if (data.status === 'FINAL') {
         const isKnockout = match.stageName === 'Knockout'
         showSuccess(isKnockout ? 'Result saved | winner advanced to next round.' : 'Result saved and standings updated.')
@@ -845,16 +845,16 @@ export default function AdminTournamentWorkflowPage() {
       {error ? <ErrorBanner message={error} onDismiss={() => setError('')} /> : null}
       {bracketWarning ? (
         <div className="flex items-start gap-3 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3 text-amber-300 text-sm">
-          <span className="shrink-0 mt-0.5">⚠</span>
+          <span className="shrink-0 mt-0.5">?</span>
           <span>{bracketWarning}</span>
-          <button type="button" onClick={() => setBracketWarning('')} className="ml-auto text-amber-500 hover:text-amber-300 text-xs shrink-0">✕</button>
+          <button type="button" onClick={() => setBracketWarning('')} className="ml-auto text-amber-500 hover:text-amber-300 text-xs shrink-0">?</button>
         </div>
       ) : null}
       {successMessage ? (
         <div className="flex items-center gap-3 bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-3 text-green-300 text-sm">
-          <span className="shrink-0">✓</span>
+          <span className="shrink-0">?</span>
           <span>{successMessage}</span>
-          <button type="button" onClick={() => setSuccessMessage('')} className="ml-auto text-green-500 hover:text-green-300 text-xs">✕</button>
+          <button type="button" onClick={() => setSuccessMessage('')} className="ml-auto text-green-500 hover:text-green-300 text-xs">?</button>
         </div>
       ) : null}
 
@@ -883,52 +883,52 @@ export default function AdminTournamentWorkflowPage() {
             <h2 className="text-white font-black text-2xl">Tournament Details</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="md:col-span-2">
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Tournament name</label>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase">Tournament name</label>
                 <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="e.g. Summer Cup 2026" value={tournamentForm.name} onChange={(e) => setTournamentForm((prev) => ({ ...prev, name: e.target.value }))} />
               </div>
               <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Location</label>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase">Location</label>
                 <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="e.g. Kante Elite Complex" value={tournamentForm.location} onChange={(e) => setTournamentForm((prev) => ({ ...prev, location: e.target.value }))} />
               </div>
               <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Status</label>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase">Status</label>
                 <select className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" value={tournamentForm.status} onChange={(e) => setTournamentForm((prev) => ({ ...prev, status: e.target.value }))}>{TOURNAMENT_STATUSES.map((status) => <option key={status}>{status}</option>)}</select>
               </div>
               <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Start date</label>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase">Start date</label>
                 <DatePickerField
                   value={tournamentForm.startDate}
                   onChange={(value) => setTournamentForm((prev) => ({ ...prev, startDate: value }))}
                 />
               </div>
               <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">End date</label>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase">End date</label>
                 <DatePickerField
                   value={tournamentForm.endDate}
                   onChange={(value) => setTournamentForm((prev) => ({ ...prev, endDate: value }))}
                 />
               </div>
               <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Registration deadline</label>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase">Registration deadline</label>
                 <DatePickerField
                   value={tournamentForm.registrationDeadline}
                   onChange={(value) => setTournamentForm((prev) => ({ ...prev, registrationDeadline: value }))}
                 />
               </div>
               <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Max teams</label>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase">Max teams</label>
                 <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={2} value={tournamentForm.maxTeams} onChange={(e) => setTournamentForm((prev) => ({ ...prev, maxTeams: Number(e.target.value) }))} />
               </div>
               <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Age group</label>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase">Age group</label>
                 <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="e.g. U14, U18, Open" value={tournamentForm.ageGroup} onChange={(e) => setTournamentForm((prev) => ({ ...prev, ageGroup: e.target.value }))} />
               </div>
               <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Division</label>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase">Division</label>
                 <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="e.g. Elite, Recreational" value={tournamentForm.division} onChange={(e) => setTournamentForm((prev) => ({ ...prev, division: e.target.value }))} />
               </div>
               <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Entry fee ($)</label>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase">Entry fee ($)</label>
                 <input
                   className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
                   type="text"
@@ -944,11 +944,11 @@ export default function AdminTournamentWorkflowPage() {
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Description (public)</label>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase">Description (public)</label>
                 <textarea className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm min-h-[110px]" placeholder="Describe the tournament for participants and families." value={tournamentForm.description} onChange={(e) => setTournamentForm((prev) => ({ ...prev, description: e.target.value }))} />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Internal notes</label>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase">Internal notes</label>
                 <textarea className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm min-h-[110px]" placeholder="Notes for staff and coaches (not shown publicly)." value={tournamentForm.notes} onChange={(e) => setTournamentForm((prev) => ({ ...prev, notes: e.target.value }))} />
               </div>
             </div>
@@ -1011,31 +1011,31 @@ export default function AdminTournamentWorkflowPage() {
                 {editingRegistrationId || teamFormMode === 'single' ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Team name</label>
+                      <label className="block text-gray-400 text-xs mb-1.5 uppercase">Team name</label>
                       <input className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Team name" value={registrationForm.teamName} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, teamName: e.target.value }))} />
                     </div>
                     <div>
-                      <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Captain name</label>
+                      <label className="block text-gray-400 text-xs mb-1.5 uppercase">Captain name</label>
                       <input className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Captain name" value={registrationForm.captainName} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, captainName: e.target.value }))} />
                     </div>
                     <div>
-                      <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Contact email</label>
+                      <label className="block text-gray-400 text-xs mb-1.5 uppercase">Contact email</label>
                       <input className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Contact email" value={registrationForm.contactEmail} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, contactEmail: e.target.value }))} />
                     </div>
                     <div>
-                      <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Phone</label>
+                      <label className="block text-gray-400 text-xs mb-1.5 uppercase">Phone</label>
                       <input className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Phone" value={registrationForm.phone ?? ''} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, phone: e.target.value }))} />
                     </div>
                     <div>
-                      <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Club name</label>
+                      <label className="block text-gray-400 text-xs mb-1.5 uppercase">Club name</label>
                       <input className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" placeholder="Club name" value={registrationForm.clubName ?? ''} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, clubName: e.target.value }))} />
                     </div>
                     <div>
-                      <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Registration status</label>
+                      <label className="block text-gray-400 text-xs mb-1.5 uppercase">Registration status</label>
                       <select className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" value={registrationForm.status} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, status: e.target.value }))}>{REGISTRATION_STATUSES.map((status) => <option key={status}>{status}</option>)}</select>
                     </div>
                     <div>
-                      <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Payment status</label>
+                      <label className="block text-gray-400 text-xs mb-1.5 uppercase">Payment status</label>
                       <select className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" value={registrationForm.paymentStatus} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, paymentStatus: e.target.value }))}>{PAYMENT_STATUSES.map((status) => <option key={status}>{status}</option>)}</select>
                     </div>
                     <div className="md:col-span-2 flex flex-col gap-3 sm:flex-row">
@@ -1057,16 +1057,16 @@ export default function AdminTournamentWorkflowPage() {
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Registration status</label>
+                        <label className="block text-gray-400 text-xs mb-1.5 uppercase">Registration status</label>
                         <select className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" value={registrationForm.status} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, status: e.target.value }))}>{REGISTRATION_STATUSES.map((status) => <option key={status}>{status}</option>)}</select>
                       </div>
                       <div>
-                        <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Payment status</label>
+                        <label className="block text-gray-400 text-xs mb-1.5 uppercase">Payment status</label>
                         <select className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" value={registrationForm.paymentStatus} onChange={(e) => setRegistrationForm((prev) => ({ ...prev, paymentStatus: e.target.value }))}>{PAYMENT_STATUSES.map((status) => <option key={status}>{status}</option>)}</select>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">List of teams</label>
+                      <label className="block text-gray-400 text-xs mb-1.5 uppercase">List of teams</label>
                       <textarea
                         className="w-full bg-black border border-gray-800 rounded-lg px-3 py-3 text-white text-sm min-h-[180px] font-mono"
                         placeholder={'Dallas Strikers, Michael Johnson, michael.johnson@gmail.com\nOhio Elite, Sarah Davis, sarah.davis@gmail.com, 6145550000, Ohio Elite SC'}
@@ -1279,7 +1279,7 @@ export default function AdminTournamentWorkflowPage() {
                 )}
               </div>
               <div>
-                <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Match duration (minutes)</label>
+                <label className="block text-gray-400 text-xs mb-1.5 uppercase">Match duration (minutes)</label>
                 <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={1} value={tournamentForm.matchDurationMinutes} onChange={(e) => setTournamentForm((prev) => ({ ...prev, matchDurationMinutes: Number(e.target.value) }))} />
               </div>
               {tournamentForm.formatType === 'KNOCKOUT' && (
@@ -1348,15 +1348,15 @@ export default function AdminTournamentWorkflowPage() {
               {tournamentForm.formatType !== 'KNOCKOUT' && (
                 <>
                   <div>
-                    <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Points for win</label>
+                    <label className="block text-gray-400 text-xs mb-1.5 uppercase">Points for win</label>
                     <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={0} value={tournamentForm.pointsForWin} onChange={(e) => setTournamentForm((prev) => ({ ...prev, pointsForWin: Number(e.target.value) }))} />
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Points for draw</label>
+                    <label className="block text-gray-400 text-xs mb-1.5 uppercase">Points for draw</label>
                     <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={0} value={tournamentForm.pointsForDraw} onChange={(e) => setTournamentForm((prev) => ({ ...prev, pointsForDraw: Number(e.target.value) }))} />
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-xs mb-1.5 uppercase tracking-wide">Points for loss</label>
+                    <label className="block text-gray-400 text-xs mb-1.5 uppercase">Points for loss</label>
                     <input className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white text-sm" type="number" min={0} value={tournamentForm.pointsForLoss} onChange={(e) => setTournamentForm((prev) => ({ ...prev, pointsForLoss: Number(e.target.value) }))} />
                   </div>
                 </>
@@ -1472,7 +1472,7 @@ export default function AdminTournamentWorkflowPage() {
                     const stageMatches = workflow.matches.filter((m) => (m.stageName || 'Unassigned') === stage)
                     return (
                       <div key={stage}>
-                        <div className="text-amber-500 text-xs font-bold uppercase tracking-widest mb-3">{stage}</div>
+                        <div className="text-amber-500 text-xs font-bold uppercase mb-3">{stage}</div>
                         <div className="space-y-3">
                           {stageMatches.map((match) => (
                             <div key={match.id} className="bg-gray-950 border border-gray-800 rounded-xl p-4 flex items-start justify-between gap-4">
@@ -1514,7 +1514,7 @@ export default function AdminTournamentWorkflowPage() {
               </div>
               {workflow.completedMatches > 0 ? (
                 <button type="button" onClick={() => setStep('standings')} className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 px-4 py-2 rounded-lg text-sm font-semibold">
-                  View Standings →
+                  View Standings ?
                 </button>
               ) : null}
             </div>
@@ -1526,7 +1526,7 @@ export default function AdminTournamentWorkflowPage() {
                     const stageMatches = workflow.matches.filter((m) => (m.stageName || 'Unassigned') === stage)
                     return (
                       <div key={stage}>
-                        <div className="text-amber-500 text-xs font-bold uppercase tracking-widest mb-3">{stage}</div>
+                        <div className="text-amber-500 text-xs font-bold uppercase mb-3">{stage}</div>
                         <div className="space-y-3">
                           {stageMatches.map((match) => {
                             const inline = inlineResults[match.id]
@@ -1589,7 +1589,7 @@ export default function AdminTournamentWorkflowPage() {
                                       </div>
                                       {match.stageName === 'Knockout' && inline.status === 'FINAL' && inline.homeScore !== '' && inline.awayScore !== '' && inline.homeScore === inline.awayScore && (
                                         <div className="text-amber-400 text-xs bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-1.5 w-full text-center">
-                                          ⚠ Knockout matches cannot end in a draw | adjust the score so there is a clear winner.
+                                          ? Knockout matches cannot end in a draw | adjust the score so there is a clear winner.
                                         </div>
                                       )}
                                     </div>
@@ -1658,7 +1658,7 @@ export default function AdminTournamentWorkflowPage() {
   )
 }
 
-// ─── Standings Table component ─────────────────────────────────────────────────
+// --- Standings Table component -------------------------------------------------
 
 function StandingsTable({ standings }: { standings: StandingEntry[] }) {
   const groups = standings.reduce<Record<string, StandingEntry[]>>((acc, entry) => {
@@ -1671,33 +1671,33 @@ function StandingsTable({ standings }: { standings: StandingEntry[] }) {
     <div className="space-y-6">
       {Object.entries(groups).map(([groupName, rows]) => (
         <div key={groupName}>
-          <div className="text-amber-500 text-xs font-bold uppercase tracking-widest mb-3">{groupName}</div>
+          <div className="text-amber-500 text-xs font-bold uppercase mb-3">{groupName}</div>
           <div className="space-y-3 md:hidden">
             {rows.map((row) => (
               <div key={row.teamId} className="rounded-xl border border-gray-800 bg-gray-950 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                    <p className="text-xs font-semibold uppercase text-gray-500">
                       Position {row.position}
                     </p>
                     <p className="mt-1 text-base font-semibold text-white">{row.teamName}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Points</p>
+                    <p className="text-xs font-semibold uppercase text-gray-500">Points</p>
                     <p className="text-2xl font-black text-white">{row.points}</p>
                   </div>
                 </div>
                 <div className="mt-4 grid grid-cols-3 gap-3 text-sm text-gray-300">
                   <div className="rounded-lg bg-black px-3 py-2">
-                    <p className="text-xs uppercase tracking-[0.18em] text-gray-500">Played</p>
+                    <p className="text-xs uppercase text-gray-500">Played</p>
                     <p className="mt-1 font-semibold text-white">{row.played}</p>
                   </div>
                   <div className="rounded-lg bg-black px-3 py-2">
-                    <p className="text-xs uppercase tracking-[0.18em] text-gray-500">W-D-L</p>
+                    <p className="text-xs uppercase text-gray-500">W-D-L</p>
                     <p className="mt-1 font-semibold text-white">{row.won}-{row.drawn}-{row.lost}</p>
                   </div>
                   <div className="rounded-lg bg-black px-3 py-2">
-                    <p className="text-xs uppercase tracking-[0.18em] text-gray-500">Goals</p>
+                    <p className="text-xs uppercase text-gray-500">Goals</p>
                     <p className="mt-1 font-semibold text-white">{row.goalsFor}-{row.goalsAgainst}</p>
                   </div>
                 </div>
@@ -1752,7 +1752,7 @@ function StandingsTable({ standings }: { standings: StandingEntry[] }) {
   )
 }
 
-// ─── Admin Bracket View ────────────────────────────────────────────────────────
+// --- Admin Bracket View --------------------------------------------------------
 
 function AdminBracketView({ matches }: { matches: TournamentMatch[] }) {
   const bracketMatches = matches.filter((m) => m.stageName === 'Knockout')
@@ -1804,7 +1804,7 @@ function AdminBracketView({ matches }: { matches: TournamentMatch[] }) {
         <div className="flex gap-8 items-start" style={{ minWidth: 'max-content' }}>
           {sorted.map(([roundName, roundMatches]) => (
             <div key={roundName} className="flex flex-col gap-2 w-[220px] shrink-0">
-              <div className={`text-xs font-bold uppercase tracking-widest text-center mb-2 ${roundName === 'Final' ? 'text-yellow-400' : roundName === 'Third Place' ? 'text-gray-400' : 'text-amber-500'}`}>
+              <div className={`text-xs font-bold uppercase text-center mb-2 ${roundName === 'Final' ? 'text-yellow-400' : roundName === 'Third Place' ? 'text-gray-400' : 'text-amber-500'}`}>
                 {roundName}
               </div>
               <div className="flex flex-col gap-4">
@@ -1817,7 +1817,7 @@ function AdminBracketView({ matches }: { matches: TournamentMatch[] }) {
                     <div key={m.id} className={`bg-gray-900 border rounded-xl overflow-hidden text-sm ${isFinal ? 'border-gray-700' : 'border-gray-800'}`}>
                       <div className={`flex items-center justify-between px-3 py-2.5 gap-3 ${homeWon ? 'bg-green-500/10' : ''}`}>
                         <span className={`font-semibold truncate ${homeWon ? 'text-green-300' : m.homeTeamName ? 'text-gray-200' : 'text-gray-600 italic'}`}>
-                          {homeWon && '▶ '}{m.homeTeamName ?? 'TBD'}
+                          {homeWon && '? '}{m.homeTeamName ?? 'TBD'}
                         </span>
                         {m.homeScore != null && (
                           <span className={`tabular-nums font-black shrink-0 text-base ${homeWon ? 'text-green-300' : 'text-gray-400'}`}>{m.homeScore}</span>
@@ -1826,7 +1826,7 @@ function AdminBracketView({ matches }: { matches: TournamentMatch[] }) {
                       <div className="h-px bg-gray-800" />
                       <div className={`flex items-center justify-between px-3 py-2.5 gap-3 ${awayWon ? 'bg-green-500/10' : ''}`}>
                         <span className={`font-semibold truncate ${awayWon ? 'text-green-300' : m.awayTeamName ? 'text-gray-200' : 'text-gray-600 italic'}`}>
-                          {awayWon && '▶ '}{m.awayTeamName ?? 'TBD'}
+                          {awayWon && '? '}{m.awayTeamName ?? 'TBD'}
                         </span>
                         {m.awayScore != null && (
                           <span className={`tabular-nums font-black shrink-0 text-base ${awayWon ? 'text-green-300' : 'text-gray-400'}`}>{m.awayScore}</span>

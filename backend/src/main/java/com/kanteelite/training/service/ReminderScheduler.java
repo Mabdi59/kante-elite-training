@@ -1,9 +1,10 @@
 package com.kanteelite.training.service;
 
-import com.kanteelite.training.dto.response.BookingResponse;
-import com.kanteelite.training.entity.Booking;
-import com.kanteelite.training.enums.BookingStatus;
-import com.kanteelite.training.repository.BookingRepository;
+import com.kanteelite.training.dto.response.RegistrationResponse;
+import com.kanteelite.training.entity.Program;
+import com.kanteelite.training.entity.Registration;
+import com.kanteelite.training.enums.RegistrationStatus;
+import com.kanteelite.training.repository.RegistrationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -11,59 +12,74 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class ReminderScheduler {
 
-    private final BookingRepository bookingRepository;
+    private static final Set<RegistrationStatus> REMINDER_STATUSES = Set.of(RegistrationStatus.CONFIRMED);
+
+    private final RegistrationRepository registrationRepository;
     private final NotificationService notificationService;
     private final EmailService emailService;
 
     @Scheduled(cron = "0 0 8 * * *")
     public void sendSessionReminders() {
         LocalDate tomorrow = LocalDate.now().plusDays(1);
-        List<Booking> tomorrowBookings = bookingRepository.findAllByOrderByCreatedAtDesc().stream()
-                .filter(b -> b.getBookingDate().equals(tomorrow)
-                        && b.getBookingStatus() == BookingStatus.CONFIRMED)
-                .toList();
+        List<Registration> tomorrowRegistrations =
+                registrationRepository.findByScheduledDateAndStatusInOrderByScheduledStartTimeAscCreatedAtAsc(
+                        tomorrow, REMINDER_STATUSES);
 
-        for (Booking booking : tomorrowBookings) {
+        for (Registration registration : tomorrowRegistrations) {
+            Program program = registration.getProgram();
+            if (program == null) {
+                continue;
+            }
             try {
                 notificationService.send(
-                        booking.getEmail(),
+                        registration.getGuardianEmail(),
                         "SESSION_REMINDER",
                         "Reminder: Session Tomorrow",
-                        "You have a " + booking.getProgram().getName() + " session tomorrow at " + booking.getBookingTime(),
-                        "Booking",
-                        booking.getId()
+                        "You have a " + program.getName() + " session tomorrow at "
+                                + registration.getScheduledStartTime(),
+                        "Registration",
+                        registration.getId()
                 );
-                log.info("Sent session reminder to {} for booking {}", booking.getEmail(), booking.getId());
+                log.info("Sent session reminder to {} for registration {}",
+                        registration.getGuardianEmail(), registration.getId());
             } catch (Exception e) {
-                log.error("Failed to send reminder for booking {}: {}", booking.getId(), e.getMessage());
+                log.error("Failed to send reminder for registration {}: {}",
+                        registration.getId(), e.getMessage());
             }
 
             try {
-                BookingResponse response = BookingResponse.builder()
-                        .id(booking.getId())
-                        .programId(booking.getProgram() != null ? booking.getProgram().getId() : null)
-                        .programName(booking.getProgram() != null ? booking.getProgram().getName() : null)
-                        .bookingDate(booking.getBookingDate())
-                        .bookingTime(booking.getBookingTime())
-                        .playerName(booking.getPlayerName())
-                        .playerAge(booking.getPlayerAge())
-                        .parentName(booking.getParentName())
-                        .email(booking.getEmail())
-                        .phone(booking.getPhone())
-                        .bookingStatus(booking.getBookingStatus())
-                        .paymentStatus(booking.getPaymentStatus())
-                        .createdAt(booking.getCreatedAt())
-                        .build();
-                emailService.sendSessionReminder(response);
+                emailService.sendSessionReminder(toRegistrationReminder(registration));
             } catch (Exception e) {
-                log.error("Failed to send email reminder for booking {}: {}", booking.getId(), e.getMessage());
+                log.error("Failed to send email reminder for registration {}: {}",
+                        registration.getId(), e.getMessage());
             }
         }
+    }
+
+    private RegistrationResponse toRegistrationReminder(Registration registration) {
+        Program program = registration.getProgram();
+        return RegistrationResponse.builder()
+                .id(registration.getId())
+                .registrationCode(registration.getRegistrationCode())
+                .programId(program != null ? program.getId() : null)
+                .programName(program != null ? program.getName() : null)
+                .scheduledDate(registration.getScheduledDate())
+                .scheduledStartTime(registration.getScheduledStartTime())
+                .participantName(registration.getParticipantName())
+                .participantAge(registration.getParticipantAge())
+                .guardianName(registration.getGuardianName())
+                .guardianEmail(registration.getGuardianEmail())
+                .guardianPhone(registration.getGuardianPhone())
+                .status(registration.getStatus())
+                .paymentStatus(registration.getPaymentStatus())
+                .createdAt(registration.getCreatedAt())
+                .build();
     }
 }

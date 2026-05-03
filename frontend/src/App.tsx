@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Link, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import CanonicalMeta from './components/CanonicalMeta'
@@ -41,7 +41,8 @@ const AccessibilityPage = lazy(() => import('./pages/AccessibilityPage'))
 const FaqPage = lazy(() => import('./pages/FaqPage'))
 
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'))
-const AdminBookingsPage = lazy(() => import('./pages/admin/AdminBookingsPage'))
+const AdminRegistrationsPage = lazy(() => import('./pages/admin/AdminRegistrationsPage'))
+const AdminSessionSeriesPage = lazy(() => import('./pages/admin/AdminSessionSeriesPage'))
 const AdminProgramsPage = lazy(() => import('./pages/admin/AdminProgramsWorkspacePage'))
 const AdminEventsPage = lazy(() => import('./pages/admin/AdminEventsWorkspacePage'))
 const AdminTournamentsPage = lazy(() => import('./pages/admin/AdminTournamentsPage'))
@@ -49,6 +50,8 @@ const AdminTournamentWorkflowPage = lazy(() => import('./pages/admin/AdminTourna
 const AdminContentPage = lazy(() => import('./pages/admin/AdminContentPage'))
 const AdminMediaPage = lazy(() => import('./pages/admin/AdminMediaPage'))
 const AdminTestimonialsPage = lazy(() => import('./pages/admin/AdminTestimonialsPage'))
+const AdminCoachesPage = lazy(() => import('./pages/admin/AdminCoachesPage'))
+const AdminFaqPage = lazy(() => import('./pages/admin/AdminFaqPage'))
 const AdminMessagesPage = lazy(() => import('./pages/admin/AdminMessagesPage'))
 const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'))
 const AdminAvailabilityPage = lazy(() => import('./pages/admin/AdminAvailabilityPage'))
@@ -87,9 +90,9 @@ function NotFoundPage() {
         </div>
         <h1 className="mb-4 text-5xl font-black text-white">404</h1>
         <p className="mb-8 text-lg text-gray-400">Page not found.</p>
-        <a href="/" className="btn-primary">
+        <Link to="/" className="btn-primary">
           Back to Home
-        </a>
+        </Link>
       </div>
     </div>
   )
@@ -314,95 +317,6 @@ export default function App() {
             />
 
             <Route
-              path="/coach/*"
-              element={
-                <ProtectedRoute requireRoles={['COACH', 'TEAM_CAPTAIN']}>
-                  <LegacyPortalRedirect />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/staff/*"
-              element={
-                <ProtectedRoute>
-                  <LegacyPortalRedirect />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/player/*"
-              element={
-                <ProtectedRoute>
-                  <LegacyPortalRedirect />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/parent/*"
-              element={
-                <ProtectedRoute>
-                  <LegacyPortalRedirect />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/user/*"
-              element={
-                <ProtectedRoute>
-                  <LegacyPortalRedirect />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/messages"
-              element={
-                <ProtectedRoute>
-                  <LegacyPortalRedirect />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/waivers"
-              element={
-                <ProtectedRoute>
-                  <LegacyPortalRedirect />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/documents"
-              element={
-                <ProtectedRoute>
-                  <LegacyPortalRedirect />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/calendar"
-              element={
-                <ProtectedRoute>
-                  <LegacyPortalRedirect />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/enrollments"
-              element={
-                <ProtectedRoute>
-                  <LegacyPortalRedirect />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/payments"
-              element={
-                <ProtectedRoute>
-                  <LegacyPortalRedirect />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
               path="/admin"
               element={
                 <ProtectedRoute requireAdmin>
@@ -413,11 +327,11 @@ export default function App() {
               }
             />
             <Route
-              path="/admin/bookings"
+              path="/admin/registrations"
               element={
                 <ProtectedRoute requireAdmin>
                   <AdminLayout>
-                    <AdminBookingsPage />
+                    <AdminRegistrationsPage />
                   </AdminLayout>
                 </ProtectedRoute>
               }
@@ -428,6 +342,16 @@ export default function App() {
                 <ProtectedRoute requireAdmin>
                   <AdminLayout>
                     <AdminAvailabilityPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/recurring-sessions"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminSessionSeriesPage />
                   </AdminLayout>
                 </ProtectedRoute>
               }
@@ -508,6 +432,26 @@ export default function App() {
                 <ProtectedRoute requireAdmin>
                   <AdminLayout>
                     <AdminTestimonialsPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/coaches"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminCoachesPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/faqs"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminFaqPage />
                   </AdminLayout>
                 </ProtectedRoute>
               }

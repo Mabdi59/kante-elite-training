@@ -1,6 +1,6 @@
 package com.kanteelite.training.service;
 
-import com.kanteelite.training.repository.BookingRepository;
+import com.kanteelite.training.repository.RegistrationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,24 +16,21 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ReportingService {
 
-    private final BookingRepository bookingRepository;
+    private final RegistrationRepository registrationRepository;
 
-    /**
-     * Returns daily booking counts for the last {@code days} days (inclusive).
-     * Each entry has {@code date} (ISO string) and {@code count}.
-     */
     @Transactional(readOnly = true)
-    public List<Map<String, Object>> getBookingsOverTime(int days) {
+    public List<Map<String, Object>> getRegistrationsOverTime(int days) {
         LocalDate today = LocalDate.now();
         LocalDate from = today.minusDays(days - 1L);
 
         Map<LocalDate, Long> countsByDate = new LinkedHashMap<>();
-        for (Object[] row : bookingRepository.countBookingsByDateRange(from, today)) {
-            if (row.length < 2 || !(row[0] instanceof LocalDate bookingDate) || !(row[1] instanceof Number count)) {
-                continue;
-            }
-            countsByDate.put(bookingDate, count.longValue());
-        }
+        registrationRepository.findByCreatedAtBetween(from.atStartOfDay(), today.plusDays(1).atStartOfDay())
+                .forEach(registration -> {
+                    LocalDate date = registration.getCreatedAt() != null
+                            ? registration.getCreatedAt().toLocalDate()
+                            : today;
+                    countsByDate.merge(date, 1L, Long::sum);
+                });
 
         List<Map<String, Object>> result = new ArrayList<>();
         DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE;

@@ -18,10 +18,10 @@ public class AdminReportingController {
 
     private final ReportingService reportingService;
 
-    @GetMapping("/bookings-over-time")
-    public ResponseEntity<List<Map<String, Object>>> bookingsOverTime(
+    @GetMapping("/registrations-over-time")
+    public ResponseEntity<List<Map<String, Object>>> registrationsOverTime(
             @RequestParam(defaultValue = "30") int days) {
         int clampedDays = Math.max(7, Math.min(days, 365));
-        return ResponseEntity.ok(reportingService.getBookingsOverTime(clampedDays));
+        return ResponseEntity.ok(reportingService.getRegistrationsOverTime(clampedDays));
     }
 }

@@ -21,7 +21,7 @@ public class AdminTestimonialController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<TestimonialResponse>>> getAllTestimonials() {
-        return ResponseEntity.ok(ApiResponse.success(testimonialService.getAllTestimonials()));
+        return ResponseEntity.ok(ApiResponse.success(testimonialService.getAllAdminTestimonials()));
     }
 
     @PostMapping

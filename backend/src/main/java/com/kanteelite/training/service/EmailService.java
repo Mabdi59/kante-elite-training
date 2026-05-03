@@ -1,10 +1,9 @@
 package com.kanteelite.training.service;
 
 import com.kanteelite.training.dto.request.ContactRequest;
-import com.kanteelite.training.dto.response.BookingResponse;
-import com.kanteelite.training.dto.response.BookingSeriesResponse;
+import com.kanteelite.training.dto.response.RegistrationResponse;
+import com.kanteelite.training.dto.response.SessionSeriesResponse;
 import com.kanteelite.training.dto.response.TeamRegistrationResponse;
-import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,72 +37,58 @@ public class EmailService {
     @Value("${app.email.enabled:false}")
     private boolean emailEnabled;
 
-    @Value("${spring.mail.username:}")
-    private String mailUsername;
-
-    @Value("${spring.mail.password:}")
-    private String mailPassword;
-
     public EmailService(ObjectProvider<JavaMailSender> mailSenderProvider, TemplateEngine templateEngine) {
         this.mailSender = mailSenderProvider.getIfAvailable();
         this.templateEngine = templateEngine;
     }
 
-    @PostConstruct
-    void configureEmailDelivery() {
-        if (!emailEnabled && hasSmtpCredentials()) {
-            emailEnabled = true;
-            log.info("Email delivery enabled automatically because SMTP credentials are configured.");
-            return;
-        }
-
-        if (emailEnabled && !hasSmtpCredentials()) {
-            log.warn("Email is enabled but SMTP credentials are incomplete. Delivery attempts may fail.");
-        }
-    }
-
     public boolean isEmailDeliveryAvailable() {
-        return emailEnabled && mailSender != null && hasSmtpCredentials();
+        return emailEnabled && mailSender != null;
     }
 
-    public boolean sendBookingConfirmation(BookingResponse booking) {
+    public boolean sendBookingConfirmation(RegistrationResponse booking) {
         if (!emailEnabled) {
-            log.info("Email disabled - skipping booking confirmation for {}", booking.getEmail());
+            log.info("Email disabled - skipping booking confirmation for {}", registrationEmail(booking));
             return false;
         }
         if (mailSender == null) {
-            log.warn("Email enabled but JavaMailSender is not configured; skipping booking confirmation for {}", booking.getEmail());
+            log.warn("Email enabled but JavaMailSender is not configured; skipping booking confirmation for {}", registrationEmail(booking));
             return false;
         }
         try {
             Context ctx = new Context();
             ctx.setVariable("booking", booking);
+            ctx.setVariable("registration", booking);
 
             String htmlBody = templateEngine.process("email/booking-confirmation", ctx);
 
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setFrom(fromAddress);
-            helper.setTo(booking.getEmail());
-            helper.setSubject("Booking Confirmed - Kante Elite Training");
+            helper.setTo(registrationEmail(booking));
+            helper.setSubject(registrationConfirmationSubject(booking));
             helper.setText(htmlBody, true);
 
             mailSender.send(message);
-            log.info("Booking confirmation sent to {}", booking.getEmail());
+            log.info("Registration confirmation sent to {}", registrationEmail(booking));
             return true;
         } catch (Exception e) {
-            log.error("Failed to send booking confirmation to {}: {}", booking.getEmail(), e.getMessage());
+            log.error("Failed to send registration confirmation to {}: {}", registrationEmail(booking), e.getMessage());
             return false;
         }
     }
 
-    public boolean sendBookingStatusUpdate(BookingResponse booking) {
+    public boolean sendRegistrationConfirmation(RegistrationResponse registration) {
+        return sendBookingConfirmation(registration);
+    }
+
+    public boolean sendBookingStatusUpdate(RegistrationResponse booking) {
         if (!emailEnabled) {
-            log.info("Email disabled - skipping booking status email for {}", booking.getEmail());
+            log.info("Email disabled - skipping booking status email for {}", registrationEmail(booking));
             return false;
         }
         if (mailSender == null) {
-            log.warn("Email enabled but JavaMailSender is not configured; skipping booking status email for {}", booking.getEmail());
+            log.warn("Email enabled but JavaMailSender is not configured; skipping booking status email for {}", registrationEmail(booking));
             return false;
         }
         try {
@@ -113,11 +98,11 @@ public class EmailService {
             ctx.setVariable("statusMessage", bookingStatusMessage(booking));
 
             String htmlBody = templateEngine.process("email/booking-status-update", ctx);
-            sendHtmlEmail(booking.getEmail(), bookingStatusEmailSubject(booking), htmlBody, null);
-            log.info("Booking status email sent to {} for booking {}", booking.getEmail(), booking.getId());
+            sendHtmlEmail(registrationEmail(booking), bookingStatusEmailSubject(booking), htmlBody, null);
+            log.info("Booking status email sent to {} for booking {}", registrationEmail(booking), booking.getId());
             return true;
         } catch (Exception e) {
-            log.error("Failed to send booking status email to {}: {}", booking.getEmail(), e.getMessage());
+            log.error("Failed to send booking status email to {}: {}", registrationEmail(booking), e.getMessage());
             return false;
         }
     }
@@ -209,38 +194,39 @@ public class EmailService {
         }
     }
 
-    public boolean sendSessionReminder(BookingResponse booking) {
+    public boolean sendSessionReminder(RegistrationResponse booking) {
         if (!emailEnabled) {
-            log.info("Email disabled - skipping session reminder for {}", booking.getEmail());
+            log.info("Email disabled - skipping session reminder for {}", registrationEmail(booking));
             return false;
         }
         if (mailSender == null) {
-            log.warn("Email enabled but JavaMailSender is not configured; skipping session reminder for {}", booking.getEmail());
+            log.warn("Email enabled but JavaMailSender is not configured; skipping session reminder for {}", registrationEmail(booking));
             return false;
         }
         try {
             Context ctx = new Context();
             ctx.setVariable("booking", booking);
+            ctx.setVariable("registration", booking);
 
             String htmlBody = templateEngine.process("email/session-reminder", ctx);
 
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setFrom(fromAddress);
-            helper.setTo(booking.getEmail());
+            helper.setTo(registrationEmail(booking));
             helper.setSubject("Reminder: Session Tomorrow - Kante Elite Training");
             helper.setText(htmlBody, true);
 
             mailSender.send(message);
-            log.info("Session reminder sent to {} for booking {}", booking.getEmail(), booking.getId());
+            log.info("Session reminder sent to {} for booking {}", registrationEmail(booking), booking.getId());
             return true;
         } catch (Exception e) {
-            log.error("Failed to send session reminder to {}: {}", booking.getEmail(), e.getMessage());
+            log.error("Failed to send session reminder to {}: {}", registrationEmail(booking), e.getMessage());
             return false;
         }
     }
 
-    public boolean sendBookingSeriesConfirmation(String toEmail, BookingSeriesResponse series, List<LocalDate> sessionDates) {
+    public boolean sendBookingSeriesConfirmation(String toEmail, SessionSeriesResponse series, List<LocalDate> sessionDates) {
         if (!emailEnabled) {
             log.info("Email disabled - skipping series confirmation for {}", toEmail);
             return false;
@@ -347,138 +333,76 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    private String bookingStatusEmailSubject(BookingResponse booking) {
-        return switch (booking.getBookingStatus()) {
+    private String bookingStatusEmailSubject(RegistrationResponse booking) {
+        return switch (booking.getStatus()) {
             case CONFIRMED -> "Booking Confirmed - Kante Elite Training";
             case CANCELLED -> "Booking Cancelled - Kante Elite Training";
             default -> "Booking Updated - Kante Elite Training";
         };
     }
 
-    private String bookingStatusLabel(BookingResponse booking) {
-        return switch (booking.getBookingStatus()) {
+    private String bookingStatusLabel(RegistrationResponse booking) {
+        return switch (booking.getStatus()) {
             case CONFIRMED -> "Booking Confirmed";
             case CANCELLED -> "Booking Cancelled";
             default -> "Booking Updated";
         };
     }
 
-    private String bookingStatusMessage(BookingResponse booking) {
-        return switch (booking.getBookingStatus()) {
+    private String bookingStatusMessage(RegistrationResponse booking) {
+        return switch (booking.getStatus()) {
             case CONFIRMED -> "Your session is confirmed and ready to go.";
             case CANCELLED -> "Your session has been cancelled. If you still want to train, contact us and we will help you rebook.";
             default -> "Your booking details have been updated.";
         };
     }
 
-    public void sendEnrollmentStatusEmail(String toEmail, String playerName, String programName, String status) {
+    public void sendBookingRescheduledEmail(RegistrationResponse booking, LocalDate oldDate, String oldTime) {
         if (!emailEnabled || mailSender == null) {
-            log.info("Email disabled - skipping enrollment status email for {}", toEmail);
+            log.info("Email disabled - skipping booking rescheduled email for {}", registrationEmail(booking));
             return;
         }
-        if (!StringUtils.hasText(toEmail)) return;
+        if (!StringUtils.hasText(registrationEmail(booking))) return;
 
-        String subject = "Enrollment " + capitalize(status) + " - Kante Elite Training";
-        String escapedStatus = escapeHtml(status);
-        String statusMsg = switch (status.toUpperCase()) {
-            case "APPROVED" -> "Your enrollment has been <strong>approved</strong>! You are now officially enrolled.";
-            case "REJECTED" -> "Unfortunately, your enrollment has been <strong>declined</strong>. Please contact us if you have questions.";
-            case "WAITLISTED" -> "You have been added to the <strong>waitlist</strong>. We will contact you if a spot opens up.";
-            default -> "Your enrollment status has been updated to <strong>" + escapedStatus + "</strong>.";
-        };
-
-        String html = "<html><body style='font-family:sans-serif;color:#222;'>"
-            + "<h2 style='color:#d97706;'>Kante Elite Training</h2>"
-            + "<h3>Enrollment Update: " + escapeHtml(programName) + "</h3>"
-            + "<p>Hi " + escapeHtml(playerName) + ",</p>"
-            + "<p>" + statusMsg + "</p>"
-            + "<p style='color:#555;'>Program: <strong>" + escapeHtml(programName) + "</strong></p>"
-            + "<p style='color:#888;font-size:12px;'>The Kante Elite Training Team</p>"
-            + "</body></html>";
-
-        try {
-            sendHtmlEmail(toEmail, subject, html, null);
-            log.info("Enrollment status email ({}) sent to {}", status, toEmail);
-        } catch (Exception e) {
-            log.error("Failed to send enrollment email to {}: {}", toEmail, e.getMessage());
-        }
-    }
-
-    public void sendEnrollmentCreatedEmail(String toEmail, String playerName, String programName) {
-        if (!emailEnabled || mailSender == null) {
-            log.info("Email disabled - skipping enrollment created email for {}", toEmail);
-            return;
-        }
-        if (!StringUtils.hasText(toEmail)) return;
-
-        String safePlayerName = StringUtils.hasText(playerName) ? playerName : "there";
-        String html = "<html><body style='font-family:sans-serif;color:#222;'>"
-            + "<h2 style='color:#d97706;'>Kante Elite Training</h2>"
-            + "<h3>Enrollment Received</h3>"
-            + "<p>Hi " + escapeHtml(safePlayerName) + ",</p>"
-            + "<p>Your enrollment for <strong>" + escapeHtml(programName) + "</strong> has been recorded.</p>"
-            + "<p>We will keep you updated by email when your enrollment or payment status changes.</p>"
-            + "<p style='color:#888;font-size:12px;'>The Kante Elite Training Team</p>"
-            + "</body></html>";
-
-        try {
-            sendHtmlEmail(toEmail, "Enrollment Received - " + escapeHtml(programName), html, null);
-            log.info("Enrollment created email sent to {}", toEmail);
-        } catch (Exception e) {
-            log.error("Failed to send enrollment created email to {}: {}", toEmail, e.getMessage());
-        }
-    }
-
-    public void sendEnrollmentPaymentStatusEmail(String toEmail, String playerName, String programName, String paymentStatus) {
-        if (!emailEnabled || mailSender == null) {
-            log.info("Email disabled - skipping enrollment payment email for {}", toEmail);
-            return;
-        }
-        if (!StringUtils.hasText(toEmail)) return;
-
-        String safePlayerName = StringUtils.hasText(playerName) ? playerName : "there";
-        String paymentLabel = formatEnumLabel(paymentStatus);
-        String html = "<html><body style='font-family:sans-serif;color:#222;'>"
-            + "<h2 style='color:#d97706;'>Kante Elite Training</h2>"
-            + "<h3>Enrollment Payment Update</h3>"
-            + "<p>Hi " + escapeHtml(safePlayerName) + ",</p>"
-            + "<p>Your payment status for <strong>" + escapeHtml(programName) + "</strong> is now <strong>" + escapeHtml(paymentLabel) + "</strong>.</p>"
-            + "<p>If you have any questions, reply to this email and our team will help.</p>"
-            + "<p style='color:#888;font-size:12px;'>The Kante Elite Training Team</p>"
-            + "</body></html>";
-
-        try {
-            sendHtmlEmail(toEmail, "Payment Update - " + escapeHtml(programName), html, null);
-            log.info("Enrollment payment status email ({}) sent to {}", paymentStatus, toEmail);
-        } catch (Exception e) {
-            log.error("Failed to send enrollment payment email to {}: {}", toEmail, e.getMessage());
-        }
-    }
-
-    public void sendBookingRescheduledEmail(BookingResponse booking, LocalDate oldDate, String oldTime) {
-        if (!emailEnabled || mailSender == null) {
-            log.info("Email disabled - skipping booking rescheduled email for {}", booking.getEmail());
-            return;
-        }
-        if (!StringUtils.hasText(booking.getEmail())) return;
-
-        String safeName = StringUtils.hasText(booking.getParentName()) ? booking.getParentName() : booking.getPlayerName();
+        String safeName = StringUtils.hasText(booking.getGuardianName()) ? booking.getGuardianName() : booking.getParticipantName();
         String html = "<html><body style='font-family:sans-serif;color:#222;'>"
             + "<h2 style='color:#d97706;'>Kante Elite Training</h2>"
             + "<h3>Booking Rescheduled</h3>"
             + "<p>Hi " + escapeHtml(StringUtils.hasText(safeName) ? safeName : "there") + ",</p>"
             + "<p>Your booking for <strong>" + escapeHtml(booking.getProgramName()) + "</strong> has been rescheduled.</p>"
             + "<p><strong>Previous slot:</strong> " + escapeHtml(String.valueOf(oldDate)) + " at " + escapeHtml(oldTime) + "</p>"
-            + "<p><strong>New slot:</strong> " + escapeHtml(String.valueOf(booking.getBookingDate())) + " at " + escapeHtml(booking.getBookingTime()) + "</p>"
+            + "<p><strong>New slot:</strong> " + escapeHtml(String.valueOf(booking.getScheduledDate())) + " at " + escapeHtml(booking.getScheduledStartTime()) + "</p>"
             + "<p style='color:#888;font-size:12px;'>The Kante Elite Training Team</p>"
             + "</body></html>";
 
         try {
-            sendHtmlEmail(booking.getEmail(), "Booking Rescheduled - Kante Elite Training", html, null);
-            log.info("Booking rescheduled email sent to {} for booking {}", booking.getEmail(), booking.getId());
+            sendHtmlEmail(registrationEmail(booking), "Booking Rescheduled - Kante Elite Training", html, null);
+            log.info("Booking rescheduled email sent to {} for booking {}", registrationEmail(booking), booking.getId());
         } catch (Exception e) {
-            log.error("Failed to send booking rescheduled email to {}: {}", booking.getEmail(), e.getMessage());
+            log.error("Failed to send booking rescheduled email to {}: {}", registrationEmail(booking), e.getMessage());
         }
+    }
+
+    private String registrationEmail(RegistrationResponse registration) {
+        if (registration == null) {
+            return null;
+        }
+        if (StringUtils.hasText(registration.getGuardianEmail())) {
+            return registration.getGuardianEmail();
+        }
+        return registration.getParticipantEmail();
+    }
+
+    private String registrationConfirmationSubject(RegistrationResponse registration) {
+        String title = "Kante Elite Training";
+        if (registration != null) {
+            if (StringUtils.hasText(registration.getEventTitle())) {
+                title = registration.getEventTitle();
+            } else if (StringUtils.hasText(registration.getProgramName())) {
+                title = registration.getProgramName();
+            }
+        }
+        return "Registration Confirmed - " + title;
     }
 
     public void sendProgramParticipantEmail(String toEmail, String participantName, String programName, boolean added) {
@@ -513,18 +437,25 @@ public class EmailService {
         }
         if (!StringUtils.hasText(toEmail)) return;
 
-        String actionLabel = added ? "Event Registration Confirmed" : "Event Registration Removed";
-        String bodyLabel = added ? "has been registered for" : "has been removed from";
+        String safeEventTitle = StringUtils.hasText(eventTitle) ? eventTitle : "your training event";
+        String actionLabel = added ? "Registration Confirmed" : "Registration Removed";
+        String body = added
+            ? "Your registration for <strong>" + escapeHtml(safeEventTitle) + "</strong> is confirmed."
+            : "Your registration for <strong>" + escapeHtml(safeEventTitle) + "</strong> has been removed.";
+        String nextStep = added
+            ? "<p style='color:#555;margin:16px 0 0;'>We will follow up with any session details you need before training.</p>"
+            : "";
         String html = "<html><body style='font-family:sans-serif;color:#222;'>"
             + "<h2 style='color:#d97706;'>Kante Elite Training</h2>"
             + "<h3>" + actionLabel + "</h3>"
             + "<p>Hi " + escapeHtml(StringUtils.hasText(participantName) ? participantName : "there") + ",</p>"
-            + "<p>Your profile " + bodyLabel + " <strong>" + escapeHtml(eventTitle) + "</strong>.</p>"
+            + "<p>" + body + "</p>"
+            + nextStep
             + "<p style='color:#888;font-size:12px;'>The Kante Elite Training Team</p>"
             + "</body></html>";
 
         try {
-            sendHtmlEmail(toEmail, actionLabel + " - " + escapeHtml(eventTitle), html, null);
+            sendHtmlEmail(toEmail, actionLabel + " - " + safeEventTitle, html, null);
             log.info("Event participant email sent to {} for event {}", toEmail, eventTitle);
         } catch (Exception e) {
             log.error("Failed to send event participant email to {}: {}", toEmail, e.getMessage());
@@ -651,10 +582,6 @@ public class EmailService {
     private String capitalize(String s) {
         if (!StringUtils.hasText(s)) return s;
         return Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase();
-    }
-
-    private boolean hasSmtpCredentials() {
-        return StringUtils.hasText(mailUsername) && StringUtils.hasText(mailPassword);
     }
 
     private String formatEnumLabel(String value) {

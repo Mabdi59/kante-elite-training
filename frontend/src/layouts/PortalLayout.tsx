@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import BrandMark from '../components/BrandMark'
 import NotificationBell from '../components/NotificationBell'
 
 export interface PortalNavItem {
@@ -66,15 +67,7 @@ export default function PortalLayout({
     <>
       <div className="p-5 border-b border-[#1a1a1a] flex items-center justify-between gap-3">
         <Link to="/" className="flex items-center gap-2.5 min-w-0" onClick={() => setMobileNavOpen(false)}>
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-500">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 text-black">
-              <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-.53 14.03a.75.75 0 0 0 1.06 0l3-3a.75.75 0 1 0-1.06-1.06l-1.72 1.72V8.25a.75.75 0 0 0-1.5 0v5.69l-1.72-1.72a.75.75 0 0 0-1.06 1.06l3 3Z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <div>
-            <span className="text-white font-black text-sm leading-none block">KANTE ELITE</span>
-            <span className={`text-[10px] font-bold uppercase tracking-widest leading-none ${accentClass}`}>{portalLabel}</span>
-          </div>
+          <BrandMark size="portal" showText label={portalLabel} />
         </Link>
         <button
           type="button"
@@ -92,7 +85,7 @@ export default function PortalLayout({
         {navSections.map((section, si) => (
           <div key={si}>
             {section.title && (
-              <p className="px-3 mb-1 text-[10px] font-bold text-gray-600 uppercase tracking-widest">
+              <p className="px-3 mb-1 text-[10px] font-bold text-gray-600 uppercase">
                 {section.title}
               </p>
             )}
@@ -151,10 +144,9 @@ export default function PortalLayout({
       {/* Mobile top bar */}
       <div className="sticky top-0 z-40 flex items-center justify-between gap-4 border-b border-[#1a1a1a] bg-[#0d0d0d] px-4 py-3 lg:hidden">
         <div className="min-w-0">
-          <Link to="/" className="block text-lg font-black text-white leading-none">Kante Elite</Link>
-          <p className={`mt-0.5 text-[11px] font-bold uppercase tracking-widest ${accentClass}`}>
-            {portalLabel}
-          </p>
+          <Link to="/" className="block">
+            <BrandMark size="compact" showText label={portalLabel} />
+          </Link>
         </div>
         <div className="flex items-center gap-2">
           <NotificationBell />

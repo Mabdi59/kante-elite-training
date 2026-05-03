@@ -1,5 +1,6 @@
-﻿import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import BrandMark from '../components/BrandMark'
 import { resetPassword } from '../services/api'
 
 export default function ResetPasswordPage() {
@@ -38,9 +39,8 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen bg-black flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex flex-col items-center gap-0.5">
-            <span className="text-2xl font-black tracking-tight text-white">KANTÉ ELITE</span>
-            <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-500">Training</span>
+          <Link to="/" className="inline-flex">
+            <BrandMark size="auth" showText />
           </Link>
           <h1 className="text-white text-3xl font-black mt-6 mb-2">Reset Password</h1>
           <p className="text-gray-400 text-sm">Enter your reset code and choose a new password.</p>
@@ -60,7 +60,7 @@ export default function ResetPasswordPage() {
           )}
 
           <div>
-            <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Reset Code</label>
+            <label className="block text-gray-400 text-xs font-semibold uppercase mb-2">Reset Code</label>
             <input
               type="text"
               value={token}
@@ -72,7 +72,7 @@ export default function ResetPasswordPage() {
           </div>
 
           <div>
-            <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">New Password</label>
+            <label className="block text-gray-400 text-xs font-semibold uppercase mb-2">New Password</label>
             <input
               type="password"
               value={newPassword}
@@ -85,7 +85,7 @@ export default function ResetPasswordPage() {
           </div>
 
           <div>
-            <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
+            <label className="block text-gray-400 text-xs font-semibold uppercase mb-2">
               Confirm New Password
             </label>
             <input
