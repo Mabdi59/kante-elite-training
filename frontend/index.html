@@ -8,23 +8,26 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Kante Elite Training, premier youth soccer development and performance training in Columbus, Ohio." />
+    <meta name="description" content="Coach Kante-led youth soccer training in Columbus, Ohio. Book private soccer training, small group training, Summer Training, events, and tournaments with Kante Elite Training." />
     <meta name="application-name" content="Kante Elite Training" />
     <meta name="robots" content="index,follow,max-image-preview:large" />
     <meta name="theme-color" content="#070707" />
+    <meta name="geo.region" content="US-OH" />
+    <meta name="geo.placename" content="Columbus, Ohio" />
     <link rel="canonical" href="https://kanteelitetraining.com/" />
-    <meta property="og:title" content="Kante Elite Training, Columbus Youth Soccer Academy" />
-    <meta property="og:description" content="Kante Elite Training, premier youth soccer development and performance training in Columbus, Ohio." />
+    <meta property="og:title" content="Kante Elite Training | Coach Kante Soccer Training in Columbus, Ohio" />
+    <meta property="og:description" content="Book Coach Kante-led private soccer training, small group training, Summer Training, events, and tournaments in Columbus, Ohio." />
     <meta property="og:url" content="https://kanteelitetraining.com/" />
     <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:site_name" content="Kante Elite Training" />
     <meta property="og:image" content="https://kanteelitetraining.com/brand/kante-elite-badge.png" />
     <meta property="og:image:alt" content="Kante Elite Training official badge" />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Kante Elite Training, Columbus Youth Soccer Academy" />
-    <meta name="twitter:description" content="Kante Elite Training, premier youth soccer development and performance training in Columbus, Ohio." />
+    <meta name="twitter:title" content="Kante Elite Training | Coach Kante Soccer Training in Columbus, Ohio" />
+    <meta name="twitter:description" content="Book Coach Kante-led youth soccer training, events, and tournaments in Columbus, Ohio." />
     <meta name="twitter:image" content="https://kanteelitetraining.com/brand/kante-elite-badge.png" />
-    <title>Kante Elite Training, Columbus Youth Soccer Academy</title>
+    <title>Kante Elite Training | Coach Kante Soccer Training in Columbus, Ohio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -46,10 +49,22 @@
             ]
           },
           {
+            "@type": "Person",
+            "@id": "https://kanteelitetraining.com/#coach-kante",
+            "name": "Mohamed Sheik Kante",
+            "alternateName": "Coach Kante",
+            "jobTitle": "Founder and Head Coach",
+            "worksFor": {
+              "@id": "https://kanteelitetraining.com/#organization"
+            },
+            "url": "https://kanteelitetraining.com/about"
+          },
+          {
             "@type": "WebSite",
             "@id": "https://kanteelitetraining.com/#website",
             "url": "https://kanteelitetraining.com/",
             "name": "Kante Elite Training",
+            "description": "Coach Kante-led soccer training, events, tournaments, and online booking in Columbus, Ohio.",
             "publisher": {
               "@id": "https://kanteelitetraining.com/#organization"
             }
@@ -59,14 +74,69 @@
             "@id": "https://kanteelitetraining.com/#location",
             "name": "Kante Elite Training",
             "url": "https://kanteelitetraining.com/",
-            "description": "Premier youth soccer development and performance training in Columbus, Ohio.",
+            "description": "Coach Kante-led youth soccer training in Columbus, Ohio, including private soccer training, small group training, Summer Training, events, and tournaments.",
             "sport": "Soccer",
             "brand": {
               "@id": "https://kanteelitetraining.com/#organization"
             },
+            "founder": {
+              "@id": "https://kanteelitetraining.com/#coach-kante"
+            },
             "areaServed": {
               "@type": "City",
               "name": "Columbus"
+            },
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Columbus",
+              "addressRegion": "OH",
+              "addressCountry": "US"
+            },
+            "knowsAbout": [
+              "Youth soccer training",
+              "Private soccer training",
+              "Small group soccer training",
+              "Soccer camps",
+              "Soccer tournaments",
+              "Player development"
+            ],
+            "makesOffer": {
+              "@type": "OfferCatalog",
+              "name": "Kante Elite Training Services",
+              "itemListElement": [
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Private Soccer Training",
+                    "description": "One-on-one soccer training in Columbus, Ohio with Coach Kante."
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Small Group Soccer Training",
+                    "description": "Small group youth soccer training for players who want focused coaching and competitive repetitions."
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Summer Training",
+                    "description": "Multi-week Summer Training sessions for youth soccer players in Columbus."
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Soccer Tournaments",
+                    "description": "Youth soccer tournament listings and team registration through Kante Elite Training."
+                  }
+                }
+              ]
             }
           }
         ]

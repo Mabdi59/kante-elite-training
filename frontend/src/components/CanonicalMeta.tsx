@@ -4,9 +4,9 @@ import { BRAND_APPLE_TOUCH_ICON_SRC, BRAND_LOGO_ALT } from '../constants/brand'
 
 const SITE_URL = 'https://kanteelitetraining.com'
 const DEFAULT_IMAGE = `${SITE_URL}${BRAND_APPLE_TOUCH_ICON_SRC}`
-const DEFAULT_TITLE = 'Kante Elite Training | Youth Soccer Academy, Columbus Ohio'
+const DEFAULT_TITLE = 'Kante Elite Training | Coach Kante Soccer Training in Columbus, Ohio'
 const DEFAULT_DESCRIPTION =
-  'Kante Elite Training offers Columbus youth soccer training, events, tournament registration, and direct online booking.'
+  'Coach Kante-led youth soccer training in Columbus, Ohio. Book private soccer training, small group sessions, Summer Training, events, and tournaments.'
 
 interface MetaConfig {
   title: string
@@ -31,71 +31,71 @@ function getMetaConfig(pathname: string): MetaConfig {
     return {
       title: DEFAULT_TITLE,
       description:
-        'Book Columbus soccer training, explore events, and register for tournaments with Kante Elite Training.',
+        'Book Coach Kante-led soccer training in Columbus, Ohio, including private sessions, small group training, Summer Training, events, and tournaments.',
     }
   }
 
   if (pathname === '/training') {
     return {
-      title: 'Training Programs | Kante Elite Training',
+      title: 'Soccer Training Programs in Columbus, Ohio | Kante Elite Training',
       description:
-        'Explore the current Kante Elite training programs, including private training, small group training, and speed and agility sessions.',
+        'Compare Coach Kante-led private soccer training, small group training, technical training, and player development options for Columbus youth soccer players.',
     }
   }
 
   if (pathname === '/events') {
     return {
-      title: 'Events | Kante Elite Training',
+      title: 'Summer Training and Soccer Events | Kante Elite Training',
       description:
-        'Browse currently published Kante Elite events, camps, and clinics and register online when spots are open.',
+        'View Summer Training and soccer events from Kante Elite Training in Columbus, including dates, coaches, spots, pricing, and registration.',
     }
   }
 
   if (/^\/events\/\d+\/register$/.test(pathname)) {
     return {
-      title: 'Event Registration | Kante Elite Training',
+      title: 'Register for Soccer Training | Kante Elite Training',
       description:
-        'Register for a Kante Elite event using the live event details published on the site.',
+        'Register for a Kante Elite Training event or Summer Training session with live dates, times, coaches, and availability.',
     }
   }
 
   if (pathname === '/results') {
     return {
-      title: 'Player Results | Kante Elite Training',
+      title: 'Player Results and Testimonials | Kante Elite Training',
       description:
-        'Read published family feedback and player success stories from Kante Elite Training in Columbus, Ohio.',
+        'Read family feedback, player results, and success stories from Coach Kante-led soccer training in Columbus, Ohio.',
     }
   }
 
   if (pathname === '/media') {
     return {
-      title: 'Media | Kante Elite Training',
+      title: 'Soccer Training Photos and Videos | Kante Elite Training',
       description:
-        'View photos and videos from Kante Elite training sessions, events, and tournaments.',
+        'View Kante Elite Training photos and videos from Coach Kante-led soccer sessions, events, tournaments, and player development moments.',
     }
   }
 
   if (pathname === '/about') {
     return {
-      title: 'About | Kante Elite Training',
+      title: 'About Coach Kante | Kante Elite Training',
       description:
-        'Learn about Coach Kante, the Kante Elite coaching philosophy, and the standards behind the training environment.',
+        'Learn about Coach Kante, founder of Kante Elite Training, his playing background, credentials, and player development standards.',
     }
   }
 
   if (pathname === '/contact') {
     return {
-      title: 'Contact | Kante Elite Training',
+      title: 'Contact Coach Kante | Kante Elite Training',
       description:
-        'Contact Kante Elite Training for booking help, program questions, or tournament registration support.',
+        'Contact Kante Elite Training in Columbus, Ohio for soccer training questions, booking help, Summer Training details, or tournament registration support.',
     }
   }
 
   if (pathname === '/book') {
     return {
-      title: 'Book Training | Kante Elite Training',
+      title: 'Book Soccer Training in Columbus | Kante Elite Training',
       description:
-        'Book a Kante Elite training session by choosing a program, date, and available time online.',
+        'Book Coach Kante-led soccer training online. Choose a program, date, time, player details, and register in minutes.',
     }
   }
 
@@ -108,9 +108,9 @@ function getMetaConfig(pathname: string): MetaConfig {
 
   if (pathname === '/tournaments') {
     return {
-      title: 'Tournaments | Kante Elite Training',
+      title: 'Youth Soccer Tournaments in Columbus | Kante Elite Training',
       description:
-        'Review live tournament listings, registration deadlines, and team openings for Kante Elite tournaments.',
+        'Review Kante Elite Training youth soccer tournament listings, registration deadlines, team openings, and public tournament details.',
     }
   }
 
@@ -140,9 +140,9 @@ function getMetaConfig(pathname: string): MetaConfig {
 
   if (pathname === '/faq') {
     return {
-      title: 'FAQ | Kante Elite Training',
+      title: 'Soccer Training FAQ | Kante Elite Training',
       description:
-        'Find answers about Kante Elite booking, training programs, events, tournaments, and account access.',
+        'Find answers about Coach Kante training sessions, private training, small group training, Summer Training, events, booking, and tournaments.',
     }
   }
 
