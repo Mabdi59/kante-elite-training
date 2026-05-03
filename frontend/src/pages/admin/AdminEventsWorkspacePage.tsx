@@ -25,6 +25,7 @@ import EmptyState from '../../components/EmptyState'
 import ErrorBanner from '../../components/ErrorBanner'
 import StatusBadge from '../../components/StatusBadge'
 import DatePickerField from '../../components/DatePickerField'
+import SocialSharePanel from '../../components/SocialSharePanel'
 
 const EVENT_STATUSES = ['UPCOMING', 'ACTIVE', 'COMPLETED'] as const
 const EVENT_TYPES = ['CAMP', 'CLINIC', 'WORKSHOP', 'TRYOUT', 'TOURNAMENT', 'OTHER'] as const
@@ -429,6 +430,13 @@ export default function AdminEventsWorkspacePage() {
         Boolean(participantForm.manualEmail?.trim())))
 
   const currentEventTitle = creatingNew ? 'New Event' : workflow?.event.title ?? 'Event Workspace'
+  const shareableEvent = workflow?.event
+  const eventShareText = shareableEvent
+    ? [
+        shareableEvent.description,
+        shareableEvent.price ? `Register online. Price: $${shareableEvent.price}.` : 'Register online with Kante Elite Training.',
+      ].filter(Boolean).join(' ')
+    : undefined
 
   if (loading) return <LoadingSpinner label="Loading events..." />
 
@@ -570,6 +578,26 @@ export default function AdminEventsWorkspacePage() {
                 <div className="space-y-6">
                   {saveError ? (
                     <ErrorBanner message={saveError} onDismiss={() => setSaveError('')} />
+                  ) : null}
+
+                  {!creatingNew && shareableEvent ? (
+                    <section className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+                      <div className="mb-4">
+                        <p className="text-xs font-black uppercase text-amber-500">Promote Event</p>
+                        <h3 className="mt-1 text-xl font-bold text-white">Share this event</h3>
+                        <p className="mt-1 text-sm text-gray-400">
+                          Use this to post the event to Instagram Stories, Snapchat, Facebook, or send the registration link directly.
+                        </p>
+                      </div>
+                      <SocialSharePanel
+                        title={shareableEvent.title}
+                        text={eventShareText}
+                        url={`/events/${shareableEvent.id}/register`}
+                        imageUrl={form.primaryMediaUrl || shareableEvent.primaryMediaUrl || shareableEvent.mediaUrls?.[0]}
+                        imageType="IMAGE"
+                        variant="compact"
+                      />
+                    </section>
                   ) : null}
 
                   <form onSubmit={handleSave} className="space-y-6">

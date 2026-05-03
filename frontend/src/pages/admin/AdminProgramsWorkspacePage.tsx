@@ -27,6 +27,7 @@ import EmptyState from '../../components/EmptyState'
 import ErrorBanner from '../../components/ErrorBanner'
 import StatusBadge from '../../components/StatusBadge'
 import DatePickerField from '../../components/DatePickerField'
+import SocialSharePanel from '../../components/SocialSharePanel'
 
 const PROGRAM_STATUSES = ['UPCOMING', 'ACTIVE', 'COMPLETED'] as const
 const PARTICIPANT_MODES = ['USER', 'PLAYER', 'MANUAL'] as const
@@ -491,6 +492,16 @@ export default function AdminProgramsWorkspacePage() {
 
   const currentProgramTitle =
     creatingNew ? 'New Program' : workflow?.program.name ?? 'Program Workspace'
+  const shareableProgram = workflow?.program
+  const programShareUrl = shareableProgram
+    ? `/book?programId=${encodeURIComponent(shareableProgram.slug || String(shareableProgram.id))}`
+    : '/book'
+  const programShareText = shareableProgram
+    ? [
+        shareableProgram.shortDescription || shareableProgram.description,
+        shareableProgram.priceLabel ? `Book online: ${shareableProgram.priceLabel}.` : 'Book online with Kante Elite Training.',
+      ].filter(Boolean).join(' ')
+    : undefined
 
   if (loading) return <LoadingSpinner label="Loading programs..." />
 
@@ -614,6 +625,26 @@ export default function AdminProgramsWorkspacePage() {
                 <div className="space-y-6">
                   {saveError ? (
                     <ErrorBanner message={saveError} onDismiss={() => setSaveError('')} />
+                  ) : null}
+
+                  {!creatingNew && shareableProgram ? (
+                    <section className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+                      <div className="mb-4">
+                        <p className="text-xs font-black uppercase text-amber-500">Promote Program</p>
+                        <h3 className="mt-1 text-xl font-bold text-white">Share this program</h3>
+                        <p className="mt-1 text-sm text-gray-400">
+                          Use this to post the program to Instagram Stories, Snapchat, Facebook, or send the booking link directly.
+                        </p>
+                      </div>
+                      <SocialSharePanel
+                        title={shareableProgram.name}
+                        text={programShareText}
+                        url={programShareUrl}
+                        imageUrl={selectedPrimaryMedia?.mediaUrl ?? shareableProgram.mediaUrl}
+                        imageType={(selectedPrimaryMedia?.mediaType ?? shareableProgram.mediaType) || 'IMAGE'}
+                        variant="compact"
+                      />
+                    </section>
                   ) : null}
 
                   <form onSubmit={handleSave} className="space-y-6">
