@@ -79,6 +79,9 @@ public class MediaStorageService {
         if (!StringUtils.hasText(publicUrl)) {
             return;
         }
+        if (!publicUrl.startsWith("/api/uploads/")) {
+            return;
+        }
 
         String relativePath = publicUrl.replaceFirst("^/api/uploads/", "");
         if (!StringUtils.hasText(relativePath)) {
