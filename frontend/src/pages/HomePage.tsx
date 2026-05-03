@@ -14,7 +14,6 @@ import type { Program, Testimonial, Event, Tournament, MediaPost, WebsiteContent
 import ProgramCard from '../components/ProgramCard'
 import TestimonialCard from '../components/TestimonialCard'
 import EventCard from '../components/EventCard'
-import MediaAsset from '../components/MediaAsset'
 import MediaPostCard from '../components/MediaPostCard'
 import MediaLightbox from '../components/MediaLightbox'
 import PublicProofBand from '../components/PublicProofBand'
@@ -158,8 +157,15 @@ export default function HomePage() {
   const allHomeMediaPosts = getPostsByPlacement(mediaPosts, 'HOME_GALLERY')
   const homeMediaPosts = allHomeMediaPosts.slice(0, 5)
   const coachSpotlightMedia = getPostsByPlacement(mediaPosts, 'HOME_FEATURED')[0] ?? allHomeMediaPosts[0] ?? null
-  const heroVisual = heroMedia ?? coachSpotlightMedia
   const coachProfileMedia = getPostsByPlacement(mediaPosts, 'ABOUT_PROFILE')[0] ?? null
+  const heroImagePost =
+    [heroMedia, coachSpotlightMedia, coachProfileMedia, ...allHomeMediaPosts].find(
+      (post): post is MediaPost => Boolean(post && post.mediaType !== 'VIDEO'),
+    ) ?? null
+  const heroImageUrl = heroImagePost?.mediaUrl ?? '/images/coach-kante-playing-background.png'
+  const heroImageAlt = heroImagePost
+    ? getMediaAlt(heroImagePost, siteContent.homeHeadline || 'Kante Elite training')
+    : 'Coach Kante training youth soccer players'
   const coachKante =
     coaches.find((coach) => coach.displayName.toLowerCase().includes('kante')) ??
     coaches.find((coach) => coach.featured) ??
@@ -207,33 +213,24 @@ export default function HomePage() {
   return (
     <div>
       <section className="relative flex min-h-[100svh] items-center overflow-hidden bg-black px-4 sm:min-h-[78vh]">
-        {heroVisual ? (
-          <div className="absolute inset-0">
-            <MediaAsset
-              src={heroVisual.mediaUrl}
-              type={heroVisual.mediaType}
-              alt={getMediaAlt(heroVisual, siteContent.homeHeadline || 'Kante Elite highlight')}
-              loading="eager"
-              fetchPriority="high"
-              playbackMode="hero"
-              className="h-full w-full object-cover animate-hero-zoom"
-            />
-            <div className="absolute inset-0 bg-black/65" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(120,53,15,0.55)_0%,_transparent_68%)]" />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/75" />
-          </div>
-        ) : (
-          <>
-            <div className="absolute inset-0 bg-radial-hero" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_#0a0500_0%,_transparent_70%)] opacity-70" />
-          </>
-        )}
+        <div className="absolute inset-0">
+          <img
+            src={heroImageUrl}
+            alt={heroImageAlt}
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
+            className="h-full w-full object-cover animate-hero-zoom"
+          />
+          <div className="absolute inset-0 bg-black/65" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(120,53,15,0.55)_0%,_transparent_68%)]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/75" />
+        </div>
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent" />
         <div className="absolute top-1/4 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-1/4 left-10 w-64 h-64 bg-amber-900/20 rounded-full blur-2xl pointer-events-none" />
 
         <div className="page-shell relative w-full pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:pb-16 sm:pt-[calc(env(safe-area-inset-top)+6.5rem)]">
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(420px,0.78fr)] lg:items-center">
           <div className="max-w-3xl animate-fade-up">
             <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase px-4 py-1.5 rounded-full mb-6">
               <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
@@ -292,36 +289,6 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
-          </div>
-          <div className="animate-fade-up">
-            <div className="relative overflow-hidden rounded-[2rem] border border-amber-500/25 bg-[#080808] shadow-2xl shadow-black/50">
-              <div className="relative aspect-[16/12] min-h-[330px] sm:aspect-[16/10] lg:aspect-[4/5] lg:min-h-[560px]">
-                {heroVisual ? (
-                  <MediaAsset
-                    src={heroVisual.mediaUrl}
-                    type={heroVisual.mediaType}
-                    alt={getMediaAlt(heroVisual, 'Coach Kante training with players')}
-                    loading="eager"
-                    fetchPriority="high"
-                    playbackMode="hero"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.25),_transparent_55%)]" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-black/10" />
-                <div className="absolute left-5 top-5 rounded-full border border-amber-500/30 bg-black/65 px-4 py-2 text-xs font-black uppercase tracking-wide text-amber-400 backdrop-blur">
-                  Coach Kante-led training
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
-                  <p className="text-sm font-semibold uppercase text-amber-400">Columbus youth soccer training</p>
-                  <h2 className="mt-2 max-w-md text-3xl font-black leading-tight text-white sm:text-4xl">
-                    Real sessions. Real standards. Real development.
-                  </h2>
-                </div>
-              </div>
-            </div>
-          </div>
           </div>
         </div>
       </section>
