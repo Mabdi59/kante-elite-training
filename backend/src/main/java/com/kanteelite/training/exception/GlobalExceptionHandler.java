@@ -3,6 +3,7 @@ package com.kanteelite.training.exception;
 import com.kanteelite.training.dto.response.ApiResponse;
 import com.stripe.exception.StripeException;
 import jakarta.validation.ConstraintViolationException;
+import org.apache.catalina.connector.ClientAbortException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -78,6 +79,11 @@ public class GlobalExceptionHandler {
         log.error("Payment provider error: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
                 .body(ApiResponse.error("Stripe could not create a checkout session. Verify the Stripe server configuration and try again."));
+    }
+
+    @ExceptionHandler(ClientAbortException.class)
+    public void handleClientAbort(ClientAbortException ex) {
+        log.debug("Client closed the media connection before the response completed: {}", ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
