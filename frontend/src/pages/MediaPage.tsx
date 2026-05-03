@@ -7,7 +7,7 @@ import PageSkeleton from '../components/PageSkeleton'
 import { Section } from '../components/Section'
 import { getMediaPosts } from '../services/api'
 import type { MediaCategory, MediaPost } from '../types'
-import { getPostsByPlacement, sortMediaPosts } from '../utils/media'
+import { getPostsByPlacement } from '../utils/media'
 
 type FilterCategory = MediaCategory | 'ALL'
 
@@ -32,8 +32,7 @@ export default function MediaPage() {
   }, [])
 
   const orderedPosts = useMemo(() => {
-    const libraryPosts = getPostsByPlacement(posts, 'MEDIA_PAGE')
-    return libraryPosts.length > 0 ? libraryPosts : sortMediaPosts(posts, 'feed')
+    return getPostsByPlacement(posts, 'MEDIA_PAGE')
   }, [posts])
 
   const filteredPosts = useMemo(() => {
@@ -97,7 +96,7 @@ export default function MediaPage() {
       </section>
 
       <Section tone="raised">
-          {posts.length > 1 ? (
+          {orderedPosts.length > 1 ? (
             <div className="mb-8 flex flex-wrap gap-2">
               {CATEGORY_TABS.map((tab) => {
                 const count =
@@ -134,7 +133,7 @@ export default function MediaPage() {
 
           {loading ? (
             <PageSkeleton titleWidthClassName="w-64" count={6} />
-          ) : posts.length > 0 && leadPost ? (
+          ) : orderedPosts.length > 0 && leadPost ? (
             <div className="space-y-8">
               <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
                 <button
