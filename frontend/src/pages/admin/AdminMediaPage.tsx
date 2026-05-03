@@ -78,7 +78,7 @@ export default function AdminMediaPage() {
   const [caption, setCaption] = useState('')
   const [altText, setAltText] = useState('')
   const [category, setCategory] = useState<MediaCategory | ''>('')
-  const [createPlacements, setCreatePlacements] = useState<MediaPlacementKey[]>(['MEDIA_LIBRARY'])
+  const [createPlacements, setCreatePlacements] = useState<MediaPlacementKey[]>([])
   const [filterCategory, setFilterCategory] = useState<FilterCategory>('ALL')
   const [error, setError] = useState('')
   const [postPendingDelete, setPostPendingDelete] = useState<MediaPost | null>(null)
@@ -160,7 +160,7 @@ export default function AdminMediaPage() {
     setCaption('')
     setAltText('')
     setCategory('')
-    setCreatePlacements(['MEDIA_LIBRARY'])
+    setCreatePlacements([])
     setFileInputKey((prev) => prev + 1)
   }
 
@@ -441,7 +441,7 @@ export default function AdminMediaPage() {
       <div className="mb-6 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
         <p className="text-amber-400 font-bold text-sm mb-2">How media works</p>
         <ul className="space-y-1 text-xs text-gray-400">
-          <li><span className="text-white font-semibold">Media page</span> controls the public gallery.</li>
+          <li><span className="text-white font-semibold">Media page</span> controls the public gallery only when selected.</li>
           <li><span className="text-white font-semibold">Homepage hero/highlights</span> control the first impression and proof section.</li>
           <li><span className="text-white font-semibold">About hero/profile/gallery</span> control Coach Kante story visuals.</li>
           <li><span className="text-white font-semibold">Display order</span> lets you pin the most important media first.</li>
@@ -474,7 +474,7 @@ export default function AdminMediaPage() {
             <div className="mb-5">
               <h2 className="text-xl font-bold text-white">Create Post</h2>
               <p className="mt-1 text-sm text-gray-400">
-                JPG, PNG, WEBP, and MP4 are supported. Max file size is 20 MB.
+                JPG, PNG, WEBP, and MP4 are supported. Max file size is 20 MB. Pick only the public page sections where this media should appear.
               </p>
             </div>
 
@@ -574,7 +574,7 @@ export default function AdminMediaPage() {
               <div className="rounded-xl border border-gray-800 bg-black p-4">
                 <p className="text-xs font-semibold uppercase text-gray-500">Use this upload on</p>
                 <p className="mt-1 text-xs text-gray-500">
-                  Choose where this image should appear after posting. For the homepage picture, select Homepage hero.
+                  Choose where this image should appear after posting. For the homepage picture, select Homepage hero. For the public gallery, select Media page.
                 </p>
                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
                   {MEDIA_PLACEMENT_OPTIONS.map((option) => (

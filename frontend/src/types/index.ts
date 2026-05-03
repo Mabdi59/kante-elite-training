@@ -114,10 +114,11 @@ export type MediaPlacementKey =
   | 'RESULTS_HERO'
   | 'FAQ_HERO'
   | 'CONTACT_HERO'
-  | 'ABOUT_HERO'
-  | 'ABOUT_PROFILE'
-  | 'ABOUT_GALLERY'
-  | 'MEDIA_LIBRARY'
+    | 'ABOUT_HERO'
+    | 'ABOUT_PROFILE'
+    | 'ABOUT_GALLERY'
+    | 'MEDIA_PAGE'
+    | 'MEDIA_LIBRARY'
 
 export interface MediaPlacement {
   key: MediaPlacementKey

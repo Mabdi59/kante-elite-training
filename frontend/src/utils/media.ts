@@ -15,13 +15,16 @@ export const MEDIA_PLACEMENT_LABELS: Record<MediaPlacementKey, string> = {
   ABOUT_HERO: 'About hero',
   ABOUT_PROFILE: 'Coach profile',
   ABOUT_GALLERY: 'About gallery',
-  MEDIA_LIBRARY: 'Media page',
+  MEDIA_PAGE: 'Media page',
+  MEDIA_LIBRARY: 'Admin library',
 }
 
-export const MEDIA_PLACEMENT_OPTIONS = Object.entries(MEDIA_PLACEMENT_LABELS).map(([value, label]) => ({
-  value: value as MediaPlacementKey,
-  label,
-}))
+export const MEDIA_PLACEMENT_OPTIONS = Object.entries(MEDIA_PLACEMENT_LABELS)
+  .filter(([value]) => value !== 'MEDIA_LIBRARY')
+  .map(([value, label]) => ({
+    value: value as MediaPlacementKey,
+    label,
+  }))
 
 export function getPlacement(post: MediaPost, key: MediaPlacementKey) {
   return post.placements?.find((placement) => placement.key === key)

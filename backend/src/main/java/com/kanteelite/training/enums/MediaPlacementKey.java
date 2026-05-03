@@ -13,5 +13,6 @@ public enum MediaPlacementKey {
     ABOUT_HERO,
     ABOUT_PROFILE,
     ABOUT_GALLERY,
+    MEDIA_PAGE,
     MEDIA_LIBRARY
 }

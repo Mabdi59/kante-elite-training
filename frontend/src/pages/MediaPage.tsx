@@ -25,14 +25,14 @@ export default function MediaPage() {
 
   useEffect(() => {
     setLoading(true)
-    getMediaPosts()
+    getMediaPosts({ placement: 'MEDIA_PAGE' })
       .then(setPosts)
       .catch(() => setPosts([]))
       .finally(() => setLoading(false))
   }, [])
 
   const orderedPosts = useMemo(() => {
-    const libraryPosts = getPostsByPlacement(posts, 'MEDIA_LIBRARY')
+    const libraryPosts = getPostsByPlacement(posts, 'MEDIA_PAGE')
     return libraryPosts.length > 0 ? libraryPosts : sortMediaPosts(posts, 'feed')
   }, [posts])
 
@@ -157,7 +157,7 @@ export default function MediaPage() {
                     </p>
                     <h2 className="mt-3 text-2xl font-black text-white">
                       {activeCategory === 'ALL'
-                        ? 'The full Kante Elite media library'
+                        ? 'Published Kante Elite highlights'
                         : `${CATEGORY_TABS.find((tab) => tab.value === activeCategory)?.label ?? 'Selected'} highlights`}
                     </h2>
                     <p className="mt-3 text-sm leading-relaxed text-gray-400">
