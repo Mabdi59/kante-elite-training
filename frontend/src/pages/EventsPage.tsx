@@ -57,6 +57,7 @@ export default function EventsPage() {
     : [summerTraining?.primaryMediaUrl, summerTraining?.secondaryMediaUrl].filter(Boolean) as string[]
   const weekGroups = buildWeekGroups(summerTraining?.trainingSessions ?? [])
   const bookingHref = summerTraining ? `/events/${summerTraining.id}/register` : '/contact'
+  const shareHref = summerTraining ? `/api/share/events/${summerTraining.id}` : '/events'
 
   return (
     <div className="pt-20">
@@ -134,7 +135,7 @@ export default function EventsPage() {
               <SocialSharePanel
                 title="Summer Training"
                 text="Full week $125. Only $25/day. Drop-in $30. Limited spots for Coach Kante and Coach Tony's summer training program."
-                url={bookingHref}
+                url={shareHref}
                 imageUrl={mediaUrls[0]}
                 imageType="IMAGE"
                 className="mb-8"

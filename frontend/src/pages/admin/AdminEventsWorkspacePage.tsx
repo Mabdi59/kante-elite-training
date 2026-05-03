@@ -592,7 +592,7 @@ export default function AdminEventsWorkspacePage() {
                       <SocialSharePanel
                         title={shareableEvent.title}
                         text={eventShareText}
-                        url={`/events/${shareableEvent.id}/register`}
+                        url={`/api/share/events/${shareableEvent.id}`}
                         imageUrl={form.primaryMediaUrl || shareableEvent.primaryMediaUrl || shareableEvent.mediaUrls?.[0]}
                         imageType="IMAGE"
                         variant="compact"

@@ -20,6 +20,7 @@ export default function EventCard({ event }: EventCardProps) {
   const isLimited = !isSoldOut && event.spotsLeft !== null && event.spotsLeft <= 5
   const mediaUrl = event.mediaUrls?.[0] ?? event.primaryMediaUrl
   const registerHref = `/events/${event.id}/register`
+  const shareHref = `/api/share/events/${event.id}`
 
   const statusBadge = isSoldOut
     ? { label: 'Sold Out', cls: 'bg-red-900/40 text-red-400 border-red-500/30' }
@@ -116,7 +117,7 @@ export default function EventCard({ event }: EventCardProps) {
           <SocialSharePanel
             title={event.title}
             text={`${event.description} Full week $${event.price.toFixed(0)}. Drop-in from $30/day.`}
-            url={registerHref}
+            url={shareHref}
             imageUrl={mediaUrl}
             imageType="IMAGE"
             variant="compact"

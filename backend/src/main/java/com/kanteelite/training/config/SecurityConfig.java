@@ -66,6 +66,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/faqs").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/faqs/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/availability/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/share/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/tournaments/*/registrations").hasAnyRole("ADMIN", "STAFF")
                 // Token-based registration access is public (opaque token acts as credential)
                 .requestMatchers("/api/tournaments/registrations/access/**").permitAll()

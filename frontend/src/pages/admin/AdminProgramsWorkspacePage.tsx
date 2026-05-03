@@ -494,7 +494,7 @@ export default function AdminProgramsWorkspacePage() {
     creatingNew ? 'New Program' : workflow?.program.name ?? 'Program Workspace'
   const shareableProgram = workflow?.program
   const programShareUrl = shareableProgram
-    ? `/book?programId=${encodeURIComponent(shareableProgram.slug || String(shareableProgram.id))}`
+    ? `/api/share/programs/${encodeURIComponent(shareableProgram.slug || String(shareableProgram.id))}`
     : '/book'
   const programShareText = shareableProgram
     ? [

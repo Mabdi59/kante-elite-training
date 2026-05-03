@@ -36,6 +36,7 @@ function getProgramBookHref(program: Program) {
 export default function ProgramCard({ program, featured = false, variant = 'default' }: ProgramCardProps) {
   const isFeatured = featured || program.featured === true
   const bookHref = getProgramBookHref(program)
+  const shareHref = `/api/share/programs/${encodeURIComponent(String(program.slug || program.id))}`
   const ctaLabel = program.ctaLabel || 'Book Your Session'
   const isPromoOffering = Boolean(program.campaignLabel || program.secondaryMediaUrl || program.seasonLabel)
   const coachLine = program.coachNames?.length ? `with ${program.coachNames.join(' + ')}` : ''
@@ -183,7 +184,7 @@ export default function ProgramCard({ program, featured = false, variant = 'defa
         <SocialSharePanel
           title={program.name}
           text={shareText}
-          url={bookHref}
+          url={shareHref}
           imageUrl={program.mediaUrl}
           imageType={program.mediaType}
           variant="compact"
