@@ -57,8 +57,8 @@ export default function CoachKanteProfile({
     .slice(0, 2)
   const credentials = [...requiredCredentials, ...extraCredentials]
   const specialties = splitList(coach?.specialties).slice(0, 4)
-  const imageUrl = coach?.headshotUrl || imagePost?.mediaUrl || COACH_KANTE_PROFILE_IMAGE
-  const imageType = coach?.headshotMediaType || imagePost?.mediaType || 'IMAGE'
+  const imageUrl = imagePost?.mediaUrl || coach?.headshotUrl || COACH_KANTE_PROFILE_IMAGE
+  const imageType = imagePost?.mediaType || coach?.headshotMediaType || 'IMAGE'
   const title = coach?.roleTitle || 'Founder & Elite Trainer'
   const bio =
     coach?.bio ||
