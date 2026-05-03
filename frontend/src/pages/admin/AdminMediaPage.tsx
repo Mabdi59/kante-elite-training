@@ -71,6 +71,7 @@ export default function AdminMediaPage() {
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [heroUpdatingId, setHeroUpdatingId] = useState<number | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [fileInputKey, setFileInputKey] = useState(0)
   const [previewUrl, setPreviewUrl] = useState('')
@@ -146,6 +147,13 @@ export default function AdminMediaPage() {
     if (filterCategory === 'ALL') return orderedPosts
     return orderedPosts.filter((post) => post.mediaCategory === filterCategory)
   }, [posts, filterCategory])
+  const homepageHeroPost = useMemo(
+    () => sortMediaPosts(
+      posts.filter((post) => post.mediaType === 'IMAGE' && post.placements?.some((placement) => placement.key === 'HOME_HERO')),
+      'HOME_HERO',
+    )[0] ?? null,
+    [posts],
+  )
 
   const resetForm = () => {
     setSelectedFile(null)
@@ -159,6 +167,14 @@ export default function AdminMediaPage() {
   const removeSelectedFile = () => {
     setSelectedFile(null)
     setFileInputKey((prev) => prev + 1)
+  }
+
+  const toggleCreatePlacement = (key: MediaPlacementKey, enabled: boolean) => {
+    setCreatePlacements((current) => {
+      if (!enabled) return current.filter((item) => item !== key)
+      if (current.includes(key)) return current
+      return [...current, key]
+    })
   }
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -280,6 +296,56 @@ export default function AdminMediaPage() {
     })
   }
 
+  const handleSetHomepageHero = async (post: MediaPost) => {
+    if (post.mediaType !== 'IMAGE') {
+      setError('Homepage hero must be an image, not a video.')
+      return
+    }
+
+    setHeroUpdatingId(post.id)
+    setError('')
+    try {
+      const updated = await updateMediaPost(post.id, {
+        placements: [
+          ...(post.placements ?? []).filter((placement) => placement.key !== 'HOME_HERO'),
+          { key: 'HOME_HERO', displayOrder: 1 },
+        ],
+      })
+
+      const otherHeroPosts = posts.filter(
+        (item) => item.id !== post.id && item.placements?.some((placement) => placement.key === 'HOME_HERO'),
+      )
+
+      await Promise.all(
+        otherHeroPosts.map((item) =>
+          updateMediaPost(item.id, {
+            placements: (item.placements ?? []).filter((placement) => placement.key !== 'HOME_HERO'),
+          }),
+        ),
+      )
+
+      setPosts((prev) =>
+        prev.map((item) => {
+          if (item.id === post.id) return updated
+          if (otherHeroPosts.some((other) => other.id === item.id)) {
+            return {
+              ...item,
+              placements: (item.placements ?? []).filter((placement) => placement.key !== 'HOME_HERO'),
+            }
+          }
+          return item
+        }),
+      )
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        'Could not set this image as the homepage hero.'
+      setError(message)
+    } finally {
+      setHeroUpdatingId(null)
+    }
+  }
+
   const toggleEditPlacement = (key: MediaPlacementKey, enabled: boolean) => {
     setEditForm((current) => {
       const placements = current.placements ?? []
@@ -386,6 +452,26 @@ export default function AdminMediaPage() {
         </ul>
       </div>
 
+      <div className="mb-6 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm font-bold text-cyan-300">Homepage hero image</p>
+            <p className="mt-1 text-xs leading-relaxed text-gray-400">
+              {homepageHeroPost
+                ? `Current hero: ${homepageHeroPost.caption?.trim() || homepageHeroPost.altText?.trim() || 'Selected media post'}`
+                : 'No homepage hero image selected yet. Upload an image below or use “Set Hero” on an existing image.'}
+            </p>
+          </div>
+          {homepageHeroPost ? (
+            <img
+              src={homepageHeroPost.mediaUrl}
+              alt={homepageHeroPost.altText || homepageHeroPost.caption || 'Current homepage hero'}
+              className="h-20 w-32 rounded-lg border border-gray-800 bg-black object-cover"
+            />
+          ) : null}
+        </div>
+      </div>
+
       <div className="grid gap-6 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
         <div className="space-y-6">
           <form onSubmit={handleSubmit} className="rounded-xl border border-gray-800 bg-gray-900 p-6">
@@ -488,6 +574,29 @@ export default function AdminMediaPage() {
                 <p className="mt-2 text-xs leading-relaxed text-gray-500">
                   Keep it concrete and visual. Example: Player dribbling between cones during a private session.
                 </p>
+              </div>
+
+              <div className="rounded-xl border border-gray-800 bg-black p-4">
+                <p className="text-xs font-semibold uppercase text-gray-500">Use this upload on</p>
+                <p className="mt-1 text-xs text-gray-500">
+                  Choose where this image should appear after posting. For the homepage picture, select Homepage hero.
+                </p>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {MEDIA_PLACEMENT_OPTIONS.map((option) => (
+                    <label
+                      key={option.value}
+                      className="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-gray-200"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={createPlacements.includes(option.value)}
+                        onChange={(event) => toggleCreatePlacement(option.value, event.target.checked)}
+                        className="h-4 w-4 rounded border-gray-700 accent-amber-500"
+                      />
+                      <span>{option.label}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -608,6 +717,16 @@ export default function AdminMediaPage() {
                     imageFetchPriority={index < 2 ? 'high' : 'auto'}
                   />
                   <div className="flex gap-2 justify-end">
+                    {post.mediaType === 'IMAGE' ? (
+                      <button
+                        type="button"
+                        disabled={heroUpdatingId === post.id}
+                        onClick={() => handleSetHomepageHero(post)}
+                        className="flex-1 rounded-lg bg-cyan-500/10 px-4 py-3 text-sm font-medium text-cyan-300 transition-colors hover:bg-cyan-500/20 disabled:opacity-50 sm:flex-none"
+                      >
+                        {heroUpdatingId === post.id ? 'Setting...' : 'Set Hero'}
+                      </button>
+                    ) : null}
                     <button
                       type="button"
                       onClick={() => openEdit(post)}
