@@ -83,7 +83,7 @@ export default function AboutMediaPage() {
 
   return (
     <div className="min-h-screen bg-black pt-20">
-      <section className="relative overflow-hidden px-4 py-16 sm:py-20">
+      <section className="relative min-h-[72vh] overflow-hidden px-4 py-20 sm:min-h-[78vh] sm:py-24 lg:min-h-[calc(100vh-5rem)]">
         {heroPost ? (
           <div className="absolute inset-0 bg-[#050505]">
             <MediaAsset
@@ -93,11 +93,11 @@ export default function AboutMediaPage() {
               loading="eager"
               fetchPriority="high"
               playbackMode="hero"
-              className="absolute inset-y-0 right-0 h-full w-full object-contain object-right md:w-[72%]"
+              className="absolute inset-0 h-full w-full object-cover object-center"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/65 to-black/20" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-black/25" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.32),_transparent_42%)]" />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/80" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/15 to-black/90" />
           </div>
         ) : (
           <>
@@ -106,8 +106,8 @@ export default function AboutMediaPage() {
           </>
         )}
 
-        <div className="page-shell relative">
-          <div className="max-w-3xl animate-fade-up">
+        <div className="page-shell relative flex min-h-[calc(72vh-10rem)] items-center sm:min-h-[calc(78vh-12rem)] lg:min-h-[calc(100vh-17rem)]">
+          <div className="max-w-3xl animate-fade-up rounded-3xl border border-white/10 bg-black/30 p-5 backdrop-blur-sm sm:p-7 lg:bg-black/20">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-1.5 text-xs font-bold uppercase text-amber-400">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
               {content.aboutBadge || defaultWebsiteContent.aboutBadge}
