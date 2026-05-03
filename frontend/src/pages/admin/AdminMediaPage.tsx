@@ -235,15 +235,11 @@ export default function AdminMediaPage() {
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     if (!selectedFile) return
-    if (!category) {
-      setError('Please select a category before posting.')
-      return
-    }
 
     setUploading(true)
     setError('')
     try {
-      const created = await createMediaPost(selectedFile, caption, category, altText)
+      const created = await createMediaPost(selectedFile, caption, category || undefined, altText)
       const placementPayload = Array.from(
         new Set<MediaPlacementKey>(['MEDIA_LIBRARY', ...createPlacements]),
       ).map((key) => ({
@@ -485,12 +481,11 @@ export default function AdminMediaPage() {
             <div className="space-y-4">
               <div>
                 <label className="mb-2 block text-sm text-gray-400">
-                  Category <span className="text-red-400">*</span>
+                  Category <span className="text-gray-600">(optional)</span>
                 </label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value as MediaCategory | '')}
-                  required
                   className="w-full rounded-xl border border-gray-800 bg-black px-4 py-3 text-sm text-white"
                 >
                   <option value="">Select a category…</option>
@@ -610,7 +605,7 @@ export default function AdminMediaPage() {
               </button>
               <button
                 type="submit"
-                disabled={!selectedFile || !category || uploading}
+                disabled={!selectedFile || uploading}
                 className="w-full rounded-lg bg-amber-500 px-5 py-3 text-sm font-bold text-black transition-colors hover:bg-amber-400 disabled:opacity-50 sm:w-auto"
               >
                 <span className="inline-flex items-center gap-2">

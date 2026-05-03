@@ -160,6 +160,7 @@ public class MediaPostService {
 
     private void replacePlacements(MediaPost mediaPost, List<MediaPlacementRequest> placementRequests) {
         mediaPlacementRepository.deleteByMediaPost(mediaPost);
+        mediaPlacementRepository.flush();
         List<MediaPlacement> placements = placementRequests.stream()
                 .filter(request -> request.getKey() != null)
                 .collect(java.util.stream.Collectors.toMap(
