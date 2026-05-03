@@ -29,6 +29,41 @@ function formatFileSize(size: number) {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`
 }
 
+function ExistingMediaPreview({ post }: { post: MediaPost }) {
+  const [failed, setFailed] = useState(false)
+
+  if (failed) {
+    return (
+      <div className="flex h-52 w-full flex-col items-center justify-center gap-2 bg-gray-950 px-4 text-center">
+        <p className="text-sm font-semibold text-white">Preview unavailable</p>
+        <p className="max-w-xs text-xs leading-relaxed text-gray-500">
+          This saved media URL could not be loaded. Choose a new file from your computer to replace it.
+        </p>
+      </div>
+    )
+  }
+
+  if (post.mediaType === 'VIDEO') {
+    return (
+      <video
+        src={post.mediaUrl}
+        controls
+        onError={() => setFailed(true)}
+        className="h-52 w-full bg-black object-contain"
+      />
+    )
+  }
+
+  return (
+    <img
+      src={post.mediaUrl}
+      alt={post.altText || post.caption || 'Current media preview'}
+      onError={() => setFailed(true)}
+      className="h-52 w-full object-contain"
+    />
+  )
+}
+
 export default function AdminMediaPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [posts, setPosts] = useState<MediaPost[]>([])
@@ -679,18 +714,8 @@ export default function AdminMediaPage() {
                         className="h-52 w-full object-contain"
                       />
                     )
-                  ) : editingPost.mediaType === 'VIDEO' ? (
-                    <video
-                      src={editingPost.mediaUrl}
-                      controls
-                      className="h-52 w-full bg-black object-contain"
-                    />
                   ) : (
-                    <img
-                      src={editingPost.mediaUrl}
-                      alt={editingPost.altText || editingPost.caption || 'Current media preview'}
-                      className="h-52 w-full object-contain"
-                    />
+                    <ExistingMediaPreview post={editingPost} />
                   )}
                 </div>
 
