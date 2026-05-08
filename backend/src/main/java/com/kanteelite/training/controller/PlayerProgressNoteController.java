@@ -77,6 +77,18 @@ public class PlayerProgressNoteController {
     public ResponseEntity<?> getChildNotes(
             @PathVariable String playerEmail,
             @AuthenticationPrincipal UserDetails user) {
+        // Hardened: disable direct parent-by-email lookups until profile-linked ownership
+        // verification is available in schema.
+        boolean privileged = user.getAuthorities().stream()
+                .map(authority -> authority.getAuthority())
+                .anyMatch(role -> "ROLE_ADMIN".equals(role)
+                        || "ROLE_STAFF".equals(role)
+                        || "ROLE_COACH".equals(role));
+        if (!privileged) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ApiResponse.error("Parent progress-note lookup by player email is disabled until profile-linked verification is available."));
+        }
+
         String normalizedPlayerEmail = playerEmail.trim().toLowerCase();
         if (user.getUsername().equals(normalizedPlayerEmail)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

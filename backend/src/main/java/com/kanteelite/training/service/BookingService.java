@@ -348,7 +348,14 @@ public class BookingService {
     }
 
     private void ensureCoachOwnsBooking(Booking booking, String coachEmail) {
-        if (!booking.getEmail().equals(coachEmail)) {
+        boolean assignedCoachMatch = booking.getCoachUser() != null
+                && booking.getCoachUser().getEmail() != null
+                && booking.getCoachUser().getEmail().equalsIgnoreCase(coachEmail);
+        boolean legacyOwnerMatch = booking.getCoachUser() == null
+                && booking.getEmail() != null
+                && booking.getEmail().equalsIgnoreCase(coachEmail);
+
+        if (!assignedCoachMatch && !legacyOwnerMatch) {
             throw new IllegalArgumentException("You are not authorized to manage this session.");
         }
     }
