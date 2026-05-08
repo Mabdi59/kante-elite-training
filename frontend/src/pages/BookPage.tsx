@@ -249,7 +249,7 @@ export default function BookPage() {
   }, [])
 
   useEffect(() => {
-    getPaymentsEnabled().then(setPaymentsEnabled).catch(() => {})
+    getPaymentsEnabled().then(setPaymentsEnabled).catch(() => setPaymentsEnabled(false))
     getPrograms()
       .then((p) => {
         setPrograms(p)
