@@ -1117,6 +1117,7 @@ export const getAttendanceByPlayer = async (email: string): Promise<AttendanceRe
 }
 
 export const getAttendanceSummary = async (email: string): Promise<Record<string, number>> => {
+  // Backend returns Map<String, Long>; counts are always within JS safe-integer range.
   const res = await api.get<ApiResponse<Record<string, number>>>(`/attendance/player/${encodeURIComponent(email)}/summary`)
   return res.data.data ?? {}
 }
