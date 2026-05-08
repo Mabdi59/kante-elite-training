@@ -8,6 +8,7 @@ import com.kanteelite.training.service.PlayerProgressNoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -80,7 +81,7 @@ public class PlayerProgressNoteController {
         // Hardened: disable direct parent-by-email lookups until profile-linked ownership
         // verification is available in schema.
         boolean privileged = user.getAuthorities().stream()
-                .map(authority -> authority.getAuthority())
+                .map(GrantedAuthority::getAuthority)
                 .anyMatch(role -> "ROLE_ADMIN".equals(role)
                         || "ROLE_STAFF".equals(role)
                         || "ROLE_COACH".equals(role));

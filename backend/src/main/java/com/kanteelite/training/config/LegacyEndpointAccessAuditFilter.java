@@ -50,13 +50,12 @@ public class LegacyEndpointAccessAuditFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        boolean auditEnabled = environment.acceptsProfiles(Profiles.of("prod"));
-        boolean legacyPath = auditEnabled && isLegacyPath(request.getRequestURI());
+        boolean legacyPath = isLegacyPath(request.getRequestURI());
 
         try {
             filterChain.doFilter(request, response);
         } finally {
-            if (legacyPath) {
+            if (legacyPath && environment.acceptsProfiles(Profiles.of("prod"))) {
                 Authentication auth = SecurityContextHolder.getContext().getAuthentication();
                 String actor = auth != null ? auth.getName() : "anonymous";
                 log.info("legacy-endpoint-access method={} path={} status={} actor={}",
