@@ -172,7 +172,7 @@ export default function AdminWaiversPage() {
                 type="text"
                 value={form.title}
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                placeholder="e.g. Liability Waiver &amp; Assumption of Risk"
+                placeholder="e.g. Liability Waiver & Assumption of Risk"
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
               />
             </div>

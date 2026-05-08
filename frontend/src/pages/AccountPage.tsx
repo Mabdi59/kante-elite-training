@@ -445,7 +445,7 @@ export default function AccountPage() {
         ) : tab === 'waivers' ? (
           <section>
             <div className="mb-6">
-              <h2 className="text-white text-xl font-bold">Waivers &amp; Consent Forms</h2>
+              <h2 className="text-white text-xl font-bold">Waivers & Consent Forms</h2>
               <p className="text-gray-500 text-sm mt-1">
                 Review and digitally sign any required waivers before participating.
               </p>
