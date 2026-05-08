@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CATEGORY_OPTIONS } from '../components/CategoryBadge'
 import CTASection from '../components/CTASection'
+import ErrorBanner from '../components/ErrorBanner'
 import MediaLightbox from '../components/MediaLightbox'
 import MediaPostCard from '../components/MediaPostCard'
 import PageSkeleton from '../components/PageSkeleton'
@@ -22,6 +23,7 @@ export default function MediaPage() {
   const [activeMediaIndex, setActiveMediaIndex] = useState<number | null>(null)
   const [visibleCount, setVisibleCount] = useState(12)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [activeCategory, setActiveCategory] = useState<FilterCategory>('ALL')
 
   useEffect(() => {
@@ -33,7 +35,7 @@ export default function MediaPage() {
     setLoading(true)
     getMediaPosts()
       .then(setPosts)
-      .catch(() => setPosts([]))
+      .catch(() => { setPosts([]); setError('Could not load media. Please refresh to try again.') })
       .finally(() => setLoading(false))
   }, [])
 
@@ -138,6 +140,12 @@ export default function MediaPage() {
               })}
             </div>
           ) : null}
+
+          {error && (
+            <div className="mb-6">
+              <ErrorBanner message={error} onDismiss={() => setError('')} />
+            </div>
+          )}
 
           {loading ? (
             <PageSkeleton titleWidthClassName="w-64" count={6} />

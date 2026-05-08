@@ -3,12 +3,14 @@ import { useSearchParams, Link } from 'react-router-dom'
 import { getEvents } from '../services/api'
 import type { Event } from '../types'
 import HeroSection from '../components/HeroSection'
+import ErrorBanner from '../components/ErrorBanner'
 import EventCard from '../components/EventCard'
 import CTASection from '../components/CTASection'
 
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [searchParams] = useSearchParams()
   const coachFilter = searchParams.get('coach')?.toLowerCase() ?? ''
 
@@ -20,7 +22,7 @@ export default function EventsPage() {
   useEffect(() => {
     getEvents()
       .then(setEvents)
-      .catch(() => { /* Empty state handles load failures. */ })
+      .catch(() => setError('Could not load events. Please refresh to try again.'))
       .finally(() => setLoading(false))
   }, [])
 
@@ -52,6 +54,12 @@ export default function EventsPage() {
 
       <section className="bg-black py-16 px-4">
         <div className="max-w-7xl mx-auto">
+          {error && (
+            <div className="mb-6">
+              <ErrorBanner message={error} onDismiss={() => setError('')} />
+            </div>
+          )}
+
           {coachDisplayName && (
             <div className="mb-8 flex items-center gap-3 flex-wrap">
               <span className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/25 text-amber-400 text-sm font-semibold px-4 py-2 rounded-full">

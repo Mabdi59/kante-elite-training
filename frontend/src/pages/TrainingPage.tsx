@@ -7,6 +7,7 @@ import MediaAsset from '../components/MediaAsset'
 import ProgramCard from '../components/ProgramCard'
 import TestimonialCard from '../components/TestimonialCard'
 import CTASection from '../components/CTASection'
+import ErrorBanner from '../components/ErrorBanner'
 import PublicProofBand from '../components/PublicProofBand'
 import { COACH_SPOTLIGHT_MEDIA } from '../content/mediaFallbacks'
 import { getMediaAlt } from '../utils/media'
@@ -153,6 +154,7 @@ export default function TrainingPage() {
   const [programs, setPrograms] = useState<Program[]>([])
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     document.title = 'Training Programs | Kante Elite Training'
@@ -163,6 +165,7 @@ export default function TrainingPage() {
     Promise.allSettled([getPrograms(), getFeaturedTestimonials()])
       .then(([programResult, testimonialResult]) => {
         if (programResult.status === 'fulfilled') setPrograms(programResult.value)
+        else setError('Could not load training programs. Please refresh to try again.')
         if (testimonialResult.status === 'fulfilled') setTestimonials(testimonialResult.value.slice(0, 3))
       })
       .finally(() => setLoading(false))
@@ -177,6 +180,12 @@ export default function TrainingPage() {
       />
 
       <PublicProofBand items={trainingProofItems} />
+
+      {error && (
+        <div className="max-w-5xl mx-auto px-4 pt-4">
+          <ErrorBanner message={error} onDismiss={() => setError('')} />
+        </div>
+      )}
 
       {/* Private Training Spotlight */}
       <section className="bg-[#0a0a0a] py-16 px-4 border-t border-[#1a1a1a]">

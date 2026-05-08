@@ -4,6 +4,7 @@ import { getTestimonials } from '../services/api'
 import type { Testimonial } from '../types'
 import CTASection from '../components/CTASection'
 import EmptyState from '../components/EmptyState'
+import ErrorBanner from '../components/ErrorBanner'
 import HeroSection from '../components/HeroSection'
 import TestimonialCard from '../components/TestimonialCard'
 
@@ -50,6 +51,7 @@ const achievements = [
 export default function ResultsPage() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     document.title = 'Player Results | Kante Elite Training'
@@ -59,7 +61,7 @@ export default function ResultsPage() {
   useEffect(() => {
     getTestimonials()
       .then(setTestimonials)
-      .catch(() => { /* Page still works without testimonials. */ })
+      .catch(() => setError('Could not load results. Please refresh to try again.'))
       .finally(() => setLoading(false))
   }, [])
 
@@ -90,6 +92,12 @@ export default function ResultsPage() {
 
       <section className="border-t border-[#1a1a1a] bg-black px-4 py-16">
         <div className="page-shell">
+          {error && (
+            <div className="mb-6">
+              <ErrorBanner message={error} onDismiss={() => setError('')} />
+            </div>
+          )}
+
           <div className="mb-10 text-center">
             <span className="section-label">What Families Say</span>
             <h2 className="text-white font-black text-4xl text-balance">
