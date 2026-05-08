@@ -54,6 +54,7 @@ const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'))
 const AdminAvailabilityPage = lazy(() => import('./pages/admin/AdminAvailabilityPage'))
 const AdminPaymentsPage = lazy(() => import('./pages/admin/AdminPaymentsPage'))
 const AdminWaiversPage = lazy(() => import('./pages/admin/AdminWaiversPage'))
+const AdminProgressNotesPage = lazy(() => import('./pages/admin/AdminProgressNotesPage'))
 
 const CaptainTournamentsPage = lazy(() => import('./pages/captain/CaptainTournamentsPage'))
 const CaptainRegistrationsPage = lazy(() => import('./pages/captain/CaptainRegistrationsPage'))
@@ -549,6 +550,16 @@ export default function App() {
                 <ProtectedRoute requireAdmin>
                   <AdminLayout>
                     <AdminWaiversPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/progress-notes"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminProgressNotesPage />
                   </AdminLayout>
                 </ProtectedRoute>
               }
