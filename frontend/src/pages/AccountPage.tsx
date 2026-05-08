@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
@@ -182,6 +182,36 @@ export default function AccountPage() {
   const past = bookings.filter(
     (b) =>
       b.bookingStatus === 'CANCELLED' || new Date(b.bookingDate) < now,
+  )
+
+  const attendanceCounts = useMemo(
+    () =>
+      attendance.reduce(
+        (acc, a) => {
+          if (a.status === 'PRESENT') acc.present += 1
+          else if (a.status === 'LATE') acc.late += 1
+          else acc.absent += 1
+          return acc
+        },
+        { present: 0, late: 0, absent: 0 },
+      ),
+    [attendance],
+  )
+
+  const sortedProgressNotes = useMemo(
+    () =>
+      [...progressNotes].sort(
+        (a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime(),
+      ),
+    [progressNotes],
+  )
+
+  const sortedAttendance = useMemo(
+    () =>
+      [...attendance].sort(
+        (a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime(),
+      ),
+    [attendance],
   )
 
   return (
@@ -592,17 +622,17 @@ export default function AccountPage() {
                   [
                     {
                       label: 'Present',
-                      count: attendance.filter((a) => a.status === 'PRESENT').length,
+                      count: attendanceCounts.present,
                       color: 'bg-green-500/10 text-green-400 border border-green-500/20',
                     },
                     {
                       label: 'Late',
-                      count: attendance.filter((a) => a.status === 'LATE').length,
+                      count: attendanceCounts.late,
                       color: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
                     },
                     {
                       label: 'Absent',
-                      count: attendance.filter((a) => a.status === 'ABSENT').length,
+                      count: attendanceCounts.absent,
                       color: 'bg-red-500/10 text-red-400 border border-red-500/20',
                     },
                   ] as { label: string; count: number; color: string }[]
@@ -628,9 +658,7 @@ export default function AccountPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {[...progressNotes]
-                  .sort((a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime())
-                  .map((note) => (
+                {sortedProgressNotes.map((note) => (
                     <div key={note.id} className="bg-[#111] border border-[#222] rounded-xl p-5">
                       <div className="flex items-start justify-between gap-4 flex-wrap mb-3">
                         <div className="flex-1 min-w-0">
@@ -684,9 +712,7 @@ export default function AccountPage() {
               <div className="mt-10">
                 <h3 className="text-white font-semibold mb-4">Attendance History ({attendance.length})</h3>
                 <div className="space-y-2">
-                  {[...attendance]
-                    .sort((a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime())
-                    .map((rec) => (
+                  {sortedAttendance.map((rec) => (
                       <div
                         key={rec.id}
                         className="bg-[#111] border border-[#222] rounded-xl px-4 py-3 flex items-center justify-between gap-4"
