@@ -9,6 +9,7 @@ import ScrollToTop from './components/ScrollToTop'
 import MainLayout from './layouts/MainLayout'
 import AdminLayout from './layouts/ResponsiveAdminLayout'
 import CaptainLayout from './layouts/CaptainLayout'
+import CoachLayout from './layouts/CoachLayout'
 import { getPortalDestination } from './utils/portal'
 
 import HomePage from './pages/HomePage'
@@ -61,6 +62,10 @@ const AdminPlayersPage = lazy(() => import('./pages/admin/AdminPlayersPage'))
 
 const CaptainTournamentsPage = lazy(() => import('./pages/captain/CaptainTournamentsPage'))
 const CaptainRegistrationsPage = lazy(() => import('./pages/captain/CaptainRegistrationsPage'))
+
+const CoachDashboardPage = lazy(() => import('./pages/CoachDashboardPage'))
+const CoachNotesPage = lazy(() => import('./pages/CoachNotesPage'))
+const CoachAttendancePage = lazy(() => import('./pages/CoachAttendancePage'))
 
 function PageLoader() {
   return (
@@ -318,6 +323,36 @@ export default function App() {
               }
             />
 
+            <Route
+              path="/coach/dashboard"
+              element={
+                <ProtectedRoute requireRoles={['COACH', 'TEAM_CAPTAIN']}>
+                  <CoachLayout>
+                    <CoachDashboardPage />
+                  </CoachLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/coach/notes"
+              element={
+                <ProtectedRoute requireRoles={['COACH', 'TEAM_CAPTAIN']}>
+                  <CoachLayout>
+                    <CoachNotesPage />
+                  </CoachLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/coach/attendance"
+              element={
+                <ProtectedRoute requireRoles={['COACH', 'TEAM_CAPTAIN']}>
+                  <CoachLayout>
+                    <CoachAttendancePage />
+                  </CoachLayout>
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/coach/*"
               element={

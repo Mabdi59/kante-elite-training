@@ -17,7 +17,15 @@ export function getPortalDestination(role?: UserRole | null): PortalDestination 
     }
   }
 
-  if (role === 'TEAM_CAPTAIN' || role === 'COACH') {
+  if (role === 'COACH') {
+    return {
+      path: '/coach/dashboard',
+      navLabel: 'Coach Portal',
+      returnLabel: 'Back to Coach Portal',
+    }
+  }
+
+  if (role === 'TEAM_CAPTAIN') {
     return {
       path: '/captain/registrations',
       navLabel: 'Team Portal',
