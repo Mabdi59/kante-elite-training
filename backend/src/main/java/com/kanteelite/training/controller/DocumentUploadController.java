@@ -1,5 +1,6 @@
 package com.kanteelite.training.controller;
 
+import com.kanteelite.training.dto.response.ApiResponse;
 import com.kanteelite.training.dto.response.PlayerDocumentResponse;
 import com.kanteelite.training.enums.DocumentType;
 import com.kanteelite.training.service.WaiverService;
@@ -18,7 +19,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -46,7 +46,7 @@ public class DocumentUploadController {
     private String uploadsDir;
 
     @PostMapping("/upload")
-    public ResponseEntity<?> uploadDocument(
+    public ResponseEntity<ApiResponse<PlayerDocumentResponse>> uploadDocument(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "docType", defaultValue = "OTHER") DocumentType docType,
             @RequestParam(value = "description", required = false) String description,
@@ -54,16 +54,16 @@ public class DocumentUploadController {
             @AuthenticationPrincipal UserDetails user) throws IOException {
 
         if (file == null || file.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "No file provided."));
+            return ResponseEntity.badRequest().body(ApiResponse.error("No file provided."));
         }
         if (file.getSize() > MAX_BYTES) {
-            return ResponseEntity.badRequest().body(Map.of("error", "File must be 10 MB or smaller."));
+            return ResponseEntity.badRequest().body(ApiResponse.error("File must be 10 MB or smaller."));
         }
 
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_MIME_TYPES.contains(contentType)) {
             return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-                    .body(Map.of("error", "Unsupported file type. Allowed: PDF, JPG, PNG, DOC, DOCX."));
+                    .body(ApiResponse.error("Unsupported file type. Allowed: PDF, JPG, PNG, DOC, DOCX."));
         }
 
         // Ownership check: only ADMIN/STAFF may upload for a different player
@@ -75,7 +75,7 @@ public class DocumentUploadController {
         if (playerEmail != null && !playerEmail.isBlank()) {
             if (!isPrivileged && !playerEmail.equals(user.getUsername())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Map.of("error", "You may only upload documents for yourself."));
+                        .body(ApiResponse.error("You may only upload documents for yourself."));
             }
             targetEmail = playerEmail.trim().toLowerCase();
         } else {
@@ -93,7 +93,7 @@ public class DocumentUploadController {
         Path target = docsDir.resolve(storedName);
         // Verify the resolved target is inside the intended directory (extra safety)
         if (!target.startsWith(docsDir)) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid file path."));
+            return ResponseEntity.badRequest().body(ApiResponse.error("Invalid file path."));
         }
         file.transferTo(target);
 
@@ -101,6 +101,6 @@ public class DocumentUploadController {
         PlayerDocumentResponse response = waiverService.addDocument(
                 targetEmail, originalName, fileUrl, docType, description, user.getUsername()
         );
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

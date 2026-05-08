@@ -1,5 +1,6 @@
 package com.kanteelite.training.controller.payment;
 
+import com.kanteelite.training.dto.response.ApiResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +21,7 @@ public class PaymentStatusController {
     private boolean paymentsEnabled;
 
     @GetMapping("/status")
-    public ResponseEntity<Map<String, Boolean>> status() {
-        return ResponseEntity.ok(Map.of("enabled", paymentsEnabled));
+    public ResponseEntity<ApiResponse<Map<String, Boolean>>> status() {
+        return ResponseEntity.ok(ApiResponse.success(Map.of("enabled", paymentsEnabled)));
     }
 }
