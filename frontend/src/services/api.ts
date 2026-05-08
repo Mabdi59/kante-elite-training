@@ -464,8 +464,8 @@ export const getAdminDashboard = async (): Promise<AdminDashboard> => {
 }
 
 export const getBookingsOverTime = async (days = 30): Promise<{ date: string; count: number }[]> => {
-  const res = await api.get<{ date: string; count: number }[]>(`/admin/reports/bookings-over-time?days=${days}`)
-  return res.data
+  const res = await api.get<ApiResponse<{ date: string; count: number }[]>>(`/admin/reports/bookings-over-time?days=${days}`)
+  return res.data.data ?? []
 }
 
 export const createMediaPost = async (

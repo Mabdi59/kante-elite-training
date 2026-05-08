@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import api, { createBookingCheckout, getAvailability, getPaymentsEnabled, getPrograms } from '../services/api'
-import type { ApiResponse, Program, AvailabilityData, BookingFormData, Booking } from '../types'
+import { createBooking, createBookingCheckout, getAvailability, getPaymentsEnabled, getPrograms } from '../services/api'
+import type { Program, AvailabilityData, BookingFormData } from '../types'
 import { useAuth } from '../context/AuthContext'
 import { getPortalDestination } from '../utils/portal'
 
@@ -392,9 +392,7 @@ export default function BookPage() {
 
     // Direct booking (no payment required)
     try {
-      const res = await api.post<ApiResponse<Booking>>('/bookings', payload)
-      const booking = res.data.data
-      if (!booking) throw new Error('No booking details returned')
+      const booking = await createBooking(payload)
       navigate(`/book/success?booking_id=${booking.id}`, { state: { booking } })
     } catch (err: unknown) {
       const message =
