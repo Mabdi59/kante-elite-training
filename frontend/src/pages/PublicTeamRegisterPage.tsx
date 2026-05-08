@@ -4,6 +4,7 @@ import { claimTeamCaptainAccess, getTournamentById, registerTeam } from '../serv
 import { useAuth } from '../context/AuthContext'
 import type { AuthUser, Tournament } from '../types'
 import { formatTournamentDate, formatTournamentDateRange, getTournamentRegistrationState } from '../utils/tournament'
+import ErrorBanner from '../components/ErrorBanner'
 
 export default function PublicTeamRegisterPage() {
   const { user, loginUser } = useAuth()
@@ -132,9 +133,7 @@ export default function PublicTeamRegisterPage() {
             </p>
 
             {error ? (
-              <div className="bg-red-900/30 border border-red-500 rounded-lg p-4 text-red-400 text-sm mt-6">
-                {error}
-              </div>
+              <ErrorBanner message={error} onDismiss={() => setError('')} />
             ) : null}
 
             {notice ? (
