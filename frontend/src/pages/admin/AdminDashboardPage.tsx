@@ -12,6 +12,7 @@ import {
 import { getAdminDashboard, getBookingsOverTime } from '../../services/api'
 import type { AdminDashboard } from '../../types'
 import PageSkeleton from '../../components/PageSkeleton'
+import ErrorBanner from '../../components/ErrorBanner'
 
 const LoadingSpinner = () => <PageSkeleton titleWidthClassName="w-44" count={6} />
 
@@ -19,7 +20,7 @@ export default function AdminDashboardPage() {
   const [stats, setStats] = useState<AdminDashboard | null>(null)
   const [chartData, setChartData] = useState<{ date: string; count: number }[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
+  const [error, setError] = useState('')
   const [chartUnavailable, setChartUnavailable] = useState(false)
 
   useEffect(() => {
@@ -41,19 +42,14 @@ export default function AdminDashboardPage() {
         setStats(dashboardData)
         setChartData(timeData)
       })
-      .catch(() => setError(true))
+      .catch(() => setError('Could not load dashboard. Please refresh the page to try again.'))
       .finally(() => setLoading(false))
   }, [])
 
   if (loading) return <LoadingSpinner />
 
   if (error || !stats) {
-    return (
-      <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-6 text-center">
-        <p className="mb-1 font-semibold text-red-400">Could not load dashboard</p>
-        <p className="text-sm text-gray-500">Please refresh the page to try again.</p>
-      </div>
-    )
+    return <ErrorBanner message={error || 'Could not load dashboard. Please refresh the page to try again.'} />
   }
 
   const operationsCards = [

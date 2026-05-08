@@ -4,6 +4,7 @@ import { createBooking, createBookingCheckout, getAvailability, getPaymentsEnabl
 import type { Program, AvailabilityData, BookingFormData } from '../types'
 import { useAuth } from '../context/AuthContext'
 import { getPortalDestination } from '../utils/portal'
+import ErrorBanner from '../components/ErrorBanner'
 
 const experienceLevels = [
   { value: 'beginner', label: 'Beginner, just starting out' },
@@ -459,6 +460,11 @@ export default function BookPage() {
         </div>
 
         <div className={`${isTwoColumn ? 'max-w-5xl' : 'max-w-3xl'} mx-auto`}>
+          {error && step < 4 && (
+            <div className="mb-4">
+              <ErrorBanner message={error} onDismiss={() => setError('')} />
+            </div>
+          )}
           <div className={`${isTwoColumn ? 'lg:flex lg:gap-8 lg:items-start' : ''}`}>
             <div className="flex-1 min-w-0">
               {step === 1 && (

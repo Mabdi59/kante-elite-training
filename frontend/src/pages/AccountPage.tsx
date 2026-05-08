@@ -11,6 +11,7 @@ import {
 } from '../services/api'
 import type { Booking, PlayerProfile, PlayerProfileFormData } from '../types'
 import LoadingSpinner from '../components/LoadingSpinner'
+import ErrorBanner from '../components/ErrorBanner'
 import StatusBadge from '../components/StatusBadge'
 import { calculateAgeFromDateOfBirth } from '../utils/playerAge'
 
@@ -151,9 +152,7 @@ export default function AccountPage() {
         </div>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-red-400 mb-6">
-            {error}
-          </div>
+          <ErrorBanner message={error} onDismiss={() => setError('')} />
         )}
 
         {/* Tabs */}
