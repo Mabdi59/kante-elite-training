@@ -49,7 +49,7 @@ export default function AdminDashboardPage() {
   if (loading) return <LoadingSpinner />
 
   if (error || !stats) {
-    return <ErrorBanner message={error || 'Could not load dashboard. Please refresh the page to try again.'} />
+    return <ErrorBanner message={error || 'Could not load dashboard.'} />
   }
 
   const operationsCards = [
