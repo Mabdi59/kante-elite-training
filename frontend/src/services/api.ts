@@ -981,4 +981,28 @@ export const changePassword = async (currentPassword: string, newPassword: strin
   await api.patch('/account/password', { currentPassword, newPassword })
 }
 
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+export const getNotificationUnreadCount = async (): Promise<number> => {
+  const res = await api.get<ApiResponse<number>>('/notifications/unread-count')
+  return res.data.data ?? 0
+}
+
+export const getNotificationsUnread = async (): Promise<
+  { id: number; type: string; title?: string; body?: string; readStatus: boolean; createdAt: string }[]
+> => {
+  const res = await api.get<
+    ApiResponse<{ id: number; type: string; title?: string; body?: string; readStatus: boolean; createdAt: string }[]>
+  >('/notifications/unread')
+  return res.data.data ?? []
+}
+
+export const markNotificationRead = async (id: number): Promise<void> => {
+  await api.patch(`/notifications/${id}/read`, {})
+}
+
+export const markAllNotificationsRead = async (): Promise<void> => {
+  await api.patch('/notifications/read-all', {})
+}
+
 export default api
