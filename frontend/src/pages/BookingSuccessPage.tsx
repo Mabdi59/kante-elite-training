@@ -1,9 +1,9 @@
 ﻿import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useSearchParams, Link } from 'react-router-dom'
-import api, { getBookingByStripeSession } from '../services/api'
+import { getBookingByStripeSession, getBookingById } from '../services/api'
 import EmptyState from '../components/EmptyState'
 import LoadingSpinner from '../components/LoadingSpinner'
-import type { ApiResponse, Booking } from '../types'
+import type { Booking } from '../types'
 import { useAuth } from '../context/AuthContext'
 import { getPortalDestination } from '../utils/portal'
 
@@ -79,9 +79,8 @@ export default function BookingSuccessPage() {
     }
 
     if (Number.isFinite(bookingId) && bookingId > 0) {
-      api.get<ApiResponse<Booking>>(`/bookings/${bookingId}`)
-        .then((res) => {
-          const nextBooking = res.data.data ?? null
+      getBookingById(bookingId)
+        .then((nextBooking) => {
           setBooking(nextBooking)
           if (!nextBooking) {
             setError('We could not find that booking confirmation.')

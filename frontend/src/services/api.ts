@@ -256,6 +256,11 @@ export const createBooking = async (formData: BookingFormData): Promise<Booking>
   return res.data.data
 }
 
+export const getBookingById = async (bookingId: number): Promise<Booking | null> => {
+  const res = await api.get<ApiResponse<Booking>>(`/bookings/${bookingId}`)
+  return res.data.data ?? null
+}
+
 export const getPaymentsEnabled = async (): Promise<boolean> => {
   try {
     const res = await api.get<{ enabled: boolean }>('/payments/status')

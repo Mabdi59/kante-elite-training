@@ -22,24 +22,24 @@ public class PlayerProgressNoteController {
     private final PlayerProgressNoteService noteService;
 
     @PostMapping("/api/coach/progress-notes")
-    public ResponseEntity<PlayerProgressNoteResponse> createNote(
+    public ResponseEntity<ApiResponse<PlayerProgressNoteResponse>> createNote(
             @Valid @RequestBody PlayerProgressNoteRequest request,
             @AuthenticationPrincipal UserDetails user) {
-        return ResponseEntity.ok(noteService.createNote(request, user.getUsername(), user.getUsername()));
+        return ResponseEntity.ok(ApiResponse.success(noteService.createNote(request, user.getUsername(), user.getUsername())));
     }
 
     @GetMapping("/api/coach/progress-notes")
-    public ResponseEntity<List<PlayerProgressNoteResponse>> getCoachNotes(
+    public ResponseEntity<ApiResponse<List<PlayerProgressNoteResponse>>> getCoachNotes(
             @AuthenticationPrincipal UserDetails user) {
-        return ResponseEntity.ok(noteService.getNotesByCoach(user.getUsername()));
+        return ResponseEntity.ok(ApiResponse.success(noteService.getNotesByCoach(user.getUsername())));
     }
 
     @PutMapping("/api/coach/progress-notes/{id}")
-    public ResponseEntity<PlayerProgressNoteResponse> updateNote(
+    public ResponseEntity<ApiResponse<PlayerProgressNoteResponse>> updateNote(
             @PathVariable Long id,
             @Valid @RequestBody PlayerProgressNoteRequest request,
             @AuthenticationPrincipal UserDetails user) {
-        return ResponseEntity.ok(noteService.updateNote(id, request, user.getUsername()));
+        return ResponseEntity.ok(ApiResponse.success(noteService.updateNote(id, request, user.getUsername())));
     }
 
     @DeleteMapping("/api/coach/progress-notes/{id}")
@@ -51,14 +51,14 @@ public class PlayerProgressNoteController {
     }
 
     @GetMapping("/api/players/{email}/progress-notes")
-    public ResponseEntity<List<PlayerProgressNoteResponse>> getPlayerNotes(@PathVariable String email) {
-        return ResponseEntity.ok(noteService.getNotesForPlayer(email));
+    public ResponseEntity<ApiResponse<List<PlayerProgressNoteResponse>>> getPlayerNotes(@PathVariable String email) {
+        return ResponseEntity.ok(ApiResponse.success(noteService.getNotesForPlayer(email)));
     }
 
     @GetMapping("/api/player/progress-notes")
-    public ResponseEntity<List<PlayerProgressNoteResponse>> getMyNotes(
+    public ResponseEntity<ApiResponse<List<PlayerProgressNoteResponse>>> getMyNotes(
             @AuthenticationPrincipal UserDetails user) {
-        return ResponseEntity.ok(noteService.getVisibleNotesForPlayer(user.getUsername()));
+        return ResponseEntity.ok(ApiResponse.success(noteService.getVisibleNotesForPlayer(user.getUsername())));
     }
 
     /**
@@ -75,7 +75,7 @@ public class PlayerProgressNoteController {
      * TODO: add parent→child email verification once PlayerProfile stores playerEmail/childUserId.
      */
     @GetMapping("/api/parent/progress-notes/{playerEmail}")
-    public ResponseEntity<?> getChildNotes(
+    public ResponseEntity<ApiResponse<List<PlayerProgressNoteResponse>>> getChildNotes(
             @PathVariable String playerEmail,
             @AuthenticationPrincipal UserDetails user) {
         // Hardened: disable direct parent-by-email lookups until profile-linked ownership
@@ -95,11 +95,11 @@ public class PlayerProgressNoteController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error("Players should use GET /api/player/progress-notes to view their own notes."));
         }
-        return ResponseEntity.ok(noteService.getVisibleNotesForPlayer(normalizedPlayerEmail));
+        return ResponseEntity.ok(ApiResponse.success(noteService.getVisibleNotesForPlayer(normalizedPlayerEmail)));
     }
 
     @GetMapping("/api/bookings/{bookingId}/progress-notes")
-    public ResponseEntity<List<PlayerProgressNoteResponse>> getByBooking(@PathVariable Long bookingId) {
-        return ResponseEntity.ok(noteService.getNotesByBooking(bookingId));
+    public ResponseEntity<ApiResponse<List<PlayerProgressNoteResponse>>> getByBooking(@PathVariable Long bookingId) {
+        return ResponseEntity.ok(ApiResponse.success(noteService.getNotesByBooking(bookingId)));
     }
 }
