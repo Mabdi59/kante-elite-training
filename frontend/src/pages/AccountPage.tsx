@@ -11,8 +11,10 @@ import {
   getActiveWaiverTemplates,
   getMySignedWaivers,
   signWaiver,
+  getMyAttendance,
+  getMyProgressNotes,
 } from '../services/api'
-import type { Booking, PlayerProfile, PlayerProfileFormData, WaiverTemplate, SignedWaiver } from '../types'
+import type { Booking, PlayerProfile, PlayerProfileFormData, WaiverTemplate, SignedWaiver, AttendanceRecord, PlayerProgressNote } from '../types'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorBanner from '../components/ErrorBanner'
 import StatusBadge from '../components/StatusBadge'
@@ -29,11 +31,13 @@ const emptyPlayerForm: PlayerProfileFormData = {
 
 export default function AccountPage() {
   const { user } = useAuth()
-  const [tab, setTab] = useState<'bookings' | 'players' | 'security' | 'waivers'>('bookings')
+  const [tab, setTab] = useState<'bookings' | 'players' | 'security' | 'waivers' | 'progress'>('bookings')
   const [bookings, setBookings] = useState<Booking[]>([])
   const [players, setPlayers] = useState<PlayerProfile[]>([])
   const [waiverTemplates, setWaiverTemplates] = useState<WaiverTemplate[]>([])
   const [signedWaivers, setSignedWaivers] = useState<SignedWaiver[]>([])
+  const [attendance, setAttendance] = useState<AttendanceRecord[]>([])
+  const [progressNotes, setProgressNotes] = useState<PlayerProgressNote[]>([])
   const [loading, setLoading] = useState(true)
   const [cancelling, setCancelling] = useState<number | null>(null)
   const [error, setError] = useState('')
@@ -59,11 +63,15 @@ export default function AccountPage() {
       getMyPlayers().catch(() => []),
       getActiveWaiverTemplates().catch(() => []),
       getMySignedWaivers().catch(() => []),
-    ]).then(([b, p, wt, sw]) => {
+      getMyAttendance().catch(() => []),
+      getMyProgressNotes().catch(() => []),
+    ]).then(([b, p, wt, sw, att, pn]) => {
       setBookings(b)
       setPlayers(p)
       setWaiverTemplates(wt)
       setSignedWaivers(sw)
+      setAttendance(att)
+      setProgressNotes(pn)
     }).catch(() => setError('Could not load your account data.')).finally(() => setLoading(false))
   }, [])
 
@@ -204,7 +212,7 @@ export default function AccountPage() {
 
         {/* Tabs */}
         <div className="flex gap-2 mb-8 border-b border-[#1a1a1a] pb-0 flex-wrap">
-          {(['bookings', 'players', 'waivers', 'security'] as const).map((t) => {
+          {(['bookings', 'players', 'waivers', 'progress', 'security'] as const).map((t) => {
             const unsignedCount = t === 'waivers'
               ? waiverTemplates.filter((wt) => !signedWaivers.some((sw) => sw.templateId === wt.id)).length
               : 0
@@ -233,7 +241,18 @@ export default function AccountPage() {
                           )}
                         </span>
                       )
-                      : 'Security'}
+                      : t === 'progress'
+                        ? (
+                          <span className="flex items-center gap-1.5">
+                            Progress
+                            {progressNotes.length > 0 && (
+                              <span className="bg-blue-500/20 text-blue-400 text-xs px-1.5 py-0.5 rounded-full leading-none">
+                                {progressNotes.length}
+                              </span>
+                            )}
+                          </span>
+                        )
+                        : 'Security'}
               </button>
             )
           })}
@@ -554,6 +573,162 @@ export default function AccountPage() {
                     </div>
                   )
                 })}
+              </div>
+            )}
+          </section>
+        ) : tab === 'progress' ? (
+          <section>
+            <div className="mb-6">
+              <h2 className="text-white text-xl font-bold">Progress & Attendance</h2>
+              <p className="text-gray-500 text-sm mt-1">
+                Your attendance record and coach feedback from past sessions.
+              </p>
+            </div>
+
+            {/* Attendance summary chips */}
+            {attendance.length > 0 && (
+              <div className="flex flex-wrap gap-3 mb-8">
+                {(
+                  [
+                    {
+                      label: 'Present',
+                      count: attendance.filter((a) => a.status === 'PRESENT').length,
+                      color: 'bg-green-500/10 text-green-400 border border-green-500/20',
+                    },
+                    {
+                      label: 'Late',
+                      count: attendance.filter((a) => a.status === 'LATE').length,
+                      color: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+                    },
+                    {
+                      label: 'Absent',
+                      count: attendance.filter((a) => a.status === 'ABSENT').length,
+                      color: 'bg-red-500/10 text-red-400 border border-red-500/20',
+                    },
+                  ] as { label: string; count: number; color: string }[]
+                ).map(({ label, count, color }) => (
+                  <div key={label} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium ${color}`}>
+                    <span className="text-lg font-black">{count}</span>
+                    <span>{label}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Progress notes */}
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-white font-semibold">
+                Coach Notes ({progressNotes.length})
+              </h3>
+            </div>
+
+            {progressNotes.length === 0 ? (
+              <div className="bg-[#111] border border-[#222] rounded-xl p-6 text-center">
+                <p className="text-gray-500">No progress notes yet. Notes left by your coach after sessions will appear here.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {[...progressNotes]
+                  .sort((a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime())
+                  .map((note) => (
+                    <div key={note.id} className="bg-[#111] border border-[#222] rounded-xl p-5">
+                      <div className="flex items-start justify-between gap-4 flex-wrap mb-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            {note.title && (
+                              <h4 className="text-white font-semibold">{note.title}</h4>
+                            )}
+                            {note.noteType && (
+                              <span className="text-xs bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/20 capitalize">
+                                {note.noteType.toLowerCase()}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-gray-500 text-xs">
+                            {new Date(note.sessionDate).toLocaleDateString('en-US', {
+                              weekday: 'short',
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                            {note.coachName && (
+                              <span className="text-gray-600"> · {note.coachName}</span>
+                            )}
+                          </p>
+                        </div>
+                        {note.rating != null && (
+                          <div className="flex items-center gap-0.5 shrink-0" aria-label={`Rating: ${note.rating} out of 5`}>
+                            {Array.from({ length: 5 }, (_, i) => (
+                              <svg
+                                key={i}
+                                className={`h-4 w-4 ${i < note.rating! ? 'text-amber-400' : 'text-gray-700'}`}
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                              >
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2Z" />
+                              </svg>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
+                        {note.content}
+                      </p>
+                    </div>
+                  ))}
+              </div>
+            )}
+
+            {/* Attendance detail */}
+            {attendance.length > 0 && (
+              <div className="mt-10">
+                <h3 className="text-white font-semibold mb-4">Attendance History ({attendance.length})</h3>
+                <div className="space-y-2">
+                  {[...attendance]
+                    .sort((a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime())
+                    .map((rec) => (
+                      <div
+                        key={rec.id}
+                        className="bg-[#111] border border-[#222] rounded-xl px-4 py-3 flex items-center justify-between gap-4"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={`inline-block w-2.5 h-2.5 rounded-full shrink-0 ${
+                              rec.status === 'PRESENT'
+                                ? 'bg-green-500'
+                                : rec.status === 'LATE'
+                                  ? 'bg-amber-500'
+                                  : 'bg-red-500'
+                            }`}
+                          />
+                          <span className="text-gray-300 text-sm">
+                            {new Date(rec.sessionDate).toLocaleDateString('en-US', {
+                              weekday: 'short',
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                          </span>
+                          {rec.coachNotes && (
+                            <span className="text-gray-500 text-xs hidden sm:inline">
+                              {rec.coachNotes}
+                            </span>
+                          )}
+                        </div>
+                        <span
+                          className={`text-xs font-semibold uppercase tracking-wide ${
+                            rec.status === 'PRESENT'
+                              ? 'text-green-400'
+                              : rec.status === 'LATE'
+                                ? 'text-amber-400'
+                                : 'text-red-400'
+                          }`}
+                        >
+                          {rec.status}
+                        </span>
+                      </div>
+                    ))}
+                </div>
               </div>
             )}
           </section>
