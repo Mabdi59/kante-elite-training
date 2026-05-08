@@ -25,6 +25,7 @@ vi.mock('../services/api', () => ({
     { date: '2026-04-01', count: 5 },
     { date: '2026-04-02', count: 8 },
   ]),
+  getAdminBookings: vi.fn().mockResolvedValue([]),
 }))
 
 import AdminDashboardPage from '../pages/admin/AdminDashboardPage'

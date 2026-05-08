@@ -9,8 +9,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { getAdminDashboard, getBookingsOverTime } from '../../services/api'
-import type { AdminDashboard } from '../../types'
+import { getAdminDashboard, getBookingsOverTime, getAdminBookings } from '../../services/api'
+import type { AdminDashboard, Booking } from '../../types'
 import PageSkeleton from '../../components/PageSkeleton'
 import ErrorBanner from '../../components/ErrorBanner'
 
@@ -19,6 +19,7 @@ const LoadingSpinner = () => <PageSkeleton titleWidthClassName="w-44" count={6} 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<AdminDashboard | null>(null)
   const [chartData, setChartData] = useState<{ date: string; count: number }[]>([])
+  const [recentBookings, setRecentBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [chartUnavailable, setChartUnavailable] = useState(false)
@@ -37,10 +38,15 @@ export default function AdminDashboardPage() {
         setChartUnavailable(true)
         return []
       }),
+      getAdminBookings().catch(() => [] as Booking[]),
     ])
-      .then(([dashboardData, timeData]) => {
+      .then(([dashboardData, timeData, bookings]) => {
         setStats(dashboardData)
         setChartData(timeData)
+        const sorted = [...bookings].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        )
+        setRecentBookings(sorted.slice(0, 5))
       })
       .catch(() => setError('Could not load dashboard. Please refresh the page to try again.'))
       .finally(() => setLoading(false))
@@ -57,6 +63,8 @@ export default function AdminDashboardPage() {
     { label: 'Pending Bookings', value: stats.pendingBookings, color: 'text-yellow-400', link: '/admin/bookings' },
     { label: 'Unread Messages', value: stats.unreadMessages, color: 'text-pink-400', link: '/admin/messages' },
     { label: 'Pending Team Registrations', value: stats.pendingRegistrations ?? 0, color: 'text-amber-500', link: '/admin/tournaments' },
+    { label: 'Players', value: stats.totalPlayers, color: 'text-blue-400', link: '/admin/players' },
+    { label: 'Coaches', value: stats.totalCoaches, color: 'text-purple-400', link: '/admin/users' },
   ]
 
   const contentCards = [
@@ -64,6 +72,8 @@ export default function AdminDashboardPage() {
     { label: 'Events', value: stats.totalEvents, detail: 'Live event management', link: '/admin/events' },
     { label: 'Tournaments', value: stats.totalTournaments, detail: 'Registration + workflow', link: '/admin/tournaments' },
     { label: 'Users', value: stats.totalUsers, detail: 'Accounts on platform', link: '/admin/users' },
+    { label: 'Players', value: stats.totalPlayers, detail: 'Registered player profiles', link: '/admin/players' },
+    { label: 'Attendance', value: '↗', detail: 'Session records', link: '/admin/attendance' },
   ]
 
   return (
@@ -114,7 +124,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
           {operationsCards.map((card) => (
             <Link
               key={card.label}
@@ -134,7 +144,7 @@ export default function AdminDashboardPage() {
           <p className="text-sm text-gray-400">The primary systems that should stay current before launch.</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
           {contentCards.map((card) => (
             <Link
               key={card.label}
@@ -192,6 +202,63 @@ export default function AdminDashboardPage() {
           </p>
         </section>
       ) : null}
+
+      {recentBookings.length > 0 && (
+        <section>
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-black text-white">Recent Bookings</h2>
+              <p className="text-sm text-gray-400">The last 5 bookings across all programs.</p>
+            </div>
+            <Link
+              to="/admin/bookings"
+              className="text-xs text-green-400 hover:text-green-300 transition-colors"
+            >
+              View all →
+            </Link>
+          </div>
+
+          <div className="rounded-2xl border border-gray-800 bg-gray-900 overflow-hidden">
+            <div className="divide-y divide-gray-800">
+              {recentBookings.map((b) => (
+                <div
+                  key={b.id}
+                  className="flex items-center gap-4 px-5 py-3 hover:bg-gray-800/40 transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-sm font-semibold truncate">{b.playerName}</p>
+                    <p className="text-gray-500 text-xs truncate">
+                      {b.programName} · {b.bookingDate}
+                      {b.bookingTime ? ` @ ${b.bookingTime}` : ''}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
+                        b.bookingStatus === 'CONFIRMED'
+                          ? 'bg-green-500/10 text-green-400'
+                          : b.bookingStatus === 'PENDING'
+                            ? 'bg-amber-500/10 text-amber-400'
+                            : b.bookingStatus === 'CANCELLED'
+                              ? 'bg-red-500/10 text-red-400'
+                              : 'bg-blue-500/10 text-blue-400'
+                      }`}
+                    >
+                      {b.bookingStatus}
+                    </span>
+                    <span className="text-gray-700 text-xs">
+                      {new Date(b.createdAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   )
 }
