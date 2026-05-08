@@ -419,7 +419,7 @@ function NotesTab({ notes }: { notes: PlayerProgressNote[] }) {
               <div className="flex items-center gap-2 shrink-0">
                 {n.rating != null && (
                   <span className="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full font-semibold">
-                    {n.rating}/10
+                    {n.rating}/5
                   </span>
                 )}
                 {n.noteType && (
