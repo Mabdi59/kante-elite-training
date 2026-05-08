@@ -8,8 +8,11 @@ import {
   addPlayerProfile,
   removePlayerProfile,
   changePassword,
+  getActiveWaiverTemplates,
+  getMySignedWaivers,
+  signWaiver,
 } from '../services/api'
-import type { Booking, PlayerProfile, PlayerProfileFormData } from '../types'
+import type { Booking, PlayerProfile, PlayerProfileFormData, WaiverTemplate, SignedWaiver } from '../types'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorBanner from '../components/ErrorBanner'
 import StatusBadge from '../components/StatusBadge'
@@ -26,9 +29,11 @@ const emptyPlayerForm: PlayerProfileFormData = {
 
 export default function AccountPage() {
   const { user } = useAuth()
-  const [tab, setTab] = useState<'bookings' | 'players' | 'security'>('bookings')
+  const [tab, setTab] = useState<'bookings' | 'players' | 'security' | 'waivers'>('bookings')
   const [bookings, setBookings] = useState<Booking[]>([])
   const [players, setPlayers] = useState<PlayerProfile[]>([])
+  const [waiverTemplates, setWaiverTemplates] = useState<WaiverTemplate[]>([])
+  const [signedWaivers, setSignedWaivers] = useState<SignedWaiver[]>([])
   const [loading, setLoading] = useState(true)
   const [cancelling, setCancelling] = useState<number | null>(null)
   const [error, setError] = useState('')
@@ -42,13 +47,23 @@ export default function AccountPage() {
   const [pwSuccess, setPwSuccess] = useState('')
   const [savingPw, setSavingPw] = useState(false)
 
+  // Waiver signing state
+  const [signingId, setSigningId] = useState<number | null>(null)
+  const [signatureInput, setSignatureInput] = useState('')
+  const [signError, setSignError] = useState('')
+  const [savingSignature, setSavingSignature] = useState(false)
+
   useEffect(() => {
     Promise.all([
       getMyBookings().catch(() => []),
       getMyPlayers().catch(() => []),
-    ]).then(([b, p]) => {
+      getActiveWaiverTemplates().catch(() => []),
+      getMySignedWaivers().catch(() => []),
+    ]).then(([b, p, wt, sw]) => {
       setBookings(b)
       setPlayers(p)
+      setWaiverTemplates(wt)
+      setSignedWaivers(sw)
     }).catch(() => setError('Could not load your account data.')).finally(() => setLoading(false))
   }, [])
 
@@ -119,6 +134,38 @@ export default function AccountPage() {
     }
   }
 
+  const openSignFlow = (templateId: number) => {
+    setSigningId(templateId)
+    setSignatureInput('')
+    setSignError('')
+  }
+
+  const cancelSignFlow = () => {
+    setSigningId(null)
+    setSignatureInput('')
+    setSignError('')
+  }
+
+  const handleSignWaiver = async (e: React.FormEvent, templateId: number) => {
+    e.preventDefault()
+    if (!signatureInput.trim()) {
+      setSignError('Please type your full name as your digital signature.')
+      return
+    }
+    setSavingSignature(true)
+    setSignError('')
+    try {
+      const signed = await signWaiver({ templateId, signature: signatureInput.trim() })
+      setSignedWaivers((prev) => [...prev, signed])
+      cancelSignFlow()
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
+      setSignError(msg ?? 'Could not submit signature. Please try again.')
+    } finally {
+      setSavingSignature(false)
+    }
+  }
+
   const now = new Date()
   const upcoming = bookings.filter(
     (b) =>
@@ -156,24 +203,40 @@ export default function AccountPage() {
         )}
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-8 border-b border-[#1a1a1a] pb-0">
-          {(['bookings', 'players', 'security'] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-5 py-2.5 text-sm font-medium -mb-px border-b-2 transition-colors capitalize ${
-                tab === t
-                  ? 'text-amber-500 border-amber-500'
-                  : 'text-gray-500 border-transparent hover:text-gray-300'
-              }`}
-            >
-              {t === 'bookings'
-                ? `Bookings (${bookings.length})`
-                : t === 'players'
-                  ? `Players (${players.length})`
-                  : 'Security'}
-            </button>
-          ))}
+        <div className="flex gap-2 mb-8 border-b border-[#1a1a1a] pb-0 flex-wrap">
+          {(['bookings', 'players', 'waivers', 'security'] as const).map((t) => {
+            const unsignedCount = t === 'waivers'
+              ? waiverTemplates.filter((wt) => !signedWaivers.some((sw) => sw.templateId === wt.id)).length
+              : 0
+            return (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`px-5 py-2.5 text-sm font-medium -mb-px border-b-2 transition-colors capitalize ${
+                  tab === t
+                    ? 'text-amber-500 border-amber-500'
+                    : 'text-gray-500 border-transparent hover:text-gray-300'
+                }`}
+              >
+                {t === 'bookings'
+                  ? `Bookings (${bookings.length})`
+                  : t === 'players'
+                    ? `Players (${players.length})`
+                    : t === 'waivers'
+                      ? (
+                        <span className="flex items-center gap-1.5">
+                          Waivers
+                          {unsignedCount > 0 && (
+                            <span className="bg-amber-500/20 text-amber-400 text-xs px-1.5 py-0.5 rounded-full leading-none">
+                              {unsignedCount}
+                            </span>
+                          )}
+                        </span>
+                      )
+                      : 'Security'}
+              </button>
+            )
+          })}
         </div>
 
         {loading ? (
@@ -376,6 +439,121 @@ export default function AccountPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </section>
+        ) : tab === 'waivers' ? (
+          <section>
+            <div className="mb-6">
+              <h2 className="text-white text-xl font-bold">Waivers &amp; Consent Forms</h2>
+              <p className="text-gray-500 text-sm mt-1">
+                Review and digitally sign any required waivers before participating.
+              </p>
+            </div>
+
+            {waiverTemplates.length === 0 ? (
+              <div className="bg-[#111] border border-[#222] rounded-xl p-6 text-center">
+                <p className="text-gray-500">No waivers are currently required. Check back before your first session.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {waiverTemplates.map((template) => {
+                  const signed = signedWaivers.find((sw) => sw.templateId === template.id)
+                  const isSigningThis = signingId === template.id
+                  return (
+                    <div
+                      key={template.id}
+                      className={`bg-[#111] border rounded-xl p-5 ${signed ? 'border-green-800/50' : 'border-[#222]'}`}
+                    >
+                      <div className="flex items-start justify-between gap-4 flex-wrap">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <h3 className="text-white font-semibold">{template.title}</h3>
+                            {signed ? (
+                              <span className="text-xs bg-green-500/15 text-green-400 px-2 py-0.5 rounded-full border border-green-500/20">
+                                ✓ Signed
+                              </span>
+                            ) : (
+                              <span className="text-xs bg-amber-500/15 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/20">
+                                Signature required
+                              </span>
+                            )}
+                          </div>
+                          {signed && (
+                            <p className="text-gray-500 text-xs">
+                              Signed on {new Date(signed.signedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} by <span className="text-gray-400">{signed.userName}</span>
+                            </p>
+                          )}
+                        </div>
+                        {!signed && !isSigningThis && (
+                          <button
+                            onClick={() => openSignFlow(template.id)}
+                            className="shrink-0 bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm px-4 py-2 rounded-lg"
+                          >
+                            Sign Waiver
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Waiver content (collapsed by default for brevity) */}
+                      <details className="mt-3">
+                        <summary className="text-gray-500 text-xs cursor-pointer hover:text-gray-300 select-none">
+                          View waiver text
+                        </summary>
+                        <div className="mt-3 bg-[#0d0d0d] border border-[#1a1a1a] rounded-lg p-4 text-gray-400 text-sm whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto">
+                          {template.content}
+                        </div>
+                      </details>
+
+                      {/* Inline signing form */}
+                      {isSigningThis && (
+                        <form
+                          onSubmit={(e) => handleSignWaiver(e, template.id)}
+                          className="mt-4 border-t border-[#1a1a1a] pt-4 space-y-3"
+                        >
+                          <p className="text-gray-400 text-sm">
+                            By typing your full name below you are confirming that you have read, understood, and agree to the terms of this waiver.
+                          </p>
+                          {signError && (
+                            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-400 text-sm">
+                              {signError}
+                            </div>
+                          )}
+                          <div>
+                            <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1.5">
+                              Full name (digital signature)
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              autoFocus
+                              value={signatureInput}
+                              onChange={(e) => setSignatureInput(e.target.value)}
+                              placeholder="Type your full name exactly"
+                              className="input-field-default max-w-sm"
+                            />
+                          </div>
+                          <div className="flex gap-3">
+                            <button
+                              type="submit"
+                              disabled={savingSignature}
+                              className="bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm px-5 py-2 rounded-lg disabled:opacity-50"
+                            >
+                              {savingSignature ? 'Submitting…' : 'Confirm Signature'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={cancelSignFlow}
+                              className="bg-gray-800 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded-lg"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </form>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             )}
           </section>
