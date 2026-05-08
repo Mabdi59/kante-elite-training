@@ -117,6 +117,7 @@ export default function TournamentsPage() {
 
   const fetchTournaments = () => {
     getTournaments()
+      // On success, clear any previous fetch error so the UI stays clean between polls.
       .then((data) => { setTournaments(data); setError('') })
       .catch(() => setError('Could not load tournaments. Please refresh to try again.'))
       .finally(() => setLoading(false))
