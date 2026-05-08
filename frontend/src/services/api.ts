@@ -42,6 +42,7 @@ import type {
   WebsiteContent,
   WebsiteContentFormData,
   EventRegistrationFormData,
+  Notification,
 } from '../types'
 
 const configuredApiUrl = (import.meta.env.VITE_API_URL ?? '').trim()
@@ -988,12 +989,8 @@ export const getNotificationUnreadCount = async (): Promise<number> => {
   return res.data.data ?? 0
 }
 
-export const getNotificationsUnread = async (): Promise<
-  { id: number; type: string; title?: string; body?: string; readStatus: boolean; createdAt: string }[]
-> => {
-  const res = await api.get<
-    ApiResponse<{ id: number; type: string; title?: string; body?: string; readStatus: boolean; createdAt: string }[]>
-  >('/notifications/unread')
+export const getNotificationsUnread = async (): Promise<Notification[]> => {
+  const res = await api.get<ApiResponse<Notification[]>>('/notifications/unread')
   return res.data.data ?? []
 }
 

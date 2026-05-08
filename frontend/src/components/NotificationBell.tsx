@@ -6,15 +6,7 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
 } from '../services/api'
-
-interface Notification {
-  id: number
-  type: string
-  title?: string
-  body?: string
-  readStatus: boolean
-  createdAt: string
-}
+import type { Notification } from '../types'
 
 export default function NotificationBell() {
   const { isAuthenticated } = useAuth()
