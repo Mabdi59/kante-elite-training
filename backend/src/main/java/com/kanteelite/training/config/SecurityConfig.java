@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final LegacyEndpointAccessAuditFilter legacyEndpointAccessAuditFilter;
 
     @Value("${app.cors.allowed-origins:http://localhost:5173}")
     private String allowedOriginsProperty;
@@ -65,8 +66,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.HEAD, "/api/content/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/media/**").permitAll()
                 .requestMatchers(HttpMethod.HEAD, "/api/media/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/uploads/**").permitAll()
-                .requestMatchers(HttpMethod.HEAD, "/api/uploads/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/uploads/media-posts/**").permitAll()
+                .requestMatchers(HttpMethod.HEAD, "/api/uploads/media-posts/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/testimonials/**").permitAll()
                 .requestMatchers(HttpMethod.HEAD, "/api/testimonials/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/availability/**").permitAll()
@@ -133,7 +134,8 @@ public class SecurityConfig {
                 // All other requests require authentication
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(legacyEndpointAccessAuditFilter, JwtAuthFilter.class);
 
         return http.build();
     }

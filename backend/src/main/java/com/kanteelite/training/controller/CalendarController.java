@@ -2,6 +2,7 @@ package com.kanteelite.training.controller;
 
 import jakarta.validation.Valid;
 import com.kanteelite.training.dto.request.CalendarEventRequest;
+import com.kanteelite.training.dto.response.ApiResponse;
 import com.kanteelite.training.dto.response.CalendarEventResponse;
 import com.kanteelite.training.entity.User;
 import com.kanteelite.training.repository.UserRepository;
@@ -17,7 +18,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -29,25 +29,25 @@ public class CalendarController {
     private final UserRepository userRepository;
 
     @GetMapping
-    public ResponseEntity<List<CalendarEventResponse>> getMyEvents(
+    public ResponseEntity<ApiResponse<List<CalendarEventResponse>>> getMyEvents(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
             @AuthenticationPrincipal UserDetails user) {
-        return ResponseEntity.ok(calendarService.getEventsForUser(user.getUsername(), from, to));
+        return ResponseEntity.ok(ApiResponse.success(calendarService.getEventsForUser(user.getUsername(), from, to)));
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<CalendarEventResponse>> getAllEvents(
+    public ResponseEntity<ApiResponse<List<CalendarEventResponse>>> getAllEvents(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
-        return ResponseEntity.ok(calendarService.getAllEvents(from, to));
+        return ResponseEntity.ok(ApiResponse.success(calendarService.getAllEvents(from, to)));
     }
 
     @PostMapping
-    public ResponseEntity<CalendarEventResponse> createEvent(
+    public ResponseEntity<ApiResponse<CalendarEventResponse>> createEvent(
             @Valid @RequestBody CalendarEventRequest request,
             @AuthenticationPrincipal UserDetails user) {
-        return ResponseEntity.ok(calendarService.createEvent(request, user.getUsername()));
+        return ResponseEntity.ok(ApiResponse.success(calendarService.createEvent(request, user.getUsername())));
     }
 
     @DeleteMapping("/{id}")
@@ -63,7 +63,7 @@ public class CalendarController {
      * The token is opaque and can be rotated via the regenerate endpoint.
      */
     @GetMapping("/ical-token")
-    public ResponseEntity<Map<String, String>> getIcalToken(
+    public ResponseEntity<ApiResponse<String>> getIcalToken(
             @AuthenticationPrincipal UserDetails userDetails) {
         User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -71,25 +71,26 @@ public class CalendarController {
             user.setIcalFeedToken(UUID.randomUUID().toString().replace("-", ""));
             userRepository.save(user);
         }
-        return ResponseEntity.ok(Map.of("token", user.getIcalFeedToken()));
+        return ResponseEntity.ok(ApiResponse.success(user.getIcalFeedToken()));
     }
 
     /**
      * Regenerates the iCal feed token, invalidating the old URL.
      */
     @PostMapping("/ical-token/regenerate")
-    public ResponseEntity<Map<String, String>> regenerateIcalToken(
+    public ResponseEntity<ApiResponse<String>> regenerateIcalToken(
             @AuthenticationPrincipal UserDetails userDetails) {
         User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         user.setIcalFeedToken(UUID.randomUUID().toString().replace("-", ""));
         userRepository.save(user);
-        return ResponseEntity.ok(Map.of("token", user.getIcalFeedToken()));
+        return ResponseEntity.ok(ApiResponse.success(user.getIcalFeedToken()));
     }
 
     /**
      * Public iCal feed endpoint. Uses an opaque token (not the user's email)
-     * so the URL is not guessable.
+     * so the URL is not guessable. Returns text/calendar — intentionally not
+     * wrapped in ApiResponse.
      */
     @GetMapping(value = "/ical/{token}.ics", produces = "text/calendar")
     public ResponseEntity<String> exportIcalByToken(@PathVariable String token) {

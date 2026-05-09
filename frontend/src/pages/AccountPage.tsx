@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
@@ -8,9 +8,15 @@ import {
   addPlayerProfile,
   removePlayerProfile,
   changePassword,
+  getActiveWaiverTemplates,
+  getMySignedWaivers,
+  signWaiver,
+  getMyAttendance,
+  getMyProgressNotes,
 } from '../services/api'
-import type { Booking, PlayerProfile, PlayerProfileFormData } from '../types'
+import type { Booking, PlayerProfile, PlayerProfileFormData, WaiverTemplate, SignedWaiver, AttendanceRecord, PlayerProgressNote } from '../types'
 import LoadingSpinner from '../components/LoadingSpinner'
+import ErrorBanner from '../components/ErrorBanner'
 import StatusBadge from '../components/StatusBadge'
 import { calculateAgeFromDateOfBirth } from '../utils/playerAge'
 
@@ -25,9 +31,13 @@ const emptyPlayerForm: PlayerProfileFormData = {
 
 export default function AccountPage() {
   const { user } = useAuth()
-  const [tab, setTab] = useState<'bookings' | 'players' | 'security'>('bookings')
+  const [tab, setTab] = useState<'bookings' | 'players' | 'security' | 'waivers' | 'progress'>('bookings')
   const [bookings, setBookings] = useState<Booking[]>([])
   const [players, setPlayers] = useState<PlayerProfile[]>([])
+  const [waiverTemplates, setWaiverTemplates] = useState<WaiverTemplate[]>([])
+  const [signedWaivers, setSignedWaivers] = useState<SignedWaiver[]>([])
+  const [attendance, setAttendance] = useState<AttendanceRecord[]>([])
+  const [progressNotes, setProgressNotes] = useState<PlayerProgressNote[]>([])
   const [loading, setLoading] = useState(true)
   const [cancelling, setCancelling] = useState<number | null>(null)
   const [error, setError] = useState('')
@@ -41,13 +51,27 @@ export default function AccountPage() {
   const [pwSuccess, setPwSuccess] = useState('')
   const [savingPw, setSavingPw] = useState(false)
 
+  // Waiver signing state
+  const [signingId, setSigningId] = useState<number | null>(null)
+  const [signatureInput, setSignatureInput] = useState('')
+  const [signError, setSignError] = useState('')
+  const [savingSignature, setSavingSignature] = useState(false)
+
   useEffect(() => {
     Promise.all([
       getMyBookings().catch(() => []),
       getMyPlayers().catch(() => []),
-    ]).then(([b, p]) => {
+      getActiveWaiverTemplates().catch(() => []),
+      getMySignedWaivers().catch(() => []),
+      getMyAttendance().catch(() => []),
+      getMyProgressNotes().catch(() => []),
+    ]).then(([b, p, wt, sw, att, pn]) => {
       setBookings(b)
       setPlayers(p)
+      setWaiverTemplates(wt)
+      setSignedWaivers(sw)
+      setAttendance(att)
+      setProgressNotes(pn)
     }).catch(() => setError('Could not load your account data.')).finally(() => setLoading(false))
   }, [])
 
@@ -118,6 +142,38 @@ export default function AccountPage() {
     }
   }
 
+  const openSignFlow = (templateId: number) => {
+    setSigningId(templateId)
+    setSignatureInput('')
+    setSignError('')
+  }
+
+  const cancelSignFlow = () => {
+    setSigningId(null)
+    setSignatureInput('')
+    setSignError('')
+  }
+
+  const handleSignWaiver = async (e: React.FormEvent, templateId: number) => {
+    e.preventDefault()
+    if (!signatureInput.trim()) {
+      setSignError('Please type your full name as your digital signature.')
+      return
+    }
+    setSavingSignature(true)
+    setSignError('')
+    try {
+      const signed = await signWaiver({ templateId, signature: signatureInput.trim() })
+      setSignedWaivers((prev) => [...prev, signed])
+      cancelSignFlow()
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
+      setSignError(msg ?? 'Could not submit signature. Please try again.')
+    } finally {
+      setSavingSignature(false)
+    }
+  }
+
   const now = new Date()
   const upcoming = bookings.filter(
     (b) =>
@@ -126,6 +182,36 @@ export default function AccountPage() {
   const past = bookings.filter(
     (b) =>
       b.bookingStatus === 'CANCELLED' || new Date(b.bookingDate) < now,
+  )
+
+  const attendanceCounts = useMemo(
+    () =>
+      attendance.reduce(
+        (acc, a) => {
+          if (a.status === 'PRESENT') acc.present += 1
+          else if (a.status === 'LATE') acc.late += 1
+          else acc.absent += 1
+          return acc
+        },
+        { present: 0, late: 0, absent: 0 },
+      ),
+    [attendance],
+  )
+
+  const sortedProgressNotes = useMemo(
+    () =>
+      [...progressNotes].sort(
+        (a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime(),
+      ),
+    [progressNotes],
+  )
+
+  const sortedAttendance = useMemo(
+    () =>
+      [...attendance].sort(
+        (a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime(),
+      ),
+    [attendance],
   )
 
   return (
@@ -151,30 +237,55 @@ export default function AccountPage() {
         </div>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-red-400 mb-6">
-            {error}
-          </div>
+          <ErrorBanner message={error} onDismiss={() => setError('')} />
         )}
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-8 border-b border-[#1a1a1a] pb-0">
-          {(['bookings', 'players', 'security'] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-5 py-2.5 text-sm font-medium -mb-px border-b-2 transition-colors capitalize ${
-                tab === t
-                  ? 'text-amber-500 border-amber-500'
-                  : 'text-gray-500 border-transparent hover:text-gray-300'
-              }`}
-            >
-              {t === 'bookings'
-                ? `Bookings (${bookings.length})`
-                : t === 'players'
-                  ? `Players (${players.length})`
-                  : 'Security'}
-            </button>
-          ))}
+        <div className="flex gap-2 mb-8 border-b border-[#1a1a1a] pb-0 flex-wrap">
+          {(['bookings', 'players', 'waivers', 'progress', 'security'] as const).map((t) => {
+            const unsignedCount = t === 'waivers'
+              ? waiverTemplates.filter((wt) => !signedWaivers.some((sw) => sw.templateId === wt.id)).length
+              : 0
+            return (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`px-5 py-2.5 text-sm font-medium -mb-px border-b-2 transition-colors capitalize ${
+                  tab === t
+                    ? 'text-amber-500 border-amber-500'
+                    : 'text-gray-500 border-transparent hover:text-gray-300'
+                }`}
+              >
+                {t === 'bookings'
+                  ? `Bookings (${bookings.length})`
+                  : t === 'players'
+                    ? `Players (${players.length})`
+                    : t === 'waivers'
+                      ? (
+                        <span className="flex items-center gap-1.5">
+                          Waivers
+                          {unsignedCount > 0 && (
+                            <span className="bg-amber-500/20 text-amber-400 text-xs px-1.5 py-0.5 rounded-full leading-none">
+                              {unsignedCount}
+                            </span>
+                          )}
+                        </span>
+                      )
+                      : t === 'progress'
+                        ? (
+                          <span className="flex items-center gap-1.5">
+                            Progress
+                            {progressNotes.length > 0 && (
+                              <span className="bg-blue-500/20 text-blue-400 text-xs px-1.5 py-0.5 rounded-full leading-none">
+                                {progressNotes.length}
+                              </span>
+                            )}
+                          </span>
+                        )
+                        : 'Security'}
+              </button>
+            )
+          })}
         </div>
 
         {loading ? (
@@ -377,6 +488,273 @@ export default function AccountPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </section>
+        ) : tab === 'waivers' ? (
+          <section>
+            <div className="mb-6">
+              <h2 className="text-white text-xl font-bold">Waivers & Consent Forms</h2>
+              <p className="text-gray-500 text-sm mt-1">
+                Review and digitally sign any required waivers before participating.
+              </p>
+            </div>
+
+            {waiverTemplates.length === 0 ? (
+              <div className="bg-[#111] border border-[#222] rounded-xl p-6 text-center">
+                <p className="text-gray-500">No waivers are currently required. Check back before your first session.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {waiverTemplates.map((template) => {
+                  const signed = signedWaivers.find((sw) => sw.templateId === template.id)
+                  const isSigningThis = signingId === template.id
+                  return (
+                    <div
+                      key={template.id}
+                      className={`bg-[#111] border rounded-xl p-5 ${signed ? 'border-green-800/50' : 'border-[#222]'}`}
+                    >
+                      <div className="flex items-start justify-between gap-4 flex-wrap">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <h3 className="text-white font-semibold">{template.title}</h3>
+                            {signed ? (
+                              <span className="text-xs bg-green-500/15 text-green-400 px-2 py-0.5 rounded-full border border-green-500/20">
+                                ✓ Signed
+                              </span>
+                            ) : (
+                              <span className="text-xs bg-amber-500/15 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/20">
+                                Signature required
+                              </span>
+                            )}
+                          </div>
+                          {signed && (
+                            <p className="text-gray-500 text-xs">
+                              Signed on {new Date(signed.signedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} by <span className="text-gray-400">{signed.userName}</span>
+                            </p>
+                          )}
+                        </div>
+                        {!signed && !isSigningThis && (
+                          <button
+                            onClick={() => openSignFlow(template.id)}
+                            className="shrink-0 bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm px-4 py-2 rounded-lg"
+                          >
+                            Sign Waiver
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Waiver content (collapsed by default for brevity) */}
+                      <details className="mt-3">
+                        <summary className="text-gray-500 text-xs cursor-pointer hover:text-gray-300 select-none">
+                          View waiver text
+                        </summary>
+                        <div className="mt-3 bg-[#0d0d0d] border border-[#1a1a1a] rounded-lg p-4 text-gray-400 text-sm whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto">
+                          {template.content}
+                        </div>
+                      </details>
+
+                      {/* Inline signing form */}
+                      {isSigningThis && (
+                        <form
+                          onSubmit={(e) => handleSignWaiver(e, template.id)}
+                          className="mt-4 border-t border-[#1a1a1a] pt-4 space-y-3"
+                        >
+                          <p className="text-gray-400 text-sm">
+                            By typing your full name below you are confirming that you have read, understood, and agree to the terms of this waiver.
+                          </p>
+                          {signError && (
+                            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-400 text-sm">
+                              {signError}
+                            </div>
+                          )}
+                          <div>
+                            <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1.5">
+                              Full name (digital signature)
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              autoFocus
+                              value={signatureInput}
+                              onChange={(e) => setSignatureInput(e.target.value)}
+                              placeholder="Type your full name exactly"
+                              className="input-field-default max-w-sm"
+                            />
+                          </div>
+                          <div className="flex gap-3">
+                            <button
+                              type="submit"
+                              disabled={savingSignature}
+                              className="bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm px-5 py-2 rounded-lg disabled:opacity-50"
+                            >
+                              {savingSignature ? 'Submitting…' : 'Confirm Signature'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={cancelSignFlow}
+                              className="bg-gray-800 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded-lg"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </form>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </section>
+        ) : tab === 'progress' ? (
+          <section>
+            <div className="mb-6">
+              <h2 className="text-white text-xl font-bold">Progress & Attendance</h2>
+              <p className="text-gray-500 text-sm mt-1">
+                Your attendance record and coach feedback from past sessions.
+              </p>
+            </div>
+
+            {/* Attendance summary chips */}
+            {attendance.length > 0 && (
+              <div className="flex flex-wrap gap-3 mb-8">
+                {(
+                  [
+                    {
+                      label: 'Present',
+                      count: attendanceCounts.present,
+                      color: 'bg-green-500/10 text-green-400 border border-green-500/20',
+                    },
+                    {
+                      label: 'Late',
+                      count: attendanceCounts.late,
+                      color: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+                    },
+                    {
+                      label: 'Absent',
+                      count: attendanceCounts.absent,
+                      color: 'bg-red-500/10 text-red-400 border border-red-500/20',
+                    },
+                  ] as { label: string; count: number; color: string }[]
+                ).map(({ label, count, color }) => (
+                  <div key={label} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium ${color}`}>
+                    <span className="text-lg font-black">{count}</span>
+                    <span>{label}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Progress notes */}
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-white font-semibold">
+                Coach Notes ({progressNotes.length})
+              </h3>
+            </div>
+
+            {progressNotes.length === 0 ? (
+              <div className="bg-[#111] border border-[#222] rounded-xl p-6 text-center">
+                <p className="text-gray-500">No progress notes yet. Notes left by your coach after sessions will appear here.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {sortedProgressNotes.map((note) => (
+                    <div key={note.id} className="bg-[#111] border border-[#222] rounded-xl p-5">
+                      <div className="flex items-start justify-between gap-4 flex-wrap mb-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            {note.title && (
+                              <h4 className="text-white font-semibold">{note.title}</h4>
+                            )}
+                            {note.noteType && (
+                              <span className="text-xs bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/20 capitalize">
+                                {note.noteType.toLowerCase()}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-gray-500 text-xs">
+                            {new Date(note.sessionDate).toLocaleDateString('en-US', {
+                              weekday: 'short',
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                            {note.coachName && (
+                              <span className="text-gray-600"> · {note.coachName}</span>
+                            )}
+                          </p>
+                        </div>
+                        {note.rating != null && (
+                          <div className="flex items-center gap-0.5 shrink-0" aria-label={`Rating: ${note.rating} out of 5`}>
+                            {Array.from({ length: 5 }, (_, i) => (
+                              <svg
+                                key={i}
+                                className={`h-4 w-4 ${i < note.rating! ? 'text-amber-400' : 'text-gray-700'}`}
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                              >
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2Z" />
+                              </svg>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
+                        {note.content}
+                      </p>
+                    </div>
+                  ))}
+              </div>
+            )}
+
+            {/* Attendance detail */}
+            {attendance.length > 0 && (
+              <div className="mt-10">
+                <h3 className="text-white font-semibold mb-4">Attendance History ({attendance.length})</h3>
+                <div className="space-y-2">
+                  {sortedAttendance.map((rec) => (
+                      <div
+                        key={rec.id}
+                        className="bg-[#111] border border-[#222] rounded-xl px-4 py-3 flex items-center justify-between gap-4"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={`inline-block w-2.5 h-2.5 rounded-full shrink-0 ${
+                              rec.status === 'PRESENT'
+                                ? 'bg-green-500'
+                                : rec.status === 'LATE'
+                                  ? 'bg-amber-500'
+                                  : 'bg-red-500'
+                            }`}
+                          />
+                          <span className="text-gray-300 text-sm">
+                            {new Date(rec.sessionDate).toLocaleDateString('en-US', {
+                              weekday: 'short',
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                          </span>
+                          {rec.coachNotes && (
+                            <span className="text-gray-500 text-xs hidden sm:inline">
+                              {rec.coachNotes}
+                            </span>
+                          )}
+                        </div>
+                        <span
+                          className={`text-xs font-semibold uppercase tracking-wide ${
+                            rec.status === 'PRESENT'
+                              ? 'text-green-400'
+                              : rec.status === 'LATE'
+                                ? 'text-amber-400'
+                                : 'text-red-400'
+                          }`}
+                        >
+                          {rec.status}
+                        </span>
+                      </div>
+                    ))}
+                </div>
               </div>
             )}
           </section>

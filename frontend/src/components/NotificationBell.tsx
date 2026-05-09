@@ -1,15 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import api from '../services/api'
-
-interface Notification {
-  id: number
-  type: string
-  title?: string
-  body?: string
-  readStatus: boolean
-  createdAt: string
-}
+import {
+  getNotificationUnreadCount,
+  getNotificationsUnread,
+  markNotificationRead,
+  markAllNotificationsRead,
+} from '../services/api'
+import type { Notification } from '../types'
 
 export default function NotificationBell() {
   const { isAuthenticated } = useAuth()
@@ -22,8 +19,8 @@ export default function NotificationBell() {
   const fetchCount = useCallback(async () => {
     if (!isAuthenticated) return
     try {
-      const res = await api.get('/notifications/unread-count')
-      setUnreadCount(res.data?.count ?? res.data ?? 0)
+      const count = await getNotificationUnreadCount()
+      setUnreadCount(count)
     } catch {
       // silent
     }
@@ -51,8 +48,8 @@ export default function NotificationBell() {
     if (!open) {
       setLoading(true)
       try {
-        const res = await api.get('/notifications/unread')
-        setNotifications(res.data ?? [])
+        const notifications = await getNotificationsUnread()
+        setNotifications(notifications)
       } catch {
         setNotifications([])
       } finally {
@@ -64,7 +61,7 @@ export default function NotificationBell() {
 
   const markRead = async (id: number) => {
     try {
-      await api.patch(`/notifications/${id}/read`, {})
+      await markNotificationRead(id)
       setNotifications((prev) => prev.filter((n) => n.id !== id))
       setUnreadCount((c) => Math.max(0, c - 1))
     } catch {
@@ -74,7 +71,7 @@ export default function NotificationBell() {
 
   const markAllRead = async () => {
     try {
-      await api.patch('/notifications/read-all', {})
+      await markAllNotificationsRead()
       setNotifications([])
       setUnreadCount(0)
     } catch {

@@ -3,6 +3,7 @@ package com.kanteelite.training.controller;
 import jakarta.validation.Valid;
 import com.kanteelite.training.dto.request.SignWaiverRequest;
 import com.kanteelite.training.dto.request.WaiverTemplateRequest;
+import com.kanteelite.training.dto.response.ApiResponse;
 import com.kanteelite.training.dto.response.PlayerDocumentResponse;
 import com.kanteelite.training.dto.response.SignedWaiverResponse;
 import com.kanteelite.training.dto.response.WaiverTemplateResponse;
@@ -15,7 +16,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,28 +24,28 @@ public class WaiverController {
     private final WaiverService waiverService;
 
     @GetMapping("/api/waivers/templates")
-    public ResponseEntity<List<WaiverTemplateResponse>> getActiveTemplates() {
-        return ResponseEntity.ok(waiverService.getActiveTemplates());
+    public ResponseEntity<ApiResponse<List<WaiverTemplateResponse>>> getActiveTemplates() {
+        return ResponseEntity.ok(ApiResponse.success(waiverService.getActiveTemplates()));
     }
 
     @GetMapping("/api/admin/waivers/templates")
-    public ResponseEntity<List<WaiverTemplateResponse>> getAllTemplates() {
-        return ResponseEntity.ok(waiverService.getAllTemplates());
+    public ResponseEntity<ApiResponse<List<WaiverTemplateResponse>>> getAllTemplates() {
+        return ResponseEntity.ok(ApiResponse.success(waiverService.getAllTemplates()));
     }
 
     @PostMapping("/api/admin/waivers/templates")
-    public ResponseEntity<WaiverTemplateResponse> createTemplate(
+    public ResponseEntity<ApiResponse<WaiverTemplateResponse>> createTemplate(
             @Valid @RequestBody WaiverTemplateRequest request,
             @AuthenticationPrincipal UserDetails user) {
-        return ResponseEntity.ok(waiverService.createTemplate(request, user.getUsername()));
+        return ResponseEntity.ok(ApiResponse.success(waiverService.createTemplate(request, user.getUsername())));
     }
 
     @PutMapping("/api/admin/waivers/templates/{id}")
-    public ResponseEntity<WaiverTemplateResponse> updateTemplate(
+    public ResponseEntity<ApiResponse<WaiverTemplateResponse>> updateTemplate(
             @PathVariable Long id,
             @Valid @RequestBody WaiverTemplateRequest request,
             @AuthenticationPrincipal UserDetails user) {
-        return ResponseEntity.ok(waiverService.updateTemplate(id, request, user.getUsername()));
+        return ResponseEntity.ok(ApiResponse.success(waiverService.updateTemplate(id, request, user.getUsername())));
     }
 
     @DeleteMapping("/api/admin/waivers/templates/{id}")
@@ -57,34 +57,34 @@ public class WaiverController {
     }
 
     @PostMapping("/api/waivers/sign")
-    public ResponseEntity<SignedWaiverResponse> signWaiver(
+    public ResponseEntity<ApiResponse<SignedWaiverResponse>> signWaiver(
             @Valid @RequestBody SignWaiverRequest request,
             @AuthenticationPrincipal UserDetails user,
             HttpServletRequest httpRequest) {
         String ip = httpRequest.getRemoteAddr();
-        return ResponseEntity.ok(waiverService.signWaiver(request, user.getUsername(), user.getUsername(), ip));
+        return ResponseEntity.ok(ApiResponse.success(waiverService.signWaiver(request, user.getUsername(), user.getUsername(), ip)));
     }
 
     @GetMapping("/api/waivers/my-signed")
-    public ResponseEntity<List<SignedWaiverResponse>> getMySigned(@AuthenticationPrincipal UserDetails user) {
-        return ResponseEntity.ok(waiverService.getSignedWaiversForUser(user.getUsername()));
+    public ResponseEntity<ApiResponse<List<SignedWaiverResponse>>> getMySigned(@AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(ApiResponse.success(waiverService.getSignedWaiversForUser(user.getUsername())));
     }
 
     @GetMapping("/api/waivers/check/{templateId}")
-    public ResponseEntity<Map<String, Boolean>> checkSigned(
+    public ResponseEntity<ApiResponse<Boolean>> checkSigned(
             @PathVariable Long templateId,
             @AuthenticationPrincipal UserDetails user) {
-        return ResponseEntity.ok(Map.of("signed", waiverService.hasSignedWaiver(templateId, user.getUsername())));
+        return ResponseEntity.ok(ApiResponse.success(waiverService.hasSignedWaiver(templateId, user.getUsername())));
     }
 
     @GetMapping("/api/documents/my")
-    public ResponseEntity<List<PlayerDocumentResponse>> getMyDocuments(@AuthenticationPrincipal UserDetails user) {
-        return ResponseEntity.ok(waiverService.getDocumentsForPlayer(user.getUsername()));
+    public ResponseEntity<ApiResponse<List<PlayerDocumentResponse>>> getMyDocuments(@AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(ApiResponse.success(waiverService.getDocumentsForPlayer(user.getUsername())));
     }
 
     @GetMapping("/api/admin/documents/player/{email}")
-    public ResponseEntity<List<PlayerDocumentResponse>> getPlayerDocuments(@PathVariable String email) {
-        return ResponseEntity.ok(waiverService.getDocumentsForPlayer(email));
+    public ResponseEntity<ApiResponse<List<PlayerDocumentResponse>>> getPlayerDocuments(@PathVariable String email) {
+        return ResponseEntity.ok(ApiResponse.success(waiverService.getDocumentsForPlayer(email)));
     }
 
     @DeleteMapping("/api/admin/documents/{id}")

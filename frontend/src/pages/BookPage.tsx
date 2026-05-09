@@ -1,9 +1,10 @@
 ﻿import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import api, { createBookingCheckout, getAvailability, getPaymentsEnabled, getPrograms } from '../services/api'
-import type { ApiResponse, Program, AvailabilityData, BookingFormData, Booking } from '../types'
+import { createBooking, createBookingCheckout, getAvailability, getPaymentsEnabled, getPrograms } from '../services/api'
+import type { Program, AvailabilityData, BookingFormData } from '../types'
 import { useAuth } from '../context/AuthContext'
 import { getPortalDestination } from '../utils/portal'
+import ErrorBanner from '../components/ErrorBanner'
 
 const experienceLevels = [
   { value: 'beginner', label: 'Beginner, just starting out' },
@@ -248,7 +249,7 @@ export default function BookPage() {
   }, [])
 
   useEffect(() => {
-    getPaymentsEnabled().then(setPaymentsEnabled).catch(() => {})
+    getPaymentsEnabled().then(setPaymentsEnabled).catch(() => setPaymentsEnabled(false))
     getPrograms()
       .then((p) => {
         setPrograms(p)
@@ -392,9 +393,7 @@ export default function BookPage() {
 
     // Direct booking (no payment required)
     try {
-      const res = await api.post<ApiResponse<Booking>>('/bookings', payload)
-      const booking = res.data.data
-      if (!booking) throw new Error('No booking details returned')
+      const booking = await createBooking(payload)
       navigate(`/book/success?booking_id=${booking.id}`, { state: { booking } })
     } catch (err: unknown) {
       const message =
@@ -461,6 +460,11 @@ export default function BookPage() {
         </div>
 
         <div className={`${isTwoColumn ? 'max-w-5xl' : 'max-w-3xl'} mx-auto`}>
+          {error && step < 4 && (
+            <div className="mb-4">
+              <ErrorBanner message={error} onDismiss={() => setError('')} />
+            </div>
+          )}
           <div className={`${isTwoColumn ? 'lg:flex lg:gap-8 lg:items-start' : ''}`}>
             <div className="flex-1 min-w-0">
               {step === 1 && (

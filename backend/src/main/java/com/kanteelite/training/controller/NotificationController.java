@@ -1,5 +1,6 @@
 package com.kanteelite.training.controller;
 
+import com.kanteelite.training.dto.response.ApiResponse;
 import com.kanteelite.training.dto.response.NotificationResponse;
 import com.kanteelite.training.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +10,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/notifications")
@@ -19,18 +19,18 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     @GetMapping
-    public ResponseEntity<List<NotificationResponse>> getAll(@AuthenticationPrincipal UserDetails user) {
-        return ResponseEntity.ok(notificationService.getForUser(user.getUsername()));
+    public ResponseEntity<ApiResponse<List<NotificationResponse>>> getAll(@AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(ApiResponse.success(notificationService.getForUser(user.getUsername())));
     }
 
     @GetMapping("/unread")
-    public ResponseEntity<List<NotificationResponse>> getUnread(@AuthenticationPrincipal UserDetails user) {
-        return ResponseEntity.ok(notificationService.getUnreadForUser(user.getUsername()));
+    public ResponseEntity<ApiResponse<List<NotificationResponse>>> getUnread(@AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(ApiResponse.success(notificationService.getUnreadForUser(user.getUsername())));
     }
 
     @GetMapping("/unread-count")
-    public ResponseEntity<Map<String, Long>> getUnreadCount(@AuthenticationPrincipal UserDetails user) {
-        return ResponseEntity.ok(Map.of("count", notificationService.getUnreadCount(user.getUsername())));
+    public ResponseEntity<ApiResponse<Long>> getUnreadCount(@AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(ApiResponse.success(notificationService.getUnreadCount(user.getUsername())));
     }
 
     @PatchMapping("/{id}/read")

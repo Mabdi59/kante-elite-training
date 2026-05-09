@@ -557,4 +557,110 @@ export interface WebsiteContentFormData {
   aboutExperiencePoints?: string[]
 }
 
+// ─── Attendance ───────────────────────────────────────────────────────────────
+
+export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'LATE'
+
+export interface AttendanceRecord {
+  id: number
+  bookingId: number
+  playerEmail: string
+  playerName?: string
+  status: AttendanceStatus
+  coachNotes?: string
+  sessionDate: string
+  recordedBy?: string
+  createdAt: string
+}
+
+export interface AttendanceFormData {
+  bookingId: number
+  playerEmail?: string
+  playerName?: string
+  status: AttendanceStatus
+  coachNotes?: string
+}
+
+// ─── Waivers ─────────────────────────────────────────────────────────────────
+
+export interface WaiverTemplate {
+  id: number
+  title: string
+  content: string
+  requiredRoles?: string
+  active: boolean
+  createdAt: string
+}
+
+export interface WaiverTemplateFormData {
+  title: string
+  content: string
+  requiredRoles?: string
+  active?: boolean
+}
+
+export interface SignedWaiver {
+  id: number
+  templateId: number
+  templateTitle: string
+  userEmail: string
+  userName: string
+  signedAt: string
+  ipAddress?: string
+}
+
+export interface SignWaiverFormData {
+  templateId: number
+  signature: string
+}
+
+// ─── Player Documents ─────────────────────────────────────────────────────────
+
+export type DocumentType =
+  | 'MEDICAL_CLEARANCE'
+  | 'CONSENT_FORM'
+  | 'ID_PROOF'
+  | 'WAIVER'
+  | 'OTHER'
+
+export interface PlayerDocument {
+  id: number
+  playerEmail: string
+  fileName: string
+  fileUrl: string
+  docType: DocumentType
+  description?: string
+  uploadedBy?: string
+  createdAt: string
+}
+
+// ─── Player Progress Notes ────────────────────────────────────────────────────
+
+export interface PlayerProgressNote {
+  id: number
+  playerEmail: string
+  playerName?: string
+  coachEmail: string
+  coachName?: string
+  sessionDate: string
+  noteType?: string
+  title?: string
+  content: string
+  rating?: number
+  visibleToParent: boolean
+  bookingId?: number
+  createdAt: string
+}
+
+export interface PlayerProgressNoteFormData {
+  playerEmail: string
+  playerName?: string
+  sessionDate: string
+  noteType?: string
+  title?: string
+  content: string
+  rating?: number
+  visibleToParent?: boolean
+  bookingId?: number
+}
 

@@ -9,6 +9,7 @@ import ScrollToTop from './components/ScrollToTop'
 import MainLayout from './layouts/MainLayout'
 import AdminLayout from './layouts/ResponsiveAdminLayout'
 import CaptainLayout from './layouts/CaptainLayout'
+import CoachLayout from './layouts/CoachLayout'
 import { getPortalDestination } from './utils/portal'
 
 import HomePage from './pages/HomePage'
@@ -53,9 +54,18 @@ const AdminMessagesPage = lazy(() => import('./pages/admin/AdminMessagesPage'))
 const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'))
 const AdminAvailabilityPage = lazy(() => import('./pages/admin/AdminAvailabilityPage'))
 const AdminPaymentsPage = lazy(() => import('./pages/admin/AdminPaymentsPage'))
+const AdminReportsPage = lazy(() => import('./pages/admin/AdminReportsPage'))
+const AdminWaiversPage = lazy(() => import('./pages/admin/AdminWaiversPage'))
+const AdminProgressNotesPage = lazy(() => import('./pages/admin/AdminProgressNotesPage'))
+const AdminAttendancePage = lazy(() => import('./pages/admin/AdminAttendancePage'))
+const AdminPlayersPage = lazy(() => import('./pages/admin/AdminPlayersPage'))
 
 const CaptainTournamentsPage = lazy(() => import('./pages/captain/CaptainTournamentsPage'))
 const CaptainRegistrationsPage = lazy(() => import('./pages/captain/CaptainRegistrationsPage'))
+
+const CoachDashboardPage = lazy(() => import('./pages/CoachDashboardPage'))
+const CoachNotesPage = lazy(() => import('./pages/CoachNotesPage'))
+const CoachAttendancePage = lazy(() => import('./pages/CoachAttendancePage'))
 
 function PageLoader() {
   return (
@@ -314,6 +324,36 @@ export default function App() {
             />
 
             <Route
+              path="/coach/dashboard"
+              element={
+                <ProtectedRoute requireRoles={['COACH', 'TEAM_CAPTAIN']}>
+                  <CoachLayout>
+                    <CoachDashboardPage />
+                  </CoachLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/coach/notes"
+              element={
+                <ProtectedRoute requireRoles={['COACH', 'TEAM_CAPTAIN']}>
+                  <CoachLayout>
+                    <CoachNotesPage />
+                  </CoachLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/coach/attendance"
+              element={
+                <ProtectedRoute requireRoles={['COACH', 'TEAM_CAPTAIN']}>
+                  <CoachLayout>
+                    <CoachAttendancePage />
+                  </CoachLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/coach/*"
               element={
                 <ProtectedRoute requireRoles={['COACH', 'TEAM_CAPTAIN']}>
@@ -533,11 +573,61 @@ export default function App() {
               }
             />
             <Route
+              path="/admin/reports"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminReportsPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/admin/payments"
               element={
                 <ProtectedRoute requireAdmin>
                   <AdminLayout>
                     <AdminPaymentsPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/waivers"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminWaiversPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/progress-notes"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminProgressNotesPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/attendance"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminAttendancePage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/players"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminPlayersPage />
                   </AdminLayout>
                 </ProtectedRoute>
               }

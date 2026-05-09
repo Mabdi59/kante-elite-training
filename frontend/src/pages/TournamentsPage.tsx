@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { getTournaments } from '../services/api'
 import type { Tournament } from '../types'
 import StatusBadge from '../components/StatusBadge'
+import ErrorBanner from '../components/ErrorBanner'
 import CTASection from '../components/CTASection'
 import {
   formatTournamentDate,
@@ -104,6 +105,7 @@ function TournamentCard({ tournament: t }: { tournament: Tournament }) {
 export default function TournamentsPage() {
   const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [showPast, setShowPast] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -115,8 +117,9 @@ export default function TournamentsPage() {
 
   const fetchTournaments = () => {
     getTournaments()
-      .then(setTournaments)
-      .catch(() => { /* silenced */ })
+      // On success, clear any previous fetch error so the UI stays clean between polls.
+      .then((data) => { setTournaments(data); setError('') })
+      .catch(() => setError('Could not load tournaments. Please refresh to try again.'))
       .finally(() => setLoading(false))
   }
 
@@ -178,6 +181,12 @@ export default function TournamentsPage() {
             </div>
           ) : null}
         </div>
+
+        {error && (
+          <div className="mb-6">
+            <ErrorBanner message={error} onDismiss={() => setError('')} />
+          </div>
+        )}
 
         {!loading && activeTournaments.length > 0 && (
           <div className="mb-10 flex flex-wrap justify-center gap-2">

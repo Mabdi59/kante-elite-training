@@ -42,6 +42,17 @@ import type {
   WebsiteContent,
   WebsiteContentFormData,
   EventRegistrationFormData,
+  Notification,
+  AttendanceRecord,
+  AttendanceFormData,
+  WaiverTemplate,
+  WaiverTemplateFormData,
+  SignedWaiver,
+  SignWaiverFormData,
+  PlayerDocument,
+  DocumentType,
+  PlayerProgressNote,
+  PlayerProgressNoteFormData,
 } from '../types'
 
 const configuredApiUrl = (import.meta.env.VITE_API_URL ?? '').trim()
@@ -255,10 +266,15 @@ export const createBooking = async (formData: BookingFormData): Promise<Booking>
   return res.data.data
 }
 
+export const getBookingById = async (bookingId: number): Promise<Booking | null> => {
+  const res = await api.get<ApiResponse<Booking>>(`/bookings/${bookingId}`)
+  return res.data.data ?? null
+}
+
 export const getPaymentsEnabled = async (): Promise<boolean> => {
   try {
-    const res = await api.get<{ enabled: boolean }>('/payments/status')
-    return res.data.enabled === true
+    const res = await api.get<ApiResponse<{ enabled: boolean }>>('/payments/status')
+    return res.data.data?.enabled === true
   } catch {
     return false
   }
@@ -464,8 +480,8 @@ export const getAdminDashboard = async (): Promise<AdminDashboard> => {
 }
 
 export const getBookingsOverTime = async (days = 30): Promise<{ date: string; count: number }[]> => {
-  const res = await api.get<{ date: string; count: number }[]>(`/admin/reports/bookings-over-time?days=${days}`)
-  return res.data
+  const res = await api.get<ApiResponse<{ date: string; count: number }[]>>(`/admin/reports/bookings-over-time?days=${days}`)
+  return res.data.data ?? []
 }
 
 export const createMediaPost = async (
@@ -979,6 +995,185 @@ export const removePlayerProfile = async (id: number): Promise<void> => {
 // ── Account: Change Password ─────────────────────────────────────────────────
 export const changePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
   await api.patch('/account/password', { currentPassword, newPassword })
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+export const getNotificationUnreadCount = async (): Promise<number> => {
+  const res = await api.get<ApiResponse<number>>('/notifications/unread-count')
+  return res.data.data ?? 0
+}
+
+export const getNotificationsUnread = async (): Promise<Notification[]> => {
+  const res = await api.get<ApiResponse<Notification[]>>('/notifications/unread')
+  return res.data.data ?? []
+}
+
+export const markNotificationRead = async (id: number): Promise<void> => {
+  await api.patch(`/notifications/${id}/read`, {})
+}
+
+export const markAllNotificationsRead = async (): Promise<void> => {
+  await api.patch('/notifications/read-all', {})
+}
+
+// ─── Waivers ─────────────────────────────────────────────────────────────────
+
+export const getActiveWaiverTemplates = async (): Promise<WaiverTemplate[]> => {
+  const res = await api.get<ApiResponse<WaiverTemplate[]>>('/waivers/templates')
+  return res.data.data ?? []
+}
+
+export const getAllWaiverTemplates = async (): Promise<WaiverTemplate[]> => {
+  const res = await api.get<ApiResponse<WaiverTemplate[]>>('/admin/waivers/templates')
+  return res.data.data ?? []
+}
+
+export const createWaiverTemplate = async (data: WaiverTemplateFormData): Promise<WaiverTemplate> => {
+  const res = await api.post<ApiResponse<WaiverTemplate>>('/admin/waivers/templates', data)
+  return res.data.data!
+}
+
+export const updateWaiverTemplate = async (
+  id: number,
+  data: WaiverTemplateFormData,
+): Promise<WaiverTemplate> => {
+  const res = await api.put<ApiResponse<WaiverTemplate>>(`/admin/waivers/templates/${id}`, data)
+  return res.data.data!
+}
+
+export const deleteWaiverTemplate = async (id: number): Promise<void> => {
+  await api.delete(`/admin/waivers/templates/${id}`)
+}
+
+export const signWaiver = async (data: SignWaiverFormData): Promise<SignedWaiver> => {
+  const res = await api.post<ApiResponse<SignedWaiver>>('/waivers/sign', data)
+  return res.data.data!
+}
+
+export const getMySignedWaivers = async (): Promise<SignedWaiver[]> => {
+  const res = await api.get<ApiResponse<SignedWaiver[]>>('/waivers/my-signed')
+  return res.data.data ?? []
+}
+
+export const checkWaiverSigned = async (templateId: number): Promise<boolean> => {
+  const res = await api.get<ApiResponse<boolean>>(`/waivers/check/${templateId}`)
+  return res.data.data ?? false
+}
+
+// ─── Documents ────────────────────────────────────────────────────────────────
+
+export const getMyDocuments = async (): Promise<PlayerDocument[]> => {
+  const res = await api.get<ApiResponse<PlayerDocument[]>>('/documents/my')
+  return res.data.data ?? []
+}
+
+export const getPlayerDocuments = async (email: string): Promise<PlayerDocument[]> => {
+  const res = await api.get<ApiResponse<PlayerDocument[]>>(`/admin/documents/player/${encodeURIComponent(email)}`)
+  return res.data.data ?? []
+}
+
+export const deletePlayerDocument = async (id: number): Promise<void> => {
+  await api.delete(`/admin/documents/${id}`)
+}
+
+export const uploadDocument = async (
+  file: File,
+  docType: DocumentType = 'OTHER',
+  description?: string,
+  playerEmail?: string,
+): Promise<PlayerDocument> => {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('docType', docType)
+  if (description) form.append('description', description)
+  if (playerEmail) form.append('playerEmail', playerEmail)
+  const res = await api.post<ApiResponse<PlayerDocument>>('/documents/upload', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return res.data.data!
+}
+
+// ─── Attendance ───────────────────────────────────────────────────────────────
+
+export const upsertAttendance = async (data: AttendanceFormData): Promise<AttendanceRecord> => {
+  const res = await api.post<ApiResponse<AttendanceRecord>>('/attendance', data)
+  return res.data.data!
+}
+
+export const getAttendanceByBooking = async (bookingId: number): Promise<AttendanceRecord[]> => {
+  const res = await api.get<ApiResponse<AttendanceRecord[]>>(`/attendance/booking/${bookingId}`)
+  return res.data.data ?? []
+}
+
+export const getMyAttendance = async (): Promise<AttendanceRecord[]> => {
+  const res = await api.get<ApiResponse<AttendanceRecord[]>>('/attendance/player')
+  return res.data.data ?? []
+}
+
+export const getAttendanceByPlayer = async (email: string): Promise<AttendanceRecord[]> => {
+  const res = await api.get<ApiResponse<AttendanceRecord[]>>(`/attendance/player/${encodeURIComponent(email)}`)
+  return res.data.data ?? []
+}
+
+export const getAttendanceSummary = async (email: string): Promise<Record<string, number>> => {
+  // Backend returns Map<String, Long>; counts are always within JS safe-integer range.
+  const res = await api.get<ApiResponse<Record<string, number>>>(`/attendance/player/${encodeURIComponent(email)}/summary`)
+  return res.data.data ?? {}
+}
+
+export const getAttendanceByRange = async (
+  from: string,
+  to: string,
+  playerEmail?: string,
+): Promise<AttendanceRecord[]> => {
+  const params: Record<string, string> = { from, to }
+  if (playerEmail) params.playerEmail = playerEmail
+  const res = await api.get<ApiResponse<AttendanceRecord[]>>('/attendance/range', { params })
+  return res.data.data ?? []
+}
+
+export const deleteAttendanceRecord = async (id: number): Promise<void> => {
+  await api.delete(`/attendance/${id}`)
+}
+
+// ─── Progress Notes ───────────────────────────────────────────────────────────
+
+export const createProgressNote = async (data: PlayerProgressNoteFormData): Promise<PlayerProgressNote> => {
+  const res = await api.post<ApiResponse<PlayerProgressNote>>('/coach/progress-notes', data)
+  return res.data.data!
+}
+
+export const getCoachProgressNotes = async (): Promise<PlayerProgressNote[]> => {
+  const res = await api.get<ApiResponse<PlayerProgressNote[]>>('/coach/progress-notes')
+  return res.data.data ?? []
+}
+
+export const updateProgressNote = async (
+  id: number,
+  data: PlayerProgressNoteFormData,
+): Promise<PlayerProgressNote> => {
+  const res = await api.put<ApiResponse<PlayerProgressNote>>(`/coach/progress-notes/${id}`, data)
+  return res.data.data!
+}
+
+export const deleteProgressNote = async (id: number): Promise<void> => {
+  await api.delete(`/coach/progress-notes/${id}`)
+}
+
+export const getPlayerProgressNotes = async (email: string): Promise<PlayerProgressNote[]> => {
+  const res = await api.get<ApiResponse<PlayerProgressNote[]>>(`/players/${encodeURIComponent(email)}/progress-notes`)
+  return res.data.data ?? []
+}
+
+export const getMyProgressNotes = async (): Promise<PlayerProgressNote[]> => {
+  const res = await api.get<ApiResponse<PlayerProgressNote[]>>('/player/progress-notes')
+  return res.data.data ?? []
+}
+
+export const getProgressNotesByBooking = async (bookingId: number): Promise<PlayerProgressNote[]> => {
+  const res = await api.get<ApiResponse<PlayerProgressNote[]>>(`/bookings/${bookingId}/progress-notes`)
+  return res.data.data ?? []
 }
 
 export default api

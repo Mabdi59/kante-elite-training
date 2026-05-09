@@ -141,6 +141,17 @@ const navItems: NavItem[] = [
     ),
   },
   {
+    path: '/admin/reports',
+    label: 'Reports',
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M3 3v18h18" />
+        <path d="M7 14l3-3 3 2 4-5" />
+        <path d="M17 8h4" />
+      </svg>
+    ),
+  },
+  {
     path: '/admin/payments',
     label: 'Payments',
     icon: (
@@ -148,6 +159,49 @@ const navItems: NavItem[] = [
         <rect x="2" y="5" width="20" height="14" rx="2" />
         <path d="M2 10h20" />
         <path d="M6 15h4" />
+      </svg>
+    ),
+  },
+  {
+    path: '/admin/waivers',
+    label: 'Waivers',
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Z" />
+        <path d="M14 2v6h6" />
+        <path d="m9 14 2 2 4-4" />
+      </svg>
+    ),
+  },
+  {
+    path: '/admin/progress-notes',
+    label: 'Progress Notes',
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z" />
+      </svg>
+    ),
+  },
+  {
+    path: '/admin/attendance',
+    label: 'Attendance',
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M9 11l3 3L22 4" />
+        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+      </svg>
+    ),
+  },
+  {
+    path: '/admin/players',
+    label: 'Players',
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <circle cx="9" cy="7" r="4" />
+        <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        <path d="M21 21v-2a4 4 0 0 0-3-3.85" />
       </svg>
     ),
   },
