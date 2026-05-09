@@ -15,4 +15,5 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
     long countBySessionIdAndStatus(Long sessionId, RegistrationStatus status);
     Optional<Registration> findFirstBySessionIdAndStatusOrderByRegisteredAtAsc(Long sessionId, RegistrationStatus status);
     boolean existsBySessionIdAndPlayerProfileIdAndStatusNot(Long sessionId, Long playerProfileId, RegistrationStatus status);
+    boolean existsBySessionIdAndUserIdAndStatusNot(Long sessionId, Long userId, RegistrationStatus status);
 }

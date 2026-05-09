@@ -85,8 +85,6 @@ class EventServiceTest {
         when(eventParticipantRepository.findByEventIdOrderByCreatedAtAsc(1L)).thenReturn(List.of(p1, p2, p3));
         when(eventParticipantRepository.countByEventId(1L)).thenReturn(2L);
         when(eventScheduleRuleRepository.findByEventIdOrderByDayOfWeekAscStartTimeAsc(1L)).thenReturn(List.of());
-        when(sessionRepository.findBySourceTypeAndSourceIdAndStartDatetimeGreaterThanEqualOrderByStartDatetimeAsc(
-                any(), eq(1L), any())).thenReturn(List.of());
 
         eventService.updateEvent(1L, request);
 

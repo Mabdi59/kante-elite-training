@@ -16,6 +16,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmailAndIdNot(String email, Long id);
     long countByRole(UserRole role);
     Optional<User> findByIcalFeedToken(String icalFeedToken);
+    Optional<User> findFirstByRoleOrderByNameAsc(UserRole role);
 
     List<User> findByRoleOrderByNameAsc(UserRole role);
 }

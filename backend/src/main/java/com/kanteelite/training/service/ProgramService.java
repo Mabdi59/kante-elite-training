@@ -262,8 +262,8 @@ public class ProgramService {
                 ? programParticipantRepository.countByProgramId(program.getId())
                 : 0;
         long upcomingSessionCount = program.getId() != null
-                ? sessionRepository.findBySourceTypeAndSourceIdAndStartDatetimeGreaterThanEqualOrderByStartDatetimeAsc(
-                        SessionSourceType.PROGRAM, program.getId(), LocalDateTime.now()).size()
+                ? sessionRepository.countBySourceTypeAndSourceIdAndStartDatetimeGreaterThanEqual(
+                        SessionSourceType.PROGRAM, program.getId(), LocalDateTime.now())
                 : 0;
         return ProgramResponse.builder()
                 .id(program.getId())

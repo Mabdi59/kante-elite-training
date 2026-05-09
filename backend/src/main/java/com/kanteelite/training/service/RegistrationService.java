@@ -50,6 +50,10 @@ public class RegistrationService {
         User user = null;
         if (userEmail != null && !userEmail.isBlank()) {
             user = userRepository.findByEmailIgnoreCase(userEmail).orElse(null);
+            if (user != null && registrationRepository.existsBySessionIdAndUserIdAndStatusNot(
+                    sessionId, user.getId(), RegistrationStatus.CANCELLED)) {
+                throw new IllegalArgumentException("User already has a registration for this session.");
+            }
         }
 
         boolean atCapacity = session.getRegisteredCount() != null && session.getCapacity() != null

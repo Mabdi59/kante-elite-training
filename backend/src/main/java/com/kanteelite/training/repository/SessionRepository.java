@@ -27,6 +27,9 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
 
     List<Session> findByStartDatetimeGreaterThanEqualOrderByStartDatetimeAsc(LocalDateTime startDatetime);
 
+    long countBySourceTypeAndSourceIdAndStartDatetimeGreaterThanEqual(
+            SessionSourceType sourceType, Long sourceId, LocalDateTime startDatetime);
+
     @Query("""
             SELECT s FROM Session s
             WHERE s.coachUser.id = :coachId

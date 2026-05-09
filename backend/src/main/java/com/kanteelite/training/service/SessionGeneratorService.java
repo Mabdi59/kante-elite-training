@@ -25,6 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class SessionGeneratorService {
+    private static final int MAX_RECURRING_DAYS = 370;
 
     private final SessionRepository sessionRepository;
     private final ProgramScheduleRuleRepository programScheduleRuleRepository;
@@ -191,7 +192,13 @@ public class SessionGeneratorService {
         }
 
         LocalDate cursor = startDate;
+        int processedDays = 0;
         while (!cursor.isAfter(endDate)) {
+            processedDays++;
+            if (processedDays > MAX_RECURRING_DAYS) {
+                log.warn("Recurring schedule range exceeded {} days. Truncating generation window at {}", MAX_RECURRING_DAYS, cursor.minusDays(1));
+                break;
+            }
             int day = toDayOfWeekNumber(cursor.getDayOfWeek());
             for (ScheduleRuleRequest rule : rules) {
                 if (rule.getDayOfWeek() == null || !rule.getDayOfWeek().equals(day)) {

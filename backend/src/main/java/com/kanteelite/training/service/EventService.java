@@ -273,8 +273,8 @@ public class EventService {
                 ? eventScheduleRuleRepository.findByEventIdOrderByDayOfWeekAscStartTimeAsc(event.getId())
                 : List.of();
         long upcomingSessionCount = event.getId() != null
-                ? sessionRepository.findBySourceTypeAndSourceIdAndStartDatetimeGreaterThanEqualOrderByStartDatetimeAsc(
-                        SessionSourceType.EVENT, event.getId(), LocalDateTime.now()).size()
+                ? sessionRepository.countBySourceTypeAndSourceIdAndStartDatetimeGreaterThanEqual(
+                        SessionSourceType.EVENT, event.getId(), LocalDateTime.now())
                 : 0;
         int capacity = resolveCapacity(event);
         int spotsLeft = Math.max(capacity - (int) participantCount, 0);

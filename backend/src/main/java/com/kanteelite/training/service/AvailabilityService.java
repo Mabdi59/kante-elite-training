@@ -300,7 +300,7 @@ public class AvailabilityService {
             return userRepository.findById(coachId)
                     .orElseThrow(() -> new ResourceNotFoundException("User", coachId));
         }
-        return userRepository.findByRoleOrderByNameAsc(UserRole.COACH).stream().findFirst()
-                .orElseGet(() -> userRepository.findByRoleOrderByNameAsc(UserRole.ADMIN).stream().findFirst().orElse(null));
+        return userRepository.findFirstByRoleOrderByNameAsc(UserRole.COACH)
+                .orElseGet(() -> userRepository.findFirstByRoleOrderByNameAsc(UserRole.ADMIN).orElse(null));
     }
 }
