@@ -6,6 +6,8 @@ import com.kanteelite.training.dto.response.ApiResponse;
 import com.kanteelite.training.dto.response.EventResponse;
 import com.kanteelite.training.dto.response.EventWorkflowResponse;
 import com.kanteelite.training.dto.response.ManagedParticipantResponse;
+import com.kanteelite.training.dto.response.SessionPreviewResponse;
+import com.kanteelite.training.dto.response.SessionResponse;
 import com.kanteelite.training.service.AuditLogService;
 import com.kanteelite.training.service.EventService;
 import jakarta.validation.Valid;
@@ -34,6 +36,17 @@ public class AdminEventController {
     @GetMapping("/{id}/workflow")
     public ResponseEntity<ApiResponse<EventWorkflowResponse>> getEventWorkflow(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(eventService.getEventWorkflow(id)));
+    }
+
+    @GetMapping("/{id}/sessions")
+    public ResponseEntity<ApiResponse<List<SessionResponse>>> getEventSessions(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(eventService.getEventSessions(id, false)));
+    }
+
+    @PostMapping("/preview-sessions")
+    public ResponseEntity<ApiResponse<List<SessionPreviewResponse>>> previewSessions(
+            @Valid @RequestBody EventRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(eventService.previewSessions(request)));
     }
 
     @PostMapping

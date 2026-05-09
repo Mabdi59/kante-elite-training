@@ -6,6 +6,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class EventRequest {
@@ -31,6 +32,13 @@ public class EventRequest {
     private LocalDateTime startAt;
 
     private LocalDateTime endAt;
+
+    private Long coachId;
+
+    private Boolean recurring;
+
+    @Size(max = 30)
+    private String eventType;
 
     private Integer capacity;
 
@@ -58,4 +66,6 @@ public class EventRequest {
     private String coachName;
 
     private Integer displayOrder = 0;
+
+    private List<ScheduleRuleRequest> scheduleRules;
 }

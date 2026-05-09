@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -18,9 +19,16 @@ public class ProgramResponse {
     private String location;
     private LocalDateTime startAt;
     private LocalDateTime endAt;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private Long coachId;
+    private String coachName;
+    private Boolean recurring;
+    private String programType;
     private Integer capacity;
     private String status;
     private long participantCount;
+    private long upcomingSessionCount;
     private BigDecimal price;
     private String priceLabel;
     private Integer durationMinutes;
@@ -28,4 +36,5 @@ public class ProgramResponse {
     private String icon;
     private String whoItsFor;
     private Integer displayOrder;
+    private List<ScheduleRuleResponse> scheduleRules;
 }

@@ -4,7 +4,9 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class ProgramRequest {
@@ -28,6 +30,17 @@ public class ProgramRequest {
     private LocalDateTime startAt;
 
     private LocalDateTime endAt;
+
+    private LocalDate startDate;
+
+    private LocalDate endDate;
+
+    private Long coachId;
+
+    private Boolean recurring;
+
+    @Size(max = 30)
+    private String programType;
 
     private Integer capacity;
 
@@ -53,4 +66,6 @@ public class ProgramRequest {
     private boolean active = true;
 
     private Integer displayOrder = 0;
+
+    private List<ScheduleRuleRequest> scheduleRules;
 }

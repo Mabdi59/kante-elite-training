@@ -6,6 +6,8 @@ import com.kanteelite.training.dto.response.ApiResponse;
 import com.kanteelite.training.dto.response.ManagedParticipantResponse;
 import com.kanteelite.training.dto.response.ProgramResponse;
 import com.kanteelite.training.dto.response.ProgramWorkflowResponse;
+import com.kanteelite.training.dto.response.SessionPreviewResponse;
+import com.kanteelite.training.dto.response.SessionResponse;
 import com.kanteelite.training.service.AuditLogService;
 import com.kanteelite.training.service.ProgramService;
 import jakarta.validation.Valid;
@@ -34,6 +36,17 @@ public class AdminProgramController {
     @GetMapping("/{id}/workflow")
     public ResponseEntity<ApiResponse<ProgramWorkflowResponse>> getProgramWorkflow(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(programService.getProgramWorkflow(id)));
+    }
+
+    @GetMapping("/{id}/sessions")
+    public ResponseEntity<ApiResponse<List<SessionResponse>>> getProgramSessions(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(programService.getProgramSessions(id, false)));
+    }
+
+    @PostMapping("/preview-sessions")
+    public ResponseEntity<ApiResponse<List<SessionPreviewResponse>>> previewSessions(
+            @Valid @RequestBody ProgramRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(programService.previewSessions(request)));
     }
 
     @PostMapping

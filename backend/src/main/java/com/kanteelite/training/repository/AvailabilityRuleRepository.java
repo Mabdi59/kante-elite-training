@@ -10,4 +10,6 @@ import java.util.List;
 public interface AvailabilityRuleRepository extends JpaRepository<AvailabilityRule, Long> {
     List<AvailabilityRule> findByActiveTrueOrderByDayOfWeekAscStartTimeAsc();
     List<AvailabilityRule> findByActiveTrueAndDayOfWeek(int dayOfWeek);
+    List<AvailabilityRule> findByActiveTrueAndCoachUserIdAndDayOfWeekOrderByStartTimeAsc(Long coachUserId, int dayOfWeek);
+    List<AvailabilityRule> findByCoachUserIdOrderByDayOfWeekAscStartTimeAsc(Long coachUserId);
 }

@@ -44,9 +44,16 @@ export interface Program {
   location?: string
   startAt?: string
   endAt?: string
+  startDate?: string
+  endDate?: string
+  coachId?: number
+  coachName?: string
+  recurring?: boolean
+  programType?: string
   capacity?: number
   status?: string
   participantCount?: number
+  upcomingSessionCount?: number
   price: number
   priceLabel: string
   durationMinutes: number
@@ -54,6 +61,7 @@ export interface Program {
   icon: string
   whoItsFor: string
   displayOrder: number
+  scheduleRules?: ScheduleRule[]
 }
 
 export interface Event {
@@ -66,8 +74,12 @@ export interface Event {
   endDate?: string
   startAt?: string
   endAt?: string
+  coachId?: number
+  recurring?: boolean
+  eventType?: string
   capacity?: number
   participantCount?: number
+  upcomingSessionCount?: number
   ageGroup: string
   spotsTotal: number
   spotsLeft: number
@@ -77,6 +89,48 @@ export interface Event {
   intensity?: string
   coachName?: string
   displayOrder: number
+  scheduleRules?: ScheduleRule[]
+}
+
+export interface ScheduleRule {
+  id?: number
+  dayOfWeek: number
+  startTime: string
+  endTime: string
+}
+
+export interface Session {
+  id: number
+  sourceType: 'PROGRAM' | 'EVENT' | string
+  sourceId: number
+  sourceTitle: string
+  coachId?: number
+  coachName?: string
+  startDatetime: string
+  endDatetime: string
+  capacity: number
+  registeredCount: number
+  status: string
+  availableSpots: number
+}
+
+export interface SessionPreview {
+  startDatetime: string
+  endDatetime: string
+  conflict: boolean
+  reasons: string[]
+}
+
+export interface Registration {
+  id: number
+  sessionId: number
+  playerProfileId?: number
+  playerName?: string
+  userId?: number
+  userEmail?: string
+  status: string
+  notes?: string
+  registeredAt: string
 }
 
 export type MediaType = 'IMAGE' | 'VIDEO'
@@ -385,17 +439,35 @@ export interface AdminUser {
 
 export interface AvailabilityRule {
   id: number
+  coachId?: number
+  coachName?: string
   dayOfWeek: number
   startTime: string
   endTime: string
   active: boolean
+  timezone?: string
   createdAt: string
+}
+
+export interface AvailabilityConflict {
+  hasConflict: boolean
+  reasons: string[]
 }
 
 export interface BlockedSlot {
   id: number
   slotDate: string
   slotTime?: string
+  reason?: string
+  createdAt: string
+}
+
+export interface BlockedTime {
+  id: number
+  coachId: number
+  coachName?: string
+  startDatetime: string
+  endDatetime: string
   reason?: string
   createdAt: string
 }
@@ -663,4 +735,3 @@ export interface PlayerProgressNoteFormData {
   visibleToParent?: boolean
   bookingId?: number
 }
-

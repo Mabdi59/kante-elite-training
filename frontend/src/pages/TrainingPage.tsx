@@ -1,7 +1,7 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getPrograms, getFeaturedTestimonials } from '../services/api'
-import type { Program, Testimonial } from '../types'
+import { getPrograms, getFeaturedTestimonials, getUpcomingSessions } from '../services/api'
+import type { Program, Session, Testimonial } from '../types'
 import HeroSection from '../components/HeroSection'
 import MediaAsset from '../components/MediaAsset'
 import ProgramCard from '../components/ProgramCard'
@@ -152,6 +152,7 @@ const trainingProofItems = [
 
 export default function TrainingPage() {
   const [programs, setPrograms] = useState<Program[]>([])
+  const [sessions, setSessions] = useState<Session[]>([])
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -162,11 +163,14 @@ export default function TrainingPage() {
   }, [])
 
   useEffect(() => {
-    Promise.allSettled([getPrograms(), getFeaturedTestimonials()])
-      .then(([programResult, testimonialResult]) => {
+    Promise.allSettled([getPrograms(), getFeaturedTestimonials(), getUpcomingSessions()])
+      .then(([programResult, testimonialResult, sessionResult]) => {
         if (programResult.status === 'fulfilled') setPrograms(programResult.value)
         else setError('Could not load training programs. Please refresh to try again.')
         if (testimonialResult.status === 'fulfilled') setTestimonials(testimonialResult.value.slice(0, 3))
+        if (sessionResult.status === 'fulfilled') {
+          setSessions(sessionResult.value.filter((session) => session.sourceType === 'PROGRAM').slice(0, 8))
+        }
       })
       .finally(() => setLoading(false))
   }, [])
@@ -185,6 +189,29 @@ export default function TrainingPage() {
         <div className="max-w-5xl mx-auto px-4 pt-4">
           <ErrorBanner message={error} onDismiss={() => setError('')} />
         </div>
+      )}
+
+      {sessions.length > 0 && (
+        <section className="bg-black py-8 px-4 border-y border-[#1a1a1a]">
+          <div className="max-w-6xl mx-auto">
+            <p className="section-label">Upcoming Sessions</p>
+            <h2 className="text-white text-2xl font-black mb-4">Generated Training Sessions</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {sessions.map((session) => (
+                <div key={session.id} className="rounded-xl border border-[#2a2a2a] bg-[#121212] p-4">
+                  <p className="text-white font-semibold text-sm">{session.sourceTitle}</p>
+                  <p className="text-gray-400 text-xs mt-1">
+                    {new Date(session.startDatetime).toLocaleString()} -{' '}
+                    {new Date(session.endDatetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                  <p className="text-amber-400 text-xs mt-2">
+                    {session.availableSpots} spots left ({session.registeredCount}/{session.capacity})
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
       )}
 
       {/* Private Training Spotlight */}

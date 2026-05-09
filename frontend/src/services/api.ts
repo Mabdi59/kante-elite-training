@@ -29,12 +29,17 @@ import type {
   AdminDashboard,
   AdminUser,
   AdminUserFormData,
+  AvailabilityConflict,
   AvailabilityRule,
+  BlockedTime,
   BlockedSlot,
   PlayerProfile,
   PlayerProfileFormData,
   ParticipantAssignmentFormData,
   ManagedParticipant,
+  Registration,
+  Session,
+  SessionPreview,
   MediaPost,
   MediaCategory,
   MediaPostUpdateFormData,
@@ -207,10 +212,25 @@ export const getPrograms = async (): Promise<Program[]> => {
   return res.data.data ?? []
 }
 
+export const getProgramSessions = async (programId: number): Promise<Session[]> => {
+  const res = await api.get<ApiResponse<Session[]>>(`/programs/${programId}/sessions`)
+  return res.data.data ?? []
+}
+
 // ─── Events ───────────────────────────────────────────────────────────────────
 
 export const getEvents = async (): Promise<Event[]> => {
   const res = await api.get<ApiResponse<Event[]>>('/events')
+  return res.data.data ?? []
+}
+
+export const getEventSessions = async (eventId: number): Promise<Session[]> => {
+  const res = await api.get<ApiResponse<Session[]>>(`/events/${eventId}/sessions`)
+  return res.data.data ?? []
+}
+
+export const getUpcomingSessions = async (): Promise<Session[]> => {
+  const res = await api.get<ApiResponse<Session[]>>('/sessions/upcoming')
   return res.data.data ?? []
 }
 
@@ -585,6 +605,7 @@ export const createProgram = async (data: Partial<Program>): Promise<Program> =>
   const payload = {
     ...data,
     features: Array.isArray(data.features) ? data.features.join('|') : data.features,
+    scheduleRules: data.scheduleRules,
   }
   const res = await api.post<ApiResponse<Program>>('/admin/programs', payload)
   return res.data.data!
@@ -594,9 +615,25 @@ export const updateProgram = async (id: number, data: Partial<Program>): Promise
   const payload = {
     ...data,
     features: Array.isArray(data.features) ? data.features.join('|') : data.features,
+    scheduleRules: data.scheduleRules,
   }
   const res = await api.put<ApiResponse<Program>>(`/admin/programs/${id}`, payload)
   return res.data.data!
+}
+
+export const previewProgramSessions = async (data: Partial<Program>): Promise<SessionPreview[]> => {
+  const payload = {
+    ...data,
+    features: Array.isArray(data.features) ? data.features.join('|') : data.features,
+    scheduleRules: data.scheduleRules,
+  }
+  const res = await api.post<ApiResponse<SessionPreview[]>>('/admin/programs/preview-sessions', payload)
+  return res.data.data ?? []
+}
+
+export const getAdminProgramSessions = async (programId: number): Promise<Session[]> => {
+  const res = await api.get<ApiResponse<Session[]>>(`/admin/programs/${programId}/sessions`)
+  return res.data.data ?? []
 }
 
 export const deleteProgram = async (id: number): Promise<void> => {
@@ -629,13 +666,26 @@ export const getAdminEventWorkflow = async (id: number): Promise<EventWorkflow> 
 }
 
 export const createEvent = async (data: Partial<Event>): Promise<Event> => {
-  const res = await api.post<ApiResponse<Event>>('/admin/events', data)
+  const res = await api.post<ApiResponse<Event>>('/admin/events', { ...data, scheduleRules: data.scheduleRules })
   return res.data.data!
 }
 
 export const updateEvent = async (id: number, data: Partial<Event>): Promise<Event> => {
-  const res = await api.put<ApiResponse<Event>>(`/admin/events/${id}`, data)
+  const res = await api.put<ApiResponse<Event>>(`/admin/events/${id}`, { ...data, scheduleRules: data.scheduleRules })
   return res.data.data!
+}
+
+export const previewEventSessions = async (data: Partial<Event>): Promise<SessionPreview[]> => {
+  const res = await api.post<ApiResponse<SessionPreview[]>>('/admin/events/preview-sessions', {
+    ...data,
+    scheduleRules: data.scheduleRules,
+  })
+  return res.data.data ?? []
+}
+
+export const getAdminEventSessions = async (eventId: number): Promise<Session[]> => {
+  const res = await api.get<ApiResponse<Session[]>>(`/admin/events/${eventId}/sessions`)
+  return res.data.data ?? []
 }
 
 export const deleteEvent = async (id: number): Promise<void> => {
@@ -655,6 +705,48 @@ export const removeAdminEventParticipant = async (
   participantId: number,
 ): Promise<void> => {
   await api.delete(`/admin/events/${eventId}/participants/${participantId}`)
+}
+
+export const getAdminSessions = async (): Promise<Session[]> => {
+  const res = await api.get<ApiResponse<Session[]>>('/admin/sessions')
+  return res.data.data ?? []
+}
+
+export const cancelAdminSession = async (sessionId: number): Promise<Session> => {
+  const res = await api.patch<ApiResponse<Session>>(`/admin/sessions/${sessionId}/cancel`, {})
+  return res.data.data!
+}
+
+export const getAdminRegistrations = async (): Promise<Registration[]> => {
+  const res = await api.get<ApiResponse<Registration[]>>('/admin/registrations')
+  return res.data.data ?? []
+}
+
+export const getAdminSessionRegistrations = async (sessionId: number): Promise<Registration[]> => {
+  const res = await api.get<ApiResponse<Registration[]>>(`/admin/sessions/${sessionId}/registrations`)
+  return res.data.data ?? []
+}
+
+export const updateAdminRegistrationStatus = async (
+  registrationId: number,
+  status: string,
+): Promise<Registration> => {
+  const res = await api.patch<ApiResponse<Registration>>(`/admin/registrations/${registrationId}/status`, {
+    status,
+  })
+  return res.data.data!
+}
+
+export const deleteAdminRegistration = async (registrationId: number): Promise<void> => {
+  await api.delete(`/admin/registrations/${registrationId}`)
+}
+
+export const createRegistration = async (
+  sessionId: number,
+  data: { playerProfileId?: number; notes?: string },
+): Promise<Registration> => {
+  const res = await api.post<ApiResponse<Registration>>('/registrations', data, { params: { sessionId } })
+  return res.data.data!
 }
 
 export const getAdminTestimonials = async (): Promise<Testimonial[]> => {
@@ -917,14 +1009,14 @@ export const deleteAdminUser = async (id: number): Promise<void> => {
 // ─── Admin Availability ───────────────────────────────────────────────────────
 
 export const getAvailabilityRules = async (): Promise<AvailabilityRule[]> => {
-  const res = await api.get<ApiResponse<AvailabilityRule[]>>('/admin/availability/rules')
+  const res = await api.get<ApiResponse<AvailabilityRule[]>>('/admin/availability')
   return res.data.data ?? []
 }
 
 export const createAvailabilityRule = async (
   data: Partial<AvailabilityRule>,
 ): Promise<AvailabilityRule> => {
-  const res = await api.post<ApiResponse<AvailabilityRule>>('/admin/availability/rules', data)
+  const res = await api.post<ApiResponse<AvailabilityRule>>('/admin/availability', data)
   return res.data.data!
 }
 
@@ -932,12 +1024,44 @@ export const updateAvailabilityRule = async (
   id: number,
   data: Partial<AvailabilityRule>,
 ): Promise<AvailabilityRule> => {
-  const res = await api.put<ApiResponse<AvailabilityRule>>(`/admin/availability/rules/${id}`, data)
+  const res = await api.put<ApiResponse<AvailabilityRule>>(`/admin/availability/${id}`, data)
   return res.data.data!
 }
 
 export const deleteAvailabilityRule = async (id: number): Promise<void> => {
-  await api.delete(`/admin/availability/rules/${id}`)
+  await api.delete(`/admin/availability/${id}`)
+}
+
+export const checkAvailabilityConflicts = async (
+  coachId: number,
+  start: string,
+  end: string,
+): Promise<AvailabilityConflict> => {
+  const res = await api.get<ApiResponse<AvailabilityConflict>>('/admin/availability/conflicts', {
+    params: { coachId, start, end },
+  })
+  return res.data.data ?? { hasConflict: false, reasons: [] }
+}
+
+export const getBlockedTimes = async (coachId?: number): Promise<BlockedTime[]> => {
+  const res = await api.get<ApiResponse<BlockedTime[]>>('/admin/availability/blocked-times', {
+    params: coachId ? { coachId } : undefined,
+  })
+  return res.data.data ?? []
+}
+
+export const createBlockedTime = async (data: Partial<BlockedTime>): Promise<BlockedTime> => {
+  const res = await api.post<ApiResponse<BlockedTime>>('/admin/availability/blocked-times', data)
+  return res.data.data!
+}
+
+export const updateBlockedTime = async (id: number, data: Partial<BlockedTime>): Promise<BlockedTime> => {
+  const res = await api.put<ApiResponse<BlockedTime>>(`/admin/availability/blocked-times/${id}`, data)
+  return res.data.data!
+}
+
+export const deleteBlockedTime = async (id: number): Promise<void> => {
+  await api.delete(`/admin/availability/blocked-times/${id}`)
 }
 
 export const getBlockedSlots = async (): Promise<BlockedSlot[]> => {

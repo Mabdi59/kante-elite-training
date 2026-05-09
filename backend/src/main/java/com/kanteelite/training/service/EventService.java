@@ -4,17 +4,27 @@ import com.kanteelite.training.dto.request.EventRequest;
 import com.kanteelite.training.dto.request.EventParticipationRequest;
 import com.kanteelite.training.dto.request.SimpleEventRegistrationRequest;
 import com.kanteelite.training.dto.request.ParticipantAssignmentRequest;
+import com.kanteelite.training.dto.request.ScheduleRuleRequest;
 import com.kanteelite.training.dto.response.EventResponse;
 import com.kanteelite.training.dto.response.EventWorkflowResponse;
 import com.kanteelite.training.dto.response.ManagedParticipantResponse;
+import com.kanteelite.training.dto.response.ScheduleRuleResponse;
+import com.kanteelite.training.dto.response.SessionPreviewResponse;
+import com.kanteelite.training.dto.response.SessionResponse;
 import com.kanteelite.training.entity.Event;
+import com.kanteelite.training.entity.EventScheduleRule;
 import com.kanteelite.training.entity.EventParticipant;
 import com.kanteelite.training.entity.PlayerProfile;
+import com.kanteelite.training.entity.Session;
 import com.kanteelite.training.entity.User;
+import com.kanteelite.training.enums.EventType;
+import com.kanteelite.training.enums.SessionSourceType;
 import com.kanteelite.training.exception.ResourceNotFoundException;
+import com.kanteelite.training.repository.EventScheduleRuleRepository;
 import com.kanteelite.training.repository.EventParticipantRepository;
 import com.kanteelite.training.repository.EventRepository;
 import com.kanteelite.training.repository.PlayerProfileRepository;
+import com.kanteelite.training.repository.SessionRepository;
 import com.kanteelite.training.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -38,6 +48,9 @@ public class EventService {
     private final EventParticipantRepository eventParticipantRepository;
     private final UserRepository userRepository;
     private final PlayerProfileRepository playerProfileRepository;
+    private final EventScheduleRuleRepository eventScheduleRuleRepository;
+    private final SessionRepository sessionRepository;
+    private final SessionGeneratorService sessionGeneratorService;
     private final NotificationService notificationService;
     private final EmailService emailService;
 
@@ -60,6 +73,31 @@ public class EventService {
     @Transactional(readOnly = true)
     public EventResponse getEventById(Long id) {
         return toResponse(getEventEntity(id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<SessionResponse> getEventSessions(Long id, boolean futureOnly) {
+        getEventEntity(id);
+        List<Session> sessions = futureOnly
+                ? sessionRepository.findBySourceTypeAndSourceIdAndStartDatetimeGreaterThanEqualOrderByStartDatetimeAsc(
+                        SessionSourceType.EVENT, id, LocalDateTime.now())
+                : sessionRepository.findBySourceTypeAndSourceIdOrderByStartDatetimeAsc(SessionSourceType.EVENT, id);
+        return sessions.stream().map(this::toSessionResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<SessionPreviewResponse> previewSessions(EventRequest request) {
+        Event preview = Event.builder()
+                .coachUser(resolveCoachFromRequest(request))
+                .recurring(Boolean.TRUE.equals(request.getRecurring()))
+                .startDate(resolveStartDate(request))
+                .endDate(resolveEndDate(request))
+                .startAt(request.getStartAt())
+                .endAt(request.getEndAt())
+                .build();
+        return sessionGeneratorService.previewEventSessions(
+                preview,
+                request.getScheduleRules() != null ? request.getScheduleRules() : List.of());
     }
 
     @Transactional(readOnly = true)
@@ -89,6 +127,8 @@ public class EventService {
                 .endDate(resolveEndDate(req))
                 .startAt(req.getStartAt())
                 .endAt(req.getEndAt())
+                .coachUser(resolveCoachFromRequest(req))
+                .recurring(Boolean.TRUE.equals(req.getRecurring()))
                 .capacity(resolveCapacity(req))
                 .ageGroup(req.getAgeGroup())
                 .spotsTotal(resolveCapacity(req))
@@ -96,11 +136,15 @@ public class EventService {
                 .price(req.getPrice())
                 .status(normalizeStatus(req.getStatus()))
                 .type(req.getType())
+                .eventType(resolveEventType(req.getEventType(), req.getType()))
                 .intensity(req.getIntensity())
                 .coachName(req.getCoachName())
                 .displayOrder(req.getDisplayOrder() != null ? req.getDisplayOrder() : 0)
                 .build();
-        return toResponse(eventRepository.save(event));
+        Event saved = eventRepository.save(event);
+        replaceScheduleRules(saved, req.getScheduleRules());
+        sessionGeneratorService.regenerateForEvent(saved);
+        return toResponse(saved);
     }
 
     @Transactional
@@ -114,16 +158,21 @@ public class EventService {
         event.setEndDate(resolveEndDate(req));
         event.setStartAt(req.getStartAt());
         event.setEndAt(req.getEndAt());
+        event.setCoachUser(resolveCoachFromRequest(req));
+        event.setRecurring(Boolean.TRUE.equals(req.getRecurring()));
         event.setCapacity(resolveCapacity(req));
         event.setAgeGroup(req.getAgeGroup());
         event.setSpotsTotal(resolveCapacity(req));
         event.setPrice(req.getPrice());
         event.setStatus(normalizeStatus(req.getStatus()));
         event.setType(req.getType());
+        event.setEventType(resolveEventType(req.getEventType(), req.getType()));
         event.setIntensity(req.getIntensity());
         event.setCoachName(req.getCoachName());
         if (req.getDisplayOrder() != null) event.setDisplayOrder(req.getDisplayOrder());
         Event saved = eventRepository.save(event);
+        replaceScheduleRules(saved, req.getScheduleRules());
+        sessionGeneratorService.regenerateForEvent(saved);
         notifyEventLifecycle(saved, "updated", "Event details were updated. Please review your schedule.");
         return toResponse(saved);
     }
@@ -220,6 +269,13 @@ public class EventService {
         long participantCount = event.getId() != null
                 ? eventParticipantRepository.countByEventId(event.getId())
                 : 0;
+        List<EventScheduleRule> scheduleRules = event.getId() != null
+                ? eventScheduleRuleRepository.findByEventIdOrderByDayOfWeekAscStartTimeAsc(event.getId())
+                : List.of();
+        long upcomingSessionCount = event.getId() != null
+                ? sessionRepository.findBySourceTypeAndSourceIdAndStartDatetimeGreaterThanEqualOrderByStartDatetimeAsc(
+                        SessionSourceType.EVENT, event.getId(), LocalDateTime.now()).size()
+                : 0;
         int capacity = resolveCapacity(event);
         int spotsLeft = Math.max(capacity - (int) participantCount, 0);
         LocalDate startDate = event.getStartAt() != null ? event.getStartAt().toLocalDate() : event.getStartDate();
@@ -235,8 +291,12 @@ public class EventService {
                 .endDate(endDate)
                 .startAt(event.getStartAt())
                 .endAt(event.getEndAt())
+                .coachId(event.getCoachUser() != null ? event.getCoachUser().getId() : null)
+                .recurring(event.isRecurring())
+                .eventType(event.getEventType() != null ? event.getEventType().name() : null)
                 .capacity(capacity)
                 .participantCount(participantCount)
+                .upcomingSessionCount(upcomingSessionCount)
                 .ageGroup(event.getAgeGroup())
                 .spotsTotal(capacity)
                 .spotsLeft(spotsLeft)
@@ -246,6 +306,54 @@ public class EventService {
                 .intensity(event.getIntensity())
                 .coachName(event.getCoachName())
                 .displayOrder(event.getDisplayOrder())
+                .scheduleRules(scheduleRules.stream().map(this::toRuleResponse).toList())
+                .build();
+    }
+
+    private SessionResponse toSessionResponse(Session session) {
+        return SessionResponse.builder()
+                .id(session.getId())
+                .sourceType(session.getSourceType() != null ? session.getSourceType().name() : null)
+                .sourceId(session.getSourceId())
+                .sourceTitle(eventRepository.findById(session.getSourceId()).map(Event::getTitle).orElse("Event"))
+                .coachId(session.getCoachUser() != null ? session.getCoachUser().getId() : null)
+                .coachName(session.getCoachUser() != null ? session.getCoachUser().getName() : null)
+                .startDatetime(session.getStartDatetime())
+                .endDatetime(session.getEndDatetime())
+                .capacity(session.getCapacity())
+                .registeredCount(session.getRegisteredCount())
+                .status(session.getStatus() != null ? session.getStatus().name() : null)
+                .availableSpots(Math.max((session.getCapacity() != null ? session.getCapacity() : 0)
+                        - (session.getRegisteredCount() != null ? session.getRegisteredCount() : 0), 0))
+                .build();
+    }
+
+    private void replaceScheduleRules(Event event, List<ScheduleRuleRequest> requests) {
+        eventScheduleRuleRepository.deleteByEventId(event.getId());
+        if (requests == null || requests.isEmpty()) {
+            return;
+        }
+        for (ScheduleRuleRequest req : requests) {
+            if (req.getDayOfWeek() == null || req.getStartTime() == null || req.getEndTime() == null
+                    || !req.getEndTime().isAfter(req.getStartTime())) {
+                continue;
+            }
+            EventScheduleRule rule = EventScheduleRule.builder()
+                    .event(event)
+                    .dayOfWeek(req.getDayOfWeek())
+                    .startTime(req.getStartTime())
+                    .endTime(req.getEndTime())
+                    .build();
+            eventScheduleRuleRepository.save(rule);
+        }
+    }
+
+    private ScheduleRuleResponse toRuleResponse(EventScheduleRule rule) {
+        return ScheduleRuleResponse.builder()
+                .id(rule.getId())
+                .dayOfWeek(rule.getDayOfWeek())
+                .startTime(rule.getStartTime())
+                .endTime(rule.getEndTime())
                 .build();
     }
 
@@ -332,6 +440,26 @@ public class EventService {
     private String normalizeEmail(String value) {
         String trimmed = trimToNull(value);
         return trimmed == null ? null : trimmed.toLowerCase(Locale.ROOT);
+    }
+
+    private User resolveCoachFromRequest(EventRequest request) {
+        if (request.getCoachId() == null) {
+            return null;
+        }
+        return userRepository.findById(request.getCoachId())
+                .orElseThrow(() -> new ResourceNotFoundException("User", request.getCoachId()));
+    }
+
+    private EventType resolveEventType(String eventType, String type) {
+        String candidate = StringUtils.hasText(eventType) ? eventType : type;
+        if (!StringUtils.hasText(candidate)) {
+            return EventType.ONE_TIME;
+        }
+        try {
+            return EventType.valueOf(candidate.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            return EventType.ONE_TIME;
+        }
     }
 
     private void notifyEventLifecycle(Event event, String action, String detail) {

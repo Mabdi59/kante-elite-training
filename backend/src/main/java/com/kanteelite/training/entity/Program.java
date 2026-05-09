@@ -10,7 +10,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import com.kanteelite.training.enums.ProgramType;
 
 @Entity
 @Table(name = "programs")
@@ -45,6 +47,25 @@ public class Program {
 
     @Column(name = "end_at")
     private LocalDateTime endAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "coach_id")
+    private User coachUser;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean recurring = false;
+
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "program_type", length = 30)
+    @Builder.Default
+    private ProgramType programType = ProgramType.GROUP;
 
     @Column(nullable = false)
     @Builder.Default

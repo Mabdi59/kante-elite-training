@@ -1,7 +1,7 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
-import { getEvents } from '../services/api'
-import type { Event } from '../types'
+import { getEvents, getUpcomingSessions } from '../services/api'
+import type { Event, Session } from '../types'
 import HeroSection from '../components/HeroSection'
 import ErrorBanner from '../components/ErrorBanner'
 import EventCard from '../components/EventCard'
@@ -9,6 +9,7 @@ import CTASection from '../components/CTASection'
 
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([])
+  const [sessions, setSessions] = useState<Session[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [searchParams] = useSearchParams()
@@ -20,9 +21,17 @@ export default function EventsPage() {
   }, [])
 
   useEffect(() => {
-    getEvents()
-      .then(setEvents)
-      .catch(() => setError('Could not load events. Please refresh to try again.'))
+    Promise.allSettled([getEvents(), getUpcomingSessions()])
+      .then(([eventsResult, sessionsResult]) => {
+        if (eventsResult.status === 'fulfilled') {
+          setEvents(eventsResult.value)
+        } else {
+          setError('Could not load events. Please refresh to try again.')
+        }
+        if (sessionsResult.status === 'fulfilled') {
+          setSessions(sessionsResult.value.filter((session) => session.sourceType === 'EVENT').slice(0, 10))
+        }
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -74,6 +83,27 @@ export default function EventsPage() {
               >
                 View all events
               </Link>
+            </div>
+          )}
+
+          {sessions.length > 0 && (
+            <div className="mb-10 rounded-2xl border border-[#2a2a2a] bg-[#111] p-5">
+              <p className="section-label">Generated Sessions</p>
+              <h3 className="text-white text-xl font-black mb-3">Upcoming Event Sessions</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {sessions.map((session) => (
+                  <div key={session.id} className="rounded-xl border border-[#222] bg-black/40 px-4 py-3">
+                    <p className="text-white text-sm font-semibold">{session.sourceTitle}</p>
+                    <p className="text-gray-400 text-xs mt-1">
+                      {new Date(session.startDatetime).toLocaleString()} -{' '}
+                      {new Date(session.endDatetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                    <p className="text-amber-400 text-xs mt-2">
+                      {session.availableSpots} spots left ({session.registeredCount}/{session.capacity})
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

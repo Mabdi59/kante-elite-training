@@ -1,92 +1,107 @@
-﻿import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import {
+  checkAvailabilityConflicts,
   createAvailabilityRule,
-  createBlockedSlot,
+  createBlockedTime,
   deleteAvailabilityRule,
-  deleteBlockedSlot,
+  deleteBlockedTime,
+  getAdminUsers,
   getAvailabilityRules,
-  getBlockedSlots,
+  getBlockedTimes,
   updateAvailabilityRule,
-  updateBlockedSlot,
+  updateBlockedTime,
 } from '../../services/api'
-import type { AvailabilityRule, BlockedSlot } from '../../types'
+import type { AdminUser, AvailabilityRule, BlockedTime } from '../../types'
 import ErrorBanner from '../../components/ErrorBanner'
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
-function normalizeTimeInput(value: string) {
-  return value.length >= 5 ? value.slice(0, 5) : value
-}
-
 export default function AdminAvailabilityPage() {
+  const [users, setUsers] = useState<AdminUser[]>([])
   const [rules, setRules] = useState<AvailabilityRule[]>([])
-  const [blocked, setBlocked] = useState<BlockedSlot[]>([])
-  const [loadingRules, setLoadingRules] = useState(true)
-  const [loadingBlocked, setLoadingBlocked] = useState(true)
+  const [blockedTimes, setBlockedTimes] = useState<BlockedTime[]>([])
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const [editingRuleId, setEditingRuleId] = useState<number | null>(null)
-  const [ruleDay, setRuleDay] = useState('1')
-  const [ruleStart, setRuleStart] = useState('08:00')
-  const [ruleEnd, setRuleEnd] = useState('18:00')
-  const [ruleActive, setRuleActive] = useState(true)
-  const [savingRule, setSavingRule] = useState(false)
+  const [ruleId, setRuleId] = useState<number | null>(null)
+  const [coachId, setCoachId] = useState<number>(0)
+  const [dayOfWeek, setDayOfWeek] = useState(1)
+  const [startTime, setStartTime] = useState('08:00')
+  const [endTime, setEndTime] = useState('18:00')
+  const [timezone, setTimezone] = useState('America/New_York')
+  const [active, setActive] = useState(true)
 
-  const [editingBlockedId, setEditingBlockedId] = useState<number | null>(null)
-  const [blockDate, setBlockDate] = useState('')
-  const [blockTime, setBlockTime] = useState('')
-  const [blockReason, setBlockReason] = useState('')
-  const [savingBlock, setSavingBlock] = useState(false)
+  const [blockedId, setBlockedId] = useState<number | null>(null)
+  const [blockedCoachId, setBlockedCoachId] = useState<number>(0)
+  const [blockedStart, setBlockedStart] = useState('')
+  const [blockedEnd, setBlockedEnd] = useState('')
+  const [blockedReason, setBlockedReason] = useState('')
 
+  const [conflict, setConflict] = useState<string[]>([])
+
+  const coaches = useMemo(
+    () => users.filter((user) => user.role === 'COACH' || user.role === 'ADMIN'),
+    [users],
+  )
 
   useEffect(() => {
     document.title = 'Availability | Kante Elite Training'
-    return () => { document.title = 'Kante Elite Training' }
+    return () => {
+      document.title = 'Kante Elite Training'
+    }
   }, [])
 
   useEffect(() => {
-    getAvailabilityRules()
-      .then(setRules)
-      .catch(() => setError('Failed to load availability rules.'))
-      .finally(() => setLoadingRules(false))
-
-    getBlockedSlots()
-      .then(setBlocked)
-      .catch(() => setError('Failed to load blocked slots.'))
-      .finally(() => setLoadingBlocked(false))
+    Promise.all([getAdminUsers(), getAvailabilityRules(), getBlockedTimes()])
+      .then(([usersData, rulesData, blockedData]) => {
+        setUsers(usersData)
+        setRules(rulesData)
+        setBlockedTimes(blockedData)
+        const defaultCoachId =
+          usersData.find((user) => user.role === 'COACH')?.id ??
+          usersData.find((user) => user.role === 'ADMIN')?.id ??
+          0
+        setCoachId(defaultCoachId)
+        setBlockedCoachId(defaultCoachId)
+      })
+      .catch(() => setError('Failed to load availability data.'))
+      .finally(() => setLoading(false))
   }, [])
 
+  useEffect(() => {
+    if (!blockedCoachId || !blockedStart || !blockedEnd) {
+      setConflict([])
+      return
+    }
+    checkAvailabilityConflicts(blockedCoachId, blockedStart, blockedEnd)
+      .then((report) => setConflict(report.hasConflict ? report.reasons : []))
+      .catch(() => setConflict([]))
+  }, [blockedCoachId, blockedStart, blockedEnd])
+
   const resetRuleForm = () => {
-    setEditingRuleId(null)
-    setRuleDay('1')
-    setRuleStart('08:00')
-    setRuleEnd('18:00')
-    setRuleActive(true)
+    setRuleId(null)
+    setDayOfWeek(1)
+    setStartTime('08:00')
+    setEndTime('18:00')
+    setTimezone('America/New_York')
+    setActive(true)
   }
 
   const resetBlockedForm = () => {
-    setEditingBlockedId(null)
-    setBlockDate('')
-    setBlockTime('')
-    setBlockReason('')
+    setBlockedId(null)
+    setBlockedStart('')
+    setBlockedEnd('')
+    setBlockedReason('')
   }
 
-  const handleRuleSubmit = async (event: FormEvent) => {
+  const submitRule = async (event: FormEvent) => {
     event.preventDefault()
-    setSavingRule(true)
     setError('')
-
     try {
-      const payload = {
-        dayOfWeek: Number(ruleDay),
-        startTime: ruleStart,
-        endTime: ruleEnd,
-        active: ruleActive,
-      }
-
-      if (editingRuleId) {
-        const updated = await updateAvailabilityRule(editingRuleId, payload)
-        setRules((prev) => prev.map((item) => (item.id === editingRuleId ? updated : item)))
+      const payload = { coachId, dayOfWeek, startTime, endTime, timezone, active }
+      if (ruleId) {
+        const updated = await updateAvailabilityRule(ruleId, payload)
+        setRules((prev) => prev.map((rule) => (rule.id === ruleId ? updated : rule)))
       } else {
         const created = await createAvailabilityRule(payload)
         setRules((prev) => [...prev, created])
@@ -94,108 +109,64 @@ export default function AdminAvailabilityPage() {
       resetRuleForm()
     } catch {
       setError('Failed to save availability rule.')
-    } finally {
-      setSavingRule(false)
     }
   }
 
-  const handleBlockedSubmit = async (event: FormEvent) => {
+  const submitBlocked = async (event: FormEvent) => {
     event.preventDefault()
-    setSavingBlock(true)
     setError('')
-
     try {
       const payload = {
-        slotDate: blockDate,
-        slotTime: blockTime || undefined,
-        reason: blockReason || undefined,
+        coachId: blockedCoachId,
+        startDatetime: blockedStart,
+        endDatetime: blockedEnd,
+        reason: blockedReason || undefined,
       }
-
-      if (editingBlockedId) {
-        const updated = await updateBlockedSlot(editingBlockedId, payload)
-        setBlocked((prev) => prev.map((item) => (item.id === editingBlockedId ? updated : item)))
+      if (blockedId) {
+        const updated = await updateBlockedTime(blockedId, payload)
+        setBlockedTimes((prev) => prev.map((item) => (item.id === blockedId ? updated : item)))
       } else {
-        const created = await createBlockedSlot(payload)
-        setBlocked((prev) => [created, ...prev])
+        const created = await createBlockedTime(payload)
+        setBlockedTimes((prev) => [created, ...prev])
       }
       resetBlockedForm()
     } catch {
-      setError('Failed to save blocked slot.')
-    } finally {
-      setSavingBlock(false)
+      setError('Failed to save blocked time.')
     }
   }
 
-  const openRuleEdit = (rule: AvailabilityRule) => {
-    setEditingRuleId(rule.id)
-    setRuleDay(String(rule.dayOfWeek))
-    setRuleStart(normalizeTimeInput(rule.startTime))
-    setRuleEnd(normalizeTimeInput(rule.endTime))
-    setRuleActive(rule.active)
-  }
-
-  const openBlockedEdit = (slot: BlockedSlot) => {
-    setEditingBlockedId(slot.id)
-    setBlockDate(slot.slotDate)
-    setBlockTime(slot.slotTime ?? '')
-    setBlockReason(slot.reason ?? '')
-  }
-
-  const handleDeleteRule = async (id: number) => {
-    if (!window.confirm('Delete this rule?')) return
-    try {
-      await deleteAvailabilityRule(id)
-      setRules((prev) => prev.filter((item) => item.id !== id))
-      if (editingRuleId === id) {
-        resetRuleForm()
-      }
-    } catch {
-      setError('Failed to delete rule.')
-    }
-  }
-
-  const handleDeleteBlock = async (id: number) => {
-    if (!window.confirm('Delete this blocked slot?')) return
-    try {
-      await deleteBlockedSlot(id)
-      setBlocked((prev) => prev.filter((item) => item.id !== id))
-      if (editingBlockedId === id) {
-        resetBlockedForm()
-      }
-    } catch {
-      setError('Failed to delete blocked slot.')
-    }
+  if (loading) {
+    return <p className="text-gray-400 text-sm">Loading availability...</p>
   }
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-white text-3xl font-black">Availability Management</h1>
-        <p className="text-gray-400 text-sm mt-2">Manage weekly availability rules and blocked dates from one place.</p>
+        <h1 className="text-white text-3xl font-black">Availability & Scheduling Boundaries</h1>
+        <p className="text-gray-400 text-sm mt-2">
+          Coach availability validates generated program and event sessions.
+        </p>
       </div>
 
       {error ? <ErrorBanner message={error} onDismiss={() => setError('')} /> : null}
 
-      <section className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-        <div className="flex items-center justify-between gap-4 mb-4">
-          <div>
-            <h2 className="text-white text-xl font-bold">Weekly Availability Rules</h2>
-            <p className="text-gray-500 text-sm mt-1">Create, edit, or remove weekly time windows.</p>
-          </div>
-          {editingRuleId ? (
-            <button
-              onClick={resetRuleForm}
-              className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm"
-            >
-              Cancel Edit
-            </button>
-          ) : null}
-        </div>
-
-        <form onSubmit={handleRuleSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
+      <section className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+        <h2 className="text-white text-xl font-bold">Coach Working Hours</h2>
+        <form onSubmit={submitRule} className="grid grid-cols-1 md:grid-cols-7 gap-3">
           <select
-            value={ruleDay}
-            onChange={(e) => setRuleDay(e.target.value)}
+            value={coachId}
+            onChange={(e) => setCoachId(Number(e.target.value))}
+            className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
+          >
+            {coaches.map((coach) => (
+              <option key={coach.id} value={coach.id}>
+                {coach.name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={dayOfWeek}
+            onChange={(e) => setDayOfWeek(Number(e.target.value))}
             className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
           >
             {DAYS.map((day, index) => (
@@ -204,147 +175,120 @@ export default function AdminAvailabilityPage() {
               </option>
             ))}
           </select>
+          <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm" />
+          <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm" />
           <input
-            type="time"
-            value={ruleStart}
-            onChange={(e) => setRuleStart(e.target.value)}
-            className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
-          />
-          <input
-            type="time"
-            value={ruleEnd}
-            onChange={(e) => setRuleEnd(e.target.value)}
+            value={timezone}
+            onChange={(e) => setTimezone(e.target.value)}
+            placeholder="Timezone"
             className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
           />
           <label className="flex items-center gap-2 text-sm text-gray-300 px-1">
-            <input
-              type="checkbox"
-              checked={ruleActive}
-              onChange={(e) => setRuleActive(e.target.checked)}
-              className="w-4 h-4 accent-green-500"
-            />
+            <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="w-4 h-4 accent-green-500" />
             Active
           </label>
-          <button
-            type="submit"
-            disabled={savingRule}
-            className="bg-green-600 hover:bg-green-500 text-white rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50"
-          >
-            {savingRule ? 'Saving...' : editingRuleId ? 'Save Rule' : 'Add Rule'}
+          <button type="submit" className="bg-green-600 hover:bg-green-500 text-white rounded-lg px-4 py-2 text-sm font-semibold">
+            {ruleId ? 'Save Rule' : 'Add Rule'}
           </button>
         </form>
-
-        {loadingRules ? (
-          <p className="text-gray-500 text-sm">Loading...</p>
-        ) : rules.length === 0 ? (
-          <p className="text-gray-500 text-sm">No custom rules yet.</p>
-        ) : (
-          <div className="space-y-2">
-            {rules.map((rule) => (
-              <div key={rule.id} className="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3 gap-4">
-                <div className="flex items-center gap-4 flex-wrap">
-                  <span className="text-white font-medium w-24">{DAYS[rule.dayOfWeek]}</span>
-                  <span className="text-gray-400 text-sm">
-                    {normalizeTimeInput(rule.startTime)} to {normalizeTimeInput(rule.endTime)}
-                  </span>
-                  {!rule.active ? (
-                    <span className="text-xs text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full">
-                      Inactive
-                    </span>
-                  ) : null}
-                </div>
-                <div className="flex gap-2 shrink-0">
-                  <button onClick={() => openRuleEdit(rule)} className="text-amber-500 hover:text-amber-400 text-sm">
-                    Edit
-                  </button>
-                  <button onClick={() => handleDeleteRule(rule.id)} className="text-red-400 hover:text-red-300 text-sm">
-                    Remove
-                  </button>
-                </div>
+        <div className="space-y-2">
+          {rules.map((rule) => (
+            <div key={rule.id} className="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3 text-sm">
+              <span className="text-gray-300">
+                {(rule.coachName ?? 'Coach')} · {DAYS[rule.dayOfWeek]} · {rule.startTime} - {rule.endTime}
+              </span>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setRuleId(rule.id)
+                    setCoachId(rule.coachId ?? coachId)
+                    setDayOfWeek(rule.dayOfWeek)
+                    setStartTime(rule.startTime.slice(0, 5))
+                    setEndTime(rule.endTime.slice(0, 5))
+                    setTimezone(rule.timezone ?? 'America/New_York')
+                    setActive(rule.active)
+                  }}
+                  className="text-amber-400"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={async () => {
+                    await deleteAvailabilityRule(rule.id)
+                    setRules((prev) => prev.filter((item) => item.id !== rule.id))
+                  }}
+                  className="text-red-400"
+                >
+                  Remove
+                </button>
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          ))}
+        </div>
       </section>
 
-      <section className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-        <div className="flex items-center justify-between gap-4 mb-4">
-          <div>
-            <h2 className="text-white text-xl font-bold">Blocked Dates and Times</h2>
-            <p className="text-gray-500 text-sm mt-1">Create, edit, or remove one-off blocks.</p>
-          </div>
-          {editingBlockedId ? (
-            <button
-              onClick={resetBlockedForm}
-              className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm"
-            >
-              Cancel Edit
-            </button>
-          ) : null}
-        </div>
-
-        <form onSubmit={handleBlockedSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
-          <input
-            type="date"
-            value={blockDate}
-            onChange={(e) => setBlockDate(e.target.value)}
-            required
+      <section className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+        <h2 className="text-white text-xl font-bold">Blocked Times</h2>
+        <form onSubmit={submitBlocked} className="grid grid-cols-1 md:grid-cols-5 gap-3">
+          <select
+            value={blockedCoachId}
+            onChange={(e) => setBlockedCoachId(Number(e.target.value))}
             className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
-          />
-          <input
-            type="text"
-            value={blockTime}
-            onChange={(e) => setBlockTime(e.target.value)}
-            placeholder="Time, optional"
-            className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
-          />
-          <input
-            type="text"
-            value={blockReason}
-            onChange={(e) => setBlockReason(e.target.value)}
-            placeholder="Reason, optional"
-            className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm"
-          />
-          <button
-            type="submit"
-            disabled={savingBlock}
-            className="bg-red-700 hover:bg-red-600 text-white rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50"
           >
-            {savingBlock ? 'Saving...' : editingBlockedId ? 'Save Block' : 'Add Block'}
+            {coaches.map((coach) => (
+              <option key={coach.id} value={coach.id}>
+                {coach.name}
+              </option>
+            ))}
+          </select>
+          <input type="datetime-local" value={blockedStart} onChange={(e) => setBlockedStart(e.target.value)} required className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm" />
+          <input type="datetime-local" value={blockedEnd} onChange={(e) => setBlockedEnd(e.target.value)} required className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm" />
+          <input value={blockedReason} onChange={(e) => setBlockedReason(e.target.value)} placeholder="Reason" className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-sm" />
+          <button type="submit" className="bg-red-700 hover:bg-red-600 text-white rounded-lg px-4 py-2 text-sm font-semibold">
+            {blockedId ? 'Save Block' : 'Add Block'}
           </button>
         </form>
 
-        {loadingBlocked ? (
-          <p className="text-gray-500 text-sm">Loading...</p>
-        ) : blocked.length === 0 ? (
-          <p className="text-gray-500 text-sm">No blocked slots.</p>
-        ) : (
-          <div className="space-y-2">
-            {blocked.map((slot) => (
-              <div key={slot.id} className="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3 gap-4">
-                <div className="flex items-center gap-4 flex-wrap">
-                  <span className="text-white font-medium">{slot.slotDate}</span>
-                  {slot.slotTime ? (
-                    <span className="text-gray-400 text-sm">{slot.slotTime}</span>
-                  ) : (
-                    <span className="text-xs text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full">
-                      Full day
-                    </span>
-                  )}
-                  {slot.reason ? <span className="text-gray-500 text-sm italic">{slot.reason}</span> : null}
-                </div>
-                <div className="flex gap-2 shrink-0">
-                  <button onClick={() => openBlockedEdit(slot)} className="text-amber-500 hover:text-amber-400 text-sm">
-                    Edit
-                  </button>
-                  <button onClick={() => handleDeleteBlock(slot.id)} className="text-red-400 hover:text-red-300 text-sm">
-                    Remove
-                  </button>
-                </div>
-              </div>
-            ))}
+        {conflict.length > 0 ? (
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-amber-300 text-sm">
+            Potential scheduling conflict: {conflict.join(' ')}
           </div>
-        )}
+        ) : null}
+
+        <div className="space-y-2">
+          {blockedTimes.map((blocked) => (
+            <div key={blocked.id} className="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3 text-sm">
+              <span className="text-gray-300">
+                {(blocked.coachName ?? 'Coach')} · {new Date(blocked.startDatetime).toLocaleString()} -{' '}
+                {new Date(blocked.endDatetime).toLocaleString()}
+                {blocked.reason ? ` · ${blocked.reason}` : ''}
+              </span>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setBlockedId(blocked.id)
+                    setBlockedCoachId(blocked.coachId)
+                    setBlockedStart(blocked.startDatetime.slice(0, 16))
+                    setBlockedEnd(blocked.endDatetime.slice(0, 16))
+                    setBlockedReason(blocked.reason ?? '')
+                  }}
+                  className="text-amber-400"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={async () => {
+                    await deleteBlockedTime(blocked.id)
+                    setBlockedTimes((prev) => prev.filter((item) => item.id !== blocked.id))
+                  }}
+                  className="text-red-400"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
     </div>
   )

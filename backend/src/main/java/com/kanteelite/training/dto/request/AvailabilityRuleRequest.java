@@ -20,4 +20,8 @@ public class AvailabilityRuleRequest {
     private LocalTime endTime;
 
     private boolean active = true;
+
+    private Long coachId;
+
+    private String timezone;
 }

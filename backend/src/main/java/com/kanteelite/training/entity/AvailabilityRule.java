@@ -20,6 +20,10 @@ public class AvailabilityRule {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "coach_id")
+    private User coachUser;
+
     /** 0 = Sunday, 1 = Monday, ..., 6 = Saturday */
     @Column(name = "day_of_week", nullable = false)
     private Integer dayOfWeek;
@@ -33,6 +37,10 @@ public class AvailabilityRule {
     @Column(nullable = false)
     @Builder.Default
     private boolean active = true;
+
+    @Column(length = 100)
+    @Builder.Default
+    private String timezone = "America/New_York";
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
