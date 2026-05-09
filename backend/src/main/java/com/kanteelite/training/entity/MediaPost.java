@@ -46,7 +46,7 @@ public class MediaPost {
     @Column(name = "show_on_about", nullable = false)
     private boolean showOnAbout = false;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = com.kanteelite.training.persistence.MediaCategoryConverter.class)
     @Column(name = "media_category", length = 30)
     private MediaCategory mediaCategory;
 
