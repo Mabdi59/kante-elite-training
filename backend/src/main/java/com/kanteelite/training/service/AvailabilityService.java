@@ -1,22 +1,31 @@
 package com.kanteelite.training.service;
 
 import com.kanteelite.training.dto.request.AvailabilityRuleRequest;
+import com.kanteelite.training.dto.request.BlockedTimeRequest;
 import com.kanteelite.training.dto.request.BlockedSlotRequest;
 import com.kanteelite.training.dto.response.AvailabilityResponse;
+import com.kanteelite.training.dto.response.BlockedTimeResponse;
+import com.kanteelite.training.dto.response.ConflictReportResponse;
 import com.kanteelite.training.dto.response.AvailabilityRuleResponse;
 import com.kanteelite.training.dto.response.BlockedSlotResponse;
 import com.kanteelite.training.entity.AvailabilityRule;
+import com.kanteelite.training.entity.BlockedTime;
 import com.kanteelite.training.entity.BlockedSlot;
+import com.kanteelite.training.entity.User;
+import com.kanteelite.training.enums.UserRole;
 import com.kanteelite.training.exception.ResourceNotFoundException;
 import com.kanteelite.training.repository.AvailabilityRuleRepository;
+import com.kanteelite.training.repository.BlockedTimeRepository;
 import com.kanteelite.training.repository.BlockedSlotRepository;
 import com.kanteelite.training.repository.BookingRepository;
+import com.kanteelite.training.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -31,6 +40,9 @@ public class AvailabilityService {
     private final BookingRepository bookingRepository;
     private final AvailabilityRuleRepository availabilityRuleRepository;
     private final BlockedSlotRepository blockedSlotRepository;
+    private final BlockedTimeRepository blockedTimeRepository;
+    private final UserRepository userRepository;
+    private final ConflictDetectionService conflictDetectionService;
 
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("h:mm a");
     private static final LocalTime DEFAULT_START = LocalTime.of(8, 0);
@@ -118,6 +130,8 @@ public class AvailabilityService {
                 .startTime(req.getStartTime())
                 .endTime(req.getEndTime())
                 .active(req.isActive())
+                .coachUser(resolveCoach(req.getCoachId()))
+                .timezone(req.getTimezone() != null ? req.getTimezone() : "America/New_York")
                 .build();
         return toRuleResponse(availabilityRuleRepository.save(rule));
     }
@@ -130,6 +144,8 @@ public class AvailabilityService {
         rule.setStartTime(req.getStartTime());
         rule.setEndTime(req.getEndTime());
         rule.setActive(req.isActive());
+        rule.setCoachUser(resolveCoach(req.getCoachId()));
+        rule.setTimezone(req.getTimezone() != null ? req.getTimezone() : rule.getTimezone());
         return toRuleResponse(availabilityRuleRepository.save(rule));
     }
 
@@ -177,13 +193,82 @@ public class AvailabilityService {
         blockedSlotRepository.deleteById(id);
     }
 
+    // ─── New schedule boundary APIs ────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public List<AvailabilityRuleResponse> getCoachRules(Long coachId) {
+        if (coachId == null) {
+            return getAllRulesIncludingInactive();
+        }
+        return availabilityRuleRepository.findByCoachUserIdOrderByDayOfWeekAscStartTimeAsc(coachId)
+                .stream()
+                .map(this::toRuleResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<BlockedTimeResponse> getBlockedTimes(Long coachId) {
+        if (coachId == null) {
+            return blockedTimeRepository.findAll().stream()
+                    .map(this::toBlockedTimeResponse)
+                    .toList();
+        }
+        return blockedTimeRepository.findByCoachUserIdOrderByStartDatetimeDesc(coachId).stream()
+                .map(this::toBlockedTimeResponse)
+                .toList();
+    }
+
+    @Transactional
+    public BlockedTimeResponse createBlockedTime(BlockedTimeRequest request) {
+        if (!request.getEndDatetime().isAfter(request.getStartDatetime())) {
+            throw new IllegalArgumentException("endDatetime must be after startDatetime");
+        }
+        BlockedTime blockedTime = BlockedTime.builder()
+                .coachUser(resolveCoach(request.getCoachId()))
+                .startDatetime(request.getStartDatetime())
+                .endDatetime(request.getEndDatetime())
+                .reason(request.getReason())
+                .build();
+        return toBlockedTimeResponse(blockedTimeRepository.save(blockedTime));
+    }
+
+    @Transactional
+    public BlockedTimeResponse updateBlockedTime(Long id, BlockedTimeRequest request) {
+        BlockedTime blockedTime = blockedTimeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("BlockedTime", id));
+        if (!request.getEndDatetime().isAfter(request.getStartDatetime())) {
+            throw new IllegalArgumentException("endDatetime must be after startDatetime");
+        }
+        blockedTime.setCoachUser(resolveCoach(request.getCoachId()));
+        blockedTime.setStartDatetime(request.getStartDatetime());
+        blockedTime.setEndDatetime(request.getEndDatetime());
+        blockedTime.setReason(request.getReason());
+        return toBlockedTimeResponse(blockedTimeRepository.save(blockedTime));
+    }
+
+    @Transactional
+    public void deleteBlockedTime(Long id) {
+        if (!blockedTimeRepository.existsById(id)) {
+            throw new ResourceNotFoundException("BlockedTime", id);
+        }
+        blockedTimeRepository.deleteById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public ConflictReportResponse getConflicts(Long coachId, LocalDateTime start, LocalDateTime end) {
+        return conflictDetectionService.checkConflicts(coachId, start, end);
+    }
+
     private AvailabilityRuleResponse toRuleResponse(AvailabilityRule r) {
         return AvailabilityRuleResponse.builder()
                 .id(r.getId())
+                .coachId(r.getCoachUser() != null ? r.getCoachUser().getId() : null)
+                .coachName(r.getCoachUser() != null ? r.getCoachUser().getName() : null)
                 .dayOfWeek(r.getDayOfWeek())
                 .startTime(r.getStartTime())
                 .endTime(r.getEndTime())
                 .active(r.isActive())
+                .timezone(r.getTimezone())
                 .createdAt(r.getCreatedAt())
                 .build();
     }
@@ -196,5 +281,26 @@ public class AvailabilityService {
                 .reason(b.getReason())
                 .createdAt(b.getCreatedAt())
                 .build();
+    }
+
+    private BlockedTimeResponse toBlockedTimeResponse(BlockedTime blockedTime) {
+        return BlockedTimeResponse.builder()
+                .id(blockedTime.getId())
+                .coachId(blockedTime.getCoachUser() != null ? blockedTime.getCoachUser().getId() : null)
+                .coachName(blockedTime.getCoachUser() != null ? blockedTime.getCoachUser().getName() : null)
+                .startDatetime(blockedTime.getStartDatetime())
+                .endDatetime(blockedTime.getEndDatetime())
+                .reason(blockedTime.getReason())
+                .createdAt(blockedTime.getCreatedAt())
+                .build();
+    }
+
+    private User resolveCoach(Long coachId) {
+        if (coachId != null) {
+            return userRepository.findById(coachId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User", coachId));
+        }
+        return userRepository.findFirstByRoleOrderByNameAsc(UserRole.COACH)
+                .orElseGet(() -> userRepository.findFirstByRoleOrderByNameAsc(UserRole.ADMIN).orElse(null));
     }
 }

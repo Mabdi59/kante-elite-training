@@ -6,7 +6,9 @@ import com.kanteelite.training.entity.Event;
 import com.kanteelite.training.entity.EventParticipant;
 import com.kanteelite.training.repository.EventParticipantRepository;
 import com.kanteelite.training.repository.EventRepository;
+import com.kanteelite.training.repository.EventScheduleRuleRepository;
 import com.kanteelite.training.repository.PlayerProfileRepository;
+import com.kanteelite.training.repository.SessionRepository;
 import com.kanteelite.training.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +36,9 @@ class EventServiceTest {
     @Mock private EventParticipantRepository eventParticipantRepository;
     @Mock private UserRepository userRepository;
     @Mock private PlayerProfileRepository playerProfileRepository;
+    @Mock private EventScheduleRuleRepository eventScheduleRuleRepository;
+    @Mock private SessionRepository sessionRepository;
+    @Mock private SessionGeneratorService sessionGeneratorService;
     @Mock private NotificationService notificationService;
     @Mock private EmailService emailService;
 
@@ -79,6 +84,7 @@ class EventServiceTest {
         when(eventRepository.save(any(Event.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(eventParticipantRepository.findByEventIdOrderByCreatedAtAsc(1L)).thenReturn(List.of(p1, p2, p3));
         when(eventParticipantRepository.countByEventId(1L)).thenReturn(2L);
+        when(eventScheduleRuleRepository.findByEventIdOrderByDayOfWeekAscStartTimeAsc(1L)).thenReturn(List.of());
 
         eventService.updateEvent(1L, request);
 
@@ -130,5 +136,3 @@ class EventServiceTest {
                 eq("casey@test.com"), eq("Casey"), eq("Spring Skills Camp"), eq(true));
     }
 }
-
-

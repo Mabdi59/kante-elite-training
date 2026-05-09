@@ -25,8 +25,8 @@ const navItems: NavItem[] = [
     ),
   },
   {
-    path: '/admin/bookings',
-    label: 'Bookings',
+    path: '/admin/registrations',
+    label: 'Registrations',
     icon: (
       <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
         <path d="M8 2v4" />

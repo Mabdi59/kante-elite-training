@@ -8,6 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import com.kanteelite.training.enums.EventType;
 
 @Entity
 @Table(name = "events")
@@ -46,6 +47,14 @@ public class Event {
     @Column(name = "end_at")
     private LocalDateTime endAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "coach_id")
+    private User coachUser;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean recurring = false;
+
     @Column(nullable = false)
     @Builder.Default
     private Integer capacity = 20;
@@ -68,6 +77,11 @@ public class Event {
 
     @Column(length = 50)
     private String type;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "event_type", length = 30)
+    @Builder.Default
+    private EventType eventType = EventType.ONE_TIME;
 
     @Column(length = 50)
     private String intensity;

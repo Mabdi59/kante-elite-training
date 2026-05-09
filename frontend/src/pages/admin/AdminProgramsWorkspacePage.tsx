@@ -8,6 +8,7 @@ import {
   getAdminProgramWorkflow,
   getAdminPrograms,
   getAdminUsers,
+  previewProgramSessions,
   removeAdminProgramParticipant,
   updateProgram,
 } from '../../services/api'
@@ -18,6 +19,7 @@ import type {
   PlayerProfile,
   Program,
   ProgramWorkflow,
+  SessionPreview,
 } from '../../types'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import EmptyState from '../../components/EmptyState'
@@ -26,7 +28,9 @@ import StatusBadge from '../../components/StatusBadge'
 import DatePickerField from '../../components/DatePickerField'
 
 const PROGRAM_STATUSES = ['UPCOMING', 'ACTIVE', 'COMPLETED'] as const
+const PROGRAM_TYPES = ['INDIVIDUAL', 'GROUP', 'CAMP', 'CLINIC', 'SHOWCASE'] as const
 const PARTICIPANT_MODES = ['USER', 'PLAYER', 'MANUAL'] as const
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
 
 type ParticipantMode = (typeof PARTICIPANT_MODES)[number]
 
@@ -36,6 +40,12 @@ type ProgramFormState = {
   shortDescription: string
   description: string
   location: string
+  coachId?: number
+  recurring: boolean
+  programType: string
+  weekdays: number[]
+  ruleStartTime: string
+  ruleEndTime: string
   startDate: string
   startTime: string
   endDate: string
@@ -58,6 +68,12 @@ const emptyForm: ProgramFormState = {
   shortDescription: '',
   description: '',
   location: '',
+  coachId: undefined,
+  recurring: false,
+  programType: 'GROUP',
+  weekdays: [1],
+  ruleStartTime: '17:00',
+  ruleEndTime: '18:30',
   startDate: '',
   startTime: '',
   endDate: '',
@@ -94,6 +110,12 @@ function toFormState(program?: Program): ProgramFormState {
     shortDescription: program.shortDescription ?? '',
     description: program.description ?? '',
     location: program.location ?? '',
+    coachId: program.coachId,
+    recurring: Boolean(program.recurring),
+    programType: program.programType ?? 'GROUP',
+    weekdays: (program.scheduleRules ?? []).map((rule) => rule.dayOfWeek),
+    ruleStartTime: (program.scheduleRules?.[0]?.startTime ?? '17:00').slice(0, 5),
+    ruleEndTime: (program.scheduleRules?.[0]?.endTime ?? '18:30').slice(0, 5),
     startDate: start.date,
     startTime: start.time,
     endDate: end.date,
@@ -112,14 +134,27 @@ function toFormState(program?: Program): ProgramFormState {
 }
 
 function buildProgramPayload(form: ProgramFormState): Partial<Program> {
+  const scheduleRules = form.recurring
+    ? form.weekdays.map((dayOfWeek) => ({
+        dayOfWeek,
+        startTime: form.ruleStartTime,
+        endTime: form.ruleEndTime,
+      }))
+    : []
   return {
     name: form.name.trim(),
     slug: form.slug.trim(),
     shortDescription: form.shortDescription.trim(),
     description: form.description.trim(),
     location: form.location.trim(),
+    coachId: form.coachId,
+    recurring: form.recurring,
+    programType: form.programType,
+    startDate: form.startDate || undefined,
+    endDate: form.endDate || undefined,
     startAt: combineDateTime(form.startDate, form.startTime),
     endAt: combineDateTime(form.endDate, form.endTime),
+    scheduleRules,
     capacity: Math.max(1, Number(form.capacity) || 20),
     status: form.status,
     price: Number(form.price) || 0,
@@ -163,6 +198,7 @@ export default function AdminProgramsWorkspacePage() {
   const [selectedProgramId, setSelectedProgramId] = useState<number | null>(null)
   const [creatingNew, setCreatingNew] = useState(false)
   const [form, setForm] = useState<ProgramFormState>(emptyForm)
+  const [sessionPreview, setSessionPreview] = useState<SessionPreview[]>([])
   const [participantMode, setParticipantMode] = useState<ParticipantMode>('USER')
   const [participantSearch, setParticipantSearch] = useState('')
   const [participantForm, setParticipantForm] = useState<ParticipantAssignmentFormData>({})
@@ -268,6 +304,25 @@ export default function AdminProgramsWorkspacePage() {
       setSelectedProgramId(requestedProgramId)
     }
   }, [creatingNew, programs, requestedProgramId, selectedProgramId])
+
+  useEffect(() => {
+    if (form.coachId || users.length === 0) return
+    const defaultCoach = users.find((user) => user.role === 'COACH') ?? users.find((user) => user.role === 'ADMIN')
+    if (defaultCoach) {
+      setForm((prev) => ({ ...prev, coachId: defaultCoach.id }))
+    }
+  }, [form.coachId, users])
+
+  useEffect(() => {
+    if (!form.startDate || (!form.recurring && !form.startTime)) {
+      setSessionPreview([])
+      return
+    }
+    const payload = buildProgramPayload(form)
+    previewProgramSessions(payload)
+      .then(setSessionPreview)
+      .catch(() => setSessionPreview([]))
+  }, [form])
 
   const openProgram = (programId: number) => {
     setCreatingNew(false)
@@ -687,8 +742,54 @@ export default function AdminProgramsWorkspacePage() {
                       <div className="mb-5">
                         <h3 className="text-white font-bold text-xl">Schedule</h3>
                         <p className="text-gray-400 text-sm mt-1">
-                          Set the start and end window for this program.
+                          Set one-time or recurring rules. Sessions are generated automatically.
                         </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <label className="block text-gray-400 text-sm mb-1">Coach</label>
+                          <select
+                            value={form.coachId ?? ''}
+                            onChange={(e) => setForm((prev) => ({ ...prev, coachId: Number(e.target.value) || undefined }))}
+                            className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
+                          >
+                            <option value="">Select coach</option>
+                            {users
+                              .filter((user) => user.role === 'COACH' || user.role === 'ADMIN')
+                              .map((coach) => (
+                                <option key={coach.id} value={coach.id}>
+                                  {coach.name}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-gray-400 text-sm mb-1">Program Type</label>
+                          <select
+                            value={form.programType}
+                            onChange={(e) => setForm((prev) => ({ ...prev, programType: e.target.value }))}
+                            className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
+                          >
+                            {PROGRAM_TYPES.map((programType) => (
+                              <option key={programType} value={programType}>
+                                {programType}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 mb-4">
+                        <label className="text-sm text-gray-300 flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={form.recurring}
+                            onChange={(e) => setForm((prev) => ({ ...prev, recurring: e.target.checked }))}
+                            className="w-4 h-4 accent-green-500"
+                          />
+                          Recurring schedule
+                        </label>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -722,6 +823,82 @@ export default function AdminProgramsWorkspacePage() {
                           />
                         </div>
                       </div>
+
+                      {form.recurring ? (
+                        <div className="mt-4 space-y-3">
+                          <div>
+                            <label className="block text-gray-400 text-sm mb-1">Weekdays</label>
+                            <div className="flex flex-wrap gap-2">
+                              {WEEKDAYS.map((day, idx) => {
+                                const selected = form.weekdays.includes(idx)
+                                return (
+                                  <button
+                                    key={day}
+                                    type="button"
+                                    onClick={() =>
+                                      setForm((prev) => ({
+                                        ...prev,
+                                        weekdays: selected
+                                          ? prev.weekdays.filter((value) => value !== idx)
+                                          : [...prev.weekdays, idx].sort((a, b) => a - b),
+                                      }))
+                                    }
+                                    className={`px-3 py-1.5 rounded-full text-xs border ${
+                                      selected
+                                        ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                                        : 'bg-black border-gray-700 text-gray-400'
+                                    }`}
+                                  >
+                                    {day}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-gray-400 text-sm mb-1">Recurring Start Time</label>
+                              <input
+                                type="time"
+                                value={form.ruleStartTime}
+                                onChange={(e) => setForm((prev) => ({ ...prev, ruleStartTime: e.target.value }))}
+                                className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-gray-400 text-sm mb-1">Recurring End Time</label>
+                              <input
+                                type="time"
+                                value={form.ruleEndTime}
+                                onChange={(e) => setForm((prev) => ({ ...prev, ruleEndTime: e.target.value }))}
+                                className="w-full bg-black border border-gray-800 rounded-lg px-3 py-2 text-white text-sm"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {sessionPreview.length > 0 ? (
+                        <div className="mt-5 rounded-xl border border-gray-800 bg-black/40 p-4">
+                          <p className="text-white text-sm font-semibold mb-2">Live session preview</p>
+                          <div className="space-y-1 max-h-48 overflow-auto pr-1">
+                            {sessionPreview.map((item) => (
+                              <div key={`${item.startDatetime}-${item.endDatetime}`} className="text-xs text-gray-300 flex flex-wrap items-center gap-2">
+                                <span>{new Date(item.startDatetime).toLocaleString()}</span>
+                                {item.conflict ? (
+                                  <span className="text-red-300 bg-red-500/15 border border-red-500/30 rounded-full px-2 py-0.5">
+                                    Conflict: {item.reasons.join(' ')}
+                                  </span>
+                                ) : (
+                                  <span className="text-green-300 bg-green-500/15 border border-green-500/30 rounded-full px-2 py-0.5">
+                                    OK
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
                     </section>
 
                     <div className="flex items-center justify-between gap-3 flex-wrap">

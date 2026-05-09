@@ -5,6 +5,7 @@ import com.kanteelite.training.dto.request.SimpleEventRegistrationRequest;
 import com.kanteelite.training.dto.response.ApiResponse;
 import com.kanteelite.training.dto.response.EventResponse;
 import com.kanteelite.training.dto.response.ManagedParticipantResponse;
+import com.kanteelite.training.dto.response.SessionResponse;
 import com.kanteelite.training.service.EventService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,11 @@ public class EventController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<EventResponse>> getEventById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(eventService.getEventById(id)));
+    }
+
+    @GetMapping("/{id}/sessions")
+    public ResponseEntity<ApiResponse<List<SessionResponse>>> getEventSessions(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(eventService.getEventSessions(id, true)));
     }
 
     /**

@@ -43,6 +43,7 @@ const FaqPage = lazy(() => import('./pages/FaqPage'))
 
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'))
 const AdminBookingsPage = lazy(() => import('./pages/admin/AdminBookingsPage'))
+const AdminRegistrationsPage = lazy(() => import('./pages/admin/AdminRegistrationsPage'))
 const AdminProgramsPage = lazy(() => import('./pages/admin/AdminProgramsWorkspacePage'))
 const AdminEventsPage = lazy(() => import('./pages/admin/AdminEventsWorkspacePage'))
 const AdminTournamentsPage = lazy(() => import('./pages/admin/AdminTournamentsPage'))
@@ -458,6 +459,16 @@ export default function App() {
                 <ProtectedRoute requireAdmin>
                   <AdminLayout>
                     <AdminBookingsPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/registrations"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <AdminRegistrationsPage />
                   </AdminLayout>
                 </ProtectedRoute>
               }
