@@ -16,6 +16,13 @@ class MediaCategoryConverterTest {
     }
 
     @Test
+    void convertToEntityAttribute_returnsNullForBlankValues() {
+        assertNull(converter.convertToEntityAttribute(null));
+        assertNull(converter.convertToEntityAttribute(""));
+        assertNull(converter.convertToEntityAttribute("   "));
+    }
+
+    @Test
     void convertToEntityAttribute_returnsEnumForSupportedValue() {
         assertEquals(MediaCategory.TRAINING_PHOTO, converter.convertToEntityAttribute("TRAINING_PHOTO"));
     }
@@ -23,5 +30,10 @@ class MediaCategoryConverterTest {
     @Test
     void convertToDatabaseColumn_returnsEnumName() {
         assertEquals("MATCH_HIGHLIGHT", converter.convertToDatabaseColumn(MediaCategory.MATCH_HIGHLIGHT));
+    }
+
+    @Test
+    void convertToDatabaseColumn_returnsNullForNullCategory() {
+        assertNull(converter.convertToDatabaseColumn(null));
     }
 }
